@@ -1,9 +1,14 @@
 import os
 
+db_user = 'root'
+db_password = 'root'
+db_host = '127.0.0.1'
+db_port = 3306
+
 CONFIGS = {
     'DEBUG': False,
     # mysql数据库的配置信息
-    'SQLALCHEMY_DATABASE_URI': 'mysql+pymysql://root:root@127.0.0.1:3306/zero_autotest?charset=UTF8MB4',
+    'SQLALCHEMY_DATABASE_URI': f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/zero_autotest?charset=UTF8MB4',
     # 动态追踪修改设置，如未设置只会提示警告
     'SQLALCHEMY_TRACK_MODIFICATIONS': False,
     # 查询时会显示原始SQL语句
@@ -65,7 +70,7 @@ CONFIGS = {
     ),
 
     # 定时任务
-    'beat_dburi': 'mysql+pymysql://root:root@127.0.0.1:3306/zero_autotest?charset=UTF8MB4',
+    'beat_dburi': f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/zero_autotest?charset=UTF8MB4',
     # 定时任务
     # 'CELERYBEAT_SCHEDULE': {
     # 'batch_main_hrun': {
