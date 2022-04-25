@@ -1,8 +1,8 @@
 import os
 
 db_user = 'root'
-db_password = 'Bai.041916'
-db_host = 'xiaobaicodes.com'
+db_password = 'root'
+db_host = '127.0.0.1'
 db_port = 3306
 
 CONFIGS = {
