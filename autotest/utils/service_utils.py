@@ -215,6 +215,10 @@ def make_testcase(kwargs: Any):
                 data_value = data.pop('value')
                 data_key = data.pop('key')
                 if data_type == 'file':
+                    abspath = data_value.get('abspath', '')
+                    file_name = data_value.get('name', '')
+                    if not os.path.exists(abspath):
+                        raise FileNotFoundError(f'文件 {file_name} 找不到~')
                     upload_dict[data_key] = data_value.get('abspath', '')
                 else:
                     upload_dict[data_key] = data_value

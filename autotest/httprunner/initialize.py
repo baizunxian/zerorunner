@@ -8,10 +8,10 @@ from loguru import logger
 from autotest.httprunner import Config as HrConfig, RunRequest, exceptions, __version__
 from autotest.httprunner import HttpRunner
 from autotest.httprunner.compat import ensure_path_sep, ensure_testcase_v3_api, ensure_testcase_v3
-from autotest.httprunner.loader import load_project_meta, load_folder_files, load_test_file, load_testcase, \
+from autotest.httprunner.loader import load_folder_files, load_test_file, load_testcase, \
     load_debugtalk_functions, locate_project_root_directory
-from autotest.httprunner.make import make_config_chain_style, make_teststep_chain_style, __TEMPLATE__
 from autotest.httprunner.make import __ensure_testcase_module as _ensure_testcase_module
+from autotest.httprunner.make import make_config_chain_style, make_teststep_chain_style, __TEMPLATE__
 from autotest.httprunner.models import ProjectMeta
 from autotest.httprunner.parser import parse_data
 from autotest.httprunner.response import uniform_validator
@@ -208,13 +208,14 @@ class TestCaseRunner(HttpRunner):
 
 
 class TestCaseMate:
-    def __init__(self, tests_paths: List[Text]):
+    def __init__(self):
         self.project_meta = None
         self.pytest_files_made_cache_mapping = {}
         self.pytest_files_run_set = set()
-        self.tests_paths = tests_paths
+        self.tests_paths = []
 
-    def main_make(self):
+    def main_make(self, tests_paths: List[Text]):
+        self.tests_paths = tests_paths
         # 初始化项目
         for tests_path in self.tests_paths:
             tests_path = ensure_path_sep(tests_path)

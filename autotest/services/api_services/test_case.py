@@ -81,7 +81,7 @@ class CaseService:
         """执行测试用例"""
         run_type_data = CaseService.handle_run_type(**kwargs)
         testcase_dir_path = run_type_data.get('testcase_dir_path', None)
-        test_path_set = TestCaseMate([testcase_dir_path]).main_make()
+        test_path_set = TestCaseMate().main_make([testcase_dir_path])
         params = dict(test_path_set=test_path_set,
                       testcase_dir_path=testcase_dir_path,
                       run_type_data=run_type_data)
@@ -125,7 +125,7 @@ class CaseService:
         }
         dict_testcase_2_yaml(**debug_data)
         summary_path = os.path.join(testcase_dir_path, case_hex, 'summary.json')
-        test_path_set = main_make([testcase_dir_path])
+        test_path_set = TestCaseMate().main_make([testcase_dir_path])
         extra_args_new = ['-vs', '-W', 'ignore:Module already imported:pytest.PytestWarning']
         extra_args_new.extend(test_path_set)
         try:
