@@ -2,6 +2,7 @@
 from autotest.views.system.user import bp as user
 from autotest.views.system.menu import bp as menu
 from autotest.views.system.roles import bp as roles
+from autotest.views.system.file import bp as file
 # api
 from autotest.views.api.project import bp as project
 from autotest.views.api.module import bp as module
@@ -18,6 +19,7 @@ def register_app(app):
     app.register_blueprint(user)
     app.register_blueprint(menu)
     app.register_blueprint(roles)
+    app.register_blueprint(file)
     # api
     app.register_blueprint(project)
     app.register_blueprint(module)

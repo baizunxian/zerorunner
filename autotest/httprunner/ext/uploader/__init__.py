@@ -143,12 +143,16 @@ def multipart_encoder(**kwargs):
             is_exists_file = os.path.isfile(value)
         else:
             # value is not absolute file path, check if it is relative file path
-            from httprunner.loader import load_project_meta
+            # from httprunner.loader import load_project_meta
+            #
+            # project_meta = load_project_meta("")
+            #
+            # _file_path = os.path.join(project_meta.RootDir, value)
+            # is_exists_file = os.path.isfile(_file_path)
 
-            project_meta = load_project_meta("")
-
-            _file_path = os.path.join(project_meta.RootDir, value)
-            is_exists_file = os.path.isfile(_file_path)
+            # 修改 不支持相对路径
+            _file_path = os.path.join('', value)
+            is_exists_file = ''
 
         if is_exists_file:
             # value is file path to upload

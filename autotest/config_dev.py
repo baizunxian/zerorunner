@@ -6,7 +6,7 @@ db_host = '127.0.0.1'
 db_port = 3306
 
 CONFIGS = {
-    'DEBUG': False,
+    'DEBUG': True,
     # mysql数据库的配置信息
     'SQLALCHEMY_DATABASE_URI': f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/zero_autotest?charset=UTF8MB4',
     # 动态追踪修改设置，如未设置只会提示警告
@@ -20,7 +20,8 @@ CONFIGS = {
     # 设置密钥，可以通过 base64.b64encode(os.urandom(48)) 来生成一个指定长度的随机字符串
     'SECRET_KEY': "ghhBljAa0uzw2afLqJOXrukORE4BlkTY/1vaMuDh6opQ3uwGYtsDUyxcH62Aw3ju",
     'BASEDIR': os.path.abspath(os.path.dirname(__file__)),
-    'TEAT_DIR': os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'suite'),
+    'TEST_DIR': os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'suite'),
+    'TEST_FILES_DIR': os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'files'),
     'REPORT_DIR': os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'reports'),
 
     # redis 信息
@@ -85,9 +86,8 @@ CONFIGS = {
     #     }
     # },
 
-    # 测试用例地址
-    "TEST_CASE_PATH_DIR": os.path.join(os.getcwd(), "suite"),
-
     # 是能能编辑自己创建开关
     "EDIT_SWITCH": False,
+
+    "SERVICE_DIR": ""
 }

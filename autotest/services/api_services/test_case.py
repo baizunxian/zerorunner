@@ -11,6 +11,7 @@ from loguru import logger
 from autotest.config import config
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
+from autotest.httprunner.initialize import TestCaseMate
 from autotest.httprunner.make import main_make
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
 from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
@@ -80,7 +81,7 @@ class CaseService:
         """执行测试用例"""
         run_type_data = CaseService.handle_run_type(**kwargs)
         testcase_dir_path = run_type_data.get('testcase_dir_path', None)
-        test_path_set = main_make([testcase_dir_path])
+        test_path_set = TestCaseMate([testcase_dir_path]).main_make()
         params = dict(test_path_set=test_path_set,
                       testcase_dir_path=testcase_dir_path,
                       run_type_data=run_type_data)
@@ -238,4 +239,4 @@ class CaseService:
 
     @staticmethod
     def get_testcase_dir_path() -> str:
-        return os.path.join(config.TEAT_DIR, f'run_test_{get_timestamp()}')
+        return os.path.join(config.TEST_DIR, f'run_test_{get_timestamp()}')

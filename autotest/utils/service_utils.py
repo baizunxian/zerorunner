@@ -110,12 +110,12 @@ def dict_testcase_2_yaml(case_info: Dict, base_url: str, testcase_dir_path: str,
         test_case_info = CaseInfo.get(include_id)
         if test_case_info:
             pre_testcase = json.loads(test_case_info.testcase)
-            pre_testcase.get('request').pop('type')
+            # pre_testcase.get('request').pop('type')
             pre_testcase['id'] = case_id
             testcase['teststeps'].append(pre_testcase)
 
     if testcase_body['request']['url'] != '':
-        testcase_body.get('request').pop('type')
+        # testcase_body.get('request').pop('type')
         testcase_body['case_id'] = case_id
         testcase['teststeps'].append(testcase_body)
 
@@ -193,7 +193,8 @@ def make_testcase(kwargs: Any):
 
     request_info = testcase.get('request', {})
     if request_info:
-        if request_info.get('type') == 'params':
+        req_type = request_info.pop('type', None)
+        if req_type == 'params':
             params_data = request_info.pop('params', [])
             params_dict = {}
             for data in params_data:
@@ -205,6 +206,20 @@ def make_testcase(kwargs: Any):
                     raise ValueError('{}:{} 类型错误,不是{}类型'.format(params_key, params_value, params_type))
                 params_dict[params_key] = value
             request_info.setdefault('params', params_dict)
+
+        elif req_type == 'form_data':
+            form_data = request_info.pop('form_data', [])
+            upload_dict = {}
+            for data in form_data:
+                data_type = data.pop('type')
+                data_value = data.pop('value')
+                data_key = data.pop('key')
+                if data_type == 'file':
+                    upload_dict[data_key] = data_value.get('abspath', '')
+                else:
+                    upload_dict[data_key] = data_value
+            request_info.setdefault('upload', upload_dict)
+
     if 'headers' in request_info:
         headers = request_info.pop('headers', {})
         request_info.setdefault('headers', headers)
@@ -221,21 +236,6 @@ def make_testcase(kwargs: Any):
         extract = testcase.pop('extract', [])
         testcase.setdefault('extract', extract)
 
-    """
-    前端数据格式
-    {
-        "check":"content.code",
-        "comparator":"equals",
-        "expected":"0",
-        "type":"int"
-    }
-    转换数据格式, 将 expected 根据类型转换成对应的数据类型
-    {
-        "check":"content.code",
-        "comparator":"equals",
-        "expected":0
-    }
-    """
     if 'validate' in testcase:
         validate = testcase.pop('validate')
         validate_list = []
@@ -249,6 +249,7 @@ def make_testcase(kwargs: Any):
             v_info = {validate_dict['comparator']: [validate_dict['check'], validate_dict['expected']]}
             validate_list.append(v_info)
         testcase.setdefault('validate', validate_list)
+
     if 'variables' in testcase:
         variables = testcase.pop('variables')
         variables_dict = {}
