@@ -1,6 +1,5 @@
 import copy
 import os
-import sys
 import time
 import traceback
 import uuid
@@ -108,7 +107,7 @@ class HttpRunner(object):
         return self
 
     def __call_hooks(
-        self, hooks: Hooks, step_variables: VariablesMapping, hook_msg: Text,
+            self, hooks: Hooks, step_variables: VariablesMapping, hook_msg: Text,
     ) -> NoReturn:
         """ call hook actions.
 
@@ -277,11 +276,11 @@ class HttpRunner(object):
             testcase_cls = step.testcase
             case_result = (
                 testcase_cls()
-                .with_session(self.__session)
-                .with_case_id(self.__case_id)
-                .with_variables(step_variables)
-                .with_export(step_export)
-                .run()
+                    .with_session(self.__session)
+                    .with_case_id(self.__case_id)
+                    .with_variables(step_variables)
+                    .with_export(step_export)
+                    .run()
             )
 
         elif isinstance(step.testcase, Text):
@@ -294,11 +293,11 @@ class HttpRunner(object):
 
             case_result = (
                 HttpRunner()
-                .with_session(self.__session)
-                .with_case_id(self.__case_id)
-                .with_variables(step_variables)
-                .with_export(step_export)
-                .run_path(ref_testcase_path)
+                    .with_session(self.__session)
+                    .with_case_id(self.__case_id)
+                    .with_variables(step_variables)
+                    .with_export(step_export)
+                    .run_path(ref_testcase_path)
             )
 
         else:
