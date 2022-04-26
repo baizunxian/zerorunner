@@ -1,31 +1,25 @@
 import json
-import time
-from typing import Dict, Any, NoReturn
+from typing import Dict, Any, Text
 
+from autotest.models.api_models import TestReports
 from autotest.serialize.api_serializes.test_report import (
     TestReportQuerySchema, ReportsListSchema, TestReportSaveSchema,
     TestReportMakeSchema, ReportsLInfoSchema)
-from autotest.models.api_models import TestReports
 from autotest.utils.api import parse_pagination
 
 
 class ReportService:
 
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        获取报告列表
+        :param kwargs:
+        :return:
+        """
         parsed_data = TestReportQuerySchema().load(kwargs)
         data = parse_pagination(TestReports.get_list(**parsed_data))
         _result, pagination = data.get('result'), data.get('pagination')
-
-        # test_count = i['test_count']
-        # batch_id = i['id']
-        # # 如果运行用例数还没有回写，就去redis中查询
-        # if test_count is None:
-        #     statis_key = TEST_EXECUTE_STATIS.format(batch_id)
-        # ex_count = br.hget(statis_key, 'ex_count') if br.hget(statis_key, 'ex_count') else 0
-        # start_datetime = br.hget(statis_key, 'start_datetime')
-        # i['test_count'] = ex_count
-        # i['start_at'] = start_datetime
 
         result = {
             'rows': ReportsListSchema().dump(_result, many=True)
@@ -34,7 +28,12 @@ class ReportService:
         return result
 
     @staticmethod
-    def make_report(**kwargs: Any) -> Dict:
+    def make_report(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        处理报告
+        :param kwargs:
+        :return:
+        """
         report_body = TestReportMakeSchema().load(kwargs)
         time_dict = report_body['time']
         teststeps_info = report_body['stat'].get('teststeps', {})
@@ -60,17 +59,33 @@ class ReportService:
         )
 
     @staticmethod
-    def save_report(**kwargs: Any):
+    def save_report(**kwargs: Any) -> "TestReports":
+        """
+        保存报告
+        :param kwargs:
+        :return:
+        """
         report_body = TestReportSaveSchema().load(kwargs)
         test_report = TestReports()
         test_report.update(**report_body)
+        return test_report
 
     @staticmethod
-    def deleted(report_id: int) -> NoReturn:
+    def deleted(report_id: int):
+        """
+        删除报告
+        :param report_id:
+        :return:
+        """
         test_reports = TestReports.get(report_id)
         test_reports.deleted() if test_reports else ...
 
     @staticmethod
-    def get_report_by_id(report_id: int) -> Dict:
+    def get_report_by_id(report_id: int) -> Dict[Text, Any]:
+        """
+        根据id获取报告详情
+        :param report_id:
+        :return:
+        """
         report_info = TestReports.get(report_id)
         return ReportsLInfoSchema().dump(report_info)

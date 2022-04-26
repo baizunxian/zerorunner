@@ -6,8 +6,7 @@ from typing import Any, Dict, Union, Text
 
 from autotest.config import config
 from autotest.httprunner.loader import load_func_meta
-from autotest.httprunner.parser import function_regex_compile, get_mapping_function, parse_function_params, \
-    parse_string_value
+from autotest.httprunner.parser import get_mapping_function, parse_string_value
 from autotest.models.api_models import DebugTalk
 from autotest.serialize.api_serializes.debug_talk import DebugTalkQuerySchema, DebugTalkListSchema, \
     DebugTalkSaveOrUpdateSchema, DebugTalkDebugSchema
@@ -18,7 +17,12 @@ class DebugTalkService:
     """自定义函数类"""
 
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        获取函数列表
+        :param kwargs:
+        :return:
+        """
         query_data = DebugTalkQuerySchema().load(kwargs)
         data = parse_pagination(DebugTalk.get_list(**query_data))
         _result, pagination = data.get('result'), data.get('pagination')
@@ -29,7 +33,12 @@ class DebugTalkService:
         return result
 
     @staticmethod
-    def get_debug_talk_info(**kwargs: Any) -> Dict:
+    def get_debug_talk_info(**kwargs: Any) -> Dict[Text, Text]:
+        """
+        获取自定义函数信息
+        :param kwargs:
+        :return:
+        """
         query_data = DebugTalkQuerySchema().load(kwargs)
         d_id = query_data.get('id', None)
         common = query_data.get('common', None)
@@ -50,8 +59,12 @@ class DebugTalkService:
         return debug_talk_info
 
     @staticmethod
-    def save_or_update(**kwargs: Any) -> DebugTalk:
-        """自定义函数保存方法"""
+    def save_or_update(**kwargs: Any) -> "DebugTalk":
+        """
+        自定义函数保存方法
+        :param kwargs:
+        :return:
+        """
         parsed_data = DebugTalkSaveOrUpdateSchema().load(kwargs)
         d_id = parsed_data.get('id', None)
         debug_info = DebugTalk.get(d_id) if d_id else DebugTalk()
@@ -59,7 +72,12 @@ class DebugTalkService:
         return debug_info
 
     @staticmethod
-    def debug_func(**kwargs: Any):
+    def debug_func(**kwargs: Any) -> Any:
+        """
+        调试函数
+        :param kwargs:
+        :return:
+        """
         parsed_data = DebugTalkDebugSchema().load(kwargs)
         func_id = parsed_data.get('id', None)
         args_info = parsed_data.get('args_info', None)
@@ -78,7 +96,13 @@ class DebugTalkService:
             raise ValueError(err)
 
     @staticmethod
-    def get_function_by_path(func_id: Union[str, int, None] = None, name: Text = None) -> Dict:
+    def get_function_by_path(func_id: Union[str, int, None] = None, name: Text = None) -> Dict[Text, Any]:
+        """
+        获取函数信息
+        :param func_id:
+        :param name:
+        :return:
+        """
         file_info = DebugTalkService.handle_func_file_path(func_id)
         debug_talk_path = file_info.get('debug_talk_path', '')
         content = file_info.get('content', '')
@@ -109,6 +133,11 @@ class DebugTalkService:
 
     @staticmethod
     def handle_func_file_path(func_id: Union[int, str, None]) -> Dict[Text, Text]:
+        """
+        处理函数
+        :param func_id:
+        :return:
+        """
         common_debug_talk_path = os.path.join(os.getcwd(), 'autotest', 'utils', 'basic_function.py')
         w = open(common_debug_talk_path, encoding='utf8')
         common_content = w.read()
@@ -133,7 +162,12 @@ class DebugTalkService:
         return data
 
     @staticmethod
-    def handle_func_info(func: FunctionType) -> dict:
+    def handle_func_info(func: FunctionType) -> Dict[Text, Any]:
+        """
+        处理函数返回函数信息
+        :param func:
+        :return:
+        """
         func_info = inspect.signature(func)
         parameters = func_info.parameters
         args_dict = dict()

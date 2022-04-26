@@ -14,7 +14,10 @@ bp = Blueprint('suites', __name__, url_prefix='/api/testSuites')
 @login_verification
 @json_required
 def suites_list():
-    """套件列表"""
+    """
+    套件列表
+    :return:
+    """
     try:
         data = TestSuitesService.list(**request.json)
     except Exception as err:
@@ -27,7 +30,10 @@ def suites_list():
 @login_verification
 @json_required
 def save_or_update():
-    """更新保存套件"""
+    """
+    更新保存套件
+    :return:
+    """
     try:
         data = TestSuitesService.save_or_update(**request.json)
     except Exception as err:
@@ -40,7 +46,10 @@ def save_or_update():
 @login_verification
 @json_required
 def deleted():
-    """删除套件"""
+    """
+    删除套件
+    :return:
+    """
     parsed_data = request.json
     s_id = parsed_data.get('id', None)
     try:
@@ -55,7 +64,10 @@ def deleted():
 @login_verification
 @json_required
 def suite_info():
-    """套件信息"""
+    """
+    套件信息
+    :return:
+    """
     try:
         data = TestSuitesService.get_suite_info(**request.json)
     except Exception as err:

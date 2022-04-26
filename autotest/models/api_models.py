@@ -410,6 +410,7 @@ class TestReports(Base, TimestampMixin):
     scene_num = Column(Integer, nullable=True, comment='用例数量')
     duration = Column(String(255), nullable=True, comment='用例执行时长')
     run_type = Column(String(100), nullable=True, comment='运行类型 手动, 定时任务, 异步', default=10)
+    run_mode = Column(String(100), nullable=True, comment='运行模式，1同步，2异步，3定时任务')
     task_type = Column(String(100), nullable=True, comment='任务类型, test,module,project')
     project_id = Column(Integer, nullable=True, comment='项目id')
     module_id = Column(Integer, nullable=True, comment='模块id')
@@ -460,6 +461,7 @@ class TestReports(Base, TimestampMixin):
                            cls.scene_num,
                            cls.duration,
                            cls.run_type,
+                           cls.run_mode,
                            cls.task_type,
                            cls.project_id,
                            cls.module_id,

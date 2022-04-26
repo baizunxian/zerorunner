@@ -1,5 +1,5 @@
 import traceback
-from typing import Any, NoReturn, Dict
+from typing import Any, Dict, Text
 
 from loguru import logger
 
@@ -15,7 +15,12 @@ from autotest.utils.common import get_user_id_by_token
 
 class ProjectService:
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        获取项目列表
+        :param kwargs:
+        :return:
+        """
         query_data = ProjectQuerySchema().load(kwargs)
         data = parse_pagination(
             ProjectInfo.get_project_list(**query_data))
@@ -27,7 +32,12 @@ class ProjectService:
         return result
 
     @staticmethod
-    def save_or_update(**kwargs: Any) -> ProjectInfo:
+    def save_or_update(**kwargs: Any) -> "ProjectInfo":
+        """
+        更新保存项目
+        :param kwargs:
+        :return:
+        """
         user_id = get_user_id_by_token()
         project_name = kwargs.get('name')
         project_info = ProjectInfo.get(kwargs.get('id')) if kwargs.get('id', None) else ProjectInfo()
@@ -52,8 +62,12 @@ class ProjectService:
         return project_info
 
     @staticmethod
-    def deleted(id: int) -> NoReturn:
-        """删除项目"""
+    def deleted(id: int):
+        """
+        删除项目
+        :param id:
+        :return:
+        """
         project = ProjectInfo.get(id)
         user_id = get_user_id_by_token()
         if project:

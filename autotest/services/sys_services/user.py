@@ -1,6 +1,6 @@
 import traceback
 import uuid
-from typing import Dict, Union, NoReturn, Any
+from typing import Dict, Union, Any, Text
 
 from flask import request
 from loguru import logger
@@ -12,8 +12,8 @@ from autotest.exc.partner_message import partner_errmsg
 from autotest.models.sys_models import User, Menu, Roles
 from autotest.serialize.sys_serializes.menu import MenuListSchema
 from autotest.serialize.sys_serializes.user import (UserListSchema, UserRegisterSchema, UserQuery)
-from autotest.utils.api import parse_pagination
 from autotest.services.sys_services.menu import MenuService
+from autotest.utils.api import parse_pagination
 from autotest.utils.des import encrypt_rsa_password, decrypt_rsa_password
 
 
@@ -21,7 +21,7 @@ class UserService:
     """用户类"""
 
     @staticmethod
-    def login(**kwargs: Any) -> Dict:
+    def login(**kwargs: Any) -> Dict[Text, Any]:
         """
         登录
         :return:
@@ -73,7 +73,7 @@ class UserService:
             logger.error(traceback.format_exc())
 
     @staticmethod
-    def user_register(**kwargs: Any) -> User:
+    def user_register(**kwargs: Any) -> "User":
         """用户注册"""
         try:
             user_data = UserRegisterSchema().load(kwargs)
@@ -87,7 +87,7 @@ class UserService:
             raise ValueError(err)
 
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
         """
         获取用户列表
         :param kwargs:  查询参数
@@ -104,7 +104,7 @@ class UserService:
         return result
 
     @staticmethod
-    def save_or_update(**kwargs: Any) -> Dict:
+    def save_or_update(**kwargs: Any) -> "User":
         """
         用户保存方法
         :param kwargs: 用户字段
@@ -122,7 +122,7 @@ class UserService:
         return user
 
     @staticmethod
-    def deleted(id: Union[str, int]) -> NoReturn:
+    def deleted(id: Union[str, int]):
         """
         删除用户
         :param kwargs:
@@ -135,7 +135,7 @@ class UserService:
             logger.error(traceback.format_exc())
 
     @staticmethod
-    def check_token(token: str) -> Dict:
+    def check_token(token: str) -> Dict[Text, Any]:
         """
         校验token
         :param token: token
@@ -152,7 +152,7 @@ class UserService:
         return user_info
 
     @staticmethod
-    def change_password(**kwargs: Any) -> User:
+    def change_password(**kwargs: Any) -> "User":
         """修改密码"""
         user_id = kwargs.get('user_id', None)
         old_pwd = kwargs.get('old_pwd', None)
@@ -174,7 +174,7 @@ class UserService:
         return user_info
 
     @staticmethod
-    def get_user_info_by_token(token: str) -> Dict:
+    def get_user_info_by_token(token: str) -> Dict[Text, Any]:
         """根据token获取用户信息"""
         user_info = br.get(TEST_USER_INFO.format(token))
         return user_info

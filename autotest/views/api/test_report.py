@@ -14,7 +14,10 @@ bp = Blueprint('test_report', __name__, url_prefix='/api/report', template_folde
 @login_verification
 @json_required
 def report_list():
-    """测试报告列表"""
+    """
+    测试报告列表
+    :return:
+    """
     try:
         data = ReportService.list(**request.json)
     except Exception as err:
@@ -27,7 +30,10 @@ def report_list():
 @login_verification
 @json_required
 def deleted():
-    """删除报告"""
+    """
+    删除报告
+    :return:
+    """
     parsed_data = request.json
     try:
         report_id = parsed_data.get('id', None)
@@ -42,7 +48,10 @@ def deleted():
 @login_verification
 @json_required
 def get_report_by_id():
-    """测试报告"""
+    """
+    测试报告
+    :return:
+    """
     parsed_data = request.json
     try:
         report_id = parsed_data.get('id', None)

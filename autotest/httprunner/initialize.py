@@ -1,7 +1,7 @@
 import os
 import string
 import sys
-from typing import Dict, Text, List, NoReturn, Tuple, Union, Any
+from typing import Dict, Text, List, Tuple, Union, Any, Set
 
 from loguru import logger
 
@@ -19,7 +19,7 @@ from autotest.httprunner.testcase import RequestWithOptionalArgs, Step, RunTestC
 
 
 class TestCaseRunner(HttpRunner):
-    def __init__(self, case_info_data: Dict) -> NoReturn:
+    def __init__(self, case_info_data: Dict):
         super(TestCaseRunner, self).__init__()
         self.__case_info: Dict = case_info_data
 
@@ -28,7 +28,7 @@ class TestCaseRunner(HttpRunner):
         self._init_teststeps()
         self.run()
 
-    def _init_config(self) -> NoReturn:
+    def _init_config(self):
         """
         init config
         :return:
@@ -106,7 +106,7 @@ class TestCaseRunner(HttpRunner):
 
         return step_info
 
-    def _init_teststeps(self) -> NoReturn:
+    def _init_teststeps(self):
         teststeps = self.__case_info.get('teststeps', None)
         if not teststeps:
             raise exceptions.ParamsError('-----lack teststeps------')
@@ -214,7 +214,7 @@ class TestCaseMate:
         self.pytest_files_run_set = set()
         self.tests_paths = []
 
-    def main_make(self, tests_paths: List[Text]):
+    def main_make(self, tests_paths: List[Text]) -> List[Set]:
         self.tests_paths = tests_paths
         # 初始化项目
         for tests_path in self.tests_paths:
@@ -224,13 +224,9 @@ class TestCaseMate:
 
             self.__make(tests_path)
 
-        # format pytest files
-        # pytest_files_format_list = pytest_files_made_cache_mapping.keys()
-        # format_pytest_with_black(*pytest_files_format_list)
-
         return list(self.pytest_files_run_set)
 
-    def __make(self, tests_path: Text) -> NoReturn:
+    def __make(self, tests_path: Text):
         """ make testcase(s) with testcase/testsuite/folder absolute path
             generated pytest file path will be cached in pytest_files_made_cache_mapping
 
@@ -430,6 +426,8 @@ class TestCaseMate:
                 environments and debugtalk.py functions.
 
         """
+        if self.project_meta:
+            return self.project_meta
 
         project_meta = ProjectMeta()
 
@@ -449,8 +447,9 @@ class TestCaseMate:
         project_meta.RootDir = project_root_directory
         project_meta.functions = debugtalk_functions
         project_meta.debugtalk_path = debugtalk_path
+        self.project_meta = project_meta
 
-        return project_meta
+        return self.project_meta
 
     def convert_testcase_path(self, testcase_abs_path: Text) -> Tuple[Text, Text]:
         """convert single YAML/JSON testcase path to python file"""
@@ -474,7 +473,7 @@ class TestCaseMate:
             path = path[len(".\\"):]
 
         path = ensure_path_sep(path)
-        self.project_meta = self.load_project_meta(path)
+        self.load_project_meta(path)
 
         if os.path.isabs(path):
             absolute_path = path
@@ -572,3 +571,7 @@ class TestCaseMate:
             raise exceptions.TestCaseFormatError(
                 f"Invalid variables format: {raw_variables}"
             )
+
+    def __del__(self):
+        if self.project_meta.RootDir in sys.path:
+            sys.path.remove(self.project_meta.RootDir)

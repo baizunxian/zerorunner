@@ -10,7 +10,6 @@ Usage:
 """
 
 from autotest.httprunner.ext.har2case.core import HarParser
-from sentry_sdk import capture_message
 
 
 def init_har2case_parser(subparsers):
@@ -43,7 +42,12 @@ def init_har2case_parser(subparsers):
     parser.add_argument(
         "--exclude",
         help="Specify exclude keyword, url that includes exclude string will be ignored, "
-        "multiple keywords can be joined with '|'",
+             "multiple keywords can be joined with '|'",
+    )
+    parser.add_argument(
+        "--profile",
+        dest="profile",
+        help="Specify yaml file to overwrite headers and cookies in HAR.",
     )
 
     return parser
@@ -59,7 +63,7 @@ def main_har2case(args):
     else:
         output_file_type = "pytest"
 
-    capture_message(f"har2case {output_file_type}")
-    HarParser(har_source_file, args.filter, args.exclude).gen_testcase(output_file_type)
+    ga_client.track_event(f"ConvertTests {output_file_type}")
+    HarParser(har_source_file, args.filter, args.exclude, args.profile).gen_testcase(output_file_type)
 
     return 0

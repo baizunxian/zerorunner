@@ -2,7 +2,7 @@ import ast
 import builtins
 import re
 import os
-from typing import Any, Set, Text, Callable, List, Dict, Union
+from typing import Any, Set, Text, Callable, List, Dict
 
 from loguru import logger
 from sentry_sdk import capture_exception
@@ -15,9 +15,10 @@ absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 # use $$ to escape $ notation
 dolloar_regex_compile = re.compile(r"\$\$")
 # variable notation, e.g. ${var} or $var
-variable_regex_compile = re.compile(r"\$\{(\w+)\}|\$(\w+)")
+# variable should start with a-zA-Z_
+variable_regex_compile = re.compile(r"\$\{([a-zA-Z_]\w*)\}|\$([a-zA-Z_]\w*)")
 # function notation, e.g. ${func1($var_1, $var_3)}
-function_regex_compile = re.compile(r"\$\{(\w+)\(([\$\w\.\-/\s=,]*)\)\}")
+function_regex_compile = re.compile(r"\$\{([a-zA-Z_]\w*)\(([\$\w\.\-/\s=,]*)\)\}")
 
 
 def parse_string_value(str_value: Text) -> Any:

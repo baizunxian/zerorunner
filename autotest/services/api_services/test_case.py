@@ -3,7 +3,7 @@ import os
 import shutil
 import traceback
 import uuid
-from typing import Dict, Any, List, Union, NoReturn
+from typing import Dict, Any, List, Union, Text
 
 import pytest
 from loguru import logger
@@ -12,19 +12,23 @@ from autotest.config import config
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
 from autotest.httprunner.initialize import TestCaseMate
-from autotest.httprunner.make import main_make
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
 from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
                                                          TestCaseRunSchema, TestCaseRunBodySchema)
 from autotest.services.api_services.test_report import ReportService
 from autotest.utils.api import parse_pagination
 from autotest.utils.common import get_user_id_by_token, get_timestamp
-from autotest.utils.service_utils import dict_testcase_2_yaml
+from autotest.utils.service_utils import DumpTestCase
 
 
 class CaseService:
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        获取用例/配置列表
+        :param kwargs:
+        :return:
+        """
         parsed_data = CaseQuerySchema().load(kwargs)
         data = parse_pagination(CaseInfo.get_list(**parsed_data))
         _result, pagination = data.get('result'), data.get('pagination')
@@ -36,7 +40,11 @@ class CaseService:
 
     @staticmethod
     def save_or_update(**kwargs: Any) -> CaseInfo:
-        """更新保存测试用例,配置"""
+        """
+        更新保存测试用例/配置
+        :param kwargs:
+        :return:
+        """
         parsed_data = CaseSaveOrUpdateSchema().load(kwargs)
         # case_data = make_testcase(**case_data)
         case_id = parsed_data.get('id', None)
@@ -51,7 +59,11 @@ class CaseService:
 
     @staticmethod
     def set_case_status(**kwargs: Any):
-        """用例失效生效"""
+        """
+        用例失效生效
+        :param kwargs:
+        :return:
+        """
         ids = kwargs.get('ids', None)
         for case_id in ids:
             case_info = CaseInfo.get(case_id)
@@ -60,15 +72,22 @@ class CaseService:
                 case_info.save()
 
     @staticmethod
-    def deleted(c_id: Union[int, str]) -> NoReturn:
-        """删除测试用例"""
+    def deleted(c_id: Union[int, str]):
+        """
+        删除测试用例
+        :param c_id:
+        :return:
+        """
         case_info = CaseInfo.get(c_id)
-        if not case_info:
-            ...
-        case_info.delete()
+        case_info.delete() if case_info else ...
 
     @staticmethod
-    def get_testcase_info(**kwargs: Any) -> Dict:
+    def get_testcase_info(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        获取用例信息
+        :param kwargs:
+        :return:
+        """
         c_id = kwargs.get('id', None)
         case_info = CaseInfo.get(c_id)
         if not case_info:
@@ -77,27 +96,32 @@ class CaseService:
         return case_info
 
     @staticmethod
-    def run_make(**kwargs: Any) -> Dict:
-        """执行测试用例"""
+    def run_make(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        执行测试用例
+        :param kwargs:
+        :return:
+        """
         run_type_data = CaseService.handle_run_type(**kwargs)
         testcase_dir_path = run_type_data.get('testcase_dir_path', None)
         test_path_set = TestCaseMate().main_make([testcase_dir_path])
-        params = dict(test_path_set=test_path_set,
-                      testcase_dir_path=testcase_dir_path,
-                      run_type_data=run_type_data)
+        params = dict(test_path_set=test_path_set, run_type_data=run_type_data)
+        logger.info('用例初始化完成~')
         return params
 
     @staticmethod
-    def run(test_path_set: List[str], testcase_dir_path: str, run_type_data: Dict) -> Dict:
+    def run(test_path_set: List[str], run_type_data: Dict) -> Dict[Text, Any]:
         """
+        运行用例
         :param test_path_set: py用例列表
-        :param testcase_dir_path: 用例目录地址
         :param run_type_data: 组装数据
         :return:
         """
+        testcase_dir_path = run_type_data['testcase_dir_path']  # 用例目录地址
         try:
             extra_args = ['-vs', '-W', 'ignore:Module already imported:pytest.PytestWarning']
             extra_args.extend(test_path_set)
+            logger.info('执行用例 ~')
             pytest.main(extra_args)
             summary_path = run_type_data['summary_path']
             summary_path = os.path.join(summary_path, 'summary.json')
@@ -113,8 +137,12 @@ class CaseService:
             shutil.rmtree(testcase_dir_path)
 
     @staticmethod
-    def debug_testcase(**kwargs: Any):
-        """用例调试"""
+    def debug_testcase(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        用例调试
+        :param kwargs:
+        :return:
+        """
         testcase_dir_path = CaseService.get_testcase_dir_path()
         case_hex = f'test_case{uuid.uuid4().hex[:6]}'
         debug_data = {
@@ -123,7 +151,7 @@ class CaseService:
             'testcase_dir_path': testcase_dir_path,
             'case_hex': case_hex
         }
-        dict_testcase_2_yaml(**debug_data)
+        DumpTestCase(**debug_data)
         summary_path = os.path.join(testcase_dir_path, case_hex, 'summary.json')
         test_path_set = TestCaseMate().main_make([testcase_dir_path])
         extra_args_new = ['-vs', '-W', 'ignore:Module already imported:pytest.PytestWarning']
@@ -142,9 +170,9 @@ class CaseService:
             # ...
 
     @staticmethod
-    def handle_run_type(**kwargs: Any) -> Dict:
+    def handle_run_type(**kwargs: Any) -> Dict[Text, Any]:
         """
-        不同模式运行
+        不同模式运行处理
         module 模块
         suite 套件
         case 用例
@@ -162,10 +190,11 @@ class CaseService:
         data = {
             'name': '',
             'summary_path': os.path.join(testcase_dir_path, case_hex),
-            'project_id': '',
-            'module_id': '',
-            'user_id': get_user_id_by_token(),
+            'project_id': None,
+            'module_id': None,
+            'execute_user_id': get_user_id_by_token(),
             'run_type': run_type,
+            'run_mode': parsed_data.get('run_mode', None),
             'testcase_dir_path': testcase_dir_path,
         }
 
@@ -187,7 +216,7 @@ class CaseService:
                     number_of_run=number_of_run,
                     case_hex=case_hex,
                 )
-                dict_testcase_2_yaml(**run_parsed_data)
+                DumpTestCase(**run_parsed_data)
 
         elif run_type == 'suite':
             suite_info = TestSuite.get(id)
@@ -207,7 +236,7 @@ class CaseService:
                     number_of_run=number_of_run,
                     case_hex=case_hex,
                 )
-                dict_testcase_2_yaml(**run_parsed_data)
+                DumpTestCase(**run_parsed_data)
         else:
             case_info = CaseInfo.get(id)
             if not case_info:
@@ -223,20 +252,25 @@ class CaseService:
                 number_of_run=number_of_run,
                 case_hex=case_hex,
             )
-            dict_testcase_2_yaml(**run_parsed_data)
+            DumpTestCase(**run_parsed_data)
         return data
 
     @staticmethod
     def handle_report_summary(summary: Dict, run_type_data: Dict):
-        """处理报告并入库"""
+        """
+        处理报告并入库
+        :param summary:
+        :param run_type_data:
+        :return:
+        """
         test_report = ReportService.make_report(**summary)
-        test_report['name'] = run_type_data.get('name')
-        test_report['run_type'] = run_type_data.get('run_type')
-        test_report['project_id'] = run_type_data.get('project_id')
-        test_report['module_id'] = run_type_data.get('module_id')
-        test_report['execute_user_id'] = run_type_data.get('user_id')
+        test_report.update(run_type_data)
         ReportService.save_report(**test_report)
 
     @staticmethod
-    def get_testcase_dir_path() -> str:
+    def get_testcase_dir_path() -> Text:
+        """
+        生成用例运行地址
+        :return:
+        """
         return os.path.join(config.TEST_DIR, f'run_test_{get_timestamp()}')

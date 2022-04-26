@@ -4,22 +4,14 @@ import json
 import os
 import sys
 import types
-from typing import Tuple, Dict, Union, Text, List, Callable
+from typing import Callable, Dict, List, Text, Tuple, Union
 
 import yaml
 from loguru import logger
 from pydantic import ValidationError
 
-from autotest.httprunner import builtin, utils
-from autotest.httprunner import exceptions
-from autotest.httprunner.models import TestCase, ProjectMeta, TestSuite
-
-try:
-    # PyYAML version >= 5.1
-    # ref: https://github.com/yaml/pyyaml/wiki/PyYAML-yaml.load(input)-Deprecation
-    yaml.warnings({"YAMLLoadWarning": False})
-except AttributeError:
-    pass
+from autotest.httprunner import builtin, exceptions, utils
+from autotest.httprunner.models import ProjectMeta, TestCase, TestSuite
 
 project_meta: Union[ProjectMeta, None] = None
 
@@ -29,7 +21,7 @@ def _load_yaml_file(yaml_file: Text) -> Dict:
     """
     with open(yaml_file, mode="rb") as stream:
         try:
-            yaml_content = yaml.safe_load(stream)
+            yaml_content = yaml.load(stream, Loader=yaml.FullLoader)
         except yaml.YAMLError as ex:
             err_msg = f"YAMLError:\nfile: {yaml_file}\nerror: {ex}"
             logger.error(err_msg)
@@ -129,6 +121,9 @@ def load_dot_env_file(dot_env_path: Text) -> Dict:
     with open(dot_env_path, mode="rb") as fp:
         for line in fp:
             # maxsplit=1
+            line = line.strip()
+            if not len(line) or line.startswith(b"#"):
+                continue
             if b"=" in line:
                 variable, value = line.split(b"=", 1)
             elif b":" in line:

@@ -1,4 +1,4 @@
-from typing import Dict, Text, Any, NoReturn
+from typing import Dict, Text, Any
 
 import jmespath
 import requests
@@ -153,7 +153,7 @@ class ResponseObject(object):
         }
         if not expr.startswith(tuple(resp_obj_meta.keys())):
             return expr
-        
+
         try:
             check_value = jmespath.search(expr, resp_obj_meta)
         except JMESPathError as ex:
@@ -167,12 +167,21 @@ class ResponseObject(object):
 
         return check_value
 
-    def extract(self, extractors: Dict[Text, Text]) -> Dict[Text, Any]:
+    def extract(self,
+                extractors: Dict[Text, Text],
+                variables_mapping: VariablesMapping = None,
+                functions_mapping: FunctionsMapping = None,
+                ) -> Dict[Text, Any]:
         if not extractors:
             return {}
 
         extract_mapping = {}
         for key, field in extractors.items():
+            if '$' in field:
+                # field contains variable or function
+                field = parse_data(
+                    field, variables_mapping, functions_mapping
+                )
             field_value = self._search_jmespath(field)
             extract_mapping[key] = field_value
 
@@ -184,7 +193,7 @@ class ResponseObject(object):
         validators: Validators,
         variables_mapping: VariablesMapping = None,
         functions_mapping: FunctionsMapping = None,
-    ) -> NoReturn:
+    ):
 
         variables_mapping = variables_mapping or {}
         functions_mapping = functions_mapping or {}

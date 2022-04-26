@@ -1,8 +1,8 @@
-__version__ = "3.1.6"
+__version__ = "3.1.11"
 __description__ = "One-stop solution for HTTP(S) testing."
 
 # import firstly for monkey patch if needed
-from autotest.httprunner.ext.locust import main_locusts
+
 from autotest.httprunner.parser import parse_parameters as Parameters
 from autotest.httprunner.runner import HttpRunner
 from autotest.httprunner.testcase import Config, Step, RunRequest, RunTestCase

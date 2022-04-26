@@ -1,4 +1,4 @@
-from typing import Dict, NoReturn, Union, Any
+from typing import Dict, Union, Any, Text
 
 from autotest.config import config
 from autotest.exc import codes
@@ -13,7 +13,7 @@ class ModuleService:
     """模块处理类"""
 
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
         """
         获取模块列表
         :param kwargs: 查询参数
@@ -29,8 +29,12 @@ class ModuleService:
         return result
 
     @staticmethod
-    def save_or_update(**kwargs: Any) -> ModuleInfo:
-        """模块保存方法"""
+    def save_or_update(**kwargs: Any) -> "ModuleInfo":
+        """
+        模块保存方法
+        :param kwargs:
+        :return:
+        """
         user_id = get_user_id_by_token()
         module_info = ModuleInfo.get(kwargs.get('id')) if kwargs.get('id', None) else ModuleInfo()
         modules = ModuleInfo.get_module_by_name(kwargs.get('name'))
@@ -49,14 +53,19 @@ class ModuleService:
         return module_info
 
     @staticmethod
-    def deleted(id: Union[str, int]) -> NoReturn:
-        """删除模块"""
+    def deleted(id: Union[str, int]):
+        """
+        删除模块
+        :param id:
+        :return:
+        """
         user_id = get_user_id_by_token()
         module = ModuleInfo.get(id)
-        case_info = CaseInfo.get_case_by_module_id(id).count()
-        if config.EDIT_SWITCH:
-            if module.created_by != user_id:
-                raise ValueError(partner_errmsg.get(codes.CANNOT_DELETE_CREATED_BY_YOURSELF).format('模块'))
-        if case_info:
-            raise ValueError(partner_errmsg.get(codes.MODULE_HAS_CASE_ASSOCIATION))
-        module.delete()
+        if module:
+            case_info = CaseInfo.get_case_by_module_id(id).count()
+            if config.EDIT_SWITCH:
+                if module.created_by != user_id:
+                    raise ValueError(partner_errmsg.get(codes.CANNOT_DELETE_CREATED_BY_YOURSELF).format('模块'))
+            if case_info:
+                raise ValueError(partner_errmsg.get(codes.MODULE_HAS_CASE_ASSOCIATION))
+            module.delete()

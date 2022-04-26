@@ -14,9 +14,8 @@ from autotest.httprunner.utils import sort_dict_by_custom_order
 
 
 def convert_variables(
-    raw_variables: Union[Dict, List, Text], test_path: Text
+        raw_variables: Union[Dict, List, Text], test_path: Text
 ) -> Dict[Text, Any]:
-
     if isinstance(raw_variables, Dict):
         return raw_variables
 
@@ -58,8 +57,8 @@ def _convert_jmespath(raw: Text) -> Text:
 
     raw_list = []
     for item in raw.split("."):
-        if "-" in item:
-            # add quotes for field with separator
+        if item.lower().startswith("content-") or item.lower() in ["user-agent"]:
+            # add quotes for some field in white list
             # e.g. headers.Content-Type => headers."Content-Type"
             item = item.strip('"')
             raw_list.append(f'"{item}"')
@@ -265,12 +264,12 @@ def ensure_cli_args(args: List) -> List:
     """
     # remove deprecated --failfast
     if "--failfast" in args:
-        logger.warning(f"remove deprecated argument: --failfast")
+        logger.warning("remove deprecated argument: --failfast")
         args.pop(args.index("--failfast"))
 
     # convert --report-file to --html
     if "--report-file" in args:
-        logger.warning(f"replace deprecated argument --report-file with --html")
+        logger.warning("replace deprecated argument --report-file with --html")
         index = args.index("--report-file")
         args[index] = "--html"
         args.append("--self-contained-html")
@@ -278,7 +277,7 @@ def ensure_cli_args(args: List) -> List:
     # keep compatibility with --save-tests in v2
     if "--save-tests" in args:
         logger.warning(
-            f"generate conftest.py keep compatibility with --save-tests in v2"
+            "generate conftest.py keep compatibility with --save-tests in v2"
         )
         args.pop(args.index("--save-tests"))
         _generate_conftest_for_summary(args)
@@ -287,7 +286,6 @@ def ensure_cli_args(args: List) -> List:
 
 
 def _generate_conftest_for_summary(args: List):
-
     for arg in args:
         if os.path.exists(arg):
             test_path = arg
