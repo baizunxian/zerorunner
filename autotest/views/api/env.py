@@ -14,7 +14,10 @@ bp = Blueprint('env', __name__, url_prefix='/api/env')
 @login_verification
 @json_required
 def env_list():
-    """获取列表"""
+    """
+    获取列表
+    :return:
+    """
     try:
         data = EnvService.list(**request.json)
     except Exception as err:
@@ -27,7 +30,10 @@ def env_list():
 @login_verification
 @json_required
 def save_or_update_env():
-    """更新保存环境信息"""
+    """
+    更新保存环境信息
+    :return:
+    """
     try:
         data = EnvService.save_or_update(**request.json)
     except Exception as err:
@@ -40,7 +46,10 @@ def save_or_update_env():
 @login_verification
 @json_required
 def delete_env():
-    """删除环境"""
+    """
+    删除环境
+    :return:
+    """
     try:
         parsed_data = request.json
         env_id = parsed_data.get('id', None)

@@ -1,4 +1,5 @@
-from autotest.utils.common import handle_func_file_path, get_function_by_path
+def a_test(a, b):
+    return str(a) + str(b)
 
-if __name__ == '__main__':
-    print(get_function_by_path())
+
+print(list(map(a_test, [1, 2], [2])))

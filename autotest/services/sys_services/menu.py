@@ -1,5 +1,5 @@
 import traceback
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Text
 
 from flask import request
 from loguru import logger
@@ -14,12 +14,12 @@ class MenuService:
     """菜单类"""
 
     @staticmethod
-    def all_menu() -> List:
+    def all_menu() -> List[Any]:
         """平铺菜单"""
         return MenuListSchema().dump(Menu.get_all(), many=True)
 
     @staticmethod
-    def all_menu_nesting() -> List:
+    def all_menu_nesting() -> List[Any]:
         """嵌套菜单"""
         all_menu = MenuListSchema().dump(Menu.get_all(), many=True)
         parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]
@@ -27,7 +27,7 @@ class MenuService:
         return result
 
     @staticmethod
-    def save_or_update(**kwargs: Any) -> Menu:
+    def save_or_update(**kwargs: Any) -> "Menu":
         menu_id = kwargs.get('id', None)
         title = kwargs.get('title', None)
         menu_info = Menu.get(menu_id) if menu_id else Menu()
@@ -55,23 +55,22 @@ class MenuService:
         if not m_id:
             return
         menu = Menu.get(m_id)
-        if not menu:
-            return
-        try:
-            logger.info(f"[{user_id}] IP {remote_addr} 访问了[{menu.title}]菜单")
-            menu.views = menu.views + 1 if menu.views else 1
-            menu.save()
-            # 菜单浏览
-            # menu_view = MenuViewHistory()
-            # menu_view.menu_id = m_id
-            # menu_view.remote_addr = remote_addr if remote_addr else remote_ip
-            # menu_view.user_id = user_id
-            # menu_view.save()
-        except Exception as err:
-            logger.error(traceback.format_exc())
+        if menu:
+            try:
+                logger.info(f"[{user_id}] IP {remote_addr} 访问了[{menu.title}]菜单")
+                menu.views = menu.views + 1 if menu.views else 1
+                menu.save()
+                # 菜单浏览
+                # menu_view = MenuViewHistory()
+                # menu_view.menu_id = m_id
+                # menu_view.remote_addr = remote_addr if remote_addr else remote_ip
+                # menu_view.user_id = user_id
+                # menu_view.save()
+            except Exception as err:
+                logger.error(traceback.format_exc())
 
     @staticmethod
-    def assemble_menu_data(menu: Dict) -> Dict:
+    def assemble_menu_data(menu: Dict[Text, Any]) -> Dict[Text, Any]:
         """
         菜单组装
         :param menu:
@@ -91,7 +90,7 @@ class MenuService:
         return menu
 
     @staticmethod
-    def menu_assembly(parent_menu: List[Dict], all_menu: List[Dict]) -> List:
+    def menu_assembly(parent_menu: List[Any], all_menu: List[Any]) -> List[Any]:
         """
         递归遍历菜单
         :param parent_menu: 一级菜单列表

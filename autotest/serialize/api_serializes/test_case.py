@@ -147,6 +147,7 @@ class TestCaseRunSchema(Schema):
     base_url = fields.Str()
     name = fields.Str()
     run_type = fields.Str()
+    run_mode = fields.Int()
     testcase_dir_path = fields.Str(allow_none=True)
     # created_by_name = fields.Str(allow_none=True)
 

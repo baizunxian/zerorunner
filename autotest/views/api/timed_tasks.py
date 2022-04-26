@@ -16,7 +16,10 @@ bp = Blueprint('timed_tasks', __name__, url_prefix='/api/timedTasks')
 @login_verification
 @json_required
 def timed_tasks_list():
-    """定时任务列表"""
+    """
+    定时任务列表
+    :return:
+    """
     try:
         result = TimedTasksService.list(**request.json)
     except Exception as err:
@@ -29,7 +32,10 @@ def timed_tasks_list():
 @login_verification
 @json_required
 def save_or_update():
-    """新增，修改定时任务"""
+    """
+    新增，修改定时任务
+    :return:
+    """
     try:
         result = TimedTasksService.save_or_update(**request.json)
     except Exception as err:
@@ -42,7 +48,10 @@ def save_or_update():
 @login_verification
 @json_required
 def task_switch():
-    """定时任务开关"""
+    """
+    定时任务开关
+    :return:
+    """
     parsed_data = request.json
     task_id = parsed_data.get('t_id', None)  # t id
     task_info = TimedTask.get(task_id)
@@ -66,7 +75,10 @@ def task_switch():
 @login_verification
 @json_required
 def deleted_tasks():
-    """删除任务"""
+    """
+    删除任务
+    :return:
+    """
     try:
         parsed_data = request.json
         task_id = parsed_data.get('id', None)

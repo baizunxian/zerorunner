@@ -1,4 +1,4 @@
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Text
 
 from autotest.models.api_models import TestSuite
 from autotest.serialize.api_serializes.test_suites import TestSuitesListSchema, TestSuitesQuerySchema, \
@@ -8,7 +8,7 @@ from autotest.utils.api import parse_pagination
 
 class TestSuitesService:
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
         parsed_data = TestSuitesQuerySchema().load(kwargs)
         data = parse_pagination(TestSuite.get_list(**parsed_data))
         _result, pagination = data.get('result'), data.get('pagination')
@@ -19,7 +19,7 @@ class TestSuitesService:
         return result
 
     @staticmethod
-    def save_or_update(**kwargs: Any) -> TestSuite:
+    def save_or_update(**kwargs: Any) -> "TestSuite":
         """更新保存套件"""
         parsed_data = TestSuitesSaveOrUpdateSchema().load(kwargs)
         #  套件名称唯一性校验
@@ -34,7 +34,7 @@ class TestSuitesService:
         test_suite.delete() if test_suite else ...
 
     @staticmethod
-    def get_suite_info(**kwargs: Any) -> Dict:
+    def get_suite_info(**kwargs: Any) -> Dict[Text, Any]:
         parsed_data = TestSuitesQuerySchema().load(kwargs)
         s_id = parsed_data.get('id', None)
         test_suite = TestSuite.get(s_id) if s_id else None

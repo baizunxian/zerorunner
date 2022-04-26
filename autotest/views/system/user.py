@@ -38,7 +38,10 @@ def logout():
 @login_verification
 @json_required
 def get_user_info():
-    """根据token获取用户信息"""
+    """
+    根据token获取用户信息
+    :return:
+    """
     parsed_data = request.json
     token = parsed_data.get('token')
     user_info = UserService.get_user_info_by_token(token)
@@ -48,7 +51,10 @@ def get_user_info():
 @bp.route('/userRegister', methods=['POST'])
 @json_required
 def user_register():
-    """用户注册"""
+    """
+    用户注册
+    :return:
+    """
     try:
         UserService.user_register(**request.json)
     except Exception as err:
@@ -60,7 +66,10 @@ def user_register():
 @json_required
 @login_verification
 def change_password():
-    """修改密码"""
+    """
+    修改密码
+    :return:
+    """
     try:
         UserService.change_password(**request.json)
     except Exception as err:

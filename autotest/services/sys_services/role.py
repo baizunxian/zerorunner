@@ -1,10 +1,10 @@
 import traceback
-from typing import Dict, Any
+from typing import Dict, Any, Text
 
 from loguru import logger
 
-from autotest.serialize.sys_serializes.role import (RoleListSchema, RoleQuerySchema)
 from autotest.models.sys_models import User, Roles
+from autotest.serialize.sys_serializes.role import (RoleListSchema, RoleQuerySchema)
 from autotest.utils.api import parse_pagination
 
 
@@ -12,7 +12,7 @@ class RolesService:
     """角色类"""
 
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
         query_data = RoleQuerySchema().load(kwargs)
         data = parse_pagination(Roles.get_list(**query_data))
         _result, pagination = data.get('result'), data.get('pagination')
@@ -24,7 +24,7 @@ class RolesService:
         return result
 
     @staticmethod
-    def save_or_update(**kwargs: Any) -> Roles:
+    def save_or_update(**kwargs: Any) -> "Roles":
         id = kwargs.get('id', None)
         name = kwargs.get('name', None)
         menus = kwargs.get('menus', None)
@@ -45,6 +45,6 @@ class RolesService:
             if users:
                 raise ValueError('有用户关联了当前角色，不允许删除!')
             role = Roles.get(id)
-            role.delete()
+            role.delete() if role else ...
         except Exception as err:
             logger.error(traceback.format_exc())

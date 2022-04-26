@@ -33,7 +33,7 @@ class FileService:
         return data
 
     @staticmethod
-    def download(file_path: Text) -> make_response:
+    def download(file_path: Text) -> "make_response":
         file_dir = os.path.join(config.TEST_FILES_DIR, file_path)
         if not os.path.isfile(file_dir):
             logger.error('文件不存在！')
@@ -50,6 +50,7 @@ class FileService:
         """删除文件"""
         file_dir = os.path.join(config.TEST_FILES_DIR, name)
         try:
-            os.remove(file_dir)
+            if os.path.exists(file_dir):
+                os.remove(file_dir)
         except Exception as err:
             logger.error(traceback.format_exc())

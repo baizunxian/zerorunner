@@ -1,24 +1,24 @@
 import datetime
 import json
 import traceback
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Text
 
 from loguru import logger
 
+from autotest.models.api_models import TimedTask, Crontab, \
+    PeriodicTaskChanged
 from autotest.serialize.api_serializes.timed_task import (
     TimedTasksQuerySchema,
     TimedTasksListSchema,
     TimedTasksSaveOrUpdateSchema,
     CrontabSaveSchema)
-from autotest.models.api_models import TimedTask, Crontab, \
-    PeriodicTaskChanged
 from autotest.utils.api import parse_pagination
 from autotest.utils.common import get_user_info_by_token
 
 
 class CrontabService:
     @staticmethod
-    def save_or_update(**kwargs: Any) -> Crontab:
+    def save_or_update(**kwargs: Any) -> "Crontab":
         try:
             parsed_data = CrontabSaveSchema().load(kwargs)
             crontab_time = parsed_data.get('crontab_time')
@@ -54,7 +54,7 @@ class CrontabService:
 
 class TimedTasksService:
     @staticmethod
-    def list(**kwargs: Any) -> Dict:
+    def list(**kwargs: Any) -> Dict[Text, Any]:
         """定时任务列表"""
         query_data = TimedTasksQuerySchema().load(kwargs)
         data = parse_pagination(TimedTask.get_list(**query_data))
@@ -66,7 +66,7 @@ class TimedTasksService:
         return result
 
     @staticmethod
-    def save_or_update(**kwargs: Any) -> TimedTask:
+    def save_or_update(**kwargs: Any) -> "TimedTask":
         parsed_data = TimedTasksSaveOrUpdateSchema().load(kwargs)
         case_ids = parsed_data.get('case_ids')
         name = parsed_data.get('name')
@@ -100,13 +100,14 @@ class TimedTasksService:
     @staticmethod
     def deleted(task_id: Union[str, int]):
         task_info = TimedTask.get(task_id)
-        task_info.delete(True) if task_info else ...
-        PeriodicTaskChangedService.update()
+        if task_info:
+            task_info.delete(True)
+            PeriodicTaskChangedService.update()
 
 
 class PeriodicTaskChangedService:
     @staticmethod
-    def update() -> PeriodicTaskChanged:
+    def update() -> "PeriodicTaskChanged":
         try:
             periodic_task_changed = PeriodicTaskChanged.get_data()
             periodic_task_changed.last_update = datetime.datetime.now()

@@ -16,7 +16,10 @@ auth = config.Authentication
 @login_verification
 @json_required
 def project_list():
-    """项目列表"""
+    """
+    项目列表
+    :return:
+    """
     try:
         data = ProjectService.list(**request.json)
     except ValueError as err:
@@ -29,7 +32,10 @@ def project_list():
 @login_verification
 @json_required
 def save_or_update():
-    """更新保存项目"""
+    """
+    更新保存项目
+    :return:
+    """
     try:
         data = ProjectService.save_or_update(**request.json)
     except ValueError as err:
@@ -42,7 +48,10 @@ def save_or_update():
 @login_verification
 @json_required
 def deleted():
-    """删除"""
+    """
+    删除
+    :return:
+    """
     try:
         parsed_data = request.json
         id = parsed_data.get('id', None)
