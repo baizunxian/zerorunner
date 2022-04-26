@@ -1,11 +1,10 @@
 import traceback
-from typing import Dict, NoReturn, Any
+from typing import Dict, Any
 
-from flask import request
 from loguru import logger
 
 from autotest.serialize.sys_serializes.role import (RoleListSchema, RoleQuerySchema)
-from autotest.models.sys_models import User, Menu, Roles
+from autotest.models.sys_models import User, Roles
 from autotest.utils.api import parse_pagination
 
 
@@ -40,7 +39,7 @@ class RolesService:
         return role_info
 
     @staticmethod
-    def deleted(id: int) -> NoReturn:
+    def deleted(id: int):
         try:
             users = User.get_user_by_roles(id)
             if users:

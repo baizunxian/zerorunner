@@ -1,5 +1,5 @@
 import traceback
-from typing import Dict, NoReturn, Any
+from typing import Dict, Any
 
 from loguru import logger
 
@@ -29,7 +29,7 @@ class EnvService:
         return env_info
 
     @staticmethod
-    def deleted(id: int) -> NoReturn:
+    def deleted(id: int):
         """删除项目"""
         try:
             env = Env.get(id)

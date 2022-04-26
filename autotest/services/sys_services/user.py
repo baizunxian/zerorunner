@@ -1,6 +1,6 @@
 import traceback
 import uuid
-from typing import Dict, Union, NoReturn, Any
+from typing import Dict, Union, Any
 
 from flask import request
 from loguru import logger
@@ -122,7 +122,7 @@ class UserService:
         return user
 
     @staticmethod
-    def deleted(id: Union[str, int]) -> NoReturn:
+    def deleted(id: Union[str, int]):
         """
         删除用户
         :param kwargs:

@@ -1,5 +1,5 @@
 import traceback
-from typing import Any, NoReturn, Dict
+from typing import Any, Dict
 
 from loguru import logger
 
@@ -52,7 +52,7 @@ class ProjectService:
         return project_info
 
     @staticmethod
-    def deleted(id: int) -> NoReturn:
+    def deleted(id: int):
         """删除项目"""
         project = ProjectInfo.get(id)
         user_id = get_user_id_by_token()

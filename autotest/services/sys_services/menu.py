@@ -1,5 +1,5 @@
 import traceback
-from typing import Dict, NoReturn, Any, Text, List, T
+from typing import Dict, Any, List
 
 from flask import request
 from loguru import logger
@@ -39,7 +39,7 @@ class MenuService:
         return menu_info
 
     @staticmethod
-    def deleted(id: int) -> NoReturn:
+    def deleted(id: int):
         menu = Menu.get(id)
         menus = Menu.get_menu_by_parent(id)
         if menus:
@@ -47,7 +47,7 @@ class MenuService:
         menu.delete() if menu else ...
 
     @staticmethod
-    def set_menu_views(**kwargs: Any) -> NoReturn:
+    def set_menu_views(**kwargs: Any):
         m_id = kwargs.get('menu_id', None)
         user_id = kwargs.get('user_id', None)
         remote_addr = request.headers.get("X-Real-Ip", None)

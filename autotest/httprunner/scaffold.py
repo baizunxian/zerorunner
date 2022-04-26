@@ -25,7 +25,7 @@ def create_scaffold(project_name):
             print(f"\n$ tree {prj_name} -a")
             subprocess.run(["tree", prj_name, "-a"])
             print("")
-        except FileNotFoundError:
+        except OSError:
             logger.warning("tree command not exists, ignore.")
 
     if os.path.isdir(project_name):
@@ -199,5 +199,5 @@ def sleep(n_secs):
 
 
 def main_scaffold(args):
-    capture_message("startproject with scaffold")
+    ga_client.track_event("Scaffold", "startproject")
     sys.exit(create_scaffold(args.project_name))

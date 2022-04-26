@@ -3,7 +3,7 @@ import os
 import shutil
 import traceback
 import uuid
-from typing import Dict, Any, List, Union, NoReturn
+from typing import Dict, Any, List, Union
 
 import pytest
 from loguru import logger
@@ -12,7 +12,6 @@ from autotest.config import config
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
 from autotest.httprunner.initialize import TestCaseMate
-from autotest.httprunner.make import main_make
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
 from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
                                                          TestCaseRunSchema, TestCaseRunBodySchema)
@@ -60,7 +59,7 @@ class CaseService:
                 case_info.save()
 
     @staticmethod
-    def deleted(c_id: Union[int, str]) -> NoReturn:
+    def deleted(c_id: Union[int, str]):
         """删除测试用例"""
         case_info = CaseInfo.get(c_id)
         if not case_info:
@@ -82,22 +81,22 @@ class CaseService:
         run_type_data = CaseService.handle_run_type(**kwargs)
         testcase_dir_path = run_type_data.get('testcase_dir_path', None)
         test_path_set = TestCaseMate().main_make([testcase_dir_path])
-        params = dict(test_path_set=test_path_set,
-                      testcase_dir_path=testcase_dir_path,
-                      run_type_data=run_type_data)
+        params = dict(test_path_set=test_path_set, run_type_data=run_type_data)
+        logger.info('用例初始化完成~')
         return params
 
     @staticmethod
-    def run(test_path_set: List[str], testcase_dir_path: str, run_type_data: Dict) -> Dict:
+    def run(test_path_set: List[str], run_type_data: Dict) -> Dict:
         """
         :param test_path_set: py用例列表
-        :param testcase_dir_path: 用例目录地址
         :param run_type_data: 组装数据
         :return:
         """
+        testcase_dir_path = run_type_data['testcase_dir_path']  # 用例目录地址
         try:
             extra_args = ['-vs', '-W', 'ignore:Module already imported:pytest.PytestWarning']
             extra_args.extend(test_path_set)
+            logger.info('执行用例 ~')
             pytest.main(extra_args)
             summary_path = run_type_data['summary_path']
             summary_path = os.path.join(summary_path, 'summary.json')

@@ -1,7 +1,7 @@
 import os
 import traceback
 import uuid
-from typing import Dict, Text, NoReturn
+from typing import Dict, Text
 
 from flask import request, make_response, send_from_directory
 from loguru import logger
@@ -46,7 +46,7 @@ class FileService:
         return response
 
     @staticmethod
-    def deleted(name: Text) -> NoReturn:
+    def deleted(name: Text):
         """删除文件"""
         file_dir = os.path.join(config.TEST_FILES_DIR, name)
         try:

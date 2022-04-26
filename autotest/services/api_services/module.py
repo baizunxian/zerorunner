@@ -1,4 +1,4 @@
-from typing import Dict, NoReturn, Union, Any
+from typing import Dict, Union, Any
 
 from autotest.config import config
 from autotest.exc import codes
@@ -49,7 +49,7 @@ class ModuleService:
         return module_info
 
     @staticmethod
-    def deleted(id: Union[str, int]) -> NoReturn:
+    def deleted(id: Union[str, int]):
         """删除模块"""
         user_id = get_user_id_by_token()
         module = ModuleInfo.get(id)

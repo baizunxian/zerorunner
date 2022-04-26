@@ -1,4 +1,4 @@
-from typing import Dict, Any, Union, NoReturn
+from typing import Dict, Any, Union
 
 from autotest.models.api_models import TestSuite
 from autotest.serialize.api_serializes.test_suites import TestSuitesListSchema, TestSuitesQuerySchema, \
@@ -29,7 +29,7 @@ class TestSuitesService:
         return test_suite
 
     @staticmethod
-    def deleted(s_id: Union[str, int]) -> NoReturn:
+    def deleted(s_id: Union[str, int]):
         test_suite = TestSuite.get(s_id)
         test_suite.delete() if test_suite else ...
 

@@ -4,7 +4,7 @@ import time
 import traceback
 import uuid
 from datetime import datetime
-from typing import List, Dict, Text, NoReturn, Union
+from typing import List, Dict, Text
 
 try:
     import allure
@@ -47,7 +47,7 @@ class HttpRunner(object):
     __config: TConfig
     __teststeps: List[TStep]
     __project_meta: ProjectMeta = None
-    __case_id: Union[Text, int] = ""
+    __case_id: Text = ""
     __export: List[Text] = []
     __step_datas: List[StepData] = []
     __session: HttpSession = None
@@ -58,7 +58,7 @@ class HttpRunner(object):
     # log
     __log_path: Text = ""
 
-    def __init_tests__(self) -> NoReturn:
+    def __init_tests__(self):
         self.__config = self.config.perform()
         self.__teststeps = []
         for step in self.teststeps:
@@ -94,7 +94,7 @@ class HttpRunner(object):
         self.__session = session
         return self
 
-    def with_case_id(self, case_id: Union[Text, int]) -> "HttpRunner":
+    def with_case_id(self, case_id: Text) -> "HttpRunner":
         self.__case_id = case_id
         return self
 
@@ -108,7 +108,7 @@ class HttpRunner(object):
 
     def __call_hooks(
             self, hooks: Hooks, step_variables: VariablesMapping, hook_msg: Text,
-    ) -> NoReturn:
+    ):
         """ call hook actions.
 
         Args:
@@ -169,10 +169,10 @@ class HttpRunner(object):
                 request_dict, step.variables, self.__project_meta.functions
             )
 
-            parsed_request_dict["headers"].setdefault(
-                "HRUN-Request-ID",
-                f"HRUN-{self.__case_id}-{str(int(time.time() * 1000))[-6:]}",
-            )
+            # parsed_request_dict["headers"].setdefault(
+            #     "HRUN-Request-ID",
+            #     f"HRUN-{self.__case_id}-{str(int(time.time() * 1000))[-6:]}",
+            # )
             step.variables["request"] = parsed_request_dict
 
             # setup hooks
@@ -219,7 +219,7 @@ class HttpRunner(object):
 
             # extract
             extractors = step.extract
-            extract_mapping = resp_obj.extract(extractors)
+            extract_mapping = resp_obj.extract(extractors, step.variables, self.__project_meta.functions)
             step_data.export_vars = extract_mapping
 
             variables_mapping = step.variables
@@ -336,7 +336,7 @@ class HttpRunner(object):
         logger.info(f"run step end: {step.name} <<<<<<\n")
         return step_data.export_vars
 
-    def __parse_config(self, config: TConfig) -> NoReturn:
+    def __parse_config(self, config: TConfig):
         config.variables.update(self.__session_variables)
         config.variables = parse_variables_mapping(
             config.variables, self.__project_meta.functions

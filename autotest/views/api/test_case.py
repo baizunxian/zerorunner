@@ -76,19 +76,6 @@ def deleted():
     return partner_success()
 
 
-@bp.route('/debugTestCase', methods=['POST'])
-@login_verification
-@json_required
-def debug_testcase():
-    """debug 用例"""
-    try:
-        data = CaseService.debug_testcase(**request.json)
-        return partner_success(data)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
-
-
 @bp.route('/runTestCase', methods=['POST'])
 @login_verification
 @json_required
@@ -98,11 +85,25 @@ def run_test():
         parsed_data = request.json
         params = CaseService.run_make(**parsed_data)  # 初始化校验，避免生成用例是出错
         if parsed_data.get('run_mode', None) == 2:
+            logger.info('异步执行用例 ~')
             async_run_case.delay(**params)
             return partner_success(code=codes.PARTNER_CODE_OK, msg='用例执行中，请稍后查看报告即可,默认模块名称命名报告')
         else:
             summary = CaseService.run(**params)
             return partner_success(data=summary)
+    except Exception as err:
+        logger.error(traceback.format_exc())
+        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+
+
+@bp.route('/debugTestCase', methods=['POST'])
+@login_verification
+@json_required
+def debug_testcase():
+    """debug 用例"""
+    try:
+        data = CaseService.debug_testcase(**request.json)
+        return partner_success(data)
     except Exception as err:
         logger.error(traceback.format_exc())
         return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))

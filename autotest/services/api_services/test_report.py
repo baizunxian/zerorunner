@@ -1,6 +1,5 @@
 import json
-import time
-from typing import Dict, Any, NoReturn
+from typing import Dict, Any
 
 from autotest.serialize.api_serializes.test_report import (
     TestReportQuerySchema, ReportsListSchema, TestReportSaveSchema,
@@ -66,7 +65,7 @@ class ReportService:
         test_report.update(**report_body)
 
     @staticmethod
-    def deleted(report_id: int) -> NoReturn:
+    def deleted(report_id: int):
         test_reports = TestReports.get(report_id)
         test_reports.deleted() if test_reports else ...
 

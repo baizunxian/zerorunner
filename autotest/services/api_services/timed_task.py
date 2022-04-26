@@ -1,12 +1,10 @@
 import datetime
 import json
 import traceback
-from typing import Dict, Any, NoReturn, Union
+from typing import Dict, Any, Union
 
 from loguru import logger
 
-from autotest.exc import codes
-from autotest.exc.partner_message import partner_errmsg
 from autotest.serialize.api_serializes.timed_task import (
     TimedTasksQuerySchema,
     TimedTasksListSchema,
@@ -100,7 +98,7 @@ class TimedTasksService:
             raise ValueError(err)
 
     @staticmethod
-    def deleted(task_id: Union[str, int]) -> NoReturn:
+    def deleted(task_id: Union[str, int]):
         task_info = TimedTask.get(task_id)
         task_info.delete(True) if task_info else ...
         PeriodicTaskChangedService.update()
