@@ -38,13 +38,19 @@ sys.path.insert(0, str(Path(__file__){% for _ in range(diff_levels) %}.parent{% 
 
 {% if parameters %}
 import pytest
-from httprunner import Parameters
+from autotest.httprunner import Parameters
 {% endif %}
 
 from autotest.httprunner import HttpRunner, Config, Step, RunRequest, RunTestCase
 {% for import_str in imports_list %}
 {{ import_str }}
 {% endfor %}
+
+{% if project_path %}
+from autotest.httprunner import loader
+project_meta = loader.load_project_meta(r"{{project_path}}")
+{% endif %}
+
 
 class {{ class_name }}(HttpRunner):
 
@@ -63,7 +69,11 @@ class {{ class_name }}(HttpRunner):
     ]
 
 if __name__ == "__main__":
+    {% if project_path %}
+    {{ class_name }}().with_project_meta(project_meta).test_start()
+    {% else %}
     {{ class_name }}().test_start()
+    {% endif %}
 
 """
 )

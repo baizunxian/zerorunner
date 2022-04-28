@@ -3,3 +3,5 @@ def a_test(a, b):
 
 
 print(list(map(a_test, [1, 2], [2])))
+
+

@@ -9,6 +9,7 @@ import yaml
 from autotest.config import config
 from autotest.httprunner.make import __ensure_testcase_module as _ensure_testcase_module
 from autotest.models.api_models import CaseInfo, ModuleInfo, ProjectInfo, DebugTalk
+from autotest.utils.common import get_timestamp
 from autotest.utils.des import encrypt_rsa_password
 
 
@@ -388,3 +389,11 @@ def dump_python_file(python_file, data):
     """存储python文件"""
     with io.open(python_file, 'w', encoding='utf-8') as stream:
         stream.write(data)
+
+
+def get_testcase_dir_path() -> Text:
+    """
+    生成用例运行地址
+    :return:
+    """
+    return os.path.join(config.TEST_DIR, f'run_test_{get_timestamp()}')
