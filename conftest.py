@@ -31,7 +31,6 @@ def session_fixture(request):
 
     summary_path = ''
     for item in request.node.items:
-        print("request---------------------", request)
         if not summary_path:
             summary_path = item.fspath.dirname
         testcase_summary = item.instance.get_summary()

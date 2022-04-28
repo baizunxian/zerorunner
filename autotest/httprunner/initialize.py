@@ -285,7 +285,7 @@ class TestCaseMate:
             # testcase
             if "teststeps" in test_content:
                 try:
-                    testcase_pytest_path = self.make_testcase(test_content)
+                    testcase_pytest_path = self.make_testcase(test_content, tests_path=tests_path)
                     self.pytest_files_run_set.add(testcase_pytest_path)
                 except exceptions.TestCaseFormatError as ex:
                     logger.warning(
@@ -310,7 +310,7 @@ class TestCaseMate:
                     f"reason: file content is neither testcase nor testsuite"
                 )
 
-    def make_testcase(self, testcase: Dict, dir_path: Text = None) -> Text:
+    def make_testcase(self, testcase: Dict, dir_path: Text = None, tests_path: Text = None) -> Text:
         """convert valid testcase dict to pytest file path"""
         # ensure compatibility with testcase format v2
         testcase = ensure_testcase_v3(testcase)
@@ -387,6 +387,7 @@ class TestCaseMate:
             "version": __version__,
             "testcase_path": testcase_path,
             "diff_levels": diff_levels,
+            "project_path": f'{tests_path}',
             "class_name": f"TestCase{testcase_cls_name}",
             "imports_list": imports_list,
             "config_chain_style": make_config_chain_style(config),

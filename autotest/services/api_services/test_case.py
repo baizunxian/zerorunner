@@ -12,6 +12,7 @@ from autotest.config import config
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
 from autotest.httprunner.initialize import TestCaseMate
+from autotest.httprunner.initialize_not_yaml import TestCaseMateNew
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
 from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
                                                          TestCaseRunSchema, TestCaseRunBodySchema)
@@ -110,6 +111,20 @@ class CaseService:
         return params
 
     @staticmethod
+    def run_make_new(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        执行测试用例
+        :param kwargs:
+        :return:
+        """
+        run_type_data = CaseService.handle_run_type_new(**kwargs)
+        testcase_dir_path = run_type_data.get('testcase_dir_path', None)
+        test_path_set = TestCaseMate().main_make([testcase_dir_path])
+        params = dict(test_path_set=test_path_set, run_type_data=run_type_data)
+        logger.info('用例初始化完成~')
+        return params
+
+    @staticmethod
     def run(test_path_set: List[str], run_type_data: Dict) -> Dict[Text, Any]:
         """
         运行用例
@@ -124,7 +139,6 @@ class CaseService:
             logger.info('执行用例 ~')
             pytest.main(extra_args)
             summary_path = run_type_data['summary_path']
-            summary_path = os.path.join(summary_path, 'summary.json')
             if os.path.exists(summary_path):
                 with open(summary_path, 'r', encoding='utf-8') as f:
                     summary = json.load(f)
@@ -170,6 +184,32 @@ class CaseService:
             # ...
 
     @staticmethod
+    def debug_testcase_new(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        用例调试
+        :param kwargs:
+        :return:
+        """
+        case_mate = TestCaseMateNew(kwargs.get('base_url', ''))
+        case_mate.debug_case_make(kwargs)
+
+        summary_path = case_mate.summary_path
+        extra_args_new = ['-vs', '-W', 'ignore:Module already imported:pytest.PytestWarning']
+        extra_args_new.extend(case_mate.get_test_path_set())
+        try:
+            pytest.main(extra_args_new)
+            if os.path.exists(summary_path):
+                with open(summary_path, 'r', encoding='utf-8') as f:
+                    summary = json.load(f)
+                return summary
+            return {}
+        except Exception as err:
+            logger.error(traceback.format_exc())
+        finally:
+            shutil.rmtree(case_mate.testcase_dir_path)
+            # ...
+
+    @staticmethod
     def handle_run_type(**kwargs: Any) -> Dict[Text, Any]:
         """
         不同模式运行处理
@@ -189,7 +229,7 @@ class CaseService:
         case_hex = f'testcase_{uuid.uuid4().hex[:6]}'
         data = {
             'name': '',
-            'summary_path': os.path.join(testcase_dir_path, case_hex),
+            'summary_path': os.path.join(testcase_dir_path, case_hex, 'summary.json'),
             'project_id': None,
             'module_id': None,
             'execute_user_id': get_user_id_by_token(),
@@ -253,6 +293,76 @@ class CaseService:
                 case_hex=case_hex,
             )
             DumpTestCase(**run_parsed_data)
+        return data
+
+    @staticmethod
+    def handle_run_type_new(**kwargs: Any) -> Dict[Text, Any]:
+        """
+        不同模式运行处理
+        module 模块
+        suite 套件
+        case 用例
+        :param kwargs:
+        :return:
+        """
+        parsed_data = TestCaseRunSchema().load(kwargs)
+        user_id = get_user_id_by_token()
+        # run_type 运行类型 模块，套件，用例
+        id = parsed_data.get('id', None)
+        run_type = parsed_data.pop('run_type', None)
+        run_mode = parsed_data.pop('run_mode', None)
+        base_url = parsed_data.get('base_url', None)
+
+        test_mate = TestCaseMateNew(base_url)
+        test_mate.run_type = run_type
+        test_mate.execute_user_id = user_id
+
+        if run_type == 'module':
+            module_info = ModuleInfo.get(id)
+
+            if not module_info:
+                raise ValueError('当前模块没有关联用例')
+
+            test_mate.name = module_info.name
+            test_mate.project_id = module_info.project_id
+            test_mate.module_id = module_info.module_id
+
+            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_module_id(module_id=id, case_type=1).all(),
+                                                     many=True)
+            test_mate.run_case_make(case_list)
+
+        elif run_type == 'suite':
+            suite_info = TestSuite.get(id)
+            if not suite_info:
+                raise ValueError('套件没有关联用例！')
+            test_mate.name = suite_info.name
+            test_mate.project_id = suite_info.project_id
+            test_mate.module_id = None
+            ids = suite_info.include.split(',')
+            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_ids(ids=ids, case_type=1).all(),
+                                                     many=True)
+            test_mate.run_case_make(case_list)
+
+        else:
+            case_info = CaseInfo.get(id)
+            if not case_info:
+                raise ValueError('当前用例不存在！')
+            test_mate.name = case_info.name
+            test_mate.project_id = case_info.project_id
+            test_mate.module_id = case_info.module_id
+            case_info = TestCaseRunBodySchema().dump(case_info)
+            test_mate.run_case_make([case_info])
+
+        data = {
+            'name': test_mate.name,
+            'summary_path': test_mate.summary_path,
+            'project_id': test_mate.project_id,
+            'module_id': test_mate.module_id,
+            'execute_user_id': test_mate.execute_user_id,
+            'run_type': test_mate.run_type,
+            'run_mode': test_mate.run_mode,
+            'testcase_dir_path': test_mate.testcase_dir_path,
+        }
         return data
 
     @staticmethod
