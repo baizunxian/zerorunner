@@ -117,9 +117,10 @@ class CaseService:
         :param kwargs:
         :return:
         """
-        run_type_data = CaseService.handle_run_type_new(**kwargs)
-        testcase_dir_path = run_type_data.get('testcase_dir_path', None)
-        test_path_set = TestCaseMate().main_make([testcase_dir_path])
+        base_url = kwargs.get('base_url', '')
+        test_mate = TestCaseMateNew(base_url)
+        run_type_data = CaseService.handle_run_type_new(test_mate, **kwargs)
+        test_path_set = test_mate.get_test_path_set()
         params = dict(test_path_set=test_path_set, run_type_data=run_type_data)
         logger.info('用例初始化完成~')
         return params
@@ -296,12 +297,13 @@ class CaseService:
         return data
 
     @staticmethod
-    def handle_run_type_new(**kwargs: Any) -> Dict[Text, Any]:
+    def handle_run_type_new(test_mate: "TestCaseMateNew", **kwargs: Any) -> Dict[Text, Any]:
         """
         不同模式运行处理
         module 模块
         suite 套件
         case 用例
+        :param test_mate: TestCaseMateNew 对象
         :param kwargs:
         :return:
         """
@@ -313,7 +315,6 @@ class CaseService:
         run_mode = parsed_data.pop('run_mode', None)
         base_url = parsed_data.get('base_url', None)
 
-        test_mate = TestCaseMateNew(base_url)
         test_mate.run_type = run_type
         test_mate.execute_user_id = user_id
 
