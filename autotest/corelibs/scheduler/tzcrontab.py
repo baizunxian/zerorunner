@@ -7,7 +7,6 @@ import datetime as dt
 
 from celery import schedules
 
-
 schedstate = namedtuple('schedstate', ('is_due', 'next'))
 
 

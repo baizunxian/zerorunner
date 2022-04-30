@@ -52,23 +52,12 @@ def task_switch():
     定时任务开关
     :return:
     """
-    parsed_data = request.json
-    task_id = parsed_data.get('t_id', None)  # t id
-    task_info = TimedTask.get(task_id)
-    task_switch_state = task_info.enabled
-    if task_switch_state == 1:
-        task_info.enabled = 0
-    else:
-        task_info.enabled = 1
-    task_info.save()
-
-    task_changed = PeriodicTaskChanged.get(1)
-    task_changed.last_update = datetime.datetime.now()
-    task_changed.save()
-    task_info.case_ids = task_info.case_ids.split(',') if task_info.case_ids else None
-    task_info.iaa_push_ids = task_info.iaa_push_ids.split(',') if task_info.iaa_push_ids else None
-    task = TimedTasksSchema().dump(task_info)
-    return partner_success(task)
+    try:
+        result = TimedTasksService.task_switch(**request.json)
+    except Exception as err:
+        logger.error(traceback.format_exc())
+        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    return partner_success(data=result)
 
 
 @bp.route('/deleted', methods=['POST'])

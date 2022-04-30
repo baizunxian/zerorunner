@@ -15,8 +15,7 @@ from celery.utils.log import get_logger
 from .tzcrontab import TzAwareCrontab
 from .session import ModelBase
 
-
-logger = get_logger('scheduler.models')
+logger = get_logger('celery_sqlalchemy_scheduler.models')
 
 
 def cronexp(field):
@@ -215,7 +214,6 @@ class PeriodicTaskChanged(ModelBase, ModelMixin):
 
 
 class PeriodicTask(ModelBase, ModelMixin):
-
     __tablename__ = 'celery_periodic_task'
     __table_args__ = {'sqlite_autoincrement': True}
 

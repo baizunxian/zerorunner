@@ -55,7 +55,9 @@ class CrontabService:
 class TimedTasksService:
     @staticmethod
     def list(**kwargs: Any) -> Dict[Text, Any]:
-        """定时任务列表"""
+        """
+        定时任务列表
+        """
         query_data = TimedTasksQuerySchema().load(kwargs)
         data = parse_pagination(TimedTask.get_list(**query_data))
         _result, pagination = data.get('result'), data.get('pagination')
@@ -67,6 +69,9 @@ class TimedTasksService:
 
     @staticmethod
     def save_or_update(**kwargs: Any) -> "TimedTask":
+        """
+        保存或更新定时任务
+        """
         parsed_data = TimedTasksSaveOrUpdateSchema().load(kwargs)
         case_ids = parsed_data.get('case_ids')
         name = parsed_data.get('name')
@@ -99,10 +104,27 @@ class TimedTasksService:
 
     @staticmethod
     def deleted(task_id: Union[str, int]):
+        """
+        删除定时任务
+        """
         task_info = TimedTask.get(task_id)
         if task_info:
             task_info.delete(True)
             PeriodicTaskChangedService.update()
+
+    @staticmethod
+    def task_switch(task_id: Union[str, int]):
+        """
+        定时任务开关
+        """
+        task_info = TimedTask.get(task_id)
+        task_info.enabled = 0 if task_info.enabled == 1 else 1
+        task_info.save()
+        task_changed = PeriodicTaskChanged.get_data()
+        task_changed.last_update = datetime.datetime.now()
+        task_changed.save()
+        task = TimedTasksListSchema().dump(task_info)
+        return task
 
 
 class PeriodicTaskChangedService:
