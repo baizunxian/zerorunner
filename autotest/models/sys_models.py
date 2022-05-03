@@ -172,11 +172,11 @@ class Lookup(Base, TimestampMixin):
     __tablename__ = 'lookup'
 
     id = Column(Integer, primary_key=True, info='主键')
-    code = Column(String(64, 'utf8mb4_general_ci'), nullable=False, index=True, info='编码')
-    description = Column(String(256, 'utf8mb4_general_ci'), info='描述')
+    code = Column(String(64), nullable=False, index=True, info='编码')
+    description = Column(String(256), info='描述')
 
     @classmethod
-    def get_lookup_list(cls, code=None):
+    def get_list(cls, code=None):
         q = []
         if code:
             q.append(cls.code == code)
@@ -188,9 +188,9 @@ class LookupValue(Base, TimestampMixin):
 
     id = Column(Integer, primary_key=True, info='主键')
     lookup_id = Column(Integer, nullable=False, index=True, info='所属类型')
-    lookup_code = Column(String(32, 'utf8mb4_general_ci'), nullable=False, index=True, info='编码')
-    lookup_value = Column(String(256, 'utf8mb4_general_ci'), info='值')
-    ext = Column(String(256, 'utf8mb4_general_ci'), info='拓展1')
+    lookup_code = Column(String(32), nullable=False, index=True, info='编码')
+    lookup_value = Column(String(256), info='值')
+    ext = Column(String(256), info='拓展1')
     display_sequence = Column(Integer, info='显示顺序')
 
     @classmethod
