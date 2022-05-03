@@ -6,6 +6,9 @@ from loguru import logger
 
 
 def register_app(app):
+    """
+    自动注册蓝图 蓝图对象必须为bp
+    """
     for loader, module_name, is_pkg in pkgutil.walk_packages(__path__, __name__ + '.'):
         module_info = import_module(module_name)
         if hasattr(module_info, 'bp'):
