@@ -5,7 +5,7 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.api_services.test_case import CaseService
-from autotest.tasks.test_case import async_run_case
+from autotest.tasks.test_case import async_run_case, run_timed_task
 from autotest.utils.api import partner_success, json_required, login_verification
 
 bp = Blueprint('test_case', __name__, url_prefix='/api/testcase')
@@ -165,6 +165,22 @@ def debug_testcase_new():
     """
     try:
         data = CaseService.debug_testcase_new(**request.json)
+        return partner_success(data)
+    except Exception as err:
+        logger.error(traceback.format_exc())
+        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+
+
+@bp.route('/testRunCase', methods=['POST'])
+@login_verification
+@json_required
+def test_run_case():
+    """
+    测试运行用例
+    :return:
+    """
+    try:
+        data = run_timed_task(**request.json)
         return partner_success(data)
     except Exception as err:
         logger.error(traceback.format_exc())

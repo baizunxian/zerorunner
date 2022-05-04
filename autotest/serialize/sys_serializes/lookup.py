@@ -51,7 +51,7 @@ class LookupSaveOrUpdateSchema(BaseListSchema):
         return data
 
 
-class LookupValueSchema(Schema):
+class LookupValueSchema(BaseListSchema):
     """字典值"""
     id = fields.Int()
     lookup_id = fields.Int()
@@ -60,6 +60,16 @@ class LookupValueSchema(Schema):
     ext = fields.Str()
     display_sequence = fields.Str()
     description = fields.Str()
+    code = fields.Str()
+
+
+class LookupValueDictSchema(BaseListSchema):
+    """所有字段值"""
+    id = fields.Int()
+    lookup_id = fields.Int()
+    lookup_code = fields.Str()
+    lookup_value = fields.Str()
+    code = fields.Str()
 
 
 class LookupValueQuerySchema(Schema):

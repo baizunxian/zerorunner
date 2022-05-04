@@ -290,12 +290,16 @@ class CaseInfo(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1, cls.type == 1).all()
 
     @classmethod
-    def get_case_by_module_id(cls, module_id, case_type=None):
+    def get_case_by_module_id(cls, module_id=None, module_ids=None, case_type=None):
         """查询模块是否有case关联"""
         q = list()
         if case_type:
             q.append(cls.case_type == case_type)
-        return cls.query.filter(cls.module_id == module_id, *q, cls.enabled_flag == 1)
+        if module_id:
+            q.append(cls.module_id == module_id)
+        if module_ids:
+            q.append(cls.module_id.in_(module_ids))
+        return cls.query.filter(*q, cls.enabled_flag == 1)
 
     @classmethod
     def get_case_by_project_id(cls, project_id):
@@ -309,12 +313,14 @@ class CaseInfo(Base, TimestampMixin):
 
     @classmethod
     def get_case_by_ids(cls, ids: List, case_type: int = 1):
-        return cls.query.filter(cls.id.in_(ids), cls.enabled_flag == 1)
+        q = []
+        if case_type:
+            q.append(cls.case_type == case_type)
+        return cls.query.filter(cls.id.in_(ids), *q, cls.enabled_flag == 1)
 
     @classmethod
     def get_case_by_time(cls, start_time, end_time):
         return cls.query.filter(cls.creation_date.between(start_time, end_time), cls.enabled_flag == 1)
-
 
     @classmethod
     def get_case_by_project_id_or_body(cls, project_id, body_name):
@@ -356,7 +362,7 @@ class TestSuite(Base, TimestampMixin):
         if created_by_name:
             q.append(User.nickname.like(f'%{created_by_name}%'))
         if ids:
-            q.append(cls.id == ids)
+            q.append(cls.id.in_(ids))
         u = aliased(User)
         return cls.query.filter(*q, cls.enabled_flag == 1) \
             .outerjoin(User, User.id == cls.created_by) \
@@ -749,7 +755,7 @@ class TimedTask(Base, TimestampMixin):
     description = Column(String(255), comment='备注')
     crontab_id = Column(Integer, comment='定时器id')
     interval_id = Column(Integer, comment='参数')
-    task_type = Column(Integer, nullable=False, comment='作业类型, 1 项目，2 模块 ，3 套件')
+    run_type = Column(Integer, nullable=False, comment='作业类型, case, module, suite')
     project_id = Column(Integer, nullable=True, comment='项目id')
     module_id = Column(Integer, nullable=True, comment='模块id')
     suite_id = Column(Integer, nullable=True, comment='套件id')
@@ -793,7 +799,7 @@ class TimedTask(Base, TimestampMixin):
                            cls.description,
                            cls.crontab_id,
                            cls.interval_id,
-                           cls.task_type,
+                           cls.run_type,
                            cls.project_id,
                            cls.module_id,
                            cls.suite_id,

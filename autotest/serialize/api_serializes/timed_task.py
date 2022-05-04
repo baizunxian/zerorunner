@@ -4,8 +4,8 @@ from marshmallow import Schema, fields, post_dump, EXCLUDE, post_load
 
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
-from autotest.serialize.base_serialize import BaseListSchema
 from autotest.models.api_models import Crontab, TimedTask
+from autotest.serialize.base_serialize import BaseListSchema
 
 
 class TimedTasksQuerySchema(Schema):
@@ -35,7 +35,7 @@ class TimedTasksListSchema(BaseListSchema):
     crontab_id = fields.Int()
     crontab_str = fields.Str()
     interval_id = fields.Int()
-    task_type = fields.Int()
+    run_type = fields.Str()
     project_id = fields.Int()
     project_name = fields.Str()
     module_id = fields.Int()
@@ -84,12 +84,14 @@ class TimedTasksSaveOrUpdateSchema(Schema):
 
     id = fields.Int(allow_none=True)
     case_ids = fields.List(fields.Int())
-    task_type = fields.Int()
+    module_id = fields.Int(allow_none=True)
+    project_id = fields.Int()
+    run_type = fields.Str()
     crontab_str = fields.Str()
     module_ids = fields.Str()
     name = fields.Str()
-    task = 'autotest.tasks.case.case_producer_batch'
-    created_by_name = fields.Str()
+    task = fields.Str(allow_none=True)
+    description = fields.Str(allow_none=True)
 
     @post_load
     def post_load(self, data, **kwargs):
@@ -106,7 +108,7 @@ class TimedTasksSaveOrUpdateSchema(Schema):
         if not data.get("name", None):
             raise ValueError("请填写定时任务名称!")
         if not data.get('task', None):
-            data['task'] = 'autotest.tasks.case.case_producer_batch'
+            data['task'] = 'autotest.tasks.test_case.run_timed_task'
         if data.get('case_ids', None):
             data['case_ids'] = list(map(str, data['case_ids']))
         return data

@@ -180,7 +180,21 @@ class Lookup(Base, TimestampMixin):
         q = []
         if code:
             q.append(cls.code == code)
-        return cls.query.filter(cls.enabled_flag == 1, *q).order_by(cls.creation_date.desc())
+        u = aliased(User)
+        return cls.query.filter(cls.enabled_flag == 1, *q) \
+            .outerjoin(User, cls.created_by == User.id) \
+            .outerjoin(u, cls.updated_by == u.id) \
+            .with_entities(cls.id,
+                           cls.code,
+                           cls.description,
+                           cls.updated_by,
+                           cls.created_by,
+                           cls.updation_date,
+                           cls.creation_date,
+                           u.nickname.label('created_by_name'),
+                           User.nickname.label('updated_by_name'),
+                           ) \
+            .order_by(cls.creation_date.desc())
 
 
 class LookupValue(Base, TimestampMixin):
@@ -200,9 +214,26 @@ class LookupValue(Base, TimestampMixin):
             q.append(Lookup.code == code)
         if lookup_id:
             q.append(cls.lookup_id == lookup_id)
+        u = aliased(User)
         return cls.query.filter(*q, cls.enabled_flag == 1) \
             .outerjoin(Lookup, cls.lookup_id == Lookup.id) \
-            .order_by(cls.display_sequence).all()
+            .outerjoin(User, cls.created_by == User.id) \
+            .outerjoin(u, cls.updated_by == u.id) \
+            .with_entities(cls.id,
+                           cls.lookup_id,
+                           cls.lookup_code,
+                           cls.lookup_value,
+                           cls.ext,
+                           cls.display_sequence,
+                           cls.updated_by,
+                           cls.created_by,
+                           cls.updation_date,
+                           cls.creation_date,
+                           Lookup.code.label('code'),
+                           u.nickname.label('created_by_name'),
+                           User.nickname.label('updated_by_name'),
+                           ) \
+            .order_by(cls.display_sequence)
 
     @classmethod
     def get_lookup_value_by_lookup_id(cls, lookup_id, lookup_code=None):

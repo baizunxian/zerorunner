@@ -28,13 +28,13 @@ class ReportService:
         return result
 
     @staticmethod
-    def make_report(**kwargs: Any) -> Dict[Text, Any]:
+    def make_report(summary: Any) -> Dict[Text, Any]:
         """
         处理报告
-        :param kwargs:
+        :param summary:
         :return:
         """
-        report_body = TestReportMakeSchema().load(kwargs)
+        report_body = TestReportMakeSchema().load(summary)
         time_dict = report_body['time']
         teststeps_info = report_body['stat'].get('teststeps', {})
 
