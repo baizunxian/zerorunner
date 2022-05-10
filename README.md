@@ -54,7 +54,7 @@ celery -A autotest.corelibs.backend.celery_worker beat  -l INFO
 
 
 - 微信群
-<img src="https://img.xiaobaicodes.com/img%2Fwebwxgetmsgimg.jpg" alt="zero autotest 交流群" title="zero autotest 交流群"/>
+<img src="https://img.xiaobaicodes.com/img%2F1%2FSnipaste_2022-05-10_17-12-36.png" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
 
 
 #### 💌 支持作者
