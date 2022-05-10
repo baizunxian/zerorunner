@@ -7,6 +7,10 @@
 
 - ZERO AUTOTEST 自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
 
+#### 💒 前端地址
+
+- <a target="_blank" href="https://github.com/baizunxian/zero_autotest_front">zero_autotest_front</a>
+
 #### 🚧 项目启动初始化
 
 ```bash
@@ -50,12 +54,8 @@ celery -A autotest.corelibs.backend.celery_worker beat  -l INFO
 
 
 - 微信群
-<img src="https://img.xiaobaicodes.com/img/system/1650545572624/image-1650545500539-U25pcGFzdGVfMjAyMi0wNC0yMV8yMC01MS0yNC5wbmc=.png" alt="zero autotest 交流群" title="zero autotest 交流群"/>
+<img src="https://img.xiaobaicodes.com/img%2Fwebwxgetmsgimg.jpg" alt="zero autotest 交流群" title="zero autotest 交流群"/>
 
-
-#### 💒 前端地址
-
-- <a target="_blank" href="https://github.com/baizunxian/zero_autotest_front">zero_autotest_front</a>
 
 #### 💌 支持作者
 
