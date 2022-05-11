@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         :
+ Source Server         : 42.192.38.108-tx
  Source Server Type    : MySQL
  Source Server Version : 80023
- Source Host           :
- Source Schema         :
+ Source Host           : 42.192.38.108:3306
+ Source Schema         : zero_autotest
 
  Target Server Type    : MySQL
  Target Server Version : 80023
  File Encoding         : 65001
 
- Date: 09/05/2022 14:29:02
+ Date: 11/05/2022 10:36:38
 */
 
 SET NAMES utf8mb4;
@@ -356,7 +356,7 @@ CREATE TABLE `test_reports`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `id_index`(`id`) USING BTREE,
   INDEX `name_index`(`name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 62 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for test_suite
@@ -378,7 +378,7 @@ CREATE TABLE `test_suite`  (
   INDEX `id_index`(`id`) USING BTREE,
   INDEX `name_index`(`name`) USING BTREE,
   INDEX `enabled_flag_index`(`enabled_flag`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user
@@ -404,6 +404,6 @@ CREATE TABLE `user`  (
   INDEX `ix_user_password`(`password`) USING BTREE,
   INDEX `ix_user_username`(`username`) USING BTREE,
   INDEX `id_index`(`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;
