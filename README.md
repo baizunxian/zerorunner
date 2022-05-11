@@ -50,7 +50,7 @@ celery -A autotest.corelibs.backend.celery_worker beat  -l INFO
 
 
 - 微信群
-<img src="https://img.xiaobaicodes.com/img/system/1650545572624/image-1650545500539-U25pcGFzdGVfMjAyMi0wNC0yMV8yMC01MS0yNC5wbmc=.png" alt="zero autotest 交流群" title="zero autotest 交流群"/>
+<img src="https://img.xiaobaicodes.com/img/webwxgetmsgimg.jpg" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
 
 
 #### 💒 前端地址
