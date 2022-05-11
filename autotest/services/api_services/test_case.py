@@ -15,7 +15,8 @@ from autotest.httprunner.initialize import TestCaseMate
 from autotest.httprunner.initialize_not_yaml import TestCaseMateNew
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
 from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
-                                                         TestCaseRunSchema, TestCaseRunBodySchema)
+                                                         TestCaseRunSchema, TestCaseRunBodySchema,
+                                                         TestCaseRunBatchSchema)
 from autotest.services.api_services.test_report import ReportService
 from autotest.utils.api import parse_pagination
 from autotest.utils.common import get_user_id_by_token, get_timestamp
@@ -126,7 +127,7 @@ class CaseService:
         return params
 
     @staticmethod
-    def run(test_path_set: List[str], run_type_data: Dict) -> Dict[Text, Any]:
+    def run(test_path_set: List[Text], run_type_data: Dict) -> Dict[Text, Any]:
         """
         运行用例
         :param test_path_set: py用例列表
@@ -313,9 +314,9 @@ class CaseService:
         id = parsed_data.get('id', None)
         run_type = parsed_data.pop('run_type', None)
         run_mode = parsed_data.pop('run_mode', None)
-        base_url = parsed_data.get('base_url', None)
 
         test_mate.run_type = run_type
+        test_mate.run_mode = run_mode
         test_mate.execute_user_id = user_id
 
         if run_type == 'module':
@@ -367,6 +368,63 @@ class CaseService:
         return data
 
     @staticmethod
+    def handle_run_type_batch(test_mate: "TestCaseMateNew", **kwargs: Any) -> Dict[Text, Any]:
+        """
+        批量运行
+        module 模块
+        suite 套件
+        case 用例
+        :param test_mate: TestCaseMateNew 对象
+        :param kwargs:
+        :return:
+        """
+        parsed_data = TestCaseRunBatchSchema().load(kwargs)
+        ids = parsed_data.get('ids', None)
+        user_id = parsed_data.pop('ex_user_id', None)
+        run_type = parsed_data.pop('run_type', None)
+        project_id = parsed_data.pop('project_id', None)
+        run_mode = parsed_data.pop('run_mode', None)
+        name = parsed_data.pop('name', None)
+
+        test_mate.name = name
+        test_mate.run_type = run_type
+        test_mate.run_mode = run_mode
+        test_mate.execute_user_id = user_id
+        test_mate.project_id = project_id
+
+        if run_type == 'module':
+
+            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_module_id(module_ids=ids, case_type=1).all(),
+                                                     many=True)
+            test_mate.run_case_make(case_list)
+
+        elif run_type == 'suite':
+            suite_list = TestSuite.get_list(ids=ids).all()
+            case_ids = set()
+            for suite in suite_list:
+                includes = set(map(int, (suite.include.split(','))))
+                case_ids = case_ids.union(includes)
+            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_ids(ids=case_ids, case_type=1).all(),
+                                                     many=True)
+            test_mate.run_case_make(case_list)
+
+        else:
+            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_ids(ids=ids), many=True)
+            test_mate.run_case_make(case_list)
+
+        data = {
+            'name': test_mate.name,
+            'summary_path': test_mate.summary_path,
+            'project_id': test_mate.project_id,
+            'module_id': test_mate.module_id,
+            'execute_user_id': test_mate.execute_user_id,
+            'run_type': test_mate.run_type,
+            'run_mode': test_mate.run_mode,
+            'testcase_dir_path': test_mate.testcase_dir_path,
+        }
+        return data
+
+    @staticmethod
     def handle_report_summary(summary: Dict, run_type_data: Dict):
         """
         处理报告并入库
@@ -374,7 +432,7 @@ class CaseService:
         :param run_type_data:
         :return:
         """
-        test_report = ReportService.make_report(**summary)
+        test_report = ReportService.make_report(summary)
         test_report.update(run_type_data)
         ReportService.save_report(**test_report)
 

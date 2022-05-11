@@ -299,11 +299,12 @@ class TestCaseMateNew:
         testcase_path = testcase_python_abs_path[len(self.project_meta.RootDir) + 1:]
         # current file compared to ProjectRootDir
         diff_levels = len(testcase_path.split(os.sep))
-
+        project_path = config.get('path', None)
         data = {
             "version": __version__,
             "testcase_path": testcase_path,
             "diff_levels": diff_levels,
+            "project_path": f'{project_path}',
             "class_name": f"TestCase{self.case_hex}",
             "imports_list": imports_list,
             "config_chain_style": make_config_chain_style(config),

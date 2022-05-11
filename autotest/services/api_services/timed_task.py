@@ -73,12 +73,11 @@ class TimedTasksService:
         保存或更新定时任务
         """
         parsed_data = TimedTasksSaveOrUpdateSchema().load(kwargs)
-        case_ids = parsed_data.get('case_ids')
-        name = parsed_data.get('name')
-        task = parsed_data.get('task')
-        task_type = parsed_data.get('task_type')
         task_id = parsed_data.get('id')
-
+        name = parsed_data.get('name')
+        project_id = parsed_data.get('project_id')
+        case_ids = parsed_data.get('case_ids')
+        run_type = parsed_data.get('run_type')
         timed_task = TimedTask.get(task_id) if task_id else TimedTask()
 
         try:
@@ -86,8 +85,11 @@ class TimedTasksService:
             user_info = get_user_info_by_token()
 
             task_kwargs = {
-                'c_ids': case_ids,
-                'task_type': task_type,
+                'ids': case_ids,
+                'name': name,
+                'project_id': project_id,
+                'run_type': run_type,
+                'run_mode': 3,
                 'base_url': '',
                 'ex_user_id': user_info.get('id'),
                 'ex_user_name': user_info.get('nickname')

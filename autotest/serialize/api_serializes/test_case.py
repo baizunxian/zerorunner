@@ -149,6 +149,7 @@ class TestCaseRunSchema(Schema):
     run_type = fields.Str()
     run_mode = fields.Int()
     testcase_dir_path = fields.Str(allow_none=True)
+
     # created_by_name = fields.Str(allow_none=True)
 
     @post_load
@@ -157,4 +158,28 @@ class TestCaseRunSchema(Schema):
             data['base_url'] = ""
         if not data.get("id"):
             raise ValueError("请选择用例!")
+        return data
+
+
+class TestCaseRunBatchSchema(Schema):
+    """批量运行用例"""
+
+    class Meta:
+        unknown = EXCLUDE
+
+    ids = fields.List(fields.Str())
+    base_url = fields.Str()
+    name = fields.Str()
+    project_id = fields.Int()
+    run_type = fields.Str()
+    run_mode = fields.Int()
+    ex_user_id = fields.Int()
+    testcase_dir_path = fields.Str(allow_none=True)
+
+    @post_load
+    def post_load(self, data, **kwargs):
+        if not data.get("base_url"):
+            data['base_url'] = ""
+        if 'ids' in data:
+            data['ids'] = list(map(int, data.get('ids')))
         return data

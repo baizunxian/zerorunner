@@ -3,11 +3,11 @@ from datetime import datetime
 from typing import Any
 
 from flask import request
-from sqlalchemy.exc import IntegrityError
-from autotest.config import db
-from sqlalchemy import Column, Boolean, DateTime, Integer
 from loguru import logger
+from sqlalchemy import Column, Boolean, DateTime, Integer, func
+from sqlalchemy.exc import IntegrityError
 
+from autotest.config import db
 from autotest.corelibs.bredis import br
 from autotest.exc.consts import TEST_USER_INFO
 
@@ -121,6 +121,6 @@ class Base(db.Model):
 class TimestampMixin:
     creation_date = Column(DateTime(), default=datetime.now, comment='创建时间')
     created_by = Column(Integer, nullable=True, comment='创建人')
-    updation_date = Column(DateTime(), default=datetime.now, onupdate=datetime.now, nullable=False, comment='更新时间')
+    updation_date = Column(DateTime(), default=func.now(), onupdate=func.now(), nullable=False, comment='更新时间')
     updated_by = Column(Integer, nullable=True, comment='更新人')
     enabled_flag = Column(Boolean(), default=True, nullable=False, comment='是否删除, 0 删除 1 非删除')

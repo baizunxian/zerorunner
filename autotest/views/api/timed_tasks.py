@@ -44,7 +44,7 @@ def save_or_update():
     return partner_success(data=result)
 
 
-@bp.route('/TaskSwitch', methods=['POST'])
+@bp.route('/taskSwitch', methods=['POST'])
 @login_verification
 @json_required
 def task_switch():
@@ -53,7 +53,9 @@ def task_switch():
     :return:
     """
     try:
-        result = TimedTasksService.task_switch(**request.json)
+        parsed_data = request.json
+        task_id = parsed_data.get('id', None)
+        result = TimedTasksService.task_switch(task_id)
     except Exception as err:
         logger.error(traceback.format_exc())
         return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))

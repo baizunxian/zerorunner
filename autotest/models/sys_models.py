@@ -172,15 +172,29 @@ class Lookup(Base, TimestampMixin):
     __tablename__ = 'lookup'
 
     id = Column(Integer, primary_key=True, info='主键')
-    code = Column(String(64, 'utf8mb4_general_ci'), nullable=False, index=True, info='编码')
-    description = Column(String(256, 'utf8mb4_general_ci'), info='描述')
+    code = Column(String(64), nullable=False, index=True, info='编码')
+    description = Column(String(256), info='描述')
 
     @classmethod
-    def get_lookup_list(cls, code=None):
+    def get_list(cls, code=None):
         q = []
         if code:
             q.append(cls.code == code)
-        return cls.query.filter(cls.enabled_flag == 1, *q).order_by(cls.creation_date.desc())
+        u = aliased(User)
+        return cls.query.filter(cls.enabled_flag == 1, *q) \
+            .outerjoin(User, cls.created_by == User.id) \
+            .outerjoin(u, cls.updated_by == u.id) \
+            .with_entities(cls.id,
+                           cls.code,
+                           cls.description,
+                           cls.updated_by,
+                           cls.created_by,
+                           cls.updation_date,
+                           cls.creation_date,
+                           u.nickname.label('created_by_name'),
+                           User.nickname.label('updated_by_name'),
+                           ) \
+            .order_by(cls.creation_date.desc())
 
 
 class LookupValue(Base, TimestampMixin):
@@ -188,9 +202,9 @@ class LookupValue(Base, TimestampMixin):
 
     id = Column(Integer, primary_key=True, info='主键')
     lookup_id = Column(Integer, nullable=False, index=True, info='所属类型')
-    lookup_code = Column(String(32, 'utf8mb4_general_ci'), nullable=False, index=True, info='编码')
-    lookup_value = Column(String(256, 'utf8mb4_general_ci'), info='值')
-    ext = Column(String(256, 'utf8mb4_general_ci'), info='拓展1')
+    lookup_code = Column(String(32), nullable=False, index=True, info='编码')
+    lookup_value = Column(String(256), info='值')
+    ext = Column(String(256), info='拓展1')
     display_sequence = Column(Integer, info='显示顺序')
 
     @classmethod
@@ -200,9 +214,26 @@ class LookupValue(Base, TimestampMixin):
             q.append(Lookup.code == code)
         if lookup_id:
             q.append(cls.lookup_id == lookup_id)
+        u = aliased(User)
         return cls.query.filter(*q, cls.enabled_flag == 1) \
             .outerjoin(Lookup, cls.lookup_id == Lookup.id) \
-            .order_by(cls.display_sequence).all()
+            .outerjoin(User, cls.created_by == User.id) \
+            .outerjoin(u, cls.updated_by == u.id) \
+            .with_entities(cls.id,
+                           cls.lookup_id,
+                           cls.lookup_code,
+                           cls.lookup_value,
+                           cls.ext,
+                           cls.display_sequence,
+                           cls.updated_by,
+                           cls.created_by,
+                           cls.updation_date,
+                           cls.creation_date,
+                           Lookup.code.label('code'),
+                           u.nickname.label('created_by_name'),
+                           User.nickname.label('updated_by_name'),
+                           ) \
+            .order_by(cls.display_sequence)
 
     @classmethod
     def get_lookup_value_by_lookup_id(cls, lookup_id, lookup_code=None):

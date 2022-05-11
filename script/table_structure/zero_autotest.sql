@@ -11,7 +11,7 @@
  Target Server Version : 80023
  File Encoding         : 65001
 
- Date: 21/04/2022 21:11:39
+ Date: 09/05/2022 14:29:02
 */
 
 SET NAMES utf8mb4;
@@ -46,7 +46,7 @@ CREATE TABLE `case_info`  (
   INDEX `id_index`(`id`) USING BTREE,
   INDEX `name_index`(`name`) USING BTREE,
   INDEX `enabled_flag_index`(`enabled_flag`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 43 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 52 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for celery_crontab_schedule
@@ -109,7 +109,7 @@ CREATE TABLE `celery_periodic_task`  (
   `total_run_count` int NOT NULL,
   `date_changed` datetime NULL DEFAULT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `task_type` int NULL DEFAULT NULL,
+  `run_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `project_id` int NULL DEFAULT NULL,
   `module_id` int NULL DEFAULT NULL,
   `suite_id` int NULL DEFAULT NULL,
@@ -121,7 +121,7 @@ CREATE TABLE `celery_periodic_task`  (
   `enabled_flag` int NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `name`(`name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for celery_periodic_task_changed
@@ -176,7 +176,45 @@ CREATE TABLE `env`  (
   `created_by` int NULL DEFAULT NULL,
   `updated_by` int NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Table structure for lookup
+-- ----------------------------
+DROP TABLE IF EXISTS `lookup`;
+CREATE TABLE `lookup`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '数据字典编码',
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '描述',
+  `creation_date` datetime NULL DEFAULT NULL,
+  `updation_date` datetime NULL DEFAULT NULL,
+  `enabled_flag` int NOT NULL DEFAULT 1,
+  `created_by` int NULL DEFAULT NULL,
+  `updated_by` int NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for lookup_value
+-- ----------------------------
+DROP TABLE IF EXISTS `lookup_value`;
+CREATE TABLE `lookup_value`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `lookup_id` bigint NOT NULL COMMENT '所属类型',
+  `lookup_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '编码',
+  `lookup_value` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '值',
+  `ext` varchar(256) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '拓展1',
+  `display_sequence` int NULL DEFAULT NULL COMMENT '显示顺序',
+  `enabled_flag` int NOT NULL DEFAULT 1 COMMENT '是否有效',
+  `created_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '创建人',
+  `creation_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_by` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '最后更新人',
+  `updation_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_lookup_code`(`lookup_code`) USING BTREE,
+  INDEX `idx_lookup_enable`(`enabled_flag`) USING BTREE,
+  INDEX `idx_lookup_id`(`lookup_id`, `enabled_flag`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for menu
@@ -211,7 +249,7 @@ CREATE TABLE `menu`  (
   INDEX `id_index`(`id`) USING BTREE,
   INDEX `name_index`(`name`) USING BTREE,
   INDEX `enabled_flag_index`(`enabled_flag`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 51 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 52 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for module_info
@@ -238,7 +276,7 @@ CREATE TABLE `module_info`  (
   INDEX `id_index`(`id`) USING BTREE,
   INDEX `name_index`(`name`) USING BTREE,
   INDEX `enabled_flag_index`(`enabled_flag`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for project_info
@@ -265,7 +303,7 @@ CREATE TABLE `project_info`  (
   INDEX `id_index`(`id`) USING BTREE,
   INDEX `name_index`(`name`) USING BTREE,
   INDEX `enabled_flag_index`(`enabled_flag`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 581 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 582 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for roles
@@ -298,6 +336,7 @@ CREATE TABLE `test_reports`  (
   `duration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '执行用时 秒',
   `run_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '运行类型，同步，异步',
   `task_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '任务类型, test,module,project',
+  `run_mode` int NULL DEFAULT NULL,
   `project_id` int NULL DEFAULT NULL,
   `module_id` int NULL DEFAULT NULL,
   `report_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
@@ -317,7 +356,7 @@ CREATE TABLE `test_reports`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `id_index`(`id`) USING BTREE,
   INDEX `name_index`(`name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 63 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for test_suite
