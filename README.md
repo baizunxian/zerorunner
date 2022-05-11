@@ -4,9 +4,15 @@
 基于 python + flask + httprunner3.1.6 + celery + sqlalchemy + marshmallow + redis
 
 #### 💒 前端地址
-
-- <a target="_blank" href="https://github.com/baizunxian/zero_autotest_front">zero_autotest_front</a>
-
+- github 
+https://github.com/baizunxian/zero_autotest_front
+- gitee
+https://gitee.com/xb_xiaobai/zero_autotest_front
+#### 💒 后端地址
+- github
+  https://github.com/baizunxian/zero_autotest_backend
+- gitee
+  https://gitee.com/xb_xiaobai/zero_autotest_backend
 #### ⛱️ 线上预览
 
 - ZERO AUTOTEST 自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
