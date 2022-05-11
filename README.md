@@ -3,13 +3,19 @@
 
 基于 python + flask + httprunner3.1.6 + celery + sqlalchemy + marshmallow + redis
 
+#### 💒 前端地址
+- github 
+https://github.com/baizunxian/zero_autotest_front
+- gitee
+https://gitee.com/xb_xiaobai/zero_autotest_front
+#### 💒 后端地址
+- github
+  https://github.com/baizunxian/zero_autotest_backend
+- gitee
+  https://gitee.com/xb_xiaobai/zero_autotest_backend
 #### ⛱️ 线上预览
 
 - ZERO AUTOTEST 自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
-
-#### 💒 前端地址
-
-- <a target="_blank" href="https://github.com/baizunxian/zero_autotest_front">zero_autotest_front</a>
 
 #### 🚧 项目启动初始化
 
@@ -52,11 +58,9 @@ celery -A autotest.corelibs.backend.celery_worker beat  -l INFO
 
 #### 💯 学习交流加 微信 群
 
-
 - 微信群
-<img src="https://img.xiaobaicodes.com/img%2F1%2FSnipaste_2022-05-10_17-12-36.png" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
-
-
+<img src="https://img.xiaobaicodes.com/img/webwxgetmsgimg.jpg" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
+  
 #### 💌 支持作者
 
 如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/baizunxian/zero_autotest_backend">Github</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持, 平台会持续迭代更新。
