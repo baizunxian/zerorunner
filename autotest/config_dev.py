@@ -6,7 +6,7 @@ db_host = '127.0.0.1'
 db_port = 3306
 
 CONFIGS = {
-    'DEBUG': True,
+    'DEBUG': False,
     # mysql数据库的配置信息
     'SQLALCHEMY_DATABASE_URI': f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/zero_autotest?charset=UTF8MB4',
     # 动态追踪修改设置，如未设置只会提示警告
@@ -18,7 +18,7 @@ CONFIGS = {
     'SQLALCHEMY_POOL_TIMEOUT': 10,
     'SQLALCHEMY_POOL_RECYCLE': 7200,
     # 设置密钥，可以通过 base64.b64encode(os.urandom(48)) 来生成一个指定长度的随机字符串
-    'SECRET_KEY': "ghhBljAa0uzw2afLqJOXrukORE4BlkTY/1vaMuDh6opQ3uwGYtsDUyxcH62Aw3ju",
+    'SECRET_KEY': "jZZY28okJkyFWa7KQ9CAX4kxiVfrmMLq7DBp9xIgGavtqPVcacA1K/l71uCFYJkR",
     'BASEDIR': os.path.abspath(os.path.dirname(__file__)),
     'TEST_DIR': os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'suite'),
     'TEST_FILES_DIR': os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'files'),

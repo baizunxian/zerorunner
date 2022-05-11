@@ -1,7 +1,11 @@
+import base64
+import os
+
+
 def a_test(a, b):
     return str(a) + str(b)
 
 
-print(list(map(a_test, [1, 2], [2])))
+print(base64.b64encode(os.urandom(48)))
 
 
