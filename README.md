@@ -1,7 +1,14 @@
 
 #### 🌈 介绍
 
-基于 python + flask + httprunner3.1.6 + celery + sqlalchemy + marshmallow + redis
+基于 python + flask + httprunner + celery + sqlalchemy + marshmallow + redis
+
+- 使用软件版本
+- python version 3.9.6
+- mysql version 8.0.23
+- redis version 6.0.9
+- httprunner version 3.1.6
+- node version 14.17.5
 
 #### 💒 前端地址
 - github 

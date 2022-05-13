@@ -70,7 +70,7 @@ class ProjectInfo(Base, TimestampMixin):
         return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
 
     @classmethod
-    def get_project_count(cls):
+    def get_all_count(cls):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
     @classmethod
@@ -176,7 +176,7 @@ class ModuleInfo(Base, TimestampMixin):
         return cls.query.filter(cls.module_packages == module_packages, cls.enabled_flag == 1).all()
 
     @classmethod
-    def get_module_count(cls):
+    def get_all_count(cls):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
     @classmethod
@@ -323,12 +323,27 @@ class CaseInfo(Base, TimestampMixin):
         return cls.query.filter(cls.creation_date.between(start_time, end_time), cls.enabled_flag == 1)
 
     @classmethod
+    def statistic_project_case_number(cls):
+        return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .with_entities(ProjectInfo.name,
+                           func.count(cls.id).label('case_num'),
+                           User.username.label('employee_code'),
+                           User.nickname.label('username'),
+                           ) \
+            .filter(cls.enabled_flag == 1, cls.case_type == 1)
+
+    @classmethod
     def get_case_by_project_id_or_body(cls, project_id, body_name):
         """查询项目是否有case关联"""
         return cls.query.filter(cls.project_id == project_id, cls.request.like(('%{}%'.format(body_name))),
                                 cls.enabled_flag == 1) \
             .with_entities(cls.id) \
             .all()
+
+    @classmethod
+    def get_all_count(cls):
+        return cls.query.filter(cls.enabled_flag == 1).count()
 
 
 class TestSuite(Base, TimestampMixin):
@@ -397,12 +412,16 @@ class TestSuite(Base, TimestampMixin):
     def statistic_project_suite_number(cls):
         return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(User, User.id == cls.created_by) \
-            .with_entities(ProjectInfo.project_name,
-                           func.count(cls.id).label('suite_num'),
+            .with_entities(ProjectInfo.name,
+                           func.count(cls.id).label('case_num'),
                            User.username.label('employee_code'),
                            User.nickname.label('username'),
                            ) \
             .filter(cls.enabled_flag == 1)
+
+    @classmethod
+    def get_all_count(cls):
+        return cls.query.filter(cls.enabled_flag == 1).count()
 
 
 class TestReports(Base, TimestampMixin):
@@ -494,20 +513,16 @@ class TestReports(Base, TimestampMixin):
     @classmethod
     def get_report_by_time(cls, begin_time, end_time):
         return cls.query.filter(cls.enabled_flag == 1, cls.start_at.between(begin_time, end_time),
-                                cls.status.isnot(None)) \
+                                cls.success.isnot(None)) \
             .with_entities(cls.id,
-                           cls.report_name,
+                           cls.name,
                            cls.start_at,
-                           cls.status,
-                           cls.tests_run,
-                           cls.successes,
-                           cls.test_count,
-                           cls.successes_test_count,
-                           cls.execute_service,
-                           cls.execute_source,
+                           cls.success,
+                           cls.run_test_count,
+                           cls.successful_use_case,
                            cls.execute_user_id,
-                           cls.type,
-                           cls.run_type)
+                           cls.run_type,
+                           cls.run_mode)
 
     @classmethod
     def statistic_report(cls, start_time=None, end_time=None):
