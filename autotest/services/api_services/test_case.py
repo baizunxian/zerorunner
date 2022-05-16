@@ -178,7 +178,6 @@ class CaseService:
             if os.path.exists(summary_path):
                 with open(summary_path, 'r', encoding='utf-8') as f:
                     summary = json.load(f)
-                render_html_report(summary)
                 return summary
             return {}
         except Exception as err:
@@ -205,7 +204,6 @@ class CaseService:
             if os.path.exists(summary_path):
                 with open(summary_path, 'r', encoding='utf-8') as f:
                     summary = json.load(f)
-                render_html_report(summary)
                 return summary
             return {}
         except Exception as err:
