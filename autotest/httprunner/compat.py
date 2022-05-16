@@ -12,6 +12,14 @@ from autotest.httprunner.loader import load_project_meta, convert_relative_proje
 from autotest.httprunner.parser import parse_data
 from autotest.httprunner.utils import sort_dict_by_custom_order
 
+builtin_str = str
+str = str
+bytes = bytes
+basestring = (str, bytes)
+numeric_types = (int, float)
+integer_types = (int,)
+FileNotFoundError = FileNotFoundError
+
 
 def convert_variables(
         raw_variables: Union[Dict, List, Text], test_path: Text

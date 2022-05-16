@@ -41,6 +41,9 @@ class StatisticService:
         #  project top
         pcns_data = StatisticProjectCaseNum().dump(pcns_data, many=True)
 
+        for _ in range(5):
+            pcns_data.extend(pcns_data)
+
         # user top
         ucns_data = StatisticProjectCaseNum().dump(ucns_data, many=True)
 

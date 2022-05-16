@@ -13,6 +13,7 @@ from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
 from autotest.httprunner.initialize import TestCaseMate
 from autotest.httprunner.initialize_not_yaml import TestCaseMateNew
+from autotest.httprunner.report import render_html_report
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
 from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
                                                          TestCaseRunSchema, TestCaseRunBodySchema,
@@ -177,6 +178,7 @@ class CaseService:
             if os.path.exists(summary_path):
                 with open(summary_path, 'r', encoding='utf-8') as f:
                     summary = json.load(f)
+                render_html_report(summary)
                 return summary
             return {}
         except Exception as err:
@@ -203,6 +205,7 @@ class CaseService:
             if os.path.exists(summary_path):
                 with open(summary_path, 'r', encoding='utf-8') as f:
                     summary = json.load(f)
+                render_html_report(summary)
                 return summary
             return {}
         except Exception as err:
