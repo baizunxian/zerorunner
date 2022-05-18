@@ -537,8 +537,6 @@ class TestReports(Base, TimestampMixin):
         ) \
             .filter(cls.enabled_flag == 1,
                     cls.execute_user_id != -1,
-                    User.username != 'bigdata',
-                    cls.cicd_id.is_(None),
                     *q)
 
     @classmethod
@@ -549,13 +547,15 @@ class TestReports(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1,
                                 cls.execute_user_id != -1,
                                 *q) \
+            .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .with_entities(
             cls.id,
-            cls.scene_num,
-            cls.successes_test_count,
-            func.round((cls.successes_test_count / cls.scene_num) * 100, 2).label('pass_rate'),
-            cls.report_name,
-        )
+            ProjectInfo.name.label('project_name'),
+            func.round(func.sum(func.if_(cls.success, 1, 0)) / func.count(cls.id) * 100, 2).label(
+                'pass_rate'),
+            func.round(func.sum(cls.successful_use_case) / func.sum(cls.run_test_count) * 100, 2).label(
+                'successes_rate'),
+        ).group_by(text('project_name'))
 
 
 class TestReportsNew(object):

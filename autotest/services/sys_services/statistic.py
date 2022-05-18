@@ -1,8 +1,10 @@
+import datetime
+
 from sqlalchemy import text
 
 from autotest.models.api_models import ProjectInfo, ModuleInfo, CaseInfo, TestSuite, TestReports
 from autotest.models.sys_models import User
-from autotest.serialize.sys_serializes.statistic import StatisticProjectCaseNum
+from autotest.serialize.sys_serializes.statistic import StatisticProjectCaseNum, StatisticReportNum, StatisticReportRate
 from autotest.utils.basic_function import get_today_start, get_today_end
 
 
@@ -41,14 +43,19 @@ class StatisticService:
         #  project top
         pcns_data = StatisticProjectCaseNum().dump(pcns_data, many=True)
 
-        for _ in range(5):
-            pcns_data.extend(pcns_data)
-
         # user top
         ucns_data = StatisticProjectCaseNum().dump(ucns_data, many=True)
 
         # 套件top
         scns_data = StatisticProjectCaseNum().dump(scns_data, many=True)
+
+        # 运行用例报告统计 根据人
+        report_statistic_data = TestReports.statistic_report().group_by(TestReports.execute_user_id).order_by(
+            text('run_num desc')).limit(10).all()
+        report_statistic = StatisticReportNum().dump(report_statistic_data, many=True)
+
+        report_rate = TestReports.get_statistic_report().all()
+        project_rate = StatisticReportRate().dump(report_rate, many=True)
 
         data = {
             'count_info': {
@@ -64,7 +71,10 @@ class StatisticService:
                 'pcns_data': pcns_data,
                 'ucns_data': ucns_data,
                 'scns_data': scns_data,
-            }
+            },
+            'report_info': report_statistic,
+            'case_run_info': StatisticService.get_case_exe_results(),
+            'project_rate': project_rate
         }
         return data
 
@@ -92,4 +102,51 @@ class StatisticService:
         results['percent'] = round(pass_count / total_run * 100, 2) if total_run != 0 else 0.00
         results['count'] = report_all.count()
         results['total_run'] = total_run
+        return results
+
+    @staticmethod
+    def get_case_exe_results():
+        """测试报告执行数据"""
+        results = {
+            'date': [],
+            'pass': [],
+            'fail': [],
+            'percent': [],
+            'run_count': [],
+            'module_exe_num': [],
+            'case_exe_num': [],
+            'suite_exe_num': [],
+        }
+        today = datetime.date.today()
+        b_time = today + datetime.timedelta(days=-12)
+        report_all = TestReports.get_report_by_time(b_time.strftime('%Y-%m-%d 00:00:00'),
+                                                    today.strftime('%Y-%m-%d 23:59:59')).all()
+        # todo : 这种方式小数据量效果会比较好，数据量大的话要重新优化
+        for i in range(-11, 1):
+            c_time = (today + datetime.timedelta(days=i))
+            begin_time = c_time.strftime('%Y-%m-%d 00:00:00')
+            end_time = c_time.strftime('%Y-%m-%d 23:59:59')
+            total_run = 0
+            pass_count = 0
+            module_exe_num = 0
+            case_exe_num = 0
+            suite_exe_num = 0
+            for report in report_all:
+                if begin_time <= report.start_at.strftime('%Y-%m-%d %H:%M:%S') <= end_time:
+                    total_run += report.run_test_count if report.run_test_count else 0
+                    pass_count += report.successful_use_case if report.successful_use_case else 0
+                    if report.run_type == 'module':
+                        module_exe_num += 1
+                    if report.run_type == 'case':
+                        case_exe_num += 1
+                    if report.run_type == 'suite':
+                        suite_exe_num += 1
+            results['date'].append(c_time.strftime('%Y-%m-%d'))
+            results['pass'].append(pass_count)
+            results['fail'].append(total_run - pass_count)
+            results['run_count'].append(module_exe_num + case_exe_num + suite_exe_num)
+            results['percent'].append(round(pass_count / total_run * 100, 2) if total_run != 0 else 0.00)
+            results['module_exe_num'].append(module_exe_num)
+            results['case_exe_num'].append(case_exe_num)
+            results['suite_exe_num'].append(suite_exe_num)
         return results
