@@ -13,6 +13,7 @@ from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
 from autotest.httprunner.initialize import TestCaseMate
 from autotest.httprunner.initialize_not_yaml import TestCaseMateNew
+from autotest.httprunner.report import render_html_report
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
 from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
                                                          TestCaseRunSchema, TestCaseRunBodySchema,

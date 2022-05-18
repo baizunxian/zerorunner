@@ -1,7 +1,14 @@
 
 #### 🌈 介绍
 
-基于 python + flask + httprunner3.1.6 + celery + sqlalchemy + marshmallow + redis
+基于 python + flask + httprunner + celery + sqlalchemy + marshmallow + redis
+
+- 使用软件版本
+- python version 3.9.6
+- mysql version 8.0.23
+- redis version 6.0.9
+- httprunner version 3.1.6
+- node version 14.17.5
 
 #### 💒 前端地址
 - github 
@@ -59,7 +66,7 @@ celery -A autotest.corelibs.backend.celery_worker beat  -l INFO
 #### 💯 学习交流加 微信 群
 
 - 微信群
-<img src="https://img.xiaobaicodes.com/img/webwxgetmsgimg.jpg" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
+<img src="https://img.xiaobaicodes.com/img%2FSnipaste_2022-05-18_10-41-13.png" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
   
 #### 💌 支持作者
 

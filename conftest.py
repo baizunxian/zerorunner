@@ -15,8 +15,6 @@ def session_fixture(request):
 
     yield
 
-    logger.info(f"task finished, generate task summary for --save-tests")
-
     summary = {
         "success": True,
         "stat": {
