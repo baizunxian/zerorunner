@@ -232,8 +232,8 @@ def make_request_chain_style(request: Dict) -> Text:
 
     if "data" in request:
         data = request["data"]
-        if isinstance(data, Text):
-            data = f'"{data}"'
+        # if isinstance(data, Text):
+        #     data = f'"{data}"'
         request_chain_style += f".with_data({data})"
 
     if "json" in request:
