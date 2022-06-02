@@ -13,6 +13,7 @@ class ModuleQuerySchema(Schema):
     ids = fields.List(fields.Str() or fields.Int())
     name = fields.Str()
     project_name = fields.Str()
+    project_id = fields.Int()
     order_field = fields.Str()
     sort_type = fields.Int()
     created_by_name = fields.Str()

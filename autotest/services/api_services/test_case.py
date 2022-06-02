@@ -13,12 +13,12 @@ from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
 from autotest.httprunner.initialize import TestCaseMate
 from autotest.httprunner.initialize_not_yaml import TestCaseMateNew
-from autotest.httprunner.report import render_html_report
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
 from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
                                                          TestCaseRunSchema, TestCaseRunBodySchema,
                                                          TestCaseRunBatchSchema)
 from autotest.services.api_services.test_report import ReportService
+from autotest.services.utils_services.postman2case import Collection
 from autotest.utils.api import parse_pagination
 from autotest.utils.common import get_user_id_by_token, get_timestamp
 from autotest.utils.service_utils import DumpTestCase
@@ -444,3 +444,24 @@ class CaseService:
         :return:
         """
         return os.path.join(config.TEST_DIR, f'run_test_{get_timestamp()}')
+
+    @staticmethod
+    def postman2case(json_body: Dict, **kwargs):
+        coll = Collection(json_body)
+        coll.make_test_case()
+        for testcase in coll.case_list:
+            case = {
+                "name": testcase.name,
+                "priority": 3,
+                "code": kwargs.get('code', ''),
+                "project_id": kwargs.get('project_id', None),
+                "module_id": kwargs.get('module_id', None),
+                "service_name": kwargs.get('service_name', ''),
+                "config_id": kwargs.get('config_id', None),
+                "user_id": get_user_id_by_token(),
+                "testcase": testcase.dict(),
+            }
+            parsed_data = CaseSaveOrUpdateSchema().load(case)
+            case_info = CaseInfo()
+            case_info.update(**parsed_data)
+        return len(coll.case_list)

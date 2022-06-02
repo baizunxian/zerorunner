@@ -1,3 +1,4 @@
+import json
 import traceback
 
 from flask import Blueprint, request
@@ -181,6 +182,27 @@ def test_run_case():
     """
     try:
         data = run_timed_task(**request.json)
+        return partner_success(data)
+    except Exception as err:
+        logger.error(traceback.format_exc())
+        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+
+
+@bp.route('/postman2case', methods=['POST'])
+@login_verification
+def postman2case():
+    """
+    postman 文件转用例
+    :return:
+    """
+    try:
+        postman_file = request.files.get('file', None)
+        if not postman_file:
+            return partner_success(code=codes.PARTNER_CODE_FAIL, msg='请选择导入的postman，json文件！')
+        if postman_file.filename.split('.')[-1] != 'json':
+            return partner_success(code=codes.PARTNER_CODE_FAIL, msg='请选择json文件导入！')
+        json_body = json.load(postman_file)
+        data = CaseService.postman2case(json_body, **request.form)
         return partner_success(data)
     except Exception as err:
         logger.error(traceback.format_exc())
