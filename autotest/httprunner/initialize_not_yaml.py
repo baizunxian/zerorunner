@@ -169,7 +169,8 @@ class TestCaseMateNew:
 
         request_info = testcase.get('request', {})
         if request_info:
-            req_type = request_info.pop('type', None)
+            req_type = request_info.pop('mode', None) or request_info.pop('type', None)
+            language: Text = request_info.pop('language', None)
             if req_type == 'params':
                 params_data = request_info.pop('params', [])
                 params_dict = {}
@@ -199,6 +200,15 @@ class TestCaseMateNew:
                     else:
                         upload_dict[data_key] = data_value
                 request_info.setdefault('upload', upload_dict)
+
+            elif req_type == 'raw':
+                data = request_info.pop('data', [])
+                if language.lower() == 'json':
+                    data = json.loads(data) if isinstance(data, Text) else data
+                    request_info.setdefault('json', data)
+                elif language.lower() == 'text':
+                    request_info.setdefault('data',  data.encode('utf8'))
+
 
         if 'headers' in request_info:
             headers = request_info.pop('headers', {})

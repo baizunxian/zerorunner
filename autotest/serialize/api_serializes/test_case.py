@@ -40,18 +40,15 @@ class CaseSaveOrUpdateSchema(Schema):
     user_id = fields.Int()
     case_status = fields.Int()
     case_type = fields.Int()
-    code = fields.Str()
-    run_type = fields.Int()
+    code = fields.Str(required=False)
     include = fields.List(fields.Int(), allow_none=True)
     testcase = fields.Dict()
     code_id = fields.Int(allow_none=True)
-    priority = fields.Int()
-    config_id = fields.Int(allow_none=True)
+    priority = fields.Int(allow_none=True, required=False)
+    config_id = fields.Int(allow_none=True, required=False)
     project_id = fields.Int(allow_none=True)
     module_id = fields.Int(allow_none=True)
-    order_field = fields.Str()
     created_by = fields.Int()
-    created_by_name = fields.Str()
 
     @post_load
     def post_load(self, data, **kwargs):

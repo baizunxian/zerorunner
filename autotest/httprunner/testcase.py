@@ -1,4 +1,5 @@
 import inspect
+import json
 from typing import Text, Any, Union, Callable
 
 from autotest.httprunner.models import (
@@ -258,6 +259,9 @@ class RequestWithOptionalArgs(object):
         return self
 
     def with_data(self, data) -> "RequestWithOptionalArgs":
+        # 兼容字符串处理
+        if isinstance(data, dict):
+            data = json.dumps(data)
         self.__step_context.request.data = data
         return self
 
