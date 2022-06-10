@@ -108,7 +108,7 @@ class Collection:
         t_collection = self.load()
         self.prepare_test_steps(t_collection)
 
-    def load(self):
+    def load(self) -> "TCollection":
         collection = TCollection(**self.postman_body)
         return collection
 
@@ -131,7 +131,7 @@ class Collection:
             self.extract_item_list(i)
 
     @staticmethod
-    def prepare_test_step(item: TItem):
+    def prepare_test_step(item: TItem) -> "CaseInfo":
         logger.info(f"method: {item.request.method}, url: {item.request.url.raw}")
         test_case = TestCase()
         test_case.make_request_name(item)
