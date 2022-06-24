@@ -66,7 +66,7 @@ celery -A autotest.corelibs.backend.celery_worker beat  -l INFO
 #### 💯 学习交流加 微信 群
 
 - 微信群
-<img src="https://img.xiaobaicodes.com/img/1/1654846844222/D6B1DD90-0E69-4620-A0FE-C5AC1F14846A.jpeg" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
+<img src="https://img.xiaobaicodes.com/img/1/1656072344563/17647A9B-20FA-4051-99BB-440B51769D80.jpeg" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
   
 #### 💌 支持作者
 
