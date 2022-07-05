@@ -24,6 +24,17 @@ https://gitee.com/xb_xiaobai/zero_autotest_front
 
 - ZERO AUTOTEST 自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
 
+- 首页
+ <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/index.png?raw=true" />
+ 
+- 报告页面
+ <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/report.png?raw=true" />
+  
+- 自定义函数
+ <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/func.png?raw=true" />
+
+
+
 #### 🚧 项目启动初始化
 
 ```bash
@@ -66,7 +77,7 @@ celery -A autotest.corelibs.backend.celery_worker beat  -l INFO
 #### 💯 学习交流加 微信 群
 
 - 微信群
-<img src="https://img.xiaobaicodes.com/img/1/1656072344563/17647A9B-20FA-4051-99BB-440B51769D80.jpeg" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
+<img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/weixin.jpg?raw=true" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
   
 #### 💌 支持作者
 
