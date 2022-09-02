@@ -5,14 +5,12 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.api_services.module import ModuleService
-from autotest.utils.api import partner_success, json_required, login_verification
+from autotest.utils.api import partner_success, login_verification
 
 bp = Blueprint('module', __name__, url_prefix='/api/module')
 
 
 @bp.route('/list', methods=['POST'])
-@login_verification
-@json_required
 def module_list():
     """
     模块列表
@@ -27,8 +25,6 @@ def module_list():
 
 
 @bp.route('/saveOrUpdate', methods=['POST'])
-@login_verification
-@json_required
 def save_or_update():
     """
     更新保存项目
@@ -44,8 +40,6 @@ def save_or_update():
 
 
 @bp.route('/deleted', methods=['POST'])
-@login_verification
-@json_required
 def deleted():
     """
     删除模块

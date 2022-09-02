@@ -94,6 +94,10 @@ LOGGING_CONFIG = {
         'file_format': {
             'format': '%(asctime)s | %(levelname)s | %(thread)d | %(name)s | %(message)s',
         },
+        'sqlalchemy_engine_format': {
+            'format': '%(asctime)s | %(levelname)s | %(thread)d | %(name)s | %(message)s',
+        },
+
     },
     'handlers': {
         'console': {
@@ -124,6 +128,11 @@ LOGGING_CONFIG = {
             'handlers': ['file'] if SERVER_IP == PRD_IP else ['console'],
             'propagate': False,
         },
+        "sqlalchemy.engine": {
+            'level': 'ERROR',
+            'handlers': ['file'] if SERVER_IP == PRD_IP else ['console'],
+            'propagate': False,
+        }
     },
     'root': {
         'level': 'INFO',

@@ -6,14 +6,12 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.sys_services.statistic import StatisticService
-from autotest.utils.api import login_verification, json_required, partner_success
+from autotest.utils.api import login_verification, partner_success
 
 bp = Blueprint('statistic', __name__, url_prefix='/api/statistic')
 
 
 @bp.route('/countStatistic', methods=['POST'])
-@login_verification
-@json_required
 def count_statistic():
     """数量统计"""
     try:
@@ -25,8 +23,6 @@ def count_statistic():
 
 
 @bp.route('/statistic/useCET', methods=['POST'])
-@login_verification
-@json_required
 def use_case_execution_trend():
     """userCET"""
     "Use case execution trend"
@@ -35,8 +31,6 @@ def use_case_execution_trend():
 
 
 @bp.route('/CaseExecutionResults', methods=['POST'])
-@login_verification
-@json_required
 def case_execution_results():
     """测试报告执行数据"""
     results = {
@@ -117,8 +111,6 @@ def module_statistics_report():
 
 
 @bp.route('/productStatisticsReport', methods=['POST'])
-@login_verification
-@json_required
 def product_statistics_report():
     """产品线分析报表"""
     parsed_data = request.json
@@ -136,7 +128,6 @@ def product_statistics_report():
 
 
 @bp.route('/moduleStatisticsReportNew', methods=['POST'])
-@json_required
 def module_statistics_report_new():
     """模块分析报表"""
     parsed_data = request.json
@@ -159,7 +150,6 @@ def module_statistics_report_new():
 
 
 @bp.route('/productStatisticsHand', methods=['POST'])
-@json_required
 def product_statistics_hand():
     parsed_data = request.json
     day = parsed_data.get('day', None)
@@ -172,7 +162,6 @@ def product_statistics_hand():
 
 
 @bp.route('/CICDStatisticsReport', methods=['POST'])
-@json_required
 # @login_verification
 def cicd_statistics_report():
     parsed_data = request.json
@@ -190,7 +179,6 @@ def cicd_statistics_report():
 
 
 @bp.route('/genericStatisticsReport', methods=['POST'])
-@json_required
 def generic_statistics_report():
     """通用查询分析报表"""
     parsed_data = request.json
@@ -208,7 +196,6 @@ def generic_statistics_report():
 
 
 @bp.route('/genericReport', methods=['POST'])
-@json_required
 def get_group_generic_report():
     """按日期统计通用查询运营数据"""
     parsed_data = request.json
@@ -218,7 +205,6 @@ def get_group_generic_report():
 
 
 @bp.route('/genericReportExcel', methods=['POST'])
-@json_required
 def generic_report_excel():
     """通用查询报表数据导出excel"""
     parsed_data = request.json

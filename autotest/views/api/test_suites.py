@@ -5,14 +5,12 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.api_services.test_suites import TestSuitesService
-from autotest.utils.api import partner_success, json_required, login_verification
+from autotest.utils.api import partner_success, login_verification
 
 bp = Blueprint('suites', __name__, url_prefix='/api/testSuites')
 
 
 @bp.route('/list', methods=['POST'])
-@login_verification
-@json_required
 def suites_list():
     """
     套件列表
@@ -27,8 +25,6 @@ def suites_list():
 
 
 @bp.route('/saveOrUpdate', methods=['POST'])
-@login_verification
-@json_required
 def save_or_update():
     """
     更新保存套件
@@ -43,8 +39,6 @@ def save_or_update():
 
 
 @bp.route('/deleted', methods=['POST'])
-@login_verification
-@json_required
 def deleted():
     """
     删除套件
@@ -61,8 +55,6 @@ def deleted():
 
 
 @bp.route('/getSuiteInfo', methods=['POST'])
-@login_verification
-@json_required
 def suite_info():
     """
     套件信息

@@ -41,3 +41,12 @@ def get_user_id_by_token() -> Union[int, str]:
     :return:
     """
     return get_user_info_by_token().get('id')
+
+
+def get_uuid():
+    """
+    随机生成uuid
+    :return: 生成好的uuid
+    """
+    import uuid
+    return str(uuid.uuid4()).replace('-', '')

@@ -6,15 +6,13 @@ from loguru import logger
 from autotest.config import config
 from autotest.exc import codes
 from autotest.services.api_services.project import ProjectService
-from autotest.utils.api import partner_success, login_verification, json_required
+from autotest.utils.api import partner_success, login_verification
 
 bp = Blueprint('project', __name__, url_prefix='/api/project')
 auth = config.Authentication
 
 
 @bp.route('/list', methods=['POST'])
-@login_verification
-@json_required
 def project_list():
     """
     项目列表
@@ -29,8 +27,6 @@ def project_list():
 
 
 @bp.route('/saveOrUpdate', methods=['POST'])
-@login_verification
-@json_required
 def save_or_update():
     """
     更新保存项目
@@ -45,8 +41,6 @@ def save_or_update():
 
 
 @bp.route('/deleted', methods=['POST'])
-@login_verification
-@json_required
 def deleted():
     """
     删除

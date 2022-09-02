@@ -15,4 +15,5 @@ def register_app(app):
             try:
                 app.register_blueprint(module_info.bp)
             except Exception as e:
+                logger.error(module_name)
                 logger.error(traceback.format_exc())

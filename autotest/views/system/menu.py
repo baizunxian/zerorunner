@@ -5,13 +5,12 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.sys_services.menu import MenuService
-from autotest.utils.api import partner_success, json_required, login_verification
+from autotest.utils.api import partner_success, login_verification
 
 bp = Blueprint('menu', __name__, url_prefix='/api/menu')
 
 
 @bp.route('/allMenu', methods=['POST'])
-@login_verification
 def all_menu():
     """
     获取所有菜单数据
@@ -25,7 +24,6 @@ def all_menu():
 
 
 @bp.route('/getAllMenus', methods=['POST'])
-@login_verification
 def get_all_menus():
     """
     获取结构菜单，父子关系
@@ -39,8 +37,6 @@ def get_all_menus():
 
 
 @bp.route('/saveOrUpdate', methods=['POST'])
-@login_verification
-@json_required
 def save_or_update():
     """
     新增或者更新menu
@@ -54,8 +50,6 @@ def save_or_update():
 
 
 @bp.route('/deleted', methods=['POST'])
-@login_verification
-@json_required
 def delete_menu():
     """
     删除菜单
@@ -71,7 +65,6 @@ def delete_menu():
 
 
 @bp.route('/setMenuViews', methods=['POST'])
-@json_required
 def set_menu_views():
     """
     设置菜单访问量

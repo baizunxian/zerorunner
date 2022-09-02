@@ -7,14 +7,12 @@ from loguru import logger
 from autotest.exc import codes
 from autotest.services.api_services.test_case import CaseService
 from autotest.tasks.test_case import async_run_case, run_timed_task
-from autotest.utils.api import partner_success, json_required, login_verification
+from autotest.utils.api import partner_success, login_verification
 
 bp = Blueprint('test_case', __name__, url_prefix='/api/testcase')
 
 
 @bp.route('/list', methods=['POST'])
-@login_verification
-@json_required
 def case_list():
     """
     获取用例列表
@@ -29,8 +27,6 @@ def case_list():
 
 
 @bp.route('/getTestCaseInfo', methods=['POST'])
-@login_verification
-@json_required
 def get_case_info():
     """
     获取用例信息
@@ -45,8 +41,6 @@ def get_case_info():
 
 
 @bp.route('/saveOrUpdate', methods=['POST'])
-@login_verification
-@json_required
 def save_or_update():
     """
     更新保存测试用例
@@ -62,8 +56,6 @@ def save_or_update():
 
 
 @bp.route('/setCaseStatus', methods=['POST'])
-@login_verification
-@json_required
 def set_case_status():
     """
     用例失效生效
@@ -78,8 +70,6 @@ def set_case_status():
 
 
 @bp.route('/deleted', methods=['POST'])
-@login_verification
-@json_required
 def deleted():
     """
     删除用例
@@ -95,8 +85,6 @@ def deleted():
 
 
 @bp.route('/runTestCase', methods=['POST'])
-@login_verification
-@json_required
 def run_test():
     """
     运行用例
@@ -118,8 +106,6 @@ def run_test():
 
 
 @bp.route('/runTestCaseNew', methods=['POST'])
-@login_verification
-@json_required
 def run_test_new():
     """
     运行用例
@@ -141,8 +127,6 @@ def run_test_new():
 
 
 @bp.route('/debugTestCase', methods=['POST'])
-@login_verification
-@json_required
 def debug_testcase():
     """
     调试用例
@@ -157,8 +141,6 @@ def debug_testcase():
 
 
 @bp.route('/debugTestCaseNew', methods=['POST'])
-@login_verification
-@json_required
 def debug_testcase_new():
     """
     调试用例
@@ -173,8 +155,6 @@ def debug_testcase_new():
 
 
 @bp.route('/testRunCase', methods=['POST'])
-@login_verification
-@json_required
 def test_run_case():
     """
     测试运行用例
@@ -189,7 +169,6 @@ def test_run_case():
 
 
 @bp.route('/postman2case', methods=['POST'])
-@login_verification
 def postman2case():
     """
     postman 文件转用例

@@ -5,16 +5,15 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.sys_services.user import UserService
-from autotest.utils.api import json_required, partner_success, login_verification
+from autotest.utils.api import partner_success
 
 bp = Blueprint('user', __name__, url_prefix='/api/user')
 
 
 @bp.route('/login', methods=['POST'])
-@json_required
 def login():
     """
-    登录
+    登录-
     :return:
     """
     try:
@@ -35,8 +34,6 @@ def logout():
 
 
 @bp.route('/getUserInfoByToken', methods=['POST'])
-@login_verification
-@json_required
 def get_user_info():
     """
     根据token获取用户信息
@@ -49,7 +46,6 @@ def get_user_info():
 
 
 @bp.route('/userRegister', methods=['POST'])
-@json_required
 def user_register():
     """
     用户注册
@@ -63,8 +59,6 @@ def user_register():
 
 
 @bp.route('/changePassword', methods=['POST'])
-@json_required
-@login_verification
 def change_password():
     """
     修改密码
@@ -78,8 +72,6 @@ def change_password():
 
 
 @bp.route('/list', methods=['POST'])
-@json_required
-@login_verification
 def user_list():
     """
     查询所用用户
@@ -93,8 +85,6 @@ def user_list():
 
 
 @bp.route('/saveOrUpdate', methods=['POST'])
-@json_required
-@login_verification
 def save_or_update():
     """
     更新保存用户
@@ -109,8 +99,6 @@ def save_or_update():
 
 
 @bp.route('/deleted', methods=['POST'])
-@json_required
-@login_verification
 def deleted():
     """
     删除用户
@@ -124,7 +112,6 @@ def deleted():
 
 
 @bp.route('/authorizeToken', methods=['POST'])
-@json_required
 def authorize_token():
     parsed_data = request.json
     token = parsed_data.get('token', '')

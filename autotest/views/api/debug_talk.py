@@ -5,14 +5,12 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.api_services.debug_talk import DebugTalkService
-from autotest.utils.api import login_verification, json_required, partner_success
+from autotest.utils.api import partner_success
 
 bp = Blueprint('debugTalk', __name__, url_prefix='/api/debugTalk')
 
 
 @bp.route('/list', methods=['POST'])
-@login_verification
-@json_required
 def get_debug_talk_list():
     """
     获取自定义函数列表
@@ -27,8 +25,6 @@ def get_debug_talk_list():
 
 
 @bp.route('/getDebugTalkInfo', methods=['POST'])
-@login_verification
-@json_required
 def get_debug_talk_info():
     """
     获取自定义函数详情
@@ -43,8 +39,6 @@ def get_debug_talk_info():
 
 
 @bp.route('/saveOrUpdate', methods=['POST'])
-@login_verification
-@json_required
 def save_debug_talk():
     """
     更新保存

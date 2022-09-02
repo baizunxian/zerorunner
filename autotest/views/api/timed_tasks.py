@@ -7,14 +7,12 @@ from loguru import logger
 from autotest.exc import codes
 from autotest.models.api_models import TimedTask, PeriodicTaskChanged
 from autotest.services.api_services.timed_task import TimedTasksService
-from autotest.utils.api import partner_success, json_required, login_verification
+from autotest.utils.api import partner_success, login_verification
 
 bp = Blueprint('timed_tasks', __name__, url_prefix='/api/timedTasks')
 
 
 @bp.route('/list', methods=['POST'])
-@login_verification
-@json_required
 def timed_tasks_list():
     """
     定时任务列表
@@ -29,8 +27,6 @@ def timed_tasks_list():
 
 
 @bp.route('/saveOrUpdate', methods=['POST'])
-@login_verification
-@json_required
 def save_or_update():
     """
     新增，修改定时任务
@@ -45,8 +41,6 @@ def save_or_update():
 
 
 @bp.route('/taskSwitch', methods=['POST'])
-@login_verification
-@json_required
 def task_switch():
     """
     定时任务开关
@@ -63,8 +57,6 @@ def task_switch():
 
 
 @bp.route('/deleted', methods=['POST'])
-@login_verification
-@json_required
 def deleted_tasks():
     """
     删除任务

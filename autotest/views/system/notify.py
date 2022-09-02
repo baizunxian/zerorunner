@@ -7,7 +7,7 @@
 # from autotest.forms.form import SendMessageSchema
 # from autotest.models.sys_models import Notify, User
 # from autotest.services.system_service.notify_service import notify
-# from autotest.utils.api import partner_success, login_verification, json_required, parse_pagination
+# from autotest.utils.api import partner_success, login_verification, parse_pagination
 #
 # bp = Blueprint('notify', __name__, url_prefix='/api')
 #

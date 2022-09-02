@@ -138,19 +138,7 @@ def http_fail(data=None, code=None, http_code=None, msg=None, headers={}):
     return Response(data, status=http_code, mimetype='application/json', headers=headers)
 
 
-def json_required(func):
-    """
-    此装饰器可以装饰所有post请求 避免处理非json数据报错
-    """
 
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        json_dict = request.get_json()
-        if json_dict is None:
-            return http_fail(code=codes.HTTP_BAD_REQUEST, msg='json is required')
-        return func(*args, **kwargs)
-
-    return wrapper
 
 
 # 登录校验

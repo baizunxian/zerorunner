@@ -5,14 +5,12 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.sys_services.role import RolesService
-from autotest.utils.api import partner_success, json_required, login_verification
+from autotest.utils.api import partner_success, login_verification
 
-bp = Blueprint('roles', __name__, url_prefix='/api/queryDB')
+bp = Blueprint('query_db', __name__, url_prefix='/api/queryDB')
 
 
 @bp.route('/DBList', methods=['POST'])
-@login_verification
-@json_required
 def all_roles():
     """
     获取所有角色数据

@@ -5,14 +5,12 @@ from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.sys_services.lookup import LookupService, LookupValueService
-from autotest.utils.api import partner_success, login_verification, json_required
+from autotest.utils.api import partner_success, login_verification
 
 bp = Blueprint('lookup', __name__, url_prefix='/api/lookup')
 
 
 @bp.route('/getAllLookup', methods=['POST'])
-@login_verification
-@json_required
 def get_all_lookup():
     """
     获取所有数据字典
@@ -27,8 +25,6 @@ def get_all_lookup():
 
 
 @bp.route('/getLookupList', methods=['POST'])
-@login_verification
-@json_required
 def lookup_list():
     """
     获取数据字典列表
@@ -43,8 +39,6 @@ def lookup_list():
 
 
 @bp.route('/saveOrUpdateLookup', methods=['POST'])
-@login_verification
-@json_required
 def save_or_update_lookup():
     """新增或更新字典"""
     try:
@@ -56,8 +50,6 @@ def save_or_update_lookup():
 
 
 @bp.route('/delLookup', methods=['POST'])
-@login_verification
-@json_required
 def del_lookup():
     """删除字典"""
     try:
@@ -71,8 +63,6 @@ def del_lookup():
 
 
 @bp.route('/getLookupValue', methods=['POST'])
-@login_verification
-@json_required
 def get_lookup_value():
     """获取字典值"""
     try:
@@ -84,8 +74,6 @@ def get_lookup_value():
 
 
 @bp.route('/saveOrUpdateLookupValue', methods=['POST'])
-@login_verification
-@json_required
 def save_or_update_lookup_value():
     """保存或更新字典值"""
     try:
@@ -97,8 +85,6 @@ def save_or_update_lookup_value():
 
 
 @bp.route('/delLookupValue', methods=['POST'])
-@login_verification
-@json_required
 def del_lookup_value():
     """删除字典值"""
     try:
