@@ -43,6 +43,7 @@ def save_or_update():
     :return:
     """
     try:
+        return partner_success(code=codes.PARTNER_CODE_FAIL, msg="演示环境不保存！")
         MenuService.save_or_update(**request.json)
     except Exception as err:
         return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))

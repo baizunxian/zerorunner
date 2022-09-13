@@ -88,22 +88,15 @@ LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'console_format': {
+        'common_format': {
             'format': '%(asctime)s | %(levelname)s | %(thread)d | %(name)s | %(message)s',
-        },
-        'file_format': {
-            'format': '%(asctime)s | %(levelname)s | %(thread)d | %(name)s | %(message)s',
-        },
-        'sqlalchemy_engine_format': {
-            'format': '%(asctime)s | %(levelname)s | %(thread)d | %(name)s | %(message)s',
-        },
-
+        }
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'level': 'DEBUG',
-            'formatter': 'console_format',
+            'formatter': 'common_format',
             'stream': 'ext://sys.stdout',
         },
         'file': {
@@ -119,7 +112,7 @@ LOGGING_CONFIG = {
             'delay': True,
             # 'filename': '/app/logs/autotest_backend.log',
             'filename': '/app/logs/autotest_backend.log' if SERVER_IP == PRD_IP else 'logs/autotest_backend.log',
-            'formatter': 'file_format'
+            'formatter': 'common_format'
         }
     },
     'loggers': {

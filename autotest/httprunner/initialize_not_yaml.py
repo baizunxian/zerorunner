@@ -207,8 +207,7 @@ class TestCaseMateNew:
                     data = json.loads(data) if isinstance(data, Text) else data
                     request_info.setdefault('json', data)
                 elif language.lower() == 'text':
-                    request_info.setdefault('data',  data.encode('utf8'))
-
+                    request_info.setdefault('data', data.encode('utf8'))
 
         if 'headers' in request_info:
             headers = request_info.pop('headers', {})
@@ -238,7 +237,8 @@ class TestCaseMateNew:
                 validate_value = validate_dict.pop('expected')
                 value = data_type_change(validate_type, validate_value)
                 if value == 'exception':
-                    raise ValueError('{}:{} 类型错误,不是{}类型'.format(validate_dict['check'], validate_value, validate_type))
+                    raise ValueError(
+                        '{}:{} 类型错误,不是{}类型'.format(validate_dict['check'], validate_value, validate_type))
                 validate_dict['expected'] = value
                 v_info = {validate_dict['comparator']: [validate_dict['check'], validate_dict['expected']]}
                 validate_list.append(v_info)
@@ -294,7 +294,7 @@ class TestCaseMateNew:
         load_testcase(testcase)
         self.load_project_meta(test_dir_path)
 
-        testcase_python_abs_path = os.path.join(test_dir_path, f'{self.case_hex}_test.py')
+        testcase_python_abs_path = os.path.join(test_dir_path, f'{TestCaseMateNew.new_case_hex()}_test.py')
 
         if testcase_python_abs_path in self.pytest_files_made_cache_mapping:
             return testcase_python_abs_path
@@ -413,6 +413,10 @@ class TestCaseMateNew:
         :return:
         """
         return list(self.pytest_files_run_set)
+
+    @staticmethod
+    def new_case_hex():
+        return f'testcase{uuid.uuid4().hex[:6]}'
 
     def __del__(self):
         if self.project_meta and self.project_meta.RootDir in sys.path:

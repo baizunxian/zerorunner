@@ -1,3 +1,5 @@
+import uuid
+
 from flask import Flask, request
 from loguru import logger
 
@@ -6,6 +8,7 @@ from autotest.exc import codes
 from autotest.exc.consts import TEST_USER_INFO, CACHE_DAY
 from autotest.exc.partner_message import partner_errmsg
 from autotest.utils.api import partner_success, http_fail
+from flask import g
 
 white_router = [
     "/api/user/login"
@@ -15,6 +18,7 @@ white_router = [
 def init_middleware(app: Flask):
     app.before_request(login_verification)
     app.before_request(json_required)
+    app.before_request(trace_id)
 
 
 def login_verification():
@@ -40,3 +44,7 @@ def json_required():
     if request.method == 'POST' and request.get_json() is None:
         logger.error(f'{request.path} json is required')
         return http_fail(code=codes.HTTP_BAD_REQUEST, msg='json is required')
+
+
+def trace_id():
+    g.trace_id = str(uuid.uuid4()).split('-')
