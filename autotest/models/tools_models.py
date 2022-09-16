@@ -1,10 +1,6 @@
-from datetime import datetime, timedelta
-
-from sqlalchemy import Column, String, Integer, Text, DateTime, func, distinct
-from sqlalchemy.orm import aliased
+from sqlalchemy import Column, String, Integer
 
 from .Base import Base, TimestampMixin
-from ..config import db
 
 
 class DataSource(Base, TimestampMixin):
@@ -19,6 +15,17 @@ class DataSource(Base, TimestampMixin):
     port = Column(String(255), nullable=True, comment='端口')
     user = Column(String(255), nullable=False, comment='用户名')
     password = Column(String(255), nullable=False, comment='密码')
+
+    @classmethod
+    def get_list(cls, id=None, source_type=None, name=None):
+        q = []
+        if id:
+            q.append(cls.id == id)
+        if source_type:
+            q.append(cls.type == source_type)
+        if name:
+            q.append(cls.name == name)
+        return cls.query.filter(*q, cls.enabled_flag == 1)
 
     @classmethod
     def get_user_by_name(cls, username):

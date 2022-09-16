@@ -1,8 +1,7 @@
 from typing import Dict, Any, Text, List
-
 from autotest.models.sys_models import Lookup, LookupValue
-from autotest.serialize.sys_serializes.lookup import LookupListSchema, LookupSaveOrUpdateSchema, LookupValueSchema, \
-    LookupValueQuerySchema, LookupValueSaveOrUpdateSchema, LookupValueDictSchema
+from autotest.serialize.sys_serializes.lookup import LookupSaveOrUpdateSchema, LookupValueQuerySchema, \
+    LookupValueSaveOrUpdateSchema
 from autotest.utils.api import parse_pagination
 
 
@@ -14,7 +13,6 @@ class LookupService:
         code = kwargs.get('code', None)
         data = parse_pagination(Lookup.get_list(code))
         _result, pagination = data.get('result'), data.get('pagination')
-        _result = LookupListSchema().dump(_result, many=True)
         result = {
             'rows': _result
         }
@@ -23,7 +21,7 @@ class LookupService:
 
     @staticmethod
     def save_or_update(**kwargs: Any) -> "Lookup":
-        parsed_data = LookupSaveOrUpdateSchema().load(kwargs)
+        parsed_data = LookupSaveOrUpdateSchema(**kwargs).dict()
         id = parsed_data.get('id', None)
         lookup = Lookup.get(id) if id else Lookup()
         lookup.update(**parsed_data)
@@ -55,22 +53,21 @@ class LookupValueService:
     @staticmethod
     def get_lookup_value(**kwargs: Any) -> List[Any]:
         """获取字典值"""
-        parsed_data = LookupValueQuerySchema().load(kwargs)
-        code = parsed_data.get('code', None)
-        lookup_id = parsed_data.get('lookup_id', None)
+        parsed_data = LookupValueQuerySchema(**kwargs)
+        code = parsed_data.code
+        lookup_id = parsed_data.lookup_id
         lookup_value = LookupValue.get_lookup_value(code, lookup_id).all()
         if not lookup_value:
             return []
-        lookup_value = LookupValueSchema().dump(lookup_value, many=True)
         return lookup_value
 
     @staticmethod
     def save_or_update(**kwargs: Any) -> "LookupValue":
         """保存或更新字典值"""
-        parsed_data = LookupValueSaveOrUpdateSchema().load(kwargs)
-        id = parsed_data.get('id', None)
+        parsed_data = LookupValueSaveOrUpdateSchema(**kwargs)
+        id = parsed_data.id
         lookup_value_info = LookupValue.get(id) if id else LookupValue()
-        lookup_value_info.update(**parsed_data)
+        lookup_value_info.update(**parsed_data.dict())
         return lookup_value_info
 
     @staticmethod

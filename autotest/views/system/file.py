@@ -1,6 +1,5 @@
 from flask import Blueprint, request
 
-from autotest.exc import codes
 from autotest.services.sys_services.file import FileService
 from autotest.utils.api import partner_success
 
@@ -13,10 +12,7 @@ def upload():
     文件上传
     :return:
     """
-    try:
-        result = FileService.upload()
-    except Exception as err:
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    result = FileService.upload()
     return partner_success(result)
 
 
@@ -26,10 +22,7 @@ def download(file_path):
     文件下载
     :return:
     """
-    try:
-        result = FileService.download(file_path)
-    except Exception as err:
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    result = FileService.download(file_path)
     return result
 
 
@@ -39,10 +32,7 @@ def deleted():
     文件删除
     :return:
     """
-    try:
-        parsed_data = request.json
-        name = parsed_data.get('name', None)
-        FileService.deleted(name)
-    except Exception as err:
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    parsed_data = request.json
+    name = parsed_data.get('name', None)
+    FileService.deleted(name)
     return partner_success()

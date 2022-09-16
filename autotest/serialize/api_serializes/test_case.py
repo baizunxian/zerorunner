@@ -1,131 +1,91 @@
 import json
-
-from marshmallow import Schema, EXCLUDE, fields, post_load, post_dump
-
+from typing import Optional, Text, List, Union, Dict, Any
+from pydantic import root_validator, BaseModel
+from autotest.exc.exceptions import ParameterError
 from autotest.models.api_models import CaseInfo
-from autotest.serialize.base_serialize import BaseListSchema
+from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
 from autotest.utils.service_utils import check_testcase
 
 
-class CaseQuerySchema(Schema):
+class CaseQuerySchema(BaseQuerySchema):
     """查询参数序列化"""
 
-    class Meta:
-        unknown = EXCLUDE
-
-    id = fields.Int()
-    ids = fields.List(fields.Str() or fields.Int())
-    name = fields.Str()
-    case_status = fields.Int()
-    case_type = fields.Int()
-    code = fields.Str()
-    sort_type = fields.Str()
-    priority = fields.Int()
-    project_id = fields.Int()
-    module_id = fields.Int()
-    module_ids = fields.List(fields.Int())
-    project_name = fields.Str()
-    order_field = fields.Str()
-    created_by = fields.Int()
-    created_by_name = fields.Str()
+    id: Optional[int]
+    ids: Optional[List[Union[int, Text]]]
+    name: Optional[Text]
+    case_status: Optional[int]
+    case_type: Optional[int]
+    code: Optional[Text]
+    sort_type: Optional[Text]
+    priority: Optional[int]
+    project_id: Optional[int]
+    module_id: Optional[int]
+    module_ids: Optional[List[int]]
+    project_name: Optional[Text]
+    order_field: Optional[Text]
+    created_by: Optional[int]
+    created_by_name: Optional[Text]
 
 
-class CaseSaveOrUpdateSchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class CaseSaveOrUpdateSchema(BaseModel):
     """用例保存更新"""
-    id = fields.Int(allow_none=True)
-    name = fields.Str(required=True)
-    user_id = fields.Int()
-    case_status = fields.Int()
-    case_type = fields.Int()
-    code = fields.Str(required=False)
-    include = fields.List(fields.Int(), allow_none=True)
-    testcase = fields.Dict()
-    code_id = fields.Int(allow_none=True)
-    priority = fields.Int(allow_none=True, required=False)
-    config_id = fields.Int(allow_none=True, required=False)
-    project_id = fields.Int(allow_none=True)
-    module_id = fields.Int(allow_none=True)
-    created_by = fields.Int()
+    id: Optional[int]
+    name: Optional[Text]
+    user_id: Optional[int]
+    case_status: Optional[int]
+    case_type: Optional[int]
+    code: Optional[Text]
+    include: Optional[List[Text]]
+    testcase: Optional[Dict[Text, Any]]
+    code_id: Optional[int]
+    priority: Optional[int]
+    config_id: Optional[int]
+    project_id: Optional[int]
+    module_id: Optional[int]
+    created_by: Optional[int]
 
-    @post_load
-    def post_load(self, data, **kwargs):
+    @root_validator
+    def root_validator(cls, data):
         id = data.get("id", None)
         name = data.get("name", None)
         if not data.get("name"):
-            raise ValueError("用例名不能为空!")
+            raise ParameterError("用例名不能为空!")
         # 判断用例名是否重复
         if id:
             case_info = CaseInfo.get(id)
             if not case_info:
-                raise ValueError("用例不存在!")
+                raise ParameterError("用例不存在!")
             if case_info.name != name:
                 if CaseInfo.get_case_by_name(name=name):
-                    raise ValueError("用例名重复!")
+                    raise ParameterError("用例名重复!")
 
-        if 'include' in data:
-            data["include"] = ",".join(str(i) for i in data["include"]) if data["include"] else ""
+        if 'include' in data and isinstance(data["include"], list):
+            data["include"] = ",".join(data["include"])
         if data.get("testcase"):
             check_testcase(**data["testcase"])
             data["testcase"] = json.dumps(data["testcase"])  # 将字典转换为json字符串
         return data
 
 
-class CaseInfoListSchema(BaseListSchema):
-    """
-    用例详情
-    """
-    id = fields.Int()
-    name = fields.Str()
-    type = fields.Int()
-    service_name = fields.Str()
-    project_id = fields.Int()
-    project_name = fields.Str()
-    module_id = fields.Int()
-    module_name = fields.Str()
-    include = fields.Str()
-    testcase = fields.Str()
-    run_type = fields.Int()
-    code_id = fields.Str()
-    code = fields.Str()
-    config_id = fields.Int()
-    priority = fields.Int()
-    run_status = fields.Str()
-
-    @post_dump
-    def post_dump(self, data, **kwargs):
-        if 'include' in data:
-            data["include"] = list(map(int, data["include"].split(","))) if data["include"] else []
-        if data.get("testcase"):
-            data["testcase"] = json.loads(data["testcase"])
-        return data
-
-
-class TestCaseRunBodySchema(Schema):
-    class Meta:
-        unknown = EXCLUDE
-
+class TestCaseRunBodySchema(BaseListSchema):
     """"""
-    id = fields.Int()
-    name = fields.Str()
-    # user_id = fields.Int()
-    case_status = fields.Int()
-    case_type = fields.Int()
-    code = fields.Str(allow_none=True)
-    run_type = fields.Int()
-    include = fields.Str()
-    testcase = fields.Str()
-    code_id = fields.Int(allow_none=True)
-    priority = fields.Int(allow_none=True)
-    config_id = fields.Int(allow_none=True)
-    project_id = fields.Int(allow_none=True)
-    module_id = fields.Int(allow_none=True)
-    created_by = fields.Int()
+    name: Optional[Text]
+    # user_id: Optional[int]
+    case_status: Optional[int]
+    case_type: Optional[int]
+    code: Optional[Text]
+    run_type: Optional[int]
+    include: Optional[Text]
+    testcase: Optional[Text]
+    code_id: Optional[int]
+    priority: Optional[int]
+    config_id: Optional[int]
+    project_id: Optional[int]
+    module_id: Optional[int]
+    created_by: Optional[int]
 
-    @post_dump
-    def post_dump(self, data, **kwargs):
+    @root_validator
+    def root_validator(cls, data):
         if data['testcase']:
             data['testcase'] = json.loads(data['testcase'])
         if 'include' in data:
@@ -133,49 +93,44 @@ class TestCaseRunBodySchema(Schema):
         return data
 
 
-class TestCaseRunSchema(Schema):
+class TestCaseRunSchema(BaseModel):
     """运行用例"""
 
-    class Meta:
-        unknown = EXCLUDE
+    id: Optional[int]
+    ids: Optional[List[int]]
+    base_url: Optional[Text]
+    name: Optional[Text]
+    run_type: Optional[Text]
+    run_mode: Optional[int]
+    number_of_run: Optional[int]
+    testcase_dir_path: Optional[Text]
 
-    id = fields.Int()
-    ids = fields.List(fields.Int(allow_none=True), allow_none=True)
-    base_url = fields.Str()
-    name = fields.Str()
-    run_type = fields.Str()
-    run_mode = fields.Int()
-    testcase_dir_path = fields.Str(allow_none=True)
+    # created_by_name :Optional[Text]
 
-    # created_by_name = fields.Str(allow_none=True)
-
-    @post_load
-    def post_load(self, data, **kwargs):
+    @root_validator
+    def root_validator(cls, data):
         if not data.get("base_url"):
             data['base_url'] = ""
         if not data.get("id"):
-            raise ValueError("请选择用例!")
+            raise ParameterError("请选择用例!")
         return data
 
 
-class TestCaseRunBatchSchema(Schema):
+class TestCaseRunBatchSchema(BaseModel):
     """批量运行用例"""
 
-    class Meta:
-        unknown = EXCLUDE
+    ids: Optional[List[Union[Text, int]]]
+    base_url: Optional[Text]
+    name: Optional[Text]
+    project_id: Optional[int]
+    run_type: Optional[Text]
+    run_mode: Optional[int]
+    ex_user_id: Optional[int]
+    testcase_dir_path: Optional[Text]
 
-    ids = fields.List(fields.Str())
-    base_url = fields.Str()
-    name = fields.Str()
-    project_id = fields.Int()
-    run_type = fields.Str()
-    run_mode = fields.Int()
-    ex_user_id = fields.Int()
-    testcase_dir_path = fields.Str(allow_none=True)
-
-    @post_load
-    def post_load(self, data, **kwargs):
-        if not data.get("base_url"):
+    @root_validator(pre=True)
+    def root_validator(cls, data):
+        if not data.get("base_url", None):
             data['base_url'] = ""
         if 'ids' in data:
             data['ids'] = list(map(int, data.get('ids')))

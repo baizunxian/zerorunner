@@ -23,11 +23,11 @@ class DebugTalkService:
         :param kwargs:
         :return:
         """
-        query_data = DebugTalkQuerySchema().load(kwargs)
+        query_data = DebugTalkQuerySchema(**kwargs).dict()
         data = parse_pagination(DebugTalk.get_list(**query_data))
         _result, pagination = data.get('result'), data.get('pagination')
         result = {
-            'rows': DebugTalkListSchema().dump(_result, many=True)
+            'rows': _result
         }
         result.update(pagination)
         return result
@@ -39,9 +39,9 @@ class DebugTalkService:
         :param kwargs:
         :return:
         """
-        query_data = DebugTalkQuerySchema().load(kwargs)
-        d_id = query_data.get('id', None)
-        common = query_data.get('common', None)
+        query_data = DebugTalkQuerySchema(**kwargs)
+        d_id = query_data.id
+        common = query_data.common
         if common and common == 'common':
             path = config.BASEDIR
             function_path = os.path.join(path, 'utils', 'basic_function.py')
@@ -54,7 +54,7 @@ class DebugTalkService:
             }
             return data
         debug_talk_info = DebugTalk.get_by_id(d_id)
-        debug_talk_info = DebugTalkListSchema().dump(debug_talk_info)
+        debug_talk_info = DebugTalkListSchema.serialize(debug_talk_info)
         debug_talk_info['edit'] = True
         return debug_talk_info
 

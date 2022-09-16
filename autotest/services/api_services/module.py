@@ -3,7 +3,7 @@ from typing import Dict, Union, Any, Text
 from autotest.config import config
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
-from autotest.serialize.api_serializes.module import ModuleListSchema, ModuleQuerySchema
+from autotest.serialize.api_serializes.module import ModuleQuerySchema
 from autotest.models.api_models import ModuleInfo, CaseInfo
 from autotest.utils.api import parse_pagination
 from autotest.utils.common import get_user_id_by_token
@@ -19,11 +19,11 @@ class ModuleService:
         :param kwargs: 查询参数
         :return:
         """
-        parsed_data = ModuleQuerySchema().load(kwargs)
-        data = parse_pagination(ModuleInfo.get_list(**parsed_data))
+        parsed_data = ModuleQuerySchema(**kwargs)
+        data = parse_pagination(ModuleInfo.get_list(**parsed_data.dict()))
         _result, pagination = data.get('result'), data.get('pagination')
         result = {
-            'rows': ModuleListSchema().dump(_result, many=True)
+            'rows': _result
         }
         result.update(pagination)
         return result

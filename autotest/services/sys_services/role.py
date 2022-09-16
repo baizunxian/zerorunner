@@ -4,7 +4,7 @@ from typing import Dict, Any, Text
 from loguru import logger
 
 from autotest.models.sys_models import User, Roles
-from autotest.serialize.sys_serializes.role import (RoleListSchema, RoleQuerySchema)
+from autotest.serialize.sys_serializes.role import (RoleQuerySchema, RoleListSchema)
 from autotest.utils.api import parse_pagination
 
 
@@ -13,12 +13,11 @@ class RolesService:
 
     @staticmethod
     def list(**kwargs: Any) -> Dict[Text, Any]:
-        query_data = RoleQuerySchema().load(kwargs)
+        query_data = RoleQuerySchema(**kwargs).dict()
         data = parse_pagination(Roles.get_list(**query_data))
         _result, pagination = data.get('result'), data.get('pagination')
-        _result = RoleListSchema().dump(_result, many=True)
         result = {
-            'rows': _result
+            'rows': RoleListSchema.serialize(_result)
         }
         result.update(pagination)
         return result

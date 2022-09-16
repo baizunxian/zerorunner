@@ -8,6 +8,7 @@ from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
 from autotest.models.sys_models import Menu
 from autotest.serialize.sys_serializes.menu import MenuListSchema
+from autotest.utils.api import jsonable_encoder
 
 
 class MenuService:
@@ -16,13 +17,13 @@ class MenuService:
     @staticmethod
     def all_menu() -> List[Any]:
         """平铺菜单"""
-        return MenuListSchema().dump(Menu.get_all(), many=True)
+        return MenuListSchema.serialize(Menu.get_all().all())
 
     @staticmethod
     def all_menu_nesting() -> List[Any]:
         """嵌套菜单"""
-        all_menu = MenuListSchema().dump(Menu.get_all(), many=True)
-        parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]
+        all_menu = jsonable_encoder(MenuService.all_menu())
+        parent_menu = jsonable_encoder([menu for menu in all_menu if menu["parent_id"] == 0])
         result = MenuService.menu_assembly(parent_menu, all_menu)
         return result
 
@@ -33,7 +34,7 @@ class MenuService:
         menu_info = Menu.get(menu_id) if menu_id else Menu()
         if menu_info.id:
             if menu_info.title != title:
-                if Menu.get_menu_by_name(title):
+                if Menu.get_menu_by_title(title):
                     raise ValueError('菜单名已存在！')
         menu_info.update(**kwargs)
         return menu_info

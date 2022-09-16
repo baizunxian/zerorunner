@@ -10,10 +10,9 @@ from autotest.exc import codes
 from autotest.exc.consts import TEST_USER_INFO, CACHE_DAY
 from autotest.exc.partner_message import partner_errmsg
 from autotest.models.sys_models import User, Menu, Roles
-from autotest.serialize.sys_serializes.menu import MenuListSchema
 from autotest.serialize.sys_serializes.user import (UserListSchema, UserRegisterSchema, UserQuery)
 from autotest.services.sys_services.menu import MenuService
-from autotest.utils.api import parse_pagination
+from autotest.utils.api import parse_pagination, jsonable_encoder
 from autotest.utils.des import encrypt_rsa_password, decrypt_rsa_password
 
 
@@ -39,7 +38,7 @@ class UserService:
             raise ValueError(partner_errmsg.get(codes.WRONG_USER_NAME_OR_PASSWORD))
         token = str(uuid.uuid4())
         # 用户信息
-        user = UserListSchema().dump(user_info)
+        user = UserListSchema.serialize(user_info)
         result = user
         result['token'] = token
         # 菜单权限
@@ -51,7 +50,7 @@ class UserService:
         # 前端角色报错只保存子节点数据，所有这里要做处理，把父级菜单也返回给前端
         parent_ids = Menu.get_parent_id_by_ids(set(menu_ids))
         menu_ids += [i.parent_id for i in parent_ids]
-        all_menu = MenuListSchema().dump(Menu.get_menu_by_ids(set(menu_ids)), many=True)
+        all_menu = jsonable_encoder(Menu.get_menu_by_ids(set(menu_ids)).all())
         parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]
         result['menus'] = MenuService.menu_assembly(parent_menu, all_menu) if menu_ids else []
         result['roles'] = ['all']
@@ -76,11 +75,11 @@ class UserService:
     def user_register(**kwargs: Any) -> "User":
         """用户注册"""
         try:
-            user_data = UserRegisterSchema().load(kwargs)
-            user_info = User.get_user_by_name(user_data.get('username'))
+            user_data = UserRegisterSchema(**kwargs)
+            user_info = User.get_user_by_name(user_data.username)
             if user_info:
                 raise ValueError(partner_errmsg.get(codes.USERNAME_OR_EMAIL_IS_REGISTER))
-            user = User.update(**user_data)
+            user = User.update(**user_data.dict())
             return user
         except Exception as err:
             logger.error(traceback.format_exc())
@@ -93,12 +92,11 @@ class UserService:
         :param kwargs:  查询参数
         :return:
         """
-        query_data = UserQuery().load(kwargs)
+        query_data = UserQuery(**kwargs).dict()
         data = parse_pagination(User.get_all_user(**query_data))
         _result, pagination = data.get('result'), data.get('pagination')
-        _result = UserListSchema().dump(_result, many=True)
         result = {
-            'rows': _result
+            'rows': UserListSchema.serialize(_result)
         }
         result.update(pagination)
         return result

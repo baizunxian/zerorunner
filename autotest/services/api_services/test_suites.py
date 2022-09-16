@@ -9,11 +9,11 @@ from autotest.utils.api import parse_pagination
 class TestSuitesService:
     @staticmethod
     def list(**kwargs: Any) -> Dict[Text, Any]:
-        parsed_data = TestSuitesQuerySchema().load(kwargs)
+        parsed_data = TestSuitesQuerySchema(**kwargs).dict()
         data = parse_pagination(TestSuite.get_list(**parsed_data))
         _result, pagination = data.get('result'), data.get('pagination')
         result = {
-            'rows': TestSuitesListSchema().dump(_result, many=True)
+            'rows': TestSuitesListSchema.serialize(_result)
         }
         result.update(pagination)
         return result
@@ -21,11 +21,10 @@ class TestSuitesService:
     @staticmethod
     def save_or_update(**kwargs: Any) -> "TestSuite":
         """更新保存套件"""
-        parsed_data = TestSuitesSaveOrUpdateSchema().load(kwargs)
+        parsed_data = TestSuitesSaveOrUpdateSchema(**kwargs)
         #  套件名称唯一性校验
-        s_id = parsed_data.get('id', None)
-        test_suite = TestSuite.get(s_id) if s_id else TestSuite()
-        test_suite.update(**parsed_data)
+        test_suite = TestSuite.get(parsed_data.id) if parsed_data.id else TestSuite()
+        test_suite.update(**parsed_data.dict())
         return test_suite
 
     @staticmethod
@@ -35,11 +34,10 @@ class TestSuitesService:
 
     @staticmethod
     def get_suite_info(**kwargs: Any) -> Dict[Text, Any]:
-        parsed_data = TestSuitesQuerySchema().load(kwargs)
-        s_id = parsed_data.get('id', None)
-        test_suite = TestSuite.get(s_id) if s_id else None
+        parsed_data = TestSuitesQuerySchema(**kwargs)
+        test_suite = TestSuite.get(parsed_data.id) if parsed_data.id else None
         if test_suite:
-            data = TestSuitesListSchema().dump(test_suite)
+            data = TestSuitesListSchema.serialize(test_suite)
             return data
         raise ValueError('不存在当前套件！')
 

@@ -1,21 +1,22 @@
-from marshmallow import Schema, fields
+from typing import Optional, Text
+from pydantic import BaseModel
 
 
-class StatisticProjectCaseNum(Schema):
-    name = fields.Str()
-    case_num = fields.Int()
-    employee_code = fields.Str()
-    username = fields.Str()
+class StatisticProjectCaseNum(BaseModel):
+    name: Optional[Text]
+    case_num: Optional[int]
+    employee_code: Optional[Text]
+    username: Optional[Text]
 
 
-class StatisticReportNum(Schema):
-    run_num = fields.Int()
-    employee_code = fields.Str()
-    username = fields.Str()
-    case_num = fields.Str()
+class StatisticReportNum(BaseModel):
+    run_num: Optional[int]
+    employee_code: Optional[Text]
+    username: Optional[Text]
+    case_num: Optional[Text]
 
 
-class StatisticReportRate(Schema):
-    project_name = fields.Str()
-    pass_rate = fields.Float()
-    successes_rate = fields.Float()
+class StatisticReportRate(BaseModel):
+    project_name: Optional[Text]
+    pass_rate: Optional[float]
+    successes_rate: Optional[float]

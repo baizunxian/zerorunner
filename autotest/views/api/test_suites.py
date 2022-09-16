@@ -1,11 +1,7 @@
-import traceback
-
 from flask import Blueprint, request
-from loguru import logger
 
-from autotest.exc import codes
 from autotest.services.api_services.test_suites import TestSuitesService
-from autotest.utils.api import partner_success, login_verification
+from autotest.utils.api import partner_success
 
 bp = Blueprint('suites', __name__, url_prefix='/api/testSuites')
 
@@ -16,11 +12,7 @@ def suites_list():
     套件列表
     :return:
     """
-    try:
-        data = TestSuitesService.list(**request.json)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = TestSuitesService.list(**request.json)
     return partner_success(data=data)
 
 
@@ -30,11 +22,7 @@ def save_or_update():
     更新保存套件
     :return:
     """
-    try:
-        data = TestSuitesService.save_or_update(**request.json)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = TestSuitesService.save_or_update(**request.json)
     return partner_success(data=data.id)
 
 
@@ -46,11 +34,7 @@ def deleted():
     """
     parsed_data = request.json
     s_id = parsed_data.get('id', None)
-    try:
-        TestSuitesService.deleted(s_id)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success()
+    TestSuitesService.deleted(s_id)
     return partner_success()
 
 
@@ -60,9 +44,5 @@ def suite_info():
     套件信息
     :return:
     """
-    try:
-        data = TestSuitesService.get_suite_info(**request.json)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = TestSuitesService.get_suite_info(**request.json)
     return partner_success(data=data)

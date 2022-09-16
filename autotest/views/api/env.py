@@ -1,11 +1,7 @@
-import traceback
-
 from flask import Blueprint, request
-from loguru import logger
 
-from autotest.exc import codes
 from autotest.services.api_services.env import EnvService
-from autotest.utils.api import partner_success, login_verification
+from autotest.utils.api import partner_success
 
 bp = Blueprint('env', __name__, url_prefix='/api/env')
 
@@ -16,11 +12,7 @@ def env_list():
     获取列表
     :return:
     """
-    try:
-        data = EnvService.list(**request.json)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = EnvService.list(**request.json)
     return partner_success(data=data)
 
 
@@ -30,11 +22,7 @@ def save_or_update_env():
     更新保存环境信息
     :return:
     """
-    try:
-        data = EnvService.save_or_update(**request.json)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = EnvService.save_or_update(**request.json)
     return partner_success(data=data.id)
 
 
@@ -44,11 +32,7 @@ def delete_env():
     删除环境
     :return:
     """
-    try:
-        parsed_data = request.json
-        env_id = parsed_data.get('id', None)
-        EnvService.deleted(env_id)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    parsed_data = request.json
+    env_id = parsed_data.get('id', None)
+    EnvService.deleted(env_id)
     return partner_success()

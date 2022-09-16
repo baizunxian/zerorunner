@@ -9,7 +9,7 @@ from pymysql import DatabaseError
 
 
 class DB:
-    def __init__(self, host, port, user, password, database=None, decrypt=False):
+    def __init__(self, host, port, user, password, database=None):
         if user and isinstance(user, str) and len(user) == 172:
             user = decrypt_rsa_password(bytes(user, encoding='utf8'))
         if host and isinstance(host, str) and len(host) == 172:
@@ -55,10 +55,12 @@ class DB:
 
     def execute(self, sql):
         """执行sql"""
-        sql_check(sql)
+        # sql_check(sql)
         self.cs.execute(sql)
         self.connect.commit()
+        data = self.cs.fetchall()
         self.close()
+        return data
 
     def executemany(self, sql, *args):
         """批量执行"""
@@ -68,28 +70,23 @@ class DB:
 
     def close(self):
         """关闭连接"""
-        self.cs.close()
-        self.connect.close()
+        try:
+            self.cs.close()
+            self.connect.close()
+        except Exception as err:
+            ...
 
     def __del__(self):
         self.close()
 
 
-class DateEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.strftime("%Y-%m-%d %H:%M:%S")
-        else:
-            return json.JSONEncoder.default(self, obj)
-
-
-def sql_check(sql):
-    if not any([True if i.upper() in sql.upper() else False for i in ['select', 'update', 'delete']]):
-        raise RuntimeError("仅支持 'select', 'update', 'delete' 语句")
-
-    if 'UPDATE' in sql or 'DELETE' in sql.upper():
-        if 'WHERE' not in sql.upper():
-            raise RuntimeError('update, delete 语句必须包含 where 条件')
+# def sql_check(sql):
+#     if not any([True if i.upper() in sql.upper() else False for i in ['select', 'update', 'delete']]):
+#         raise RuntimeError("仅支持 'select', 'update', 'delete' 语句")
+#
+#     if 'UPDATE' in sql or 'DELETE' in sql.upper():
+#         if 'WHERE' not in sql.upper():
+#             raise RuntimeError('update, delete 语句必须包含 where 条件')
 
 
 def decrypt_rsa_password(password):
@@ -105,6 +102,7 @@ def decrypt_rsa_password(password):
         return text.decode()
     except Exception as err:
         return ''
+
 
 # 私钥
 PRIVATE_KEY = """-----BEGIN RSA PRIVATE KEY-----

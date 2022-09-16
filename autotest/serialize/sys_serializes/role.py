@@ -1,36 +1,29 @@
-from marshmallow import Schema, fields, EXCLUDE
+from typing import Optional, Text, List
 
-from autotest.serialize.base_serialize import BaseListSchema
+from marshmallow import fields
+from pydantic import root_validator
+
+from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
 
 
-class RoleQuerySchema(Schema):
+class RoleQuerySchema(BaseQuerySchema):
     """角色查询序列化"""
 
-    class Meta:
-        unknown = EXCLUDE
-
-    id = fields.Int()
-    name = fields.Str()
+    id: Optional[int]
+    name: Optional[Text]
 
 
 class RoleListSchema(BaseListSchema):
     """角色序列化"""
-    id = fields.Int()
-    name = fields.Str()
-    role_type = fields.Int()
-    menus = fields.Method('return_menu')
-    description = fields.Str()
-    status = fields.Int()
+    name: Optional[Text]
+    role_type: Optional[int]
+    menus: Optional[List[int]]
+    description: Optional[Text]
+    status: Optional[int]
 
-    @staticmethod
-    def return_menu(obj):
-        """
-        初始化menus
-        source: 1,2,3,4
-        target: [1, 2, 3, 4]
-        :param obj:
-        :return:
-        """
-        if obj.menus:
-            return list(map(int, obj.menus.split(',')))
-        return []
+    @root_validator(pre=True)
+    def pre_load(cls, data):
+        menus = data.get("menus", None)
+        if menus and isinstance(menus, str):
+            data["menus"] = list(map(int, data["menus"].split(',')))
+        return data

@@ -14,7 +14,7 @@ from autotest.exc.partner_message import partner_errmsg
 from autotest.httprunner.initialize import TestCaseMate
 from autotest.httprunner.initialize_not_yaml import TestCaseMateNew
 from autotest.models.api_models import CaseInfo, TestSuite, ModuleInfo
-from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseInfoListSchema, CaseSaveOrUpdateSchema,
+from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseSaveOrUpdateSchema,
                                                          TestCaseRunSchema, TestCaseRunBodySchema,
                                                          TestCaseRunBatchSchema)
 from autotest.services.api_services.test_report import ReportService
@@ -32,11 +32,16 @@ class CaseService:
         :param kwargs:
         :return:
         """
-        parsed_data = CaseQuerySchema().load(kwargs)
+        parsed_data = CaseQuerySchema(**kwargs).dict()
         data = parse_pagination(CaseInfo.get_list(**parsed_data))
         _result, pagination = data.get('result'), data.get('pagination')
+        for res in _result:
+            if 'include' in res:
+                res["include"] = list(map(int, res["include"].split(","))) if res["include"] else []
+            if res.get("testcase", {}):
+                res["testcase"] = json.loads(res["testcase"])
         result = {
-            'rows': CaseInfoListSchema().dump(_result, many=True)
+            'rows': _result
         }
         result.update(pagination)
         return result
@@ -48,16 +53,14 @@ class CaseService:
         :param kwargs:
         :return:
         """
-        parsed_data = CaseSaveOrUpdateSchema().load(kwargs)
-        # case_data = make_testcase(**case_data)
-        case_id = parsed_data.get('id', None)
-        case_info = CaseInfo.get(case_id) if case_id else CaseInfo()
+        parsed_data = CaseSaveOrUpdateSchema(**kwargs)
+        case_info = CaseInfo.get(parsed_data.id) if parsed_data.id else CaseInfo()
         user_id = get_user_id_by_token()
 
         if config.EDIT_SWITCH:
             if case_info.created_by != user_id:
                 raise ValueError(partner_errmsg.get(codes.CANNOT_EDIT_CREATED_BY_YOURSELF).format('用例'))
-        case_info.update(**parsed_data)
+        case_info.update(**parsed_data.dict())
         return case_info
 
     @staticmethod
@@ -85,7 +88,7 @@ class CaseService:
         case_info.delete() if case_info else ...
 
     @staticmethod
-    def get_testcase_info(**kwargs: Any) -> Dict[Text, Any]:
+    def detail(**kwargs: Any) -> Dict[Text, Any]:
         """
         获取用例信息
         :param kwargs:
@@ -95,7 +98,10 @@ class CaseService:
         case_info = CaseInfo.get(c_id)
         if not case_info:
             raise ValueError('当前用例不存在！')
-        case_info = CaseInfoListSchema().dump(case_info)
+        if case_info.testcase:
+            case_info.testcase = json.loads(case_info.testcase)
+        if case_info.include and isinstance(case_info.include, str):
+            case_info.include = list(map(int, case_info.include.split(",")))
         return case_info
 
     @staticmethod
@@ -184,7 +190,6 @@ class CaseService:
             logger.error(traceback.format_exc())
         finally:
             shutil.rmtree(testcase_dir_path)
-            # ...
 
     @staticmethod
     def debug_testcase_new(**kwargs: Any) -> Dict[Text, Any]:
@@ -222,13 +227,13 @@ class CaseService:
         :param kwargs:
         :return:
         """
-        parsed_data = TestCaseRunSchema().load(kwargs)
+        parsed_data = TestCaseRunSchema(**kwargs)
         # run_type 运行类型 模块，套件，用例
-        id = parsed_data.get('id', None)
-        run_type = parsed_data.pop('run_type', None)
-        base_url = parsed_data.get('base_url', None)
+        id = parsed_data.id
+        run_type = parsed_data.run_type
+        base_url = parsed_data.base_url
         testcase_dir_path = CaseService.get_testcase_dir_path()
-        number_of_run = parsed_data.get('number_of_run', None)
+        number_of_run = parsed_data.number_of_run
         case_hex = f'testcase_{uuid.uuid4().hex[:6]}'
         data = {
             'name': '',
@@ -237,7 +242,7 @@ class CaseService:
             'module_id': None,
             'execute_user_id': get_user_id_by_token(),
             'run_type': run_type,
-            'run_mode': parsed_data.get('run_mode', None),
+            'run_mode': parsed_data.run_mode,
             'testcase_dir_path': testcase_dir_path,
         }
 
@@ -249,8 +254,7 @@ class CaseService:
             data['name'] = module_info.name
             data['project_id'] = module_info.project_id
             data['module_id'] = module_info.id
-            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_module_id(module_id=id, case_type=1).all(),
-                                                     many=True)
+            case_list = TestCaseRunBodySchema.serialize(CaseInfo.get_case_by_module_id(module_id=id, case_type=1).all())
             for case in case_list:
                 run_parsed_data = dict(
                     case_info=case,
@@ -269,8 +273,7 @@ class CaseService:
             data['project_id'] = suite_info.project_id
             data['module_id'] = None
             ids = suite_info.include.split(',')
-            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_ids(ids=ids, case_type=1).all(),
-                                                     many=True)
+            case_list = TestCaseRunBodySchema.serialize(CaseInfo.get_case_by_ids(ids=ids, case_type=1).all())
             for case in case_list:
                 run_parsed_data = dict(
                     case_info=case,
@@ -287,7 +290,7 @@ class CaseService:
             data['name'] = case_info.name
             data['project_id'] = case_info.project_id
             data['module_id'] = case_info.module_id
-            case_info = TestCaseRunBodySchema().dump(case_info)
+            case_info = TestCaseRunBodySchema.serialize(case_info)
             run_parsed_data = dict(
                 case_info=case_info,
                 base_url=base_url,
@@ -309,12 +312,12 @@ class CaseService:
         :param kwargs:
         :return:
         """
-        parsed_data = TestCaseRunSchema().load(kwargs)
+        parsed_data = TestCaseRunSchema(**kwargs)
         user_id = get_user_id_by_token()
         # run_type 运行类型 模块，套件，用例
-        id = parsed_data.get('id', None)
-        run_type = parsed_data.pop('run_type', None)
-        run_mode = parsed_data.pop('run_mode', None)
+        id = parsed_data.id
+        run_type = parsed_data.run_type
+        run_mode = parsed_data.run_mode
 
         test_mate.run_type = run_type
         test_mate.run_mode = run_mode
@@ -330,8 +333,7 @@ class CaseService:
             test_mate.project_id = module_info.project_id
             test_mate.module_id = module_info.module_id
 
-            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_module_id(module_id=id, case_type=1).all(),
-                                                     many=True)
+            case_list = TestCaseRunBodySchema.serialize(CaseInfo.get_case_by_module_id(module_id=id, case_type=1).all())
             test_mate.run_case_make(case_list)
 
         elif run_type == 'suite':
@@ -342,8 +344,7 @@ class CaseService:
             test_mate.project_id = suite_info.project_id
             test_mate.module_id = None
             ids = suite_info.include.split(',')
-            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_ids(ids=ids, case_type=1).all(),
-                                                     many=True)
+            case_list = TestCaseRunBodySchema.serialize(CaseInfo.get_case_by_ids(ids=ids, case_type=1).all())
             test_mate.run_case_make(case_list)
 
         else:
@@ -353,7 +354,7 @@ class CaseService:
             test_mate.name = case_info.name
             test_mate.project_id = case_info.project_id
             test_mate.module_id = case_info.module_id
-            case_info = TestCaseRunBodySchema().dump(case_info)
+            case_info = TestCaseRunBodySchema.serialize(case_info)
             test_mate.run_case_make([case_info])
 
         data = {
@@ -379,13 +380,13 @@ class CaseService:
         :param kwargs:
         :return:
         """
-        parsed_data = TestCaseRunBatchSchema().load(kwargs)
-        ids = parsed_data.get('ids', None)
-        user_id = parsed_data.pop('ex_user_id', None)
-        run_type = parsed_data.pop('run_type', None)
-        project_id = parsed_data.pop('project_id', None)
-        run_mode = parsed_data.pop('run_mode', None)
-        name = parsed_data.pop('name', None)
+        parsed_data = TestCaseRunBatchSchema(**kwargs)
+        ids = parsed_data.ids
+        user_id = parsed_data.ex_user_id
+        run_type = parsed_data.run_type
+        project_id = parsed_data.project_id
+        run_mode = parsed_data.run_mode
+        name = parsed_data.name
 
         test_mate.name = name
         test_mate.run_type = run_type
@@ -394,9 +395,8 @@ class CaseService:
         test_mate.project_id = project_id
 
         if run_type == 'module':
-
-            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_module_id(module_ids=ids, case_type=1).all(),
-                                                     many=True)
+            case_list = TestCaseRunBodySchema.serialize(
+                CaseInfo.get_case_by_module_id(module_ids=ids, case_type=1).all())
             test_mate.run_case_make(case_list)
 
         elif run_type == 'suite':
@@ -405,12 +405,11 @@ class CaseService:
             for suite in suite_list:
                 includes = set(map(int, (suite.include.split(','))))
                 case_ids = case_ids.union(includes)
-            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_ids(ids=case_ids, case_type=1).all(),
-                                                     many=True)
+            case_list = TestCaseRunBodySchema.serialize(CaseInfo.get_case_by_ids(ids=case_ids, case_type=1).all())
             test_mate.run_case_make(case_list)
 
         else:
-            case_list = TestCaseRunBodySchema().dump(CaseInfo.get_case_by_ids(ids=ids), many=True)
+            case_list = TestCaseRunBodySchema.serialize(CaseInfo.get_case_by_ids(ids=ids))
             test_mate.run_case_make(case_list)
 
         data = {
@@ -461,7 +460,7 @@ class CaseService:
                 "user_id": get_user_id_by_token(),
                 "testcase": testcase.dict(),
             }
-            parsed_data = CaseSaveOrUpdateSchema().load(case)
+            parsed_data = CaseSaveOrUpdateSchema(**case).dict()
             case_info = CaseInfo()
             case_info.update(**parsed_data)
         return len(coll.case_list)

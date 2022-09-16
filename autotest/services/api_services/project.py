@@ -1,12 +1,10 @@
 import traceback
 from typing import Any, Dict, Text
-
 from loguru import logger
-
 from autotest.config import config
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
-from autotest.serialize.api_serializes.project import ProjectListSchema, ProjectQuerySchema
+from autotest.serialize.api_serializes.project import ProjectQuerySchema
 from autotest.models.api_models import ProjectInfo, DebugTalk, ModuleInfo
 from autotest.services.api_services.debug_talk import DebugTalkService
 from autotest.utils.api import parse_pagination
@@ -21,12 +19,12 @@ class ProjectService:
         :param kwargs:
         :return:
         """
-        query_data = ProjectQuerySchema().load(kwargs)
+        query_data = ProjectQuerySchema(**kwargs).dict()
         data = parse_pagination(
             ProjectInfo.get_project_list(**query_data))
         _result, pagination = data.get('result'), data.get('pagination')
         result = {
-            'rows': ProjectListSchema().dump(_result, many=True)
+            'rows': _result
         }
         result.update(**pagination)
         return result

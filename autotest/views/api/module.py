@@ -1,11 +1,7 @@
-import traceback
-
 from flask import Blueprint, request
-from loguru import logger
 
-from autotest.exc import codes
 from autotest.services.api_services.module import ModuleService
-from autotest.utils.api import partner_success, login_verification
+from autotest.utils.api import partner_success
 
 bp = Blueprint('module', __name__, url_prefix='/api/module')
 
@@ -16,11 +12,7 @@ def module_list():
     模块列表
     :return:
     """
-    try:
-        data = ModuleService.list(**request.json)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = ModuleService.list(**request.json)
     return partner_success(data=data)
 
 
@@ -31,11 +23,7 @@ def save_or_update():
     :return:
     """
     parsed_data = request.json
-    try:
-        data = ModuleService.save_or_update(**parsed_data)
-    except ValueError as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = ModuleService.save_or_update(**parsed_data)
     return partner_success(data.id)
 
 
@@ -45,11 +33,7 @@ def deleted():
     删除模块
     :return:
     """
-    try:
-        parsed_data = request.json
-        id = parsed_data.get('id', None)
-        ModuleService.deleted(id)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    parsed_data = request.json
+    id = parsed_data.get('id', None)
+    ModuleService.deleted(id)
     return partner_success()

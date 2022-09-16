@@ -15,6 +15,9 @@ from autotest.exc.consts import TEST_USER_INFO
 class Base(db.Model):
     __abstract__ = True
 
+    def to_dict(self):
+        return {key: getattr(self, key) for key in self.__mapper__.c.keys()}
+
     @classmethod
     def create(cls, _commit=True, **kwargs: Any):
         obj = cls(**kwargs)

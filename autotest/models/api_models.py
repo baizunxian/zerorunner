@@ -25,12 +25,14 @@ class ProjectInfo(Base, TimestampMixin):
     product_id = Column(Integer, nullable=True, comment='产品线id')
 
     @classmethod
-    def get_project_list(cls, name=None, created_by_name=None, ids=None):
+    def get_project_list(cls, id=None, name=None, created_by_name=None, ids=None):
         q = list()
         if name:
             q.append(cls.name.like('%{}%'.format(name)))
         if created_by_name:
             q.append(User.nickname.like('%{}%'.format(created_by_name)))
+        if id:
+            q.append(cls.id == id)
         if ids:
             q.append(cls.id.in_(ids))
         u = aliased(User)

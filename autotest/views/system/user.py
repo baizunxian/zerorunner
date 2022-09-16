@@ -1,7 +1,4 @@
-import traceback
-
 from flask import Blueprint, request
-from loguru import logger
 
 from autotest.exc import codes
 from autotest.services.sys_services.user import UserService
@@ -16,10 +13,7 @@ def login():
     登录-
     :return:
     """
-    try:
-        result = UserService.login(**request.json)
-    except Exception as err:
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    result = UserService.login(**request.json)
     return partner_success(result)
 
 
@@ -51,10 +45,7 @@ def user_register():
     用户注册
     :return:
     """
-    try:
-        UserService.user_register(**request.json)
-    except Exception as err:
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    UserService.user_register(**request.json)
     return partner_success()
 
 
@@ -64,10 +55,7 @@ def change_password():
     修改密码
     :return:
     """
-    try:
-        UserService.change_password(**request.json)
-    except Exception as err:
-        return partner_success(code=codes.USER_ID_IS_NULL, msg=str(err))
+    UserService.change_password(**request.json)
     return partner_success()
 
 
@@ -77,10 +65,7 @@ def user_list():
     查询所用用户
     :return:
     """
-    try:
-        data = UserService.list(**request.json)
-    except ValueError as err:
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = UserService.list(**request.json)
     return partner_success(data=data)
 
 
@@ -91,10 +76,7 @@ def save_or_update():
     :return:
     """
     parsed_data = request.json
-    try:
-        UserService.save_or_update(**parsed_data)
-    except ValueError as err:
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    UserService.save_or_update(**parsed_data)
     return partner_success()
 
 
@@ -115,9 +97,5 @@ def deleted():
 def authorize_token():
     parsed_data = request.json
     token = parsed_data.get('token', '')
-    try:
-        user_info = UserService.check_token(token)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg='token已失效')
+    user_info = UserService.check_token(token)
     return partner_success(user_info)

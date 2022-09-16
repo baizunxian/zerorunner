@@ -3,8 +3,8 @@ from typing import Dict, Any, Text
 
 from autotest.models.api_models import TestReports
 from autotest.serialize.api_serializes.test_report import (
-    TestReportQuerySchema, ReportsListSchema, TestReportSaveSchema,
-    TestReportMakeSchema, ReportsLInfoSchema)
+    TestReportQuerySchema, TestReportSaveSchema,
+    TestReportMakeSchema)
 from autotest.utils.api import parse_pagination
 
 
@@ -17,12 +17,11 @@ class ReportService:
         :param kwargs:
         :return:
         """
-        parsed_data = TestReportQuerySchema().load(kwargs)
+        parsed_data = TestReportQuerySchema(**kwargs).dict()
         data = parse_pagination(TestReports.get_list(**parsed_data))
         _result, pagination = data.get('result'), data.get('pagination')
-
         result = {
-            'rows': ReportsListSchema().dump(_result, many=True)
+            'rows': _result
         }
         result.update(pagination)
         return result
@@ -34,9 +33,9 @@ class ReportService:
         :param summary:
         :return:
         """
-        report_body = TestReportMakeSchema().load(summary)
-        time_dict = report_body['time']
-        teststeps_info = report_body['stat'].get('teststeps', {})
+        report_body = TestReportMakeSchema(**summary)
+        time_dict = report_body.time
+        teststeps_info = report_body.stat.get('teststeps', {})
 
         return dict(
             name='',
@@ -53,9 +52,9 @@ class ReportService:
             execute_source=None,
             execute_user_id=None,
             successful_use_case=teststeps_info.get('successes', 0),
-            success=report_body.get('success'),
+            success=report_body.success,
             run_test_count=teststeps_info.get('total', 0),
-            report_body=json.dumps(report_body),
+            report_body=report_body.json(),
         )
 
     @staticmethod
@@ -65,7 +64,7 @@ class ReportService:
         :param kwargs:
         :return:
         """
-        report_body = TestReportSaveSchema().load(kwargs)
+        report_body = TestReportSaveSchema(**kwargs).dict()
         test_report = TestReports()
         test_report.update(**report_body)
         return test_report
@@ -81,11 +80,12 @@ class ReportService:
         test_reports.deleted() if test_reports else ...
 
     @staticmethod
-    def get_report_by_id(report_id: int) -> Dict[Text, Any]:
+    def detail(report_id: int) -> Dict[Text, Any]:
         """
         根据id获取报告详情
         :param report_id:
         :return:
         """
         report_info = TestReports.get(report_id)
-        return ReportsLInfoSchema().dump(report_info)
+        report_info.report_body = json.loads(report_info.report_body)
+        return report_info

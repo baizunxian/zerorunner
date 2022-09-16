@@ -64,7 +64,7 @@ class TRequest(BaseModel):
 
 class TStep(BaseModel):
     name: Name
-    case_id: Union[Text, int] = ''
+    case_id: Union[Text, int, None] = ''
     request: Union[TRequest, None] = None
     testcase: Union[Text, Callable, None] = None
     variables: VariablesMapping = {}

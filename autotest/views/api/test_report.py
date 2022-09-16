@@ -1,11 +1,7 @@
-import traceback
-
 from flask import Blueprint, request
-from loguru import logger
 
-from autotest.exc import codes
 from autotest.services.api_services.test_report import ReportService
-from autotest.utils.api import partner_success, login_verification
+from autotest.utils.api import partner_success
 
 bp = Blueprint('test_report', __name__, url_prefix='/api/report', template_folder='httprunner')
 
@@ -16,11 +12,7 @@ def report_list():
     测试报告列表
     :return:
     """
-    try:
-        data = ReportService.list(**request.json)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = ReportService.list(**request.json)
     return partner_success(data=data)
 
 
@@ -31,12 +23,8 @@ def deleted():
     :return:
     """
     parsed_data = request.json
-    try:
-        report_id = parsed_data.get('id', None)
-        ReportService.deleted(report_id)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success()
+    report_id = parsed_data.get('id', None)
+    ReportService.deleted(report_id)
     return partner_success()
 
 
@@ -47,10 +35,6 @@ def get_report_by_id():
     :return:
     """
     parsed_data = request.json
-    try:
-        report_id = parsed_data.get('id', None)
-        report_info = ReportService.get_report_by_id(report_id)
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    report_id = parsed_data.get('id', None)
+    report_info = ReportService.detail(report_id)
     return partner_success(data=report_info)

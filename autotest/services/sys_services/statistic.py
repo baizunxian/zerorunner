@@ -41,21 +41,21 @@ class StatisticService:
         scns_data = scn_sql.group_by(ProjectInfo.name).order_by(text('case_num asc')).all()
 
         #  project top
-        pcns_data = StatisticProjectCaseNum().dump(pcns_data, many=True)
+        # pcns_data = StatisticProjectCaseNum.jsonable_encoder(pcns_data)
 
         # user top
-        ucns_data = StatisticProjectCaseNum().dump(ucns_data, many=True)
+        # ucns_data = StatisticProjectCaseNum.jsonable_encoder(ucns_data)
 
         # 套件top
-        scns_data = StatisticProjectCaseNum().dump(scns_data, many=True)
+        # scns_data = StatisticProjectCaseNum.jsonable_encoder(scns_data)
 
         # 运行用例报告统计 根据人
-        report_statistic_data = TestReports.statistic_report().group_by(TestReports.execute_user_id).order_by(
+        report_statistic = TestReports.statistic_report().group_by(TestReports.execute_user_id).order_by(
             text('run_num desc')).limit(10).all()
-        report_statistic = StatisticReportNum().dump(report_statistic_data, many=True)
+        # report_statistic = StatisticReportNum.jsonable_encoder(report_statistic_data)
 
-        report_rate = TestReports.get_statistic_report().all()
-        project_rate = StatisticReportRate().dump(report_rate, many=True)
+        project_rate = TestReports.get_statistic_report().all()
+        # project_rate = StatisticReportRate.jsonable_encoder(report_rate)
 
         data = {
             'count_info': {

@@ -1,12 +1,9 @@
 import datetime
-import traceback
 
 from flask import Blueprint, request
-from loguru import logger
 
-from autotest.exc import codes
 from autotest.services.sys_services.statistic import StatisticService
-from autotest.utils.api import login_verification, partner_success
+from autotest.utils.api import partner_success
 
 bp = Blueprint('statistic', __name__, url_prefix='/api/statistic')
 
@@ -14,11 +11,7 @@ bp = Blueprint('statistic', __name__, url_prefix='/api/statistic')
 @bp.route('/countStatistic', methods=['POST'])
 def count_statistic():
     """数量统计"""
-    try:
-        data = StatisticService.index_count_statistic()
-    except Exception as err:
-        logger.error(traceback.format_exc())
-        return partner_success(code=codes.PARTNER_CODE_FAIL, msg=str(err))
+    data = StatisticService.index_count_statistic()
     return partner_success(data=data)
 
 

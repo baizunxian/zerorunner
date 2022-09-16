@@ -1,25 +1,24 @@
-from marshmallow import fields
+from typing import Optional, Text
 
 from autotest.serialize.base_serialize import BaseListSchema
 
 
 class MenuListSchema(BaseListSchema):
     """菜单序列化"""
-    id = fields.Int()
-    path = fields.Str()
-    component = fields.Str()
-    title = fields.Str()
-    name = fields.Str()
-    isLink = fields.Boolean()
-    isHide = fields.Boolean()
-    isKeepAlive = fields.Boolean()
-    isAffix = fields.Boolean()
-    isIframe = fields.Boolean()
-    roles = fields.Str()
-    icon = fields.Str()
-    parent_id = fields.Int()
-    redirect = fields.Str()
-    sort = fields.Int()
-    menu_type = fields.Int()
-    lookup_id = fields.Int()
-    active_menu = fields.Str()
+    path: Optional[Text]
+    component: Optional[Text]
+    title: Optional[Text]
+    name: Optional[Text]
+    isLink: Optional[bool]
+    isHide: Optional[bool]
+    isKeepAlive: Optional[bool]
+    isAffix: Optional[bool]
+    isIframe: Optional[bool]
+    roles: Optional[Text]
+    icon: Optional[Text]
+    parent_id: Optional[int]
+    redirect: Optional[Text]
+    sort: Optional[int]
+    menu_type: Optional[int]
+    lookup_id: Optional[int]
+    active_menu: Optional[Text]

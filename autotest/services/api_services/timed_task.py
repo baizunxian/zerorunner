@@ -58,11 +58,11 @@ class TimedTasksService:
         """
         定时任务列表
         """
-        query_data = TimedTasksQuerySchema().load(kwargs)
+        query_data = TimedTasksQuerySchema(**kwargs).dict()
         data = parse_pagination(TimedTask.get_list(**query_data))
         _result, pagination = data.get('result'), data.get('pagination')
         result = {
-            'rows': TimedTasksListSchema().dump(_result, many=True)
+            'rows': _result
         }
         result.update(pagination)
         return result
@@ -72,12 +72,12 @@ class TimedTasksService:
         """
         保存或更新定时任务
         """
-        parsed_data = TimedTasksSaveOrUpdateSchema().load(kwargs)
-        task_id = parsed_data.get('id')
-        name = parsed_data.get('name')
-        project_id = parsed_data.get('project_id')
-        case_ids = parsed_data.get('case_ids')
-        run_type = parsed_data.get('run_type')
+        parsed_data = TimedTasksSaveOrUpdateSchema(**kwargs).dict()
+        task_id = parsed_data.get('id', None)
+        name = parsed_data.get('name', None)
+        project_id = parsed_data.get('project_id', None)
+        case_ids = parsed_data.get('case_ids', None)
+        run_type = parsed_data.get('run_type', None)
         timed_task = TimedTask.get(task_id) if task_id else TimedTask()
 
         try:
@@ -125,7 +125,7 @@ class TimedTasksService:
         task_changed = PeriodicTaskChanged.get_data()
         task_changed.last_update = datetime.datetime.now()
         task_changed.save()
-        task = TimedTasksListSchema().dump(task_info)
+        task = TimedTasksListSchema(**task_info)
         return task
 
 

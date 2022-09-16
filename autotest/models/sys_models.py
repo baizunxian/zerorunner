@@ -92,8 +92,8 @@ class Menu(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1).order_by(cls.sort)
 
     @classmethod
-    def get_menu_by_name(cls, name):
-        return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
+    def get_menu_by_title(cls, title):
+        return cls.query.filter(cls.title == title, cls.enabled_flag == 1).first()
 
     @classmethod
     def get_menu_by_parent(cls, parent_id):
