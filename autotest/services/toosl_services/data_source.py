@@ -21,6 +21,7 @@ class DBInfo(BaseModel):
 
 class ExecuteParam(BaseModel):
     source_id: int
+    database: Text = ""
     sql: Text
 
 
@@ -87,6 +88,6 @@ class DataSourceService:
     @staticmethod
     def execute(**kwargs: Any):
         param = ExecuteParam(**kwargs)
-        db_info = DataSourceService.get_db_connect(param.source_id)
+        db_info = DataSourceService.get_db_connect(param.source_id, param.database)
         data = db_info.execute(param.sql)
         return data

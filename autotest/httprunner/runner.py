@@ -1,5 +1,6 @@
 import copy
 import os
+import sys
 import time
 import traceback
 import uuid
@@ -382,6 +383,9 @@ class HttpRunner(object):
                 step.variables = parse_variables_mapping(
                     step.variables, self.__project_meta.functions
                 )
+                step.name = parse_data(
+                    step.name, step.variables, self.__project_meta.functions
+                )
             except Exception as err:
                 # 错误的用例跳过，并记录错误
                 step_data = StepData(name=step.name)
@@ -473,7 +477,7 @@ class HttpRunner(object):
         self.__log_path = self.__log_path or os.path.join(
             self.__project_meta.RootDir, "logs", f"{self.__case_id}.run.log"
         )
-        # log_handler = logger.add(sys.stdin, level="DEBUG")
+        log_handler = logger.add(sys.stdin, level="DEBUG")
 
         # parse config name
         config_variables = self.__config.variables
@@ -499,5 +503,5 @@ class HttpRunner(object):
             )
         finally:
             ...
-            # logger.remove(log_handler)
+            logger.remove(log_handler)
             # logger.info(f"generate testcase log: {self.__log_path}")
