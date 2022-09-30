@@ -4,8 +4,8 @@
 # @create time: 2022/9/9 14:53
 import json
 
-from models import TConfig, TStep, TestCase, WaitController, SqlController, ScriptController
-from runner import ZeroRunner
+from zerorunner.models import TConfig, TStep, TestCase, WaitController, SqlController, ScriptController
+from zerorunner.runner import ZeroRunner
 
 config = TConfig(name="test")
 
@@ -58,8 +58,8 @@ sql_info = SqlController(**dict(name="sql",
                                 value="select username from zero_autotest.user limit 1",
                                 variable_name="username",
                                 host="xiaobaicodes.com",
-                                user="zero_autotest",
-                                password="Bai.123456",
+                                user="",
+                                password="",
                                 port=3306,
                                 ))
 
