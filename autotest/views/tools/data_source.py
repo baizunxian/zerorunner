@@ -20,6 +20,26 @@ def get_source_list():
     return partner_success(data=data)
 
 
+@bp.route('/saveOrUpdateSource', methods=['POST'])
+def save_or_update_source():
+    """
+    获取所有角色数据
+    :return:
+    """
+    data = DataSourceService.save_or_update(**request.get_json())
+    return partner_success(data=data)
+
+
+@bp.route('/testConnect', methods=['POST'])
+def test_connect():
+    """
+    测试连接
+    :return:
+    """
+    data = DataSourceService.test_connect(**request.get_json())
+    return partner_success(data=data)
+
+
 @bp.route('/dbList', methods=['POST'])
 def get_db_list():
     """

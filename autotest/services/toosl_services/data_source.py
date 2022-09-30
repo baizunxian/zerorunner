@@ -6,12 +6,13 @@ from pydantic import BaseModel
 from typing import Optional, Text, Union, Any, List
 
 from autotest.corelibs.exc_db import DB
+from autotest.exc.exceptions import ParameterError
 from autotest.models.tools_models import DataSource
 from autotest.serialize.base_serialize import BaseQuerySchema
 from autotest.utils.api import jsonable_encoder
 
 
-class DBInfo(BaseModel):
+class SourceInfo(BaseModel):
     host: Text
     port: int
     user: Text
@@ -30,6 +31,16 @@ class SourceListQuery(BaseQuerySchema):
     source_type: Text = "mysql"
 
 
+class SourceSaveSchema(BaseModel):
+    id: int = None
+    type: Text
+    name: Text
+    host: Text
+    port: Text
+    user: Text
+    password: Text
+
+
 class DataSourceService:
     @staticmethod
     def get_db_connect(source_id: int, databases: Text = None) -> "DB":
@@ -39,7 +50,9 @@ class DataSourceService:
         source_info = jsonable_encoder(source_info)
         if databases:
             source_info.update({"database": databases})
-        db_info = DB(**DBInfo(**jsonable_encoder(source_info)).dict())
+        source_info = SourceInfo(**jsonable_encoder(source_info)).dict()
+        source_info['read_timeout'] = 3
+        db_info = DB(**source_info)
         return db_info
 
     @staticmethod
@@ -48,6 +61,25 @@ class DataSourceService:
         source = DataSource().get_list(**query_data.dict(exclude_none=True)).all()
         # source = DataSourceListSchema().dump(source, many=True)
         return source
+
+    @staticmethod
+    def save_or_update(**kwargs: Any) -> "DataSource":
+        source_param = SourceSaveSchema(**kwargs)
+        if source_param.id:
+            source_info = DataSource.get(source_param.id)
+            if not source_info:
+                raise ParameterError("数据不存在！")
+        else:
+            source_info = DataSource()
+        source_info.update(**source_param.dict())
+        return source_info
+
+    @staticmethod
+    def test_connect(**kwargs: Any):
+        source_info = SourceInfo(**kwargs).dict()
+        source_info['read_timeout'] = 3
+        db_info = DB(**source_info)
+        return db_info.test_connect()
 
     @staticmethod
     def get_db_list(source_id: int):

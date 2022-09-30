@@ -9,7 +9,7 @@ from pymysql import DatabaseError
 
 
 class DB:
-    def __init__(self, host, port, user, password, database=None):
+    def __init__(self, host, port, user, password, database=None, read_timeout=None):
         if user and isinstance(user, str) and len(user) == 172:
             user = decrypt_rsa_password(bytes(user, encoding='utf8'))
         if host and isinstance(host, str) and len(host) == 172:
@@ -22,6 +22,7 @@ class DB:
         self.password = password
         self.database = database
         self.database = database
+        self.read_timeout = read_timeout
         self.charset = 'UTF8MB4'
         self.connect = self.db_connect()
         self.cs = self.db_cursor()
@@ -35,7 +36,8 @@ class DB:
                 user=self.user,
                 password=self.password,
                 database=self.database,
-                charset=self.charset
+                charset=self.charset,
+                read_timeout=self.read_timeout
             )
         except DatabaseError as err:
             raise Exception('数据库连接错误：', err)
@@ -62,6 +64,14 @@ class DB:
         self.close()
         return data
 
+    def test_connect(self):
+        try:
+            results = self.execute("SELECT VERSION()")
+            ver = results[0] if results else None
+            return ver is not None
+        except:
+            return False
+
     def executemany(self, sql, *args):
         """批量执行"""
         self.cs.executemany(sql, *args)
@@ -76,8 +86,9 @@ class DB:
         except Exception as err:
             ...
 
-    def __del__(self):
-        self.close()
+
+def __del__(self):
+    self.close()
 
 
 # def sql_check(sql):

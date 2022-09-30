@@ -19,7 +19,7 @@ from autotest.serialize.api_serializes.test_case import (CaseQuerySchema, CaseSa
                                                          TestCaseRunBatchSchema)
 from autotest.services.api_services.test_report import ReportService
 from autotest.services.utils_services.postman2case import Collection
-from autotest.utils.api import parse_pagination
+from autotest.utils.api import parse_pagination, jsonable_encoder
 from autotest.utils.common import get_user_id_by_token, get_timestamp
 from autotest.utils.service_utils import DumpTestCase
 
@@ -98,10 +98,12 @@ class CaseService:
         case_info = CaseInfo.get(c_id)
         if not case_info:
             raise ValueError('当前用例不存在！')
-        if case_info.testcase:
-            case_info.testcase = json.loads(case_info.testcase)
-        if case_info.include and isinstance(case_info.include, str):
-            case_info.include = list(map(int, case_info.include.split(",")))
+
+        case_info = jsonable_encoder(case_info)
+        if "testcase" in case_info:
+            case_info["testcase"] = json.loads(case_info["testcase"])
+        if "include" in case_info:
+            case_info["include"] = list(map(int, case_info["include"].split(","))) if case_info["include"] else []
         return case_info
 
     @staticmethod
