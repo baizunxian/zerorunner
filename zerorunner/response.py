@@ -10,10 +10,10 @@ import requests
 from jmespath.exceptions import JMESPathError
 from loguru import logger
 
-import exceptions
-from exceptions import ValidationFailure, ParamsError
-from models import VariablesMapping, Validators, FunctionsMapping
-from parser_param import parse_data, parse_string_value, get_mapping_function
+from zerorunner import exceptions
+from zerorunner.exceptions import ValidationFailure, ParamsError
+from zerorunner.models import VariablesMapping, Validators, FunctionsMapping
+from zerorunner.parser_param import parse_data, parse_string_value, get_mapping_function
 
 
 def get_uniform_comparator(comparator: Text):

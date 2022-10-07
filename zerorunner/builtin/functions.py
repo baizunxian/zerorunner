@@ -12,7 +12,7 @@ import random
 import string
 import time
 
-from exceptions import ParamsError
+from zerorunner.exceptions import ParamsError
 
 
 def gen_random_string(str_len):

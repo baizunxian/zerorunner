@@ -46,8 +46,8 @@ import os
 import sys
 from typing import Text
 
-from models import TStep, FunctionsMapping
-from parser_param import parse_variables_mapping, parse_data
+from zerorunner.models import TStep, FunctionsMapping
+from zerorunner.parser_param import parse_variables_mapping, parse_data
 from loguru import logger
 
 try:

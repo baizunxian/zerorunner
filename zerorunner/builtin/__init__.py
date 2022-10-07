@@ -3,5 +3,5 @@
 # @author: xiaobai
 # @create time: 2022/9/9 14:53
 
-from builtin.comparators import *
-from builtin.functions import *
+from zerorunner.builtin.comparators import *
+from zerorunner.builtin.functions import *

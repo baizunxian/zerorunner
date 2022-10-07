@@ -12,8 +12,8 @@ from typing import Any, Set, Text, Callable, List, Dict
 from loguru import logger
 from sentry_sdk import capture_exception
 
-import loader, utils, exceptions
-from models import VariablesMapping, FunctionsMapping
+from zerorunner import loader, utils, exceptions
+from zerorunner.models import VariablesMapping, FunctionsMapping
 
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 

@@ -11,14 +11,14 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Text
 from loguru import logger
-import exceptions
-import utils
-from client import HttpSession
-from exceptions import ValidationFailure, ParamsError
-from ext.db import DB
-from ext.uploader import prepare_upload_step
-from loader import load_script_content
-from models import (
+from zerorunner import exceptions
+from zerorunner import utils
+from zerorunner.client import HttpSession
+from zerorunner.exceptions import ValidationFailure, ParamsError
+from zerorunner.ext.db import DB
+from zerorunner.ext.uploader import prepare_upload_step
+from zerorunner.loader import load_script_content
+from zerorunner.models import (
     TConfig,
     TStep,
     VariablesMapping,
@@ -29,9 +29,9 @@ from models import (
     TestCase,
     Hooks, FunctionsMapping, TSteps, SqlController, WaitController, ScriptController, Headers,
 )
-from parser_param import parse_variables_mapping, parse_data, build_url, parse_parameters
-from response import ResponseObject
-from utils import merge_variables
+from zerorunner.parser_param import parse_variables_mapping, parse_data, build_url, parse_parameters
+from zerorunner.response import ResponseObject
+from zerorunner.utils import merge_variables
 
 
 class ZeroRunner(object):
@@ -339,7 +339,7 @@ class ZeroRunner(object):
     def __run_step_script(self, step: ScriptController):
         step_data = StepData(name=step.name)
         module_name = uuid.uuid4().hex
-        script = f"from script_code import zero\n{step.value}"
+        script = f"from zerorunner.script_code import zero\n{step.value}"
         script_module = load_script_content(script,
                                             f"script_{module_name}")
         headers = script_module.zero.headers.get_headers()
