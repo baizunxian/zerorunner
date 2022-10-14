@@ -11,8 +11,6 @@ class User(Base, TimestampMixin):
     """用户表"""
     __tablename__ = 'user'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     username = Column(String(64), nullable=False, comment='用户名', index=True)
     password = Column(Text, nullable=False, comment='密码')
     email = Column(String(64), nullable=True, comment='邮箱')
@@ -60,13 +58,12 @@ class Menu(Base, TimestampMixin):
     """菜单表"""
     __tablename__ = 'menu'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     path = Column(String(255), nullable=True, comment='菜单路径')
     name = Column(String(255), nullable=True, comment='菜单名称', index=True)
     component = Column(Integer, nullable=True, comment='组件路径')
     title = Column(String(255), nullable=True, comment='title', index=True)
-    isLink = Column(Integer, nullable=True, comment='开启外链条件，`1、isLink: true 2、链接地址不为空（meta.isLink） 3、isIframe: false`')
+    isLink = Column(Integer, nullable=True,
+                    comment='开启外链条件，`1、isLink: true 2、链接地址不为空（meta.isLink） 3、isIframe: false`')
     isHide = Column(Integer, nullable=True, default=False, comment='菜单是否隐藏（菜单不显示在界面，但可以进行跳转）')
     isKeepAlive = Column(Integer, nullable=True, default=True, comment='菜单是否缓存')
     isAffix = Column(Integer, nullable=True, default=False, comment='固定标签')
@@ -114,8 +111,6 @@ class Roles(Base, TimestampMixin):
     """角色表"""
     __tablename__ = 'roles'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     name = Column(String(64), nullable=True, comment='菜单名称', index=True)
     role_type = Column(Integer, nullable=False, comment='权限类型，10菜单权限，20用户组权限', index=True, default=10)
     menus = Column(String(64), nullable=True, comment='菜单列表', index=True)
@@ -131,7 +126,23 @@ class Roles(Base, TimestampMixin):
             q.append(cls.role_type == role_type)
         else:
             q.append(cls.role_type == 10)
-        return cls.query.filter(*q, cls.enabled_flag == 1)
+
+        u = aliased(User)
+        return cls.query.filter(*q, cls.enabled_flag == 1) \
+            .outerjoin(User, cls.created_by == User.id) \
+            .outerjoin(u, cls.updated_by == u.id) \
+            .with_entities(cls.id,
+                           cls.name,
+                           cls.role_type,
+                           cls.menus,
+                           cls.status,
+                           cls.description,
+                           cls.created_by,
+                           cls.updation_date,
+                           cls.creation_date,
+                           u.nickname.label('created_by_name'),
+                           User.nickname.label('updated_by_name'),
+                           ).order_by(cls.creation_date.desc())
 
     @classmethod
     def get_all(cls, role_type=10):
@@ -315,8 +326,6 @@ class MenuViewHistory(Base, TimestampMixin):
     """访问"""
     __tablename__ = 'menu_view_history'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     menu_id = Column(Integer(), nullable=True, comment='菜单id', index=True)
     remote_addr = Column(String(64), nullable=True, comment='访问ip', index=True)
     user_id = Column(Integer(), nullable=True, comment='访问人', index=True)
@@ -369,8 +378,6 @@ class MenuViewHistory(Base, TimestampMixin):
 class Notify(Base, TimestampMixin):
     """消息"""
     __tablename__ = 'notify'
-
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
 
     user_id = Column(Integer(), nullable=True, comment='用户id', index=True)
     group = Column(String(64), nullable=True, comment='组')

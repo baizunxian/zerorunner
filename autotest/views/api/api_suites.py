@@ -1,9 +1,9 @@
 from flask import Blueprint, request
 
-from autotest.services.api_services.test_suites import TestSuitesService
+from autotest.services.api_services.api_suites import ApiSuitesService
 from autotest.utils.api import partner_success
 
-bp = Blueprint('suites', __name__, url_prefix='/api/testSuites')
+bp = Blueprint('api_suites', __name__, url_prefix='/api/apiSuites')
 
 
 @bp.route('/list', methods=['POST'])
@@ -12,7 +12,7 @@ def suites_list():
     套件列表
     :return:
     """
-    data = TestSuitesService.list(**request.json)
+    data = ApiSuitesService.list(**request.json)
     return partner_success(data=data)
 
 
@@ -22,7 +22,17 @@ def save_or_update():
     更新保存套件
     :return:
     """
-    data = TestSuitesService.save_or_update(**request.json)
+    data = ApiSuitesService.save_or_update(**request.json)
+    return partner_success(data=data.id)
+
+
+@bp.route('/runSuites', methods=['POST'])
+def run_suites():
+    """
+    运行套件
+    :return:
+    """
+    data = ApiSuitesService.run_suites(**request.json)
     return partner_success(data=data.id)
 
 
@@ -34,7 +44,7 @@ def deleted():
     """
     parsed_data = request.json
     s_id = parsed_data.get('id', None)
-    TestSuitesService.deleted(s_id)
+    ApiSuitesService.deleted(s_id)
     return partner_success()
 
 
@@ -44,5 +54,5 @@ def suite_info():
     套件信息
     :return:
     """
-    data = TestSuitesService.get_suite_info(**request.json)
+    data = ApiSuitesService.get_suite_info(**request.json)
     return partner_success(data=data)

@@ -3,13 +3,13 @@
 # @author: xiaobai
 # @create time: 2022/9/13 16:48
 from pydantic import BaseModel
-from typing import Optional, Text, Union, Any, List
+from typing import Optional, Text, Union, Any, List, Dict
 
 from autotest.corelibs.exc_db import DB
 from autotest.exc.exceptions import ParameterError
 from autotest.models.tools_models import DataSource
 from autotest.serialize.base_serialize import BaseQuerySchema
-from autotest.utils.api import jsonable_encoder
+from autotest.utils.api import jsonable_encoder, parse_pagination
 
 
 class SourceInfo(BaseModel):
@@ -29,6 +29,7 @@ class ExecuteParam(BaseModel):
 class SourceListQuery(BaseQuerySchema):
     id: Optional[Union[Text, None]]
     source_type: Text = "mysql"
+    env_id: Optional[int]
 
 
 class SourceSaveSchema(BaseModel):
@@ -39,6 +40,7 @@ class SourceSaveSchema(BaseModel):
     port: Text
     user: Text
     password: Text
+    env_id: int
 
 
 class DataSourceService:
@@ -56,11 +58,16 @@ class DataSourceService:
         return db_info
 
     @staticmethod
-    def get_source_list(**kwargs: Any) -> List[Any]:
+    def get_source_list(**kwargs: Any) -> Dict[Text, Any]:
         query_data = SourceListQuery(**kwargs)
-        source = DataSource().get_list(**query_data.dict(exclude_none=True)).all()
+        data = parse_pagination(DataSource().get_list(**query_data.dict(exclude_none=True)))
+        _result, pagination = data.get('result'), data.get('pagination')
+        result = {
+            'rows': _result
+        }
+        result.update(pagination)
         # source = DataSourceListSchema().dump(source, many=True)
-        return source
+        return result
 
     @staticmethod
     def save_or_update(**kwargs: Any) -> "DataSource":
@@ -73,6 +80,11 @@ class DataSourceService:
             source_info = DataSource()
         source_info.update(**source_param.dict())
         return source_info
+
+    @staticmethod
+    def deleted_source(id: int):
+        env = DataSource.get(id)
+        env.delete() if env else ...
 
     @staticmethod
     def test_connect(**kwargs: Any):

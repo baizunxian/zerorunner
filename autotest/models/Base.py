@@ -122,6 +122,7 @@ class Base(db.Model):
 
 
 class TimestampMixin:
+    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
     creation_date = Column(DateTime(), default=datetime.now, comment='创建时间')
     created_by = Column(Integer, nullable=True, comment='创建人')
     updation_date = Column(DateTime(), default=func.now(), onupdate=func.now(), nullable=False, comment='更新时间')

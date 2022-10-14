@@ -23,11 +23,23 @@ def get_source_list():
 @bp.route('/saveOrUpdateSource', methods=['POST'])
 def save_or_update_source():
     """
-    获取所有角色数据
+    保存
     :return:
     """
     data = DataSourceService.save_or_update(**request.get_json())
     return partner_success(data=data)
+
+
+@bp.route('/deletedSource', methods=['POST'])
+def deleted_source():
+    """
+    删除
+    :return:
+    """
+    id = request.json.get('id', None)
+    if id:
+        DataSourceService.deleted_source(id)
+    return partner_success()
 
 
 @bp.route('/testConnect', methods=['POST'])

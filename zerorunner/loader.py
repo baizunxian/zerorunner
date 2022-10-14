@@ -10,8 +10,8 @@ import sys
 import traceback
 import types
 from typing import Callable, Dict, List, Text
-import exceptions
-import builtin
+from zerorunner import exceptions
+from zerorunner import builtin
 
 
 def load_csv_file(csv_file: Text) -> List[Dict]:

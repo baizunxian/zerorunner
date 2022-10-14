@@ -53,8 +53,11 @@ class DB:
 
     def close(self):
         """关闭连接"""
-        self.cs.close()
-        self.connect.close()
+        try:
+            self.cs.close()
+            self.connect.close()
+        except:
+            pass
 
     def __del__(self):
         self.close()

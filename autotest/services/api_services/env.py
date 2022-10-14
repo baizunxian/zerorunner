@@ -23,6 +23,18 @@ class EnvService:
         return result
 
     @staticmethod
+    def get_env_by_id(env_id: int) -> Env:
+        """
+        获取环境列表
+        :param kwargs:
+        :return:
+        """
+        env_info = Env.get(env_id)
+        if not env_info:
+            raise ValueError("当前不存在！")
+        return env_info
+
+    @staticmethod
     def save_or_update(**kwargs: Any) -> "Env":
         """
         保存更新环境

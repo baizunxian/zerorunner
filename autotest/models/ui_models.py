@@ -7,8 +7,6 @@ class Page(Base, TimestampMixin):
     """页面表"""
     __tablename__ = 'ui_page'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     page_name = Column(String(255), nullable=False, comment='页面名称', index=True)
     page_url = Column(String(255), nullable=False, comment='页面ui', index=True)
     project_id = Column(String(255), nullable=True, comment='项目id', index=True)
@@ -30,8 +28,6 @@ class Page(Base, TimestampMixin):
 class Element(Base, TimestampMixin):
     """元素表"""
     __tablename__ = 'ui_element'
-
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
 
     element_name = Column(String(255), nullable=False, comment='元素名称', index=True)
     by_type = Column(String(255), nullable=True, comment='定位类型')
@@ -66,8 +62,6 @@ class UiCase(Base, TimestampMixin):
     """ui 用例表"""
     __tablename__ = 'ui_case'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     name = Column(String(255), nullable=False, comment='用例名', index=True)
     condition = Column(String(255), nullable=True, comment='前置条件')
     flag = Column(Integer, nullable=True, comment='自动化标记')
@@ -100,8 +94,6 @@ class Steps(Base, TimestampMixin):
     """步骤表"""
     __tablename__ = 'ui_steps'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     no = Column(Integer, nullable=False, comment='步骤排序', index=True)
     operate = Column(String(255), nullable=True, comment='操作')
     data = Column(String(255), nullable=True, comment='输入数据')
@@ -115,8 +107,6 @@ class Steps(Base, TimestampMixin):
 class UiReports(Base, TimestampMixin):
     """报告表"""
     __tablename__ = 'ui_reports'
-
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
 
     report_name = Column(String(255), nullable=False, comment='报告名', index=True)
     result = Column(Text, nullable=False, comment='报告结果', index=True)

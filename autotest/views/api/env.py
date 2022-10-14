@@ -16,6 +16,17 @@ def env_list():
     return partner_success(data=data)
 
 
+@bp.route('/getEnvById', methods=['POST'])
+def get_env_by_id():
+    """
+    获取列表
+    :return:
+    """
+    env_id = request.json.get("id", None)
+    data = EnvService.get_env_by_id(env_id)
+    return partner_success(data=data)
+
+
 @bp.route('/saveOrUpdate', methods=['POST'])
 def save_or_update_env():
     """

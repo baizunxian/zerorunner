@@ -13,9 +13,9 @@ import platform
 from multiprocessing import Queue
 from typing import Any, Dict, List
 
-import exceptions
+from zerorunner import exceptions
 from loguru import logger
-from models import VariablesMapping
+from zerorunner.models import VariablesMapping
 
 
 def set_os_environ(variables_mapping):

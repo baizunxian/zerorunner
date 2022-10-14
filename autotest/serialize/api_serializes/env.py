@@ -1,5 +1,7 @@
-from typing import Optional, Text, List, Union
+from typing import Optional, Text, List, Union, Dict, Any
 from pydantic import root_validator, BaseModel
+
+from autotest.exc.exceptions import ParameterError
 from autotest.models.api_models import Env
 from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
 
@@ -28,24 +30,23 @@ class EnvListSchema(BaseListSchema):
 
 
 class EnvSaveOrUpdateSchema(BaseModel):
-
     id: Optional[int]
     name: Optional[Text]
-    url: Optional[Text]
+    domain_name: Optional[Text]
     remarks: Optional[Text]
+    headers: Optional[List[Dict[Text, Any]]]
+    variables: Optional[List[Dict[Text, Any]]]
 
     @root_validator
     def root_validator(cls, data):
         e_id = data.get('id', None)
         e_name = data.get('name', None)
-        e_url = data.get('url', None)
+        domain_name = data.get('domain_name', None)
 
         if not e_name:
             raise ParameterError('环境名称不能为空')
-        else:
-            if Env.get_list(name=e_name).first():
-                raise ParameterError("环境名称已存在!")
-        if not e_url:
+
+        if not domain_name:
             raise ParameterError('环境地址不能为空')
 
         # 判断名称是否重复
@@ -56,4 +57,8 @@ class EnvSaveOrUpdateSchema(BaseModel):
             if env.name != e_name:
                 if env.get_list(name=e_name).first():
                     raise ParameterError("环境名称已存在!")
+        else:
+            if Env.get_list(name=e_name).first():
+                raise ParameterError("环境名称已存在!")
+
         return data

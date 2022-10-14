@@ -8,7 +8,7 @@ import yaml
 
 from autotest.config import config
 from autotest.httprunner.make import __ensure_testcase_module as _ensure_testcase_module
-from autotest.models.api_models import CaseInfo, ModuleInfo, ProjectInfo, DebugTalk
+from autotest.models.api_models import ApiCase, ModuleInfo, ProjectInfo, DebugTalk
 from autotest.utils.common import get_timestamp
 from autotest.utils.des import encrypt_rsa_password
 

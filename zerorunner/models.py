@@ -88,21 +88,22 @@ class TStep(BaseModel):
     # used to export session variables from referenced testcase
     export: Export = []
     validators: Validators = Field([], alias="validate")
-    validate_script: List[Text] = []
-    # 脚本
-    script_codes: List[Text] = []
+    # validate_script: List[Text] = []
+    # # 脚本
+    # script_codes: List[Text] = []
 
 
 # 用例控制器
 class BaseTController(BaseModel):
     """步骤控制器"""
     name: Text = ""
-    value: Union[Text, int] = ""
+    value: Any = ""
     step_type: Text = ""
     enable: bool = False  # 是否有效
 
 
 class SqlController(BaseTController):
+    source_id: int = None,
     host: Text = ""
     user: Text = ""
     password: Text = ""
@@ -112,15 +113,18 @@ class SqlController(BaseTController):
 
 
 class WaitController(BaseTController):
+    """等待控制器"""
     value: int = 0
     pass
 
 
 class ScriptController(BaseTController):
+    """脚本控制器"""
     pass
 
 
 class CaseController(BaseTController, TStep):
+    """用例控制器"""
     pass
 
 
@@ -130,7 +134,7 @@ class JsonPathData(BaseModel):
 
 
 class ExtractController(BaseTController):
-    json_path_list: List[JsonPathData]
+    value: List[JsonPathData]
 
 
 TSteps = Union[SqlController, WaitController, ScriptController, JsonPathData, TStep]
@@ -143,8 +147,8 @@ class TestCase(BaseModel):
 
 class TestCaseTime(BaseModel):
     start_at: float = 0
-    start_at_iso_format: Text = ""
     duration: float = 0
+    start_at_iso_format: Text = ""
 
 
 class TestCaseInOut(BaseModel):
@@ -210,6 +214,14 @@ class StepData(BaseModel):
     variables: VariablesMapping = {}
     data: Union[SessionData, List['StepData']] = None
     export_vars: VariablesMapping = {}
+
+    def dict(self, *args, **kwargs):
+        kwargs["exclude"] = {""}
+        if "request" in self.variables:
+            self.variables.pop("request", None)
+        if "response" in self.variables:
+            self.variables.pop("response", None)
+        return super(StepData, self).dict()
 
 
 StepData.update_forward_refs()

@@ -10,8 +10,6 @@ class AutoTestCase(Base, TimestampMixin):
     """自动测试用例"""
     __tablename__ = 'auto_test_case'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     module_id = Column(Integer, nullable=False, comment='模块id', index=True)
     project_id = Column(Integer, nullable=False, comment='归属项目id')
     api_code_id = Column(Integer, nullable=False, comment='api_code_id')

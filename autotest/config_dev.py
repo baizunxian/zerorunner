@@ -8,7 +8,7 @@ db_port = 3306
 CONFIGS = {
     'DEBUG': False,
     # mysql数据库的配置信息
-    'SQLALCHEMY_DATABASE_URI': f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/zero_autotest?charset=UTF8MB4',
+    'SQLALCHEMY_DATABASE_URI': f'mysql+pymysql://{db_user}:{db_password}@{db_host}:{db_port}/zerorunner?charset=UTF8MB4',
     # 动态追踪修改设置，如未设置只会提示警告
     'SQLALCHEMY_TRACK_MODIFICATIONS': False,
     # 查询时会显示原始SQL语句

@@ -17,9 +17,9 @@ from requests.exceptions import (
     RequestException,
 )
 
-from models import RequestData, ResponseData
-from models import SessionData, ReqRespData
-from utils import lower_dict_keys, omit_long_data
+from zerorunner.models import RequestData, ResponseData
+from zerorunner.models import SessionData, ReqRespData
+from zerorunner.utils import lower_dict_keys, omit_long_data
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

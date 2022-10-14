@@ -14,7 +14,7 @@ from autotest.httprunner.make import __ensure_testcase_module as _ensure_testcas
     make_teststep_chain_style, __TEMPLATE__
 from autotest.httprunner.models import ProjectMeta
 from autotest.httprunner.parser import parse_data
-from autotest.models.api_models import ProjectInfo, CaseInfo, ModuleInfo, DebugTalk
+from autotest.models.api_models import ProjectInfo, ApiCase, ModuleInfo, DebugTalk
 from autotest.utils.des import encrypt_rsa_password
 from autotest.utils.service_utils import get_testcase_dir_path, dump_python_file, data_type_change, key_value_list
 

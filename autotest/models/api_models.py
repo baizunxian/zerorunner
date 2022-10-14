@@ -1,7 +1,7 @@
 from typing import List
 
 from sqlalchemy import Column, Integer, String, Float, Text, DateTime, BigInteger, func, \
-    distinct, text, and_
+    distinct, text, and_, JSON
 from sqlalchemy.orm import aliased
 
 from autotest.models.Base import Base, TimestampMixin
@@ -11,8 +11,6 @@ from autotest.models.sys_models import User
 class ProjectInfo(Base, TimestampMixin):
     """项目表"""
     __tablename__ = 'project_info'
-
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
 
     name = Column(String(64), nullable=False, comment='项目名称', index=True)
     responsible_name = Column(String(64), nullable=False, comment='负责人')
@@ -136,9 +134,9 @@ class ModuleInfo(Base, TimestampMixin):
             .outerjoin(ProjectInfo, and_(cls.project_id == ProjectInfo.id, ProjectInfo.enabled_flag == 1)) \
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
-            .outerjoin(CaseInfo,
-                       and_(cls.id == CaseInfo.module_id, CaseInfo.enabled_flag == 1, CaseInfo.case_type == 1)) \
-            .with_entities(func.count(distinct(CaseInfo.id)).label('case_count'),
+            .outerjoin(ApiCase,
+                       and_(cls.id == ApiCase.module_id, ApiCase.enabled_flag == 1)) \
+            .with_entities(func.count(distinct(ApiCase.id)).label('case_count'),
                            cls.id,
                            cls.name,
                            cls.project_id,
@@ -186,31 +184,44 @@ class ModuleInfo(Base, TimestampMixin):
         return cls.query.filter(cls.packages_id == packages_id, cls.enabled_flag == 1).first()
 
 
-class CaseInfo(Base, TimestampMixin):
-    """测试用例，测试配置"""
-    __tablename__ = 'case_info'
+class ApiCase(Base, TimestampMixin):
+    """接口用例"""
+    __tablename__ = 'api_case'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-    case_type = Column(Integer, nullable=False, comment='test/config,测试类型, 1 case  2 config', default=1)
-    name = Column(String(255), nullable=False, comment='用例/配置名称', index=True)
+    name = Column(String(255), nullable=False, comment="用例名称", index=True)
     project_id = Column(Integer, nullable=False, comment='所属项目')
     module_id = Column(Integer, nullable=False, comment='所属模块')
-    include = Column(Text, nullable=True, comment='前置config/test')
-    testcase = Column(Text, nullable=True, comment='用例信息')
-    service_name = Column(String(1024), nullable=True, comment='所属服务名称')
-    # run_type = Column(Integer, nullable=True, comment='运行方式(0:集成运行,1:独立运行)', default=1)
+    case_status = Column(Integer, nullable=True, comment='用例状态 10, 生效 ， 20 失效', default=10)
     code_id = Column(BigInteger, nullable=True, comment='关联接口id')
     code = Column(String(255), nullable=True, comment='接口code')
-    config_id = Column(Integer, nullable=True, comment='用例配置id')
     priority = Column(Integer, nullable=False, comment='优先级', default=3)
-    case_status = Column(Integer, nullable=True, comment='用例状态 10, 生效 ， 20 失效', default=10)
-    case_tab = Column(Integer, nullable=True, comment='用例标签')
+    case_tag = Column(String(255), nullable=True, comment='用例标签')
+    method = Column(String(255), nullable=True, comment='请求方式')
+    setup_hooks = Column(JSON, nullable=True, comment='前置操作')
+    teardown_hooks = Column(JSON, nullable=True, comment='后置操作')
+    variables = Column(JSON, nullable=True, comment='变量')
+    request_body = Column(JSON, nullable=True, comment='请求参数')
+    headers = Column(JSON, nullable=True, comment='请求头')
+    url = Column(JSON, nullable=True, comment='请求地址')
+    validators = Column(JSON, nullable=True, comment='断言规则')
 
     @classmethod
-    def get_list(cls, id=None, name=None, project_id=None, module_id=None, created_by_name=None, case_type=1,
-                 module_ids=None, code=None, created_by=None, priority=None, sort_type=1, order_field=None, ids=None,
-                 project_ids=None, case_status=None):
-        q = list()
+    def get_list(cls, **kwargs):
+        q = []
+        id = kwargs.get("id", None)
+        name = kwargs.get("name", None)
+        project_id = kwargs.get("project_id", None)
+        module_id = kwargs.get("module_id", None)
+        code = kwargs.get("code", None)
+        module_ids = kwargs.get("module_ids", None)
+        project_ids = kwargs.get("project_ids", None)
+        created_by = kwargs.get("created_by", None)
+        created_by_name = kwargs.get("created_by_name", None)
+        priority = kwargs.get("priority", None)
+        ids = kwargs.get("ids", None)
+        case_status = kwargs.get("case_status", None)
+        sort_type = kwargs.get("sort_type", 1)
+        order_field = kwargs.get("order_field", None)
         if id:
             q.append(cls.id == id)
         if name:
@@ -219,8 +230,6 @@ class CaseInfo(Base, TimestampMixin):
             q.append(cls.project_id == project_id)
         if module_id:
             q.append(cls.module_id == module_id)
-        if case_type:
-            q.append(cls.case_type == case_type)
         if code:
             q.append(cls.code.like('%{}%'.format(code)))
         if module_ids:
@@ -242,9 +251,9 @@ class CaseInfo(Base, TimestampMixin):
         sort_type = 'asc' if sort_type == 0 else 'desc'
 
         if not order_field or order_field == 'creation_date':
-            order_field = 'case_info.creation_date'
+            order_field = 'api_case.creation_date'
         if order_field == 'updation_date':
-            order_field = 'case_info.updation_date'
+            order_field = 'api_case.updation_date'
         if order_field == 'name':
             order_field = 'case_info.name'
         if order_field == 'project_name':
@@ -253,7 +262,7 @@ class CaseInfo(Base, TimestampMixin):
             order_field = 'module_info.name'
         if order_field == 'created_by_name' or order_field == 'updated_by_name':
             order_field = 'user.nickname'
-        order_by = f'{order_field} {sort_type} {",case_info.id"} {sort_type}'
+        order_by = f'{order_field} {sort_type} {",api_case.id"} {sort_type}'
 
         return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
@@ -262,18 +271,15 @@ class CaseInfo(Base, TimestampMixin):
             .with_entities(
             cls.id,
             cls.name,
-            cls.case_type,
-            cls.service_name,
+            cls.url,
+            cls.method,
             cls.project_id,
             cls.module_id,
-            cls.include,
-            # cls.run_type,
             cls.code_id,
             cls.code,
-            cls.config_id,
             cls.priority,
             cls.case_status,
-            cls.case_tab,
+            cls.case_tag,
             cls.updated_by,
             cls.created_by,
             cls.updation_date,
@@ -292,11 +298,9 @@ class CaseInfo(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1, cls.type == 1).all()
 
     @classmethod
-    def get_case_by_module_id(cls, module_id=None, module_ids=None, case_type=None):
+    def get_case_by_module_id(cls, module_id=None, module_ids=None):
         """查询模块是否有case关联"""
         q = list()
-        if case_type:
-            q.append(cls.case_type == case_type)
         if module_id:
             q.append(cls.module_id == module_id)
         if module_ids:
@@ -309,15 +313,13 @@ class CaseInfo(Base, TimestampMixin):
         return cls.query.filter(cls.project_id == project_id, cls.enabled_flag == 1)
 
     @classmethod
-    def get_case_by_name(cls, name, case_type=1):
+    def get_case_by_name(cls, name):
         """获取用例名是否存在"""
-        return cls.query.filter(cls.name == name, cls.enabled_flag == 1, cls.case_type == case_type).first()
+        return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
 
     @classmethod
-    def get_case_by_ids(cls, ids: List, case_type: int = 1):
+    def get_case_by_ids(cls, ids: List):
         q = []
-        if case_type:
-            q.append(cls.case_type == case_type)
         return cls.query.filter(cls.id.in_(ids), *q, cls.enabled_flag == 1)
 
     @classmethod
@@ -333,7 +335,7 @@ class CaseInfo(Base, TimestampMixin):
                            User.username.label('employee_code'),
                            User.nickname.label('username'),
                            ) \
-            .filter(cls.enabled_flag == 1, cls.case_type == 1)
+            .filter(cls.enabled_flag == 1)
 
     @classmethod
     def get_case_by_project_id_or_body(cls, project_id, body_name):
@@ -348,24 +350,24 @@ class CaseInfo(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
 
-class TestSuite(Base, TimestampMixin):
+class ApiSuite(Base, TimestampMixin):
     """测试套件，集合"""
-    __tablename__ = 'test_suite'
-
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
+    __tablename__ = 'api_suite'
 
     name = Column(String(64), nullable=False, comment='名称', index=True)
     project_id = Column(Integer, nullable=False, comment='所属项目')
-    include = Column(String(1024), nullable=True, comment='用例列表')
-    config_id = Column(Integer, nullable=False, comment='配置ID')
     remarks = Column(String(255), nullable=False, comment='备注')
+    env_id = Column(Integer, nullable=False, comment='环境id')
+    headers = Column(JSON, nullable=False, comment='场景请求头')
+    variables = Column(JSON, nullable=False, comment='场景变量')
+    step_data = Column(JSON, nullable=False, comment='场景步骤')
 
     @classmethod
     def get_list(cls, name=None, user_ids=None, project_id=None, created_by=None, suite_type=None,
                  created_by_name=None, project_ids=None, ids=None):
         q = list()
         if name:
-            q.append(cls.suite_name.like(f'%{name}%'))
+            q.append(cls.name.like(f'%{name}%'))
         if suite_type:
             q.append(cls.suite_type == suite_type)
         if project_id:
@@ -388,8 +390,8 @@ class TestSuite(Base, TimestampMixin):
             .with_entities(cls.id,
                            cls.name,
                            cls.project_id,
-                           cls.include,
-                           cls.config_id,
+                           cls.headers,
+                           cls.variables,
                            cls.created_by,
                            cls.creation_date,
                            cls.updated_by,
@@ -429,8 +431,6 @@ class TestSuite(Base, TimestampMixin):
 class TestReports(Base, TimestampMixin):
     """报告表"""
     __tablename__ = 'test_reports'
-
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
 
     name = Column(String(64), nullable=False, comment='报告名', index=True)
     start_at = Column(String(64), nullable=True, comment='开始时间')
@@ -575,7 +575,6 @@ class TestReportsNew(object):
                 __module__ = __name__
                 __name__ = class_name,
                 __tablename__ = 'test_reports_new_%d' % table_index
-                id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
                 # summary
                 summary_report_name = Column(String(64), nullable=False, comment='报告名称', index=True)
                 summary_success = Column(String(64), nullable=False, comment='结果是否成功')
@@ -667,8 +666,8 @@ class TestReportsNew(object):
                     if project_ids:
                         q.append(cls.project_id.in_(project_ids))
                     return cls.query.filter(*q, cls.enabled_flag == 1) \
-                        .outerjoin(CaseInfo, CaseInfo.id == cls.c_id) \
-                        .outerjoin(User, User.id == CaseInfo.created_by) \
+                        .outerjoin(ApiCase, ApiCase.id == cls.c_id) \
+                        .outerjoin(User, User.id == ApiCase.created_by) \
                         .with_entities(cls.id,
                                        cls.summary_report_name,
                                        cls.request_start_timestamp,
@@ -681,7 +680,7 @@ class TestReportsNew(object):
                                        cls.basic_batch,
                                        cls.c_id,
                                        cls.basic_execute_user,
-                                       CaseInfo.created_by.label('case_created_by'),
+                                       ApiCase.created_by.label('case_created_by'),
                                        User.nickname.label('case_created_by_name'),
                                        ) \
                         .order_by(cls.creation_date.desc())
@@ -716,11 +715,11 @@ class Env(Base, TimestampMixin):
     """环境表"""
     __tablename__ = 'env'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-
     name = Column(String(255), nullable=False, comment='环境名称', index=True)
-    url = Column(String(255), nullable=False, comment='url地址')
+    domain_name = Column(String(255), nullable=False, comment='url地址')
     remarks = Column(String(255), nullable=False, comment='说明')
+    variables = Column(JSON(), nullable=False, comment='环境变量')
+    headers = Column(JSON(), nullable=False, comment='环境请求头')
 
     @classmethod
     def get_list(cls, name=None, created_by_name=None):
@@ -735,7 +734,9 @@ class Env(Base, TimestampMixin):
             .filter(*q, cls.enabled_flag == 1) \
             .with_entities(cls.id,
                            cls.name,
-                           cls.url,
+                           cls.domain_name,
+                           cls.variables,
+                           cls.headers,
                            cls.remarks,
                            cls.updated_by,
                            cls.created_by,
@@ -756,7 +757,6 @@ class TimedTask(Base, TimestampMixin):
     """定时任务表"""
     __tablename__ = 'celery_periodic_task'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
     name = Column(String(255), nullable=True, comment='定时任务名', index=True)
     task = Column(String(255), comment='任务路径')
     args = Column(String(255), comment='参数')
@@ -841,7 +841,6 @@ class Crontab(Base, TimestampMixin):
     """crontab 表"""
     __tablename__ = 'celery_crontab_schedule'
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
     minute = Column(String(255), comment='分钟')
     hour = Column(String(255), comment='小时')
     day_of_week = Column(String(255), comment='日期')
@@ -870,7 +869,6 @@ class PeriodicTaskChanged(Base):
 class DebugTalk(Base, TimestampMixin):
     __tablename__ = 'debug_talk'
 
-    id = Column(BigInteger, primary_key=True, info='主键')
     project_id = Column(Integer, nullable=False, comment='项目id')
     debug_talk = Column(Text, nullable=True, comment='自定义函数内容')
 

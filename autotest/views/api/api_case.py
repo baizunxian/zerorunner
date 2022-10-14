@@ -1,15 +1,14 @@
 import json
-import traceback
 
 from flask import Blueprint, request
 from loguru import logger
 
 from autotest.exc import codes
-from autotest.services.api_services.test_case import CaseService
+from autotest.services.api_services.api_case import ApiCaseService
 from autotest.tasks.test_case import async_run_case, run_timed_task
 from autotest.utils.api import partner_success
 
-bp = Blueprint('test_case', __name__, url_prefix='/api/testcase')
+bp = Blueprint('api_case', __name__, url_prefix='/api/apiCase')
 
 
 @bp.route('/list', methods=['POST'])
@@ -18,7 +17,7 @@ def case_list():
     获取用例列表
     :return:
     """
-    result = CaseService.list(**request.json)
+    result = ApiCaseService.list(**request.json)
     return partner_success(data=result)
 
 
@@ -28,7 +27,7 @@ def get_case_info():
     获取用例信息
     :return:
     """
-    case_info = CaseService.detail(**request.json)
+    case_info = ApiCaseService.detail(**request.json)
     return partner_success(case_info)
 
 
@@ -39,7 +38,7 @@ def save_or_update():
     :return:
     """
     parsed_data = request.json
-    case_info = CaseService.save_or_update(**parsed_data)
+    case_info = ApiCaseService.save_or_update(**parsed_data)
     return partner_success(case_info.id)
 
 
@@ -50,7 +49,7 @@ def set_case_status():
     :return:
     """
     parsed_data = request.json
-    CaseService.set_case_status(**parsed_data)
+    ApiCaseService.set_case_status(**parsed_data)
     return partner_success()
 
 
@@ -62,7 +61,7 @@ def deleted():
     """
     parsed_data = request.json
     c_id = parsed_data.get('id', None)
-    CaseService.deleted(c_id)
+    ApiCaseService.deleted(c_id)
     return partner_success()
 
 
@@ -73,13 +72,13 @@ def run_test():
     :return:
     """
     parsed_data = request.json
-    params = CaseService.run_make(**parsed_data)  # 初始化校验，避免生成用例是出错
+    params = ApiCaseService.run_make(**parsed_data)  # 初始化校验，避免生成用例是出错
     if parsed_data.get('run_mode', None) == 2:
         logger.info('异步执行用例 ~')
         async_run_case.delay(**params)
         return partner_success(code=codes.PARTNER_CODE_OK, msg='用例执行中，请稍后查看报告即可,默认模块名称命名报告')
     else:
-        summary = CaseService.run(**params)
+        summary = ApiCaseService.run(**params)
         return partner_success(data=summary)
 
 
@@ -90,13 +89,13 @@ def run_test_new():
     :return:
     """
     parsed_data = request.json
-    params = CaseService.run_make_new(**parsed_data)  # 初始化校验，避免生成用例是出错
+    params = ApiCaseService.run_make_new(**parsed_data)  # 初始化校验，避免生成用例是出错
     if parsed_data.get('run_mode', None) == 2:
         logger.info('异步执行用例 ~')
         async_run_case.delay(**params)
         return partner_success(code=codes.PARTNER_CODE_OK, msg='用例执行中，请稍后查看报告即可,默认模块名称命名报告')
     else:
-        summary = CaseService.run(**params)
+        summary = ApiCaseService.run(**params)
         return partner_success(data=summary)
 
 
@@ -106,7 +105,7 @@ def debug_testcase():
     调试用例
     :return:
     """
-    data = CaseService.debug_testcase(**request.json)
+    data = ApiCaseService.debug_testcase(**request.json)
     return partner_success(data)
 
 
@@ -116,7 +115,7 @@ def debug_testcase_new():
     调试用例
     :return:
     """
-    data = CaseService.debug_testcase_new(**request.json)
+    data = ApiCaseService.debug_testcase(**request.json)
     return partner_success(data)
 
 
@@ -142,5 +141,5 @@ def postman2case():
     if postman_file.filename.split('.')[-1] != 'json':
         return partner_success(code=codes.PARTNER_CODE_FAIL, msg='请选择json文件导入！')
     json_body = json.load(postman_file)
-    data = CaseService.postman2case(json_body, **request.form)
+    data = ApiCaseService.postman2case(json_body, **request.form)
     return partner_success(data)

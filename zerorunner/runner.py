@@ -4,6 +4,7 @@
 # @create time: 2022/9/9 14:53
 
 import copy
+import os
 import sys
 import time
 import traceback
@@ -11,14 +12,14 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Text
 from loguru import logger
-import exceptions
-import utils
-from client import HttpSession
-from exceptions import ValidationFailure, ParamsError
-from ext.db import DB
-from ext.uploader import prepare_upload_step
-from loader import load_script_content
-from models import (
+from zerorunner import exceptions
+from zerorunner import utils
+from zerorunner.client import HttpSession
+from zerorunner.exceptions import ValidationFailure, ParamsError
+from zerorunner.ext.db import DB
+from zerorunner.ext.uploader import prepare_upload_step
+from zerorunner.loader import load_script_content
+from zerorunner.models import (
     TConfig,
     TStep,
     VariablesMapping,
@@ -29,9 +30,9 @@ from models import (
     TestCase,
     Hooks, FunctionsMapping, TSteps, SqlController, WaitController, ScriptController, Headers,
 )
-from parser_param import parse_variables_mapping, parse_data, build_url, parse_parameters
-from response import ResponseObject
-from utils import merge_variables
+from zerorunner.parser_param import parse_variables_mapping, parse_data, build_url, parse_parameters
+from zerorunner.response import ResponseObject
+from zerorunner.utils import merge_variables
 
 
 class ZeroRunner(object):
@@ -190,6 +191,19 @@ class ZeroRunner(object):
         resp_obj = None
         # 捕获异常
         try:
+            # setup hooks
+            if step.setup_hooks:
+                self.__call_hooks(step.setup_hooks, step.variables, "setup request")
+
+            # override variables  优先级 step.variables > self.config.variables > self.config.env_variables
+            # merge_env_variables  合并环境变量
+            step.variables = merge_variables(step.variables, self.config.env_variables)
+            # step variables > 合并用例变量
+            step.variables = merge_variables(step.variables, self.config.variables)
+            # step variables > 合并提取变量
+            step.variables = merge_variables(step.variables, self.extracted_variables)
+            step.variables = merge_variables(step.variables, self.__session_variables)
+
             # parse variables
             step.variables = parse_variables_mapping(
                 step.variables, self.config.functions
@@ -204,10 +218,6 @@ class ZeroRunner(object):
             #     f"{self.__case_id}-{str(int(time.time() * 1000))[-6:]}",
             # )
             step.variables["request"] = parsed_request_dict
-
-            # setup hooks
-            if step.setup_hooks:
-                self.__call_hooks(step.setup_hooks, step.variables, "setup request")
 
             # prepare arguments
             method = parsed_request_dict.pop("method")
@@ -315,7 +325,7 @@ class ZeroRunner(object):
             data = db_info.execute(step.value)
             step_data.success = True
             step_data.status = "success"
-            variables = {step.variable_name: data[0].get("username", "user_name")}
+            variables = {step.variable_name: data}
             self.with_variables(variables)
             step_data.export_vars.update(variables)
             logger.info(f"SQL查询---> {step.value}")
@@ -339,7 +349,11 @@ class ZeroRunner(object):
     def __run_step_script(self, step: ScriptController):
         step_data = StepData(name=step.name)
         module_name = uuid.uuid4().hex
-        script = f"from script_code import zero\n{step.value}"
+
+        base_script_path = os.path.join(os.getcwd(), "zerorunner", "script_code.py")
+        with open(base_script_path, 'r', encoding='utf8') as f:
+            base_script = f.read()
+        script = f"{base_script}\n{step.value}"
         script_module = load_script_content(script,
                                             f"script_{module_name}")
         headers = script_module.zero.headers.get_headers()
@@ -419,14 +433,6 @@ class ZeroRunner(object):
         self.with_log(f"执行步骤->{step.name} >>>>>>")
 
         if isinstance(step, TStep):
-            # override variables  优先级 step.variables > self.config.variables > self.config.env_variables
-            # merge_env_variables  合并环境变量
-            step.variables = merge_variables(step.variables, self.config.env_variables)
-            # step variables > 合并用例变量
-            step.variables = merge_variables(step.variables, self.config.variables)
-            # step variables > 合并提取变量
-            step.variables = merge_variables(step.variables, self.extracted_variables)
-
             step_data = self.__run_step_request(step)
         elif isinstance(step, WaitController):
             step_data = self.__run_step_wait(step)

@@ -12,8 +12,8 @@ from typing import Any, Set, Text, Callable, List, Dict
 from loguru import logger
 from sentry_sdk import capture_exception
 
-import loader, utils, exceptions
-from models import VariablesMapping, FunctionsMapping
+from zerorunner import loader, utils, exceptions
+from zerorunner.models import VariablesMapping, FunctionsMapping
 
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 
@@ -469,8 +469,8 @@ def parse_variables_mapping(
     return parsed_variables
 
 
-def parse_parameters(parameters: Dict, ) -> List[Dict]:
-    """ 解析参数，生成笛卡儿积集合
+def parse_parameters(parameters: Dict, functions_mapping: Dict = None) -> List[Dict]:
+    """ 解析参数，生成笛卡尔积
 
     Args:
         parameters (Dict) parameters: parameter name and value mapping
@@ -478,7 +478,7 @@ def parse_parameters(parameters: Dict, ) -> List[Dict]:
                 (1) data list, e.g. ["iOS/10.1", "iOS/10.2", "iOS/10.3"]
                 (2) call built-in parameterize function, "${parameterize(account.csv)}"
                 (3) call custom function in debugtalk.py, "${gen_app_version()}"
-
+        functions_mapping: 函数
     Returns:
         list: cartesian product list
 
@@ -493,9 +493,7 @@ def parse_parameters(parameters: Dict, ) -> List[Dict]:
     """
     parsed_parameters_list: List[List[Dict]] = []
 
-    # load project_meta functions
-    project_meta = loader.load_project_meta(os.getcwd())
-    functions_mapping = project_meta.functions
+    functions_mapping = functions_mapping if functions_mapping else {}
 
     for parameter_name, parameter_content in parameters.items():
         parameter_name_list = parameter_name.split("-")
