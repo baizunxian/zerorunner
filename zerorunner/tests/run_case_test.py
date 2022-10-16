@@ -58,8 +58,8 @@ sql_info = SqlController(**dict(name="sql",
                                 value="select username from zero_autotest.user limit 1",
                                 variable_name="username",
                                 host="xiaobaicodes.com",
-                                user="",
-                                password="",
+                                user="zero_autotest",
+                                password="Bai.123456",
                                 port=3306,
                                 ))
 

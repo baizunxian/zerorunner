@@ -36,6 +36,16 @@ def run_suites():
     return partner_success(data=data.id)
 
 
+@bp.route('/debugSuites', methods=['POST'])
+def debug_suites():
+    """
+    运行套件
+    :return:
+    """
+    data = ApiSuitesService.debug_suites(**request.json)
+    return partner_success(data=data)
+
+
 @bp.route('/deleted', methods=['POST'])
 def deleted():
     """

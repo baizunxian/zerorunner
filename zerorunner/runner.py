@@ -18,7 +18,7 @@ from zerorunner.client import HttpSession
 from zerorunner.exceptions import ValidationFailure, ParamsError
 from zerorunner.ext.db import DB
 from zerorunner.ext.uploader import prepare_upload_step
-from zerorunner.loader import load_script_content
+from zerorunner.loader import load_script_content, load_module_functions
 from zerorunner.models import (
     TConfig,
     TStep,
@@ -364,7 +364,9 @@ class ZeroRunner(object):
             self.with_log(f"设置请变量-> key:{key} value: {value}")
         self.with_headers(headers)
         self.with_variables(variables)
-        self.config.env_variables.update(script_module.zero.environment.get_environment())
+        functions = load_module_functions(script_module)
+        self.with_functions(functions)
+        # self.__session_variables.update(script_module.zero.environment.get_environment())
         step_data.success = True
         step_data.status = "success"
 

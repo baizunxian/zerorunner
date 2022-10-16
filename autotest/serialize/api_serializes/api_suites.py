@@ -36,7 +36,7 @@ class ApiSuitesListSchema(BaseListSchema):
         return data
 
 
-class ApiSuitesSaveOrUpdateSchema(BaseModel):
+class ApiSuitesSchema(BaseModel):
     id: Optional[int]
     name: Optional[Text]
     env_id: Optional[Text]

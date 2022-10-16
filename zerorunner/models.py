@@ -45,6 +45,8 @@ class TConfig(BaseModel):
     functions: FunctionsMapping = {}  # TestCase 脚本函数
     # 环境变量
     env_variables: Union[VariablesMapping, Text] = {}
+    # 请求头
+    headers: VariablesMapping = {}
     # 变量
     variables: Union[VariablesMapping, Text] = {}
     # 参数

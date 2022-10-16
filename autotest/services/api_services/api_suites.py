@@ -2,8 +2,11 @@ from typing import Dict, Any, Union, Text
 
 from autotest.models.api_models import ApiSuite
 from autotest.serialize.api_serializes.api_suites import ApiSuitesListSchema, ApiSuitesQuerySchema, \
-    ApiSuitesSaveOrUpdateSchema
+    ApiSuitesSchema
+from autotest.services.api_services.run_handle import ApiSuiteHandle
 from autotest.utils.api import parse_pagination
+from zerorunner.models import TestCase
+from zerorunner.runner import ZeroRunner
 
 
 class ApiSuitesService:
@@ -21,7 +24,7 @@ class ApiSuitesService:
     @staticmethod
     def save_or_update(**kwargs: Any) -> "ApiSuite":
         """更新保存套件"""
-        parsed_data = ApiSuitesSaveOrUpdateSchema(**kwargs)
+        parsed_data = ApiSuitesSchema(**kwargs)
         #  套件名称唯一性校验
         test_suite = ApiSuite.get(parsed_data.id) if parsed_data.id else ApiSuite()
         test_suite.update(**parsed_data.dict())
@@ -43,4 +46,12 @@ class ApiSuitesService:
     @staticmethod
     def run_suites(**kwargs: Any):
 
+
         ...
+    @staticmethod
+    def debug_suites(**kwargs: Any):
+        zr = ZeroRunner()
+        suite_info = ApiSuiteHandle(**kwargs)
+        test_case = TestCase(config=suite_info.config, teststeps=suite_info.teststeps)
+        zr.run_testcase(test_case)
+        return zr.get_summary()

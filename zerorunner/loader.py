@@ -81,7 +81,7 @@ def load_builtin_functions() -> Dict[Text, Callable]:
     return load_module_functions(builtin)
 
 
-def load_func_content(content: Text, module_name: Text,  func_type: Text) -> Dict[Text, Callable]:
+def load_func_content(content: Text, module_name: Text, func_type: Text) -> Dict[Text, Callable]:
     """
     args:
         content: python 脚本Text

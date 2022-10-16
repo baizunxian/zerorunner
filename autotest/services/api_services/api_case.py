@@ -17,7 +17,7 @@ from autotest.models.api_models import ApiCase, ApiSuite, ModuleInfo
 from autotest.serialize.api_serializes.api_case import (CaseQuerySchema, CaseSaveOrUpdateSchema,
                                                         TestCaseRunSchema, TestCaseRunBodySchema,
                                                         TestCaseRunBatchSchema)
-from autotest.services.api_services.api_case_handle import ApiCaseHandle
+from autotest.services.api_services.run_handle import ApiCaseHandle
 from autotest.services.api_services.test_report import ReportService
 from autotest.services.utils_services.postman2case import Collection
 from autotest.utils.api import parse_pagination, jsonable_encoder
