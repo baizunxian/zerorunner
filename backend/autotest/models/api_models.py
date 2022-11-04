@@ -713,7 +713,7 @@ class TestReportsNew(object):
 
 class Env(Base, TimestampMixin):
     """环境表"""
-    __tablename__ = 'env'
+    __tablename__ = 'environment'
 
     name = Column(String(255), nullable=False, comment='环境名称', index=True)
     domain_name = Column(String(255), nullable=False, comment='url地址')

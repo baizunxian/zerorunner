@@ -4,6 +4,7 @@
 # @create time: 2022/9/9 14:53
 
 import json
+import sys
 import time
 
 import requests
@@ -32,7 +33,7 @@ class ApiResponse(Response):
 
 
 def get_req_resp_record(resp_obj: Response) -> ReqRespData:
-    """ get request and response info from Response() object.
+    """ 从请求中获取请求和响应信息.
     """
 
     def log_print(req_or_resp, r_type):

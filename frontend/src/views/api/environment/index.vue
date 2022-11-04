@@ -2,7 +2,7 @@
   <div>
     <el-card shadow="hover">
       <div class="mb15">
-        <el-input v-model="listQuery.name" placeholder="请输入套件名称" style="max-width: 180px"></el-input>
+        <el-input v-model="listQuery.name" placeholder="请输入配置名称" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="search">
           <el-icon>
             <ele-Search/>
@@ -26,75 +26,58 @@
       />
     </el-card>
 
-    <!--    运行   -->
     <el-dialog
         draggable
-        v-model="showRunPage"
-        width="600px"
+        v-model="showSaveOrUpdate"
+        width="50%"
         top="8vh"
-        title="运行用例"
+        :title="editType === 'save'? '新增配置':'更新配置'"
+        destroy-on-close
         :close-on-click-modal="false">
-      <el-form
-          :model="runForm"
-          label-width="70px"
-
-      >
-        <el-form-item label="运行环境" prop="belong_project_id">
-          <el-select v-model="runForm.base_url" placeholder="选择环境" filterable style="width:100%">
-            <el-option :value="''" label="自带环境">自带环境</el-option>
-            <el-option
-                v-for="item in envList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.url">
-              <span style="float: left">{{ item.name }}</span>
-            </el-option>
-          </el-select>
-        </el-form-item>
-      </el-form>
+      <save-or-update ref="saveOrUpdateRef" @getList="getList" :env_id="env_id"/>
       <template #footer>
-            <span class="dialog-footer">
-              <el-button @click="showRunPage = !showRunPage">取消</el-button>
-              <el-button type="primary" :loading="runCaseLoading" @click="runTestSuite">运行</el-button>
-            </span>
+        <el-button @click="showSaveOrUpdate = false">取 消</el-button>
+        <el-button type="primary" @click="saveOrUpdate">保 存</el-button>
       </template>
     </el-dialog>
-
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent, h, onMounted, reactive, ref, toRefs} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
-import {useApiSuiteApi} from "/@/api/useAutoApi/apiSuite";
-import {useRouter} from 'vue-router'
 import {useEnvApi} from "/@/api/useAutoApi/env";
+import {useRouter} from "vue-router";
+import saveOrUpdate from '/@/views/api/environment/components/saveOrUpdate.vue';
 
 export default defineComponent({
-  name: 'apiCaseSuite',
+  name: 'Env',
+  components: {saveOrUpdate},
   setup() {
     const saveOrUpdateRef = ref();
     const router = useRouter();
     const state = reactive({
       columns: [
-        {key: 'id', label: 'ID', width: '55', showTooltip: true},
-        {key: 'name', label: '套件名称', width: '', showTooltip: true},
-        {key: 'project_name', label: '所属项目', width: '', showTooltip: true},
+        {label: '序号', columnType: 'index', width: 'auto', showTooltip: true},
+        {
+          key: 'name', label: '配置名称', width: '', showTooltip: true,
+          render: (row: any) => h(ElButton, {
+            link: true,
+            type: "primary",
+            onClick: () => {
+              onOpenSaveOrUpdate("update", row)
+            }
+          }, () => row.name)
+        },
+        {key: 'domain_name', label: '域名地址', width: 'auto', showTooltip: true},
+        {key: 'remarks', label: '备注', width: 'auto', showTooltip: true},
         {key: 'updation_date', label: '更新时间', width: '150', showTooltip: true},
         {key: 'updated_by_name', label: '更新人', width: '', showTooltip: true},
         {key: 'creation_date', label: '创建时间', width: '150', showTooltip: true},
         {key: 'created_by_name', label: '创建人', width: '', showTooltip: true},
         {
-          label: '操作', columnType: 'string', fixed: 'right', width: '140',
+          label: '操作', fixed: 'right', width: '100',
           render: (row: any) => h("div", null, [
-            h(ElButton, {
-              link: true,
-              type: "primary",
-              onClick: () => {
-                onOpenRunPage(row)
-              }
-            }, () => '运行'),
-
             h(ElButton, {
               link: true,
               type: "primary",
@@ -120,23 +103,18 @@ export default defineComponent({
       listQuery: {
         page: 1,
         pageSize: 20,
+        case_type: 2,
         name: '',
       },
-      // run
-      showRunPage: false,
-      runCaseLoading: false,
-      runForm: {
-        id: null,
-        base_url: '',
-        run_type: 'suite',
-      },
-      // environment
-      envList: [],
+      // configure
+      editType: 'save',
+      env_id: null,
+      showSaveOrUpdate: false,
     });
     // 初始化表格数据
     const getList = () => {
       state.tableLoading = true
-      useApiSuiteApi().getList(state.listQuery)
+      useEnvApi().getList(state.listQuery)
           .then(res => {
             state.listData = res.data.rows
             state.total = res.data.rowTotal
@@ -150,12 +128,21 @@ export default defineComponent({
       getList()
     }
 
-    // 新增或修改角色
-    const onOpenSaveOrUpdate = (editType: string, row: any) => {
-      let query: any = {}
-      query.editType = editType
-      if (row) query.id = row.id
-      router.push({name: 'saveOrUpdateSuite', query: query})
+    // 新增或修改
+    const onOpenSaveOrUpdate = (editType: string, row: any | null) => {
+      state.editType = editType
+      if (row && row.id) {
+        state.env_id = row.id
+      } else {
+        state.env_id = null
+      }
+      state.showSaveOrUpdate = !state.showSaveOrUpdate
+      // router.push({name: 'saveOrUpdateTestCase', query: query})
+    };
+
+    // saveOrUpdate
+    const saveOrUpdate = () => {
+      saveOrUpdateRef.value.saveOrUpdate()
     };
 
     // 删除角色
@@ -166,7 +153,7 @@ export default defineComponent({
         type: 'warning',
       })
           .then(() => {
-            useApiSuiteApi().deleted({id: row.id})
+            useEnvApi().deleted({id: row.id})
                 .then(() => {
                   ElMessage.success('删除成功');
                   getList()
@@ -176,28 +163,6 @@ export default defineComponent({
           });
     };
 
-    // 获取环境信息
-    const getEnvList = () => {
-      useEnvApi().getList({page: 1, pageSize: 1000})  // 请求数据写死，后面优化
-          .then(res => {
-            state.envList = res.data.rows
-          })
-    }
-
-    //runSuitePage
-    const onOpenRunPage = (row: any) => {
-      state.runForm.id = row.id
-      state.showRunPage = !state.showRunPage
-      getEnvList()
-    }
-
-    //runSuitePage
-    const runTestSuite = () => {
-      useApiSuiteApi().runTestCaseNew(state.runForm).then(res => {
-        console.log(res)
-      })
-    }
-
     // 页面加载时
     onMounted(() => {
       getList();
@@ -205,13 +170,11 @@ export default defineComponent({
     return {
       getList,
       search,
-      router,
       saveOrUpdateRef,
+      saveOrUpdate,
       onOpenSaveOrUpdate,
       deleted,
-      getEnvList,
-      onOpenRunPage,
-      runTestSuite,
+      router,
       ...toRefs(state),
     };
   },

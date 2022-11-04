@@ -101,7 +101,7 @@ export default defineComponent({
     const state = reactive({
       isScreenfull: false,
       disabledSize: 'large',
-      // env
+      // environment
       env_id: null,
       envList: [],
     });
@@ -112,7 +112,7 @@ export default defineComponent({
 
     // 设置env vuex
     const setEndId = () => {
-      store.dispatch("env/setEnvId", state.env_id)
+      store.dispatch("environment/setEnvId", state.env_id)
     }
 
     // 获取布局配置信息
@@ -220,7 +220,7 @@ export default defineComponent({
       return textToImg(username)
     }
 
-    // env
+    // environment
 
     // 初始化env
     const getEnvList = () => {

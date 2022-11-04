@@ -124,7 +124,7 @@ export default defineComponent({
       form: createForm(),
       // project
       projectList: [],
-      // env
+      // environment
       envList: [],
       // tabs
       activeTabName: "variable",
@@ -139,7 +139,7 @@ export default defineComponent({
       }
     }
 
-    // env
+    // environment
     const getEnvList = () => {
       useEnvApi().getList({page: 1, pageSize: 100})
           .then(res => {

@@ -10,7 +10,7 @@ import time
 import traceback
 import uuid
 from datetime import datetime
-from typing import List, Dict, Text, Any
+from typing import List, Dict, Text, Any, Union
 from loguru import logger
 from zerorunner import exceptions
 from zerorunner import utils
@@ -28,9 +28,9 @@ from zerorunner.models import (
     TestCaseTime,
     TestCaseInOut,
     TestCase,
-    Hooks, FunctionsMapping, Controllers, SqlController, WaitController, ScriptController, Headers,
+    Hooks, FunctionsMapping, TStepController, Headers, TStepTypeEnum
 )
-from zerorunner.parser_param import parse_variables_mapping, parse_data, build_url, parse_parameters
+from zerorunner.parser import parse_variables_mapping, parse_data, build_url, parse_parameters
 from zerorunner.response import ResponseObject
 from zerorunner.utils import merge_variables
 
@@ -165,12 +165,14 @@ class ZeroRunner(object):
                 step_variables[var_name] = hook_content_eval
             elif isinstance(hook, TStep):
                 self.__run_step_request(hook)
-            elif isinstance(hook, WaitController):
-                self.__run_step_wait(hook)
-            elif isinstance(hook, SqlController):
-                self.__run_step_sql(hook)
-            elif isinstance(hook, ScriptController):
-                self.__run_step_script(hook)
+            elif isinstance(hook, TStepController):
+                step_type = hook.step_type
+                if step_type == TStepTypeEnum.wait.value:
+                    self.__run_step_wait(hook)
+                elif step_type == TStepTypeEnum.sql.value:
+                    self.__run_step_sql(hook)
+                elif step_type == TStepTypeEnum.script.value:
+                    self.__run_step_script(hook)
 
             else:
                 logger.error(f"Invalid hook format: {hook}")
@@ -312,7 +314,7 @@ class ZeroRunner(object):
         self.with_log(f"用例[{step.name}]结束")
         return step_data
 
-    def __run_step_sql(self, step: SqlController) -> StepData:
+    def __run_step_sql(self, step: TStepController) -> StepData:
         """执行sql控制器"""
         self.with_log(f"sql控制器[{step.name}]开始")
         step_data = StepData(name=step.name)
@@ -340,7 +342,7 @@ class ZeroRunner(object):
         self.with_log(f"sql控制器[{step.name}]结束")
         return step_data
 
-    def __run_step_wait(self, step: WaitController) -> StepData:
+    def __run_step_wait(self, step: TStepController) -> StepData:
         """执行等待控制器"""
         self.with_log(f"等待控制器[{step.name}]开始")
         step_data = StepData(name=step.name)
@@ -355,13 +357,15 @@ class ZeroRunner(object):
         self.with_log(f"等待控制器[{step.name}]结束")
         return step_data
 
-    def __run_step_script(self, step: ScriptController):
+    def __run_step_script(self, step: TStepController):
         """执行脚本"""
         self.with_log(f"脚本步骤[{step.name}]开始")
         step_data = StepData(name=step.name)
         module_name = uuid.uuid4().hex
 
-        base_script_path = os.path.join(os.getcwd(), "zerorunner", "script_code.py")
+        base_script_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "script_code.py")
+        logger.info(os.getcwd())
+        logger.info(os.path.abspath(os.path.dirname(__file__)))
         with open(base_script_path, 'r', encoding='utf8') as f:
             base_script = f.read()
         script = f"{base_script}\n{step.value}"
@@ -440,21 +444,23 @@ class ZeroRunner(object):
 
         return step_data
 
-    def __run_step(self, step: Controllers) -> Dict:
+    def __run_step(self, step: Union[TStep, TStepController]) -> Dict:
         """run teststep, teststep maybe a request or referenced testcase"""
         logger.info(f"run step begin: {step.name} >>>>>>")
         self.with_log(f"执行步骤->{step.name} >>>>>>")
 
         if isinstance(step, TStep):
             step_data = self.__run_step_request(step)
-        elif isinstance(step, WaitController):
-            step_data = self.__run_step_wait(step)
-        elif isinstance(step, SqlController):
-            step_data = self.__run_step_sql(step)
-        elif isinstance(step, ScriptController):
-            step_data = self.__run_step_script(step)
-        elif step.testcase:
-            step_data = self.__run_step_testcase(step)
+        elif isinstance(step, TStepController):
+            step_type = step.step_type
+            if step_type == TStepTypeEnum.wait.value:
+                step_data = self.__run_step_wait(step)
+            elif step_type == TStepTypeEnum.sql.value:
+                step_data = self.__run_step_sql(step)
+            elif step_type == TStepTypeEnum.script.value:
+                step_data = self.__run_step_script(step)
+            # elif step.testcase:
+            #     step_data = self.__run_step_testcase(step)
         else:
             raise ParamsError(
                 f"teststep is neither a request nor a referenced testcase: {step.dict()}"

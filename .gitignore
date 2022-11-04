@@ -12,7 +12,6 @@ __pycache__/
 .Python
 .pytest_cache/
 venv/
-env/
 build/
 develop-eggs/
 dist/
@@ -73,7 +72,7 @@ node_modules
 /dist
 
 
-# local env files
+# local environment files
 .env.local
 .env.*.local
 

@@ -157,7 +157,7 @@ teststeps:
         - eq: ["body.form.foo2", "bar21"]
 """
     ignore_content = "\n".join(
-        [".env", "reports/*", "__pycache__/*", "*.pyc", ".python-version", "logs/*"]
+        [".environment", "reports/*", "__pycache__/*", "*.pyc", ".python-version", "logs/*"]
     )
     demo_debugtalk_content = """import time
 
@@ -191,7 +191,7 @@ def sleep(n_secs):
         demo_testcase_with_ref_content,
     )
     create_file(os.path.join(project_name, "debugtalk.py"), demo_debugtalk_content)
-    create_file(os.path.join(project_name, ".env"), demo_env_content)
+    create_file(os.path.join(project_name, ".environment"), demo_env_content)
     create_file(os.path.join(project_name, ".gitignore"), ignore_content)
 
     show_tree(project_name)

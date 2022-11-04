@@ -96,7 +96,7 @@ export default defineComponent({
         pageSize: 200,
         env_id: null,
       },
-      // env
+      // environment
       envList: [],
       envQuery: {
         page: 1,

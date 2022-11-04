@@ -108,7 +108,7 @@ export default defineComponent({
         port: [{required: true, message: '请输入端口号', trigger: 'blur'},],
       },
 
-      // env
+      // environment
       envList: [],
       envListQuery: {
         page: 1,
@@ -146,7 +146,7 @@ export default defineComponent({
       })
     };
 
-    // env
+    // environment
     const getEnvList = () => {
       useEnvApi().getList(state.envListQuery)
           .then(res => {

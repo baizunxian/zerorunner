@@ -162,7 +162,7 @@ CREATE TABLE `debug_talk`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Table structure for env
+-- Table structure for environment
 -- ----------------------------
 DROP TABLE IF EXISTS `env`;
 CREATE TABLE `env`  (

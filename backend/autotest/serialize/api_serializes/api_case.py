@@ -5,7 +5,6 @@ from autotest.exc.exceptions import ParameterError
 from autotest.models.api_models import ApiCase
 from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
 from enum import Enum
-from zerorunner.models import SqlController, WaitController, ScriptController, JsonPathData, TStep
 
 
 class CaseQuerySchema(BaseQuerySchema):

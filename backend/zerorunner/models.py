@@ -4,7 +4,7 @@
 # @create time: 2022/9/9 14:53
 from enum import Enum
 from typing import Any
-from typing import Dict, Text, Union, Callable
+from typing import Dict, Text, Union, Callable, Optional
 from typing import List
 
 from pydantic import BaseModel, Field, validator
@@ -34,6 +34,14 @@ class MethodEnum(Text, Enum):
     HEAD = "HEAD"
     OPTIONS = "OPTIONS"
     PATCH = "PATCH"
+
+
+class TStepTypeEnum(Text, Enum):
+    case = "case"
+    wait = "wait"
+    script = "script"
+    sql = "sql"
+    extract = "extract"
 
 
 class TConfig(BaseModel):
@@ -95,65 +103,39 @@ class TStep(BaseModel):
     # script_codes: List[Text] = []
 
 
-# 用例控制器
-class BaseTController(BaseModel):
-    """步骤控制器"""
-    name: Text = ""
-    value: Any = ""
-    step_type: Text = ""
-    enable: bool = False  # 是否有效
-
-
-class SqlController(BaseTController):
-    source_id: int = None,
-    host: Text = ""
-    user: Text = ""
-    password: Text = ""
-    port: int = 3306
-    timeout: int = None  # 超时时间
-    variable_name: Text = ""  # 变量赋值名称
-
-
-class WaitController(BaseTController):
-    """等待控制器"""
-    value: int = 0
-    pass
-
-
-class ScriptController(BaseTController):
-    """脚本控制器"""
-    pass
-
-
-class CaseController(BaseTController, TStep):
-    """用例控制器"""
-    pass
-
-
 class JsonPathData(BaseModel):
     name: Text = ""  # 提取变量名
     path: Text = ""  # 提取JsonPath路径
 
 
-class ExtractController(BaseTController):
-    value: List[JsonPathData]
-
-
-Controllers = (SqlController, WaitController, ScriptController, JsonPathData, TStep,)
+# 用例控制器
+class TStepController(BaseModel):
+    """步骤控制器"""
+    name: Text = ""
+    value: Union[int, Text, List[JsonPathData]] = None
+    step_type: Text = ""
+    enable: bool = False  # 是否有效
+    source_id: Optional[int] = None,
+    host: Optional[Text] = ""
+    user: Optional[Text] = ""
+    password: Optional[Text] = ""
+    port: Optional[int] = None
+    timeout: Optional[int] = None  # 超时时间
+    variable_name: Optional[Text] = ""  # 变量赋值名称
 
 
 class TestCase(BaseModel):
     config: TConfig
-    teststeps: List[Any]
+    teststeps: List[Union[TStep, TStepController]]
 
-    @validator('teststeps')
-    def teststeps_match(cls, teststeps, values, **kwargs):
-        steps = []
-        for teststep in teststeps:
-            if not isinstance(teststep, Controllers):
-                raise ValueError("类型错误！")
-            steps.append(teststep)
-        return steps
+    # @validator('teststeps')
+    # def teststeps_match(cls, teststeps, values, **kwargs):
+    #     steps = []
+    #     for teststep in teststeps:
+    #         if not isinstance(teststep, Controllers):
+    #             raise ValueError("类型错误！")
+    #         steps.append(teststep)
+    #     return steps
 
 
 class TestCaseTime(BaseModel):

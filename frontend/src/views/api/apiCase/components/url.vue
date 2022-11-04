@@ -112,7 +112,7 @@ export default defineComponent({
       rules: {
         url: [{required: true, message: '请求地址不能为空', trigger: 'blur'}],
       },
-      // env
+      // environment
       showEnv: false,
       envList: [],
 

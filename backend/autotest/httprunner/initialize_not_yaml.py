@@ -340,7 +340,7 @@ class TestCaseMateNew:
         self.pytest_files_run_set.add(testcase_python_abs_path)
 
     def load_project_meta(self, test_path: Text, reload: bool = False) -> ProjectMeta:
-        """ load testcases, .env, debugtalk.py functions.
+        """ load testcases, .environment, debugtalk.py functions.
             testcases folder is relative to project_root_directory
             by default, project_meta will be loaded only once, unless set reload to true.
 

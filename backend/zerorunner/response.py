@@ -4,16 +4,14 @@
 # @create time: 2022/9/9 14:53
 
 from typing import Dict, Text, Any
-
 import jmespath
 import requests
 from jmespath.exceptions import JMESPathError
 from loguru import logger
-
 from zerorunner import exceptions
 from zerorunner.exceptions import ValidationFailure, ParamsError
 from zerorunner.models import VariablesMapping, Validators, FunctionsMapping
-from zerorunner.parser_param import parse_data, parse_string_value, get_mapping_function
+from zerorunner.parser import parse_data, parse_string_value, get_mapping_function
 
 
 def get_uniform_comparator(comparator: Text):
@@ -194,10 +192,10 @@ class ResponseObject(object):
         return extract_mapping
 
     def validate(
-        self,
-        validators: Validators,
-        variables_mapping: VariablesMapping = None,
-        functions_mapping: FunctionsMapping = None,
+            self,
+            validators: Validators,
+            variables_mapping: VariablesMapping = None,
+            functions_mapping: FunctionsMapping = None,
     ):
 
         variables_mapping = variables_mapping or {}

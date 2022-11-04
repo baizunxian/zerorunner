@@ -9,14 +9,11 @@ from autotest.serialize.api_serializes.api_case import ApiCaseSchema, StepTypeEn
 from autotest.serialize.api_serializes.api_suites import ApiSuitesSchema
 from autotest.utils.api import jsonable_encoder
 from zerorunner.loader import load_module_functions
-from zerorunner.models import TStep, TConfig, TRequest, SqlController, WaitController, ExtractController, \
-    ScriptController
-from zerorunner.parser_param import parse_string_value
-
-controllers = Union[SqlController, WaitController, TStep, ExtractController, SqlController]
+from zerorunner.models import TStep, TConfig, TRequest, TStepController
+from zerorunner.parser import parse_string_value
 
 
-def handle_step(step_data: List[Dict[Text, Any]]) -> controllers:
+def handle_step(step_data: List[Dict[Text, Any]]) -> Union[TStep, TStepController]:
     """ 处理对应的步骤转变为对应的控制器对象
 
     sql : SqlController    sql 控制器
@@ -27,32 +24,20 @@ def handle_step(step_data: List[Dict[Text, Any]]) -> controllers:
 
     """
     for step in step_data:
-        controller = None
         step_type = step.get("step_type", None)
+        controller = TStepController(**step)
         if step_type == StepTypeEnum.sql.value:
-            controller = SqlController(**step)
             source_info = DataSource.get(controller.source_id)
             if source_info:
                 controller.host = source_info.host
                 controller.user = source_info.user
                 controller.password = source_info.password
                 controller.port = source_info.port
-
-        if step_type == StepTypeEnum.wait.value:
-            controller = WaitController(**step)
-
         if step_type == StepTypeEnum.case.value:
             case_id = step.get("value", None)
             case_info = ApiCase.get(case_id)
             if case_info:
-                zr = ApiCaseHandle(**jsonable_encoder(case_info))
-                controller = zr.step
-        if step_type == StepTypeEnum.extract.value:
-            controller = ExtractController(**step)
-
-        if step_type == StepTypeEnum.script.value:
-            controller = ScriptController(**step)
-
+                controller = ApiCaseHandle(**jsonable_encoder(case_info)).step
         yield controller
 
 

@@ -6,7 +6,6 @@
 import ast
 import builtins
 import re
-import os
 from typing import Any, Set, Text, Callable, List, Dict
 
 from loguru import logger
