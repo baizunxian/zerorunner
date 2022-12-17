@@ -2,7 +2,7 @@ import datetime
 
 from sqlalchemy import text
 
-from autotest.models.api_models import ProjectInfo, ModuleInfo, ApiCase, ApiSuite, TestReports
+from autotest.models.api_models import ProjectInfo, ModuleInfo, ApiCase, ApiSuite, ApiTestReport
 from autotest.models.sys_models import User
 from autotest.serialize.sys_serializes.statistic import StatisticProjectCaseNum, StatisticReportNum, StatisticReportRate
 from autotest.utils.basic_function import get_today_start, get_today_end
@@ -50,11 +50,11 @@ class StatisticService:
         # scns_data = StatisticProjectCaseNum.jsonable_encoder(scns_data)
 
         # 运行用例报告统计 根据人
-        report_statistic = TestReports.statistic_report().group_by(TestReports.execute_user_id).order_by(
+        report_statistic = ApiTestReport.statistic_report().group_by(ApiTestReport.execute_user_id).order_by(
             text('run_num desc')).limit(10).all()
         # report_statistic = StatisticReportNum.jsonable_encoder(report_statistic_data)
 
-        project_rate = TestReports.get_statistic_report().all()
+        project_rate = ApiTestReport.get_statistic_report().all()
         # project_rate = StatisticReportRate.jsonable_encoder(report_rate)
 
         data = {
@@ -89,7 +89,7 @@ class StatisticService:
             'count': 0,
             'total_run': 0,
         }
-        report_all = TestReports.get_report_by_time(begin_time, end_time)
+        report_all = ApiTestReport.get_report_by_time(begin_time, end_time)
         total_run = 0
         pass_count = 0
         for report in report_all.all():
@@ -119,7 +119,7 @@ class StatisticService:
         }
         today = datetime.date.today()
         b_time = today + datetime.timedelta(days=-12)
-        report_all = TestReports.get_report_by_time(b_time.strftime('%Y-%m-%d 00:00:00'),
+        report_all = ApiTestReport.get_report_by_time(b_time.strftime('%Y-%m-%d 00:00:00'),
                                                     today.strftime('%Y-%m-%d 23:59:59')).all()
         # todo : 这种方式小数据量效果会比较好，数据量大的话要重新优化
         for i in range(-11, 1):

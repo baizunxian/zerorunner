@@ -175,10 +175,11 @@ import saveOrUpdate from '/@/views/api/module/components/saveOrUpdate.vue';
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRouter} from "vue-router";
 import {useEnvApi} from "/@/api/useAutoApi/env";
-import TestReport from '/@/views/api/Report/components/report.vue';
+import TestReport from '/@/views/api/Report/components/reportDetail.vue';
 import {useModuleApi} from "/@/api/useAutoApi/module";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {ElTag} from "element-plus"
+import {getMethodColor} from "/@/utils/case";
 
 
 export default defineComponent({
@@ -362,7 +363,7 @@ export default defineComponent({
     // 运行测试用例
     const runTestCase = () => {
       state.runCaseLoading = !state.runCaseLoading;
-      useApiCaseApi().runTestCaseNew(state.runForm)
+      useApiCaseApi().run(state.runForm)
           .then((res: any) => {
             if (state.runForm.run_mode === 1) {
               ElMessage.success('运行成功');
@@ -474,20 +475,20 @@ export default defineComponent({
       if (fileRef) fileRef.click()
     }
 
-    // 获取请求方式tag颜色
-    const getMethodColor = (method: string) => {
-      let color = ""
-      if (method == "GET") {
-        color = "#61affe"
-      } else if (method == "POST") {
-        color = "#49cc90"
-      } else if (method == "DELETE") {
-        color = "#f93e3d"
-      } else if (method == "PUT") {
-        color = "#fca130"
-      }
-      return color
-    }
+    // // 获取请求方式tag颜色
+    // const getMethodColor = (method: string) => {
+    //   let color = ""
+    //   if (method == "GET") {
+    //     color = "#61affe"
+    //   } else if (method == "POST") {
+    //     color = "#49cc90"
+    //   } else if (method == "DELETE") {
+    //     color = "#f93e3d"
+    //   } else if (method == "PUT") {
+    //     color = "#fca130"
+    //   }
+    //   return color
+    // }
 
     // 页面加载时
     onMounted(() => {
@@ -592,5 +593,8 @@ export default defineComponent({
       }
     }
   }
+}
+:deep(.el-tag) {
+  --el-tag-border-color: #FFFFFF00
 }
 </style>

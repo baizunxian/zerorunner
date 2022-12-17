@@ -1,5 +1,6 @@
+import datetime
 import time
-from typing import Optional, Text, List, Dict, Any
+from typing import Optional, Text, List, Dict, Any, Union
 from pydantic import BaseModel, root_validator
 from autotest.serialize.base_serialize import BaseQuerySchema
 
@@ -21,32 +22,28 @@ class TestReportSaveSchema(BaseModel):
 
     id: Optional[Text]
     name: Optional[Text]
-    start_at: Optional[float]
-    scene_num: Optional[int]
+    start_time: Optional[float]
     duration: Optional[Text]
-    run_type: Optional[Text]
-    run_mode: Optional[int]
-    task_type: Optional[Text]
+    case_id: Optional[Union[Text, int]]
+    run_mode: Optional[Text]
+    run_type: Optional[int]
+    success: Optional[bool]
+    run_count: Optional[int]
+    actual_run_count: Optional[int]
+    run_success_count: Optional[int]
+    run_fail_count: Optional[int]
+    run_skip_count: Optional[int]
+    run_err_count: Optional[int]
+    run_log: Optional[Text]
     project_id: Optional[int]
     module_id: Optional[int]
-    test_count: Optional[int]
-    report_type: Optional[Text]
-    run_case_priority: Optional[int]
-    execute_service: Optional[Text]
-    execute_source: Optional[Text]
-    execute_user_id: Optional[int]
-    execute_user: Optional[Text]
-    execute_user_name: Optional[Text]
-    successful_use_case: Optional[int]
-    run_test_count: Optional[int]
-    success: Optional[bool]
-    report_body: Optional[Text]
+    env_id: Optional[int]
 
     @root_validator
     def root_validator(cls, data):
-        if 'start_at' in data:
-            data['start_at'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data['start_at'])) if data[
-                'start_at'] else None
+        if 'start_time' in data:
+            data['start_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data['start_time'])) if data[
+                'start_time'] else None
         return data
 
 

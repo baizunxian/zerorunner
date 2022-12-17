@@ -1,6 +1,9 @@
 <template>
-  <div class="system-edit-menu-container h100">
-    <el-row :span="24" style="padding-left: 25px">
+  <div class="h100" id="stepController" style="overflow-y: auto">
+    <el-backtop :right="200" :bottom="200" :visibility-height="10" target="#stepController"/>
+
+    <fab-button v-if="use_type==='suite'" :value="suiteOpt"></fab-button>
+    <el-row :span="24" style="padding-left: 25px" v-else>
       <el-col :span="3">
         <el-select size="small"
                    v-model="optType"
@@ -12,31 +15,38 @@
               :key="key"
               :label="value"
               :value="key">
+            <!--            <el-tag size="small">{{ value }}</el-tag>-->
           </el-option>
         </el-select>
       </el-col>
-
       <el-col :span="1" style="padding-left: 5px">
-        <el-button @click="addStep" type="primary">添加</el-button>
+        <el-button @click="handleAddData(optType)" type="primary">添加</el-button>
       </el-col>
-
     </el-row>
 
-    <div style="height:100%; overflow-y: auto">
+    <div class="h100" style="overflow-y: auto">
       <el-tree
+          ref="stepTreeRef"
           draggable
+          highlight-current
           :allow-drop="allowDrop"
           @node-drop="handleDrop"
           @node-click="nodeClick"
+          node-key="id"
+          :expand-on-click-node="false"
+          :props="{children: 'teststeps'}"
           :data="data">
         <template #default="{ node }">
           <step-node v-model:data="node.data"
+                     :node="node"
+                     :class="[node.data.step_type ==='case'?'treeCaseStep':'']"
                      :opt-type="optTypes"
                      @copy-node="copyNode"
-                     @deleted-node="deletedNode"
+                     @deleted-node="deletedNode(node)"
           />
         </template>
       </el-tree>
+      <el-backtop target=".el-tree"/>
     </div>
 
     <el-dialog
@@ -56,21 +66,24 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, onMounted, reactive, ref, toRefs} from 'vue';
+import {defineComponent, nextTick, onMounted, reactive, ref, toRefs, watch} from 'vue';
 import type {PropType} from 'vue'
 import {useRoute, useRouter} from "vue-router"
 import stepNode from "/@/components/StepController/stepNode.vue";
-import selectCase from "/@/components/StepController/selectCase.vue";
+import selectCase from "/@/components/StepController/case/selectCase.vue";
 import {ElMessage} from "element-plus";
+import fabButton from "/@/components/fabButton/index.vue";
+import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
 
 export default defineComponent({
   name: 'stepController',
   components: {
     stepNode,
     selectCase,
+    fabButton,
   },
   props: {
-    step_type: {
+    use_type: {
       type: String,
       default: () => {
         return 'pre'   // pre 前置  post 候置  suite 套件
@@ -87,97 +100,175 @@ export default defineComponent({
       }
     }
   },
+  emits: ['update:data'],
   setup(props: any) {
     const route = useRoute()
     const router = useRouter()
     const selectCaseRef = ref()
+    const stepTreeRef = ref()
     const state = reactive({
       // data
       optType: "script",
       optTypes: {},
       // caseInfo
       showCaseInfo: false,
+      // suite opt
+      suiteOpt: [],
+      id: 1000,
 
     });
 
-    const initController = () => {
-      switch (props.step_type) {
-        case "pre":
-          state.optTypes = {
-            script: "前置脚本",
-            sql: "前置SQL",
-            wait: "等待控制器",
-            case: "用例引用",
+    const initFabMenu = (stepType: string | null) => {
+      state.optTypes = getStepTypesByUse(props.use_type)
+      let noMenuTypes = ["wait", "script", "case"]
+      if (props.use_type == 'suite' && (stepType === null || noMenuTypes.indexOf(stepType) === -1)) {
+        let suiteOptList: any = []
+        for (let optTypesKey in state.optTypes) {
+          let color: string = getStepTypeInfo(optTypesKey, "color")
+          let icon: string = getStepTypeInfo(optTypesKey, "icon")
+          let suiteOptData: any = {
+            title: state.optTypes[optTypesKey],
+            func: handleAddData,
+            param: optTypesKey,
+            color: color,
+            icon: icon,
           }
-          break
-        case "post":
-          state.optTypes = {
-            script: "后置脚本",
-            sql: "后置SQL",
-            extract: "提取参数",
-          }
-          break
-        case "suite":
-          state.optTypes = {
-            case: "用例引用",
-            script: "自定义脚本",
-            sql: "SQL控制器",
-            wait: "等待控制器",
-          }
-          state.optType = "case"
-          break
-        default:
-          break
+          suiteOptList.push(suiteOptData)
+        }
+        state.suiteOpt = suiteOptList
+      } else {
+        state.suiteOpt = []
       }
+
     }
 
-
-    // 不允许拖动为子
+    // 拖动处理
     const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
+      if (dropNode.data.step_type === 'if' && type === 'inner') {
+        return true
+      } else if (dropNode.data.step_type === 'loop' && type === 'inner') {
+        return true
+      }
+      // return type
       return type !== "inner"
     }
 
     // 节点拖动完成重新计算顺序
     const handleDrop = () => {
-      computeDataIndex()
+      // computeDataIndex()
     }
 
-    const nodeClick = (data: any) => {
+    const nodeClick = (data: any, node: any) => {
+      console.log("node----->", node)
       data.showDetail = !data.showDetail
+      initFabMenu(data.step_type)
     }
 
     // 计算index，保持拖动后顺序
-    const computeDataIndex = () => {
-      props.data.forEach((data: any, index: number) => {
+    const computeDataIndex = (data: any) => {
+      data.forEach((data: any, index: number) => {
         data.index = index + 1
+        // if (!data.id) {
+        //   data.id = state.id++
+        // }
+        if (data.teststeps) {
+          computeDataIndex(data.teststeps)
+        }
       })
     }
-    // 追加步骤
-    const addStep = () => {
+    // handleAddData
+    const handleAddData = async (optType: string) => {
+      if (optType !== 'case') {
+        let stepData = await getAddData(optType)
+        appendTreeDate(stepData)
+      } else {
+        state.showCaseInfo = true
+      }
+    }
+
+    // 添加tree data
+    const appendTreeDate = (data: any) => {
+      let parentNode = stepTreeRef.value?.getCurrentNode()
+      if (parentNode && props.use_type === "suite") {
+        if (!parentNode.teststeps) {
+          parentNode.teststeps = []
+        }
+        // parentNode.teststeps.push(data)
+        // emit("update:data", [...props.data])
+        // props.data = [...props.data]
+        stepTreeRef.value.append(data, parentNode.id)
+      } else {
+        // props.data.push(data)
+        stepTreeRef.value.append(data, null)
+      }
+    }
+
+    // 获取步骤
+    const getAddData = (optType: string) => {
+      let id = state.id++
       let data = null
-      if (state.optType === "script") {
-        data = {name: `script_${getRandomStr()}`, value: "", step_type: "script", enable: true}
-      } else if (state.optType === "sql") {
+      let name = `${optType}_${getRandomStr()}`
+      if (optType === "script") {
         data = {
-          name: `sql_${getRandomStr()}`,
+          id: id,
+          name: name,
           value: "",
-          step_type: "sql",
+          step_type: optType,
+          enable: true
+        }
+      } else if (optType === "sql") {
+        data = {
+          id: id,
+          name: name,
+          value: "",
+          step_type: optType,
           timeout: null,
           variable_name: "",
           enable: true
         }
-      } else if (state.optType === "wait") {
-        data = {name: `wait_${getRandomStr()}`, value: null, step_type: "wait", enable: true}
-      } else if (state.optType === "extract") {
-        data = {name: `extract_${getRandomStr()}`, value: null, json_path_list: [], step_type: "extract", enable: true}
-      } else if (state.optType === "case") {
+      } else if (optType === "wait") {
+        data = {
+          id: id,
+          name: name,
+          value: null,
+          step_type: "wait",
+          enable: true
+        }
+      } else if (optType === "extract") {
+        data = {
+          id: id,
+          name: name,
+          value: null,
+          json_path_list: [],
+          step_type: "extract",
+          enable: true
+        }
+      } else if (optType === "if") {
+        data = {
+          id: id,
+          name: name,
+          value: null,
+          comparator: "",
+          remarks: "",
+          step_type: optType,
+          enable: true
+        }
+      } else if (optType === "loop") {
+        data = {
+          id: id,
+          name: name,
+          step_type: optType,
+          loop_type: "count",
+          count_number: 0,
+          enable: true
+        }
+      } else if (optType === "case") {
         state.showCaseInfo = true
-        // data = {name: "", value: null, step_type: "apiCase", enable: true}
       }
-      if (data) props.data.push(data)
-      computeDataIndex()
+      return data
     }
 
+    // 添加case
     const addCaseStep = () => {
       let selectCaseData = selectCaseRef.value.getSelectionData()
       if (selectCaseData) {
@@ -185,39 +276,62 @@ export default defineComponent({
           if (state.optType === "case" && caseInfo.id === parseInt(props.case_id)) {
             ElMessage.warning('不能引用用例自己！');
           } else {
-            let stepData = {name: caseInfo.name, value: caseInfo.id, step_type: "case", enable: true}
-            props.data.push(stepData)
+            let stepData = {id: state.id++, name: caseInfo.name, case_id: caseInfo.id, step_type: "case", enable: true}
+            appendTreeDate(stepData)
           }
         })
       }
       state.showCaseInfo = false
-      computeDataIndex()
     }
 
     const getRandomStr = () => {
       return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
     }
 
-    const deletedNode = (index: number) => {
-      props.data.splice(index, 1)
-      computeDataIndex()
+    const deletedNode = (node: any) => {
+      stepTreeRef.value.remove(node)
+      // props.data.splice(index, 1)
     }
     const copyNode = (data: any) => {
       props.data.push(JSON.parse(JSON.stringify(data)))
-      computeDataIndex()
     }
 
+    const clickBlank = () => {
+      stepTreeRef.value?.setCurrentKey(null)
+    }
+
+    // tree 自定义内容 引用组件导致宽度丢失问题
+    const setStyle = () => {
+      let caseStepElList: any = document.getElementsByClassName("treeCaseStep")
+      if (caseStepElList && caseStepElList.length > 0) {
+        for (let i = 0; i <= caseStepElList.length; i++) {
+          if (caseStepElList[i]) caseStepElList[i].parentNode.style.width = "calc(100% - 24px)"
+        }
+      }
+    }
+
+    watch(
+        () => props.data,
+        (value) => {
+          computeDataIndex(value)
+        },
+        {
+          deep: true
+        }
+    )
 
     onMounted(() => {
-      initController()
+      initFabMenu(null)
+      nextTick(() => {
+        setStyle()
+      })
     })
-
 
     return {
       allowDrop,
       handleDrop,
       nodeClick,
-      addStep,
+      getAddData,
       route,
       router,
       addCaseStep,
@@ -225,6 +339,11 @@ export default defineComponent({
       deletedNode,
       copyNode,
       selectCaseRef,
+      stepTreeRef,
+      clickBlank,
+      setStyle,
+      handleAddData,
+      initFabMenu,
       ...toRefs(state),
     };
   },
@@ -236,10 +355,8 @@ export default defineComponent({
 // el-terr
 :deep(.el-tree-node__content) {
   height: 100%;
-  //max-height: 26px;
   margin-top: 6px;
   vertical-align: center;
-  -webkit-box-align: center;
   display: flex;
   cursor: pointer;
   align-items: center;
@@ -252,4 +369,49 @@ export default defineComponent({
 :deep(.el-tree-node__label) {
   width: 100%;
 }
+
+:deep(.el-input--small .el-input__inner) {
+  --el-input-inner-height: calc(var(--el-input-height, 24px) - 1px);
+}
+</style>
+
+
+<style lang="scss" scoped>
+// el-tree 展开图标修改
+
+.el-tree {
+  background: transparent !important;
+}
+
+:deep(.el-tree-node__expand-icon) {
+  // 更换图标库
+  font-family: "iconfont" !important;
+
+  svg {
+    display: none;
+  }
+
+  color: #1f1f1f;
+  font-style: normal;
+}
+
+:deep(.el-tree-node__expand-icon.expanded) {
+  // 动画取消
+  -webkit-transform: rotate(0deg);
+  transform: rotate(0deg);
+}
+
+:deep(.el-tree-node__expand-icon.expanded:before) {
+  // 收起
+  content: "\e61a";
+  font-size: 18px;
+}
+
+:deep(.el-tree-node__expand-icon:before) {
+  // 展开
+  content: "\e61b";
+  font-size: 18px;
+}
+
+
 </style>

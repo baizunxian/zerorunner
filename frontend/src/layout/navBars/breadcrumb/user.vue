@@ -1,25 +1,25 @@
 <template>
   <div class="layout-navbars-breadcrumb-user" :style="{ flex: layoutUserFlexNum }">
-    <div class="layout-navbars-breadcrumb-user-icon">
-      <el-select size="default" v-model="env_id"
-                 placeholder="运行环境"
-                 filterable
-                 style="width: 100%;"
-                 @change="setEndId"
-      >
-        <el-option
-            v-for="env in envList"
-            :key="env.id + env.name"
-            :label="env.name"
-            :value="env.id">
-          <span style="float: left">{{ env.name }}</span>
-        </el-option>
-      </el-select>
-    </div>
+<!--    <div class="layout-navbars-breadcrumb-user-icon" id="header-run-env">-->
+<!--      <el-select size="default" v-model="env_id"-->
+<!--                 placeholder="运行环境"-->
+<!--                 filterable-->
+<!--                 style="width: 100%;"-->
+<!--                 @change="setEndId"-->
+<!--      >-->
+<!--        <el-option-->
+<!--            v-for="env in envList"-->
+<!--            :key="env.id + env.name"-->
+<!--            :label="env.name"-->
+<!--            :value="env.id">-->
+<!--          <span style="float: left">{{ env.name }}</span>-->
+<!--        </el-option>-->
+<!--      </el-select>-->
+<!--    </div>-->
 
     <el-dropdown :show-timeout="70" :hide-timeout="50" trigger="click" @command="onComponentSizeChange">
       <div class="layout-navbars-breadcrumb-user-icon">
-        <i class="iconfont icon-ziti" title="组件大小"></i>
+        <i class="iconfont icon-text_fields" title="组件大小"></i>
       </div>
       <template #dropdown>
         <el-dropdown-menu>
@@ -54,10 +54,10 @@
       <i class="iconfont" :title="isScreenfull ? '开全屏' : '关全屏'"
          :class="!isScreenfull ? 'icon-fullscreen' : 'icon-tuichuquanping'"></i>
     </div>
-    <img :src="userTextToImg(getUserInfos.nickname)" class="layout-navbars-breadcrumb-user-link-photo mr5"/>
+    <img :src="userTextToImg(userInfo.nickname)" class="layout-navbars-breadcrumb-user-link-photo mr5"/>
     <el-dropdown :show-timeout="70" :hide-timeout="50" @command="onHandleCommandClick">
         <span class="layout-navbars-breadcrumb-user-link">
-        {{ getUserInfos.nickname === '' ? 'common' : getUserInfos.nickname }}
+        {{ userInfo.nickname === '' ? 'common' : userInfo.nickname }}
           <el-icon class="el-icon--right">
             <ele-ArrowDown/>
           </el-icon>
@@ -106,14 +106,14 @@ export default defineComponent({
       envList: [],
     });
     // 获取用户信息 vuex
-    const getUserInfos = computed(() => {
+    const userInfo = computed(() => {
       return <any>store.state.userInfos.userInfos;
     });
 
-    // 设置env vuex
-    const setEndId = () => {
-      store.dispatch("environment/setEnvId", state.env_id)
-    }
+    // // 设置env vuex
+    // const setEndId = () => {
+    //   store.dispatch("env/setEnvId", state.env_id)
+    // }
 
     // 获取布局配置信息
     const getThemeConfig = computed(() => {
@@ -223,24 +223,22 @@ export default defineComponent({
     // environment
 
     // 初始化env
-    const getEnvList = () => {
-      useEnvApi().getList({page: 1, pageSize: 1000})
-          .then(res => {
-            state.envList = res.data.rows
-          })
-    };
+    // const getEnvList = () => {
+    //   useEnvApi().getList({page: 1, pageSize: 1000})
+    //       .then(res => {
+    //         state.envList = res.data.rows
+    //       })
+    // };
 
     // 页面加载时
     onMounted(() => {
       if (Local.get('themeConfig')) {
         initComponentSize();
       }
-      getEnvList()
     });
 
     return {
-      setEndId,
-      getUserInfos,
+      userInfo,
       userTextToImg,
       onLayoutSetingClick,
       onHandleCommandClick,
@@ -249,7 +247,6 @@ export default defineComponent({
       onComponentSizeChange,
       searchRef,
       layoutUserFlexNum,
-      getEnvList,
       ...toRefs(state),
     };
   },

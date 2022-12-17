@@ -1,11 +1,12 @@
-from typing import Optional, Text, List, Dict, Any
+from typing import Optional, Text, List, Annotated
 
-from pydantic import root_validator, BaseModel
+from pydantic import root_validator, BaseModel, Field
 
 from autotest.exc.exceptions import ParameterError
 from autotest.models.api_models import ApiSuite
 from autotest.serialize.api_serializes.api_case import ApiCaseBaseSchema
 from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
+from zerorunner.models import TController
 
 
 class ApiSuitesQuerySchema(BaseQuerySchema):
@@ -37,13 +38,13 @@ class ApiSuitesListSchema(BaseListSchema):
         return data
 
 
-class ApiSuitesSchema(BaseModel):
+class ApiSuitesSaveSchema(BaseModel):
     id: Optional[int]
     name: Optional[Text]
     env_id: Optional[Text]
     project_id: Optional[int]
     remarks: Optional[Text]
-    step_data: Optional[List[Any]]
+    step_data: List[Annotated[TController, Field(discriminator="step_type")]] = []
     headers: Optional[List[ApiCaseBaseSchema]]
     variables: Optional[List[ApiCaseBaseSchema]]
 
@@ -62,3 +63,15 @@ class ApiSuitesSchema(BaseModel):
             if ApiSuite.get_list(name=s_name).first():
                 raise ParameterError("套件名以存在!")
         return data
+
+
+class ApiSuitesSchema(BaseModel):
+    id: Optional[int]
+    name: Optional[Text]
+    env_id: Optional[Text]
+    project_id: Optional[int]
+    module_id: Optional[int]
+    remarks: Optional[Text]
+    step_data: List[Annotated[TController, Field(discriminator="step_type")]] = []
+    headers: Optional[List[ApiCaseBaseSchema]]
+    variables: Optional[List[ApiCaseBaseSchema]]

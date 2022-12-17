@@ -30,7 +30,7 @@ import {defineComponent, reactive, toRefs, ref} from 'vue';
 import dbList from '/@/views/tools/queryDB/components/dbList.vue';
 import containerTop from '/@/views/tools/queryDB/components/containerTop.vue';
 import containerBottom from '/@/views/tools/queryDB/components/containerBottom.vue';
-import {Splitpanes, Pane} from 'splitpanes';
+import {Splitpanes, Pane} from "splitpanes";
 import 'splitpanes/dist/splitpanes.css';
 
 export default defineComponent({

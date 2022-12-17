@@ -2,7 +2,12 @@
   <div>
     <el-table
         :data="data"
+        :tree-props="treeProps"
+        :row-key="rowKey"
         v-bind="options"
+        :load="load"
+        row-class-name="d-row-class-name"
+        lazy
         @selection-change="handleSelectionChange"
         @row-click="handleRowClick"
         @cell-click="handleCellClick"
@@ -10,6 +15,7 @@
       <template v-for="(col, index) in columns" :key="index">
         <!---复选框, 序号 (START)-->
         <el-table-column
+            class-name="index-class"
             v-if="col.columnType === 'index' || col.columnType === 'selection' || col.columnType === 'expand'"
             :sortable="col.sortable"
             :prop="col.key"
@@ -131,7 +137,7 @@
       </template>
     </el-table>
     <!-- 分页器 -->
-    <div v-if="total > 0" class="mt20">
+    <div v-show="showPage" class="mt20">
       <el-pagination
           small
           :total="total"
@@ -159,11 +165,13 @@ export default defineComponent({
     data: {
       type: Array,
       default: () => []
-    }, // table的数据
+    },
+    // table的数据
     columns: {
       type: Array,
       default: () => []
-    }, // 每列的配置项
+    },
+    // 每列的配置项
     options: {
       type: Object,
       default: () => {
@@ -177,7 +185,35 @@ export default defineComponent({
         }
       }
     },
+    rowKey: {
+      type: String,
+      default() {
+        return ""
+      }
+    },
+    // treeProps
+    treeProps: {
+      type: Object,
+      default() {
+        return {}
+      }
+    },
     // 分页
+    showPage: {
+      type: Boolean,
+      default: () => true
+    },
+    lazy: {
+      type: Boolean,
+      default() {
+        return false
+      }
+    },
+    load: {
+      type: Function,
+      default: () => {
+      }
+    },
     page: {
       type: Number
     },
@@ -239,6 +275,10 @@ export default defineComponent({
       emit('sort-change', {column, prop, order})
     }
 
+    // onMounted(() => {
+    //   console.log("props-------->", props)
+    // })
+
     return {
       formatLookup,
       indexMethod,
@@ -263,6 +303,14 @@ export default defineComponent({
   &:hover {
     transform: scale(1.2);
   }
+}
+
+.d-row-class-name {
+  max-height: 23px;
+}
+
+:deep(.el-table__placeholder) {
+  display: none;
 }
 </style>
 

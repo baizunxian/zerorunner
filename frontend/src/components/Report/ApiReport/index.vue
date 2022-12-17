@@ -1,145 +1,204 @@
 <template>
-  <div class="system-edit-menu-container h100">
-    <div style="height:100%; overflow-y: auto">
-      <el-tree
-          draggable
-          :allow-drop="allowDrop"
-          @node-drop="handleDrop"
-          @node-click="nodeClick"
-          :props="{children: 'step_datas', label:'name' }"
-          :data="data">
-        <template #default="{ node }">
-          <report-node v-model:data="node.data"/>
-        </template>
-      </el-tree>
-    </div>
+  <div class="report-container">
+    <el-tabs v-model="activeName" class="demo-tabs">
+      <el-tab-pane label="响应信息" name="responseInfo">
+        <response-info :data="responseInfo" :stat="stat" ref="responseInfoRef"></response-info>
+      </el-tab-pane>
 
+      <el-tab-pane label="请求信息" name="requestInfo">
+        <request-info :data="requestInfo"></request-info>
+      </el-tab-pane>
+
+      <el-tab-pane label="结果验证" name="validators">
+        <template #label>
+          <span>结果验证</span>
+          <el-icon v-show="getValidatorsResult() !== ''">
+            <ele-CircleCheck v-if="getValidatorsResult() === 'pass'" style="color: #0cbb52"/>
+            <ele-CircleClose v-else style="color: red"/>
+          </el-icon>
+        </template>
+        <validators :data="validators" ref="validatorsRef"></validators>
+      </el-tab-pane>
+
+      <el-tab-pane label="参数提取" name="extracts">
+        <extracts :data="extracts"></extracts>
+      </el-tab-pane>
+
+      <!--      <el-tab-pane label="异常信息" name="message">-->
+      <!--        <request-content :data="data.req_resps[0].request"></request-content>-->
+      <!--      </el-tab-pane>-->
+
+      <el-tab-pane label="变量追踪" name="variables">
+        <variables :data="variables" ref=""></variables>
+      </el-tab-pane>
+
+      <el-tab-pane label="运行日志" name="log">
+        <log :data="log"></log>
+      </el-tab-pane>
+
+      <el-tab-pane name="preHookData">
+        <template #label>
+          <span>前置步骤</span>
+          <el-icon v-show="pre_hook_status !== ''">
+            <ele-CircleCheck v-if="pre_hook_status === 'success'" style="color: #0cbb52"/>
+            <ele-CircleClose v-else style="color: red"/>
+          </el-icon>
+        </template>
+        <step-info :data="pre_hook_data"></step-info>
+      </el-tab-pane>
+
+      <el-tab-pane name="postHookData">
+        <template #label>
+          <span>后置步骤</span>
+          <el-icon v-show="post_hook_status !== ''">
+            <ele-CircleCheck v-if="post_hook_status ==='success'" style="color: #0cbb52"/>
+            <ele-CircleClose v-else style="color: red"/>
+          </el-icon>
+        </template>
+        <step-info :data="post_hook_data"></step-info>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, onMounted, reactive, ref, toRefs} from 'vue';
-import {useRoute, useRouter} from "vue-router"
-import reportNode from "/@/components/Report/ApiReport/reportNode.vue";
+import {defineComponent, onMounted, reactive, toRefs, ref, watch, nextTick} from 'vue';
+import responseInfo from "/@/components/Report/ApiReport/responseInfo.vue";
+import requestInfo from "/@/components/Report/ApiReport/requestInfo.vue";
+import validators from "/@/components/Report/ApiReport/validators.vue";
+import extracts from "/@/components/Report/ApiReport/extracts.vue";
+import log from "/@/components/Report/ApiReport/log.vue";
+import variables from "/@/components/Report/ApiReport/variables.vue";
+import stepInfo from "/@/components/Report/ApiReport/stepInfo.vue";
+import type {StepDatas} from "/@/components/Report/ApiReport/apiReport";
 
 export default defineComponent({
   name: 'apiReport',
   components: {
-    reportNode,
+    responseInfo,
+    requestInfo,
+    validators,
+    extracts,
+    variables,
+    log,
+    stepInfo,
   },
   props: {
-    data: {
-      type: Array,
-      default: () => []
-    },
+    reportData: {
+      type: [Object, Array],
+      required: true
+      // default: () => {
+      //   return {}
+      // }
+    }
   },
   setup(props: any) {
-    const route = useRoute()
-    const router = useRouter()
-    const selectCaseRef = ref()
+    const responseInfoRef = ref()
+    const validatorsRef = ref()
     const state = reactive({
       // data
-      optType: "script",
-      optTypes: {},
-      // caseInfo
-      showCaseInfo: false,
+      activeName: "responseInfo",
+      // 是否成功
+      success: false,
+      stat: {},
+      // 响应信息
+      responseInfo: {},
+      // 请求信息
+      requestInfo: {},
+      // 结果校验
+      validators: {},
+      validatorsResult: "",
+      // 参数提取
+      extracts: {},
+      // 错误信息
+      message: "",
+      // 变量
+      variables: {},
+      // 日志
+      log: "",
+      //前置步骤
+      post_hook_data: [],
+      post_hook_status: "",
+      //后置步骤
+      pre_hook_data: [],
+      pre_hook_status: "",
 
     });
 
     const initData = () => {
-      switch (props.step_type) {
-        case "pre":
-          state.optTypes = {
-            script: "前置脚本",
-            sql: "前置SQL",
-            wait: "等待控制器",
-            case: "用例引用",
-          }
-          break
-        case "post":
-          state.optTypes = {
-            script: "后置脚本",
-            sql: "后置SQL",
-            extract: "提取参数",
-          }
-          break
-        case "suite":
-          state.optTypes = {
-            case: "用例引用",
-            script: "自定义脚本",
-            sql: "SQL控制器",
-            wait: "等待控制器",
-          }
-          state.optType = "case"
-          break
-        default:
-          break
+      let step_data: StepDatas
+      if (!props.reportData.step_datas) {
+        step_data = props.reportData
+      } else {
+        let {step_datas} = props.reportData
+        step_data = step_datas[0]
       }
+
+      state.success = step_data.success
+      state.stat = step_data.session_data.stat
+      state.responseInfo = step_data.session_data.req_resp.response
+      console.table(state.responseInfo)
+      state.requestInfo = step_data.session_data.req_resp.request
+      state.validators = step_data.session_data.validators
+      state.extracts = step_data.export_vars
+      state.message = step_data.message
+      state.variables = {
+        variables: step_data.variables,
+        envVariables: step_data.env_variables,
+      }
+      state.log = props.reportData.log
+      state.post_hook_data = step_data.post_hook_data
+      state.pre_hook_data = step_data.pre_hook_data
+      state.pre_hook_status = getHookStatus(state.pre_hook_data)
+      state.post_hook_status = getHookStatus(state.post_hook_data)
+
     }
 
-
-    // 不允许拖动为子
-    const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
-      return type !== "inner"
+    const getStat = () => {
+      return {status_code: state.responseInfo.status_code, ...state.stat}
+    }
+    const getValidatorsResult = () => {
+      return validatorsRef.value.validatorsResult()
     }
 
-    // 节点拖动完成重新计算顺序
-    const handleDrop = () => {
-      computeDataIndex()
-    }
-
-    const nodeClick = (data: any) => {
-      data.showDetail = !data.showDetail
-    }
-
-    // 计算index，保持拖动后顺序
-    const computeDataIndex = () => {
-      props.data.forEach((data: any, index: number) => {
-        data.index = index + 1
+    const getHookStatus = (hook: Array<any>) => {
+      if (hook.length === 0) return ""
+      let success_count = 0
+      hook.forEach((h) => {
+        if (h.success) success_count++
       })
+      if (success_count == hook.length) return "success"
+      return "fail"
     }
 
-    const getRandomStr = () => {
-      return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
-    }
+
+    watch(
+        () => props.reportData,
+        () => {
+          initData()
+        },
+        {deep: true}
+    );
 
     onMounted(() => {
       initData()
     })
 
     return {
-      allowDrop,
-      handleDrop,
-      nodeClick,
-      route,
-      router,
-      getRandomStr,
-      selectCaseRef,
-      ...toRefs(state),
+      getStat,
+      validatorsRef,
+      responseInfoRef,
+      getHookStatus,
+      initData,
+      getValidatorsResult,
+      ...toRefs(state)
     };
   },
 });
 </script>
 
 <style lang="scss" scoped>
-
-// el-terr
-:deep(.el-tree-node__content) {
-  height: 100%;
-  //max-height: 26px;
-  margin-top: 6px;
-  vertical-align: center;
-  -webkit-box-align: center;
-  display: flex;
-  cursor: pointer;
-  align-items: center;
-}
-
-:deep(.el-card__body) {
-  padding: 5px 10px;
-}
-
-:deep(.el-tree-node__label) {
-  width: 100%;
+.report-container {
+  padding: 10px;
 }
 </style>

@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import {defineComponent, reactive, toRefs} from "vue";
-import headersController from "/@/components/StepController/headersController.vue";
+import headersController from "/@/components/StepController/headers/headersController.vue";
 import {handleEmpty} from "/@/utils/other";
 
 interface baseState {
@@ -44,6 +44,7 @@ export default defineComponent({
 
     // updateHeader {key: "Content-Type", value: "application/json"} //更新请求头
     const updateHeader = (headerData: any, remove: any = false) => {
+      console.log(1111111111111)
       let headerInfo = state.headers.find(e => headerData?.key && headerData.key.toLowerCase() === e.key.toLowerCase())
       if (headerInfo) {
         state.headers.forEach((e: any, index: number) => {

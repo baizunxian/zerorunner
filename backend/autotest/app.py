@@ -5,8 +5,8 @@ from autotest.config import config, LOGGING_CONFIG
 from autotest.config import db
 from autotest.corelibs.backend import celery
 from autotest.corelibs.bredis import br
-from autotest.views import register_app
 from autotest.exc.middleware import init_middleware
+from autotest.views import register_app
 
 
 def create_app():

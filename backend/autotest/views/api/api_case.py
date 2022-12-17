@@ -65,37 +65,19 @@ def deleted():
     return partner_success()
 
 
-@bp.route('/runTestCase', methods=['POST'])
+@bp.route('/run', methods=['POST'])
 def run_test():
     """
     运行用例
     :return:
     """
     parsed_data = request.json
-    params = ApiCaseService.run_make(**parsed_data)  # 初始化校验，避免生成用例是出错
     if parsed_data.get('run_mode', None) == 2:
         logger.info('异步执行用例 ~')
-        async_run_case.delay(**params)
+        async_run_case.delay(**parsed_data)
         return partner_success(code=codes.PARTNER_CODE_OK, msg='用例执行中，请稍后查看报告即可,默认模块名称命名报告')
     else:
-        summary = ApiCaseService.run(**params)
-        return partner_success(data=summary)
-
-
-@bp.route('/runTestCaseNew', methods=['POST'])
-def run_test_new():
-    """
-    运行用例
-    :return:
-    """
-    parsed_data = request.json
-    params = ApiCaseService.run_make_new(**parsed_data)  # 初始化校验，避免生成用例是出错
-    if parsed_data.get('run_mode', None) == 2:
-        logger.info('异步执行用例 ~')
-        async_run_case.delay(**params)
-        return partner_success(code=codes.PARTNER_CODE_OK, msg='用例执行中，请稍后查看报告即可,默认模块名称命名报告')
-    else:
-        summary = ApiCaseService.run(**params)
+        summary = ApiCaseService.run(**parsed_data)  # 初始化校验，避免生成用例是出错
         return partner_success(data=summary)
 
 

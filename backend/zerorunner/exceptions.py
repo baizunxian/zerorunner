@@ -92,3 +92,12 @@ class TestcaseNotFound(NotFoundError):
 class SummaryEmpty(MyBaseError):
     """ test result summary data is empty
     """
+
+
+class LoopNotFound(NotFoundError):
+    pass
+
+
+class StepRuntimeError(MyBaseError):
+    """步骤运行错误"""
+    pass

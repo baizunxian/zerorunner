@@ -27,7 +27,7 @@
           <!--            </el-tab-pane>-->
 
           <el-tab-pane name='httpConfig'>
-            <template #label><strong>HTTP配置</strong></template>
+            <template #label><span>HTTP配置</span></template>
             <http-config ref="httpConfigRef"/>
           </el-tab-pane>
 
@@ -37,12 +37,12 @@
           <!--            </el-tab-pane>-->
 
           <el-tab-pane name='commonConfig'>
-            <template #label><strong>通用配置</strong></template>
+            <template #label><span>通用配置</span></template>
             <common-config ref="commonConfigRef"/>
           </el-tab-pane>
 
           <el-tab-pane name='databaseConfig'>
-            <template #label><strong>数据库配置</strong></template>
+            <template #label><span>数据库配置</span></template>
             <database-config ref="databaseConfigRef"/>
           </el-tab-pane>
 
@@ -170,5 +170,19 @@ export default defineComponent({
   border-radius: 5px;
   padding: 10px;
   margin: 5px 0;
+
+  .block-title {
+    position: relative;
+    padding-left: 11px;
+    font-size: 14px;
+    font-weight: 600;
+    height: 20px;
+    line-height: 20px;
+    background: #f7f7fc;
+    color: #333333;
+    border-left: 2px solid #409eff;
+    margin-bottom: 5px;
+  }
 }
+
 </style>

@@ -1,4 +1,3 @@
-
 #### 🌈 介绍
 
 基于 python + flask + httprunner + celery + sqlalchemy + marshmallow + redis
@@ -11,29 +10,30 @@
 - node version 14.17.5
 
 #### 💒 前端地址
-- github 
-https://github.com/baizunxian/zero_autotest_front
+
+- github
+  https://github.com/baizunxian/zero_autotest_front
 - gitee
-https://gitee.com/xb_xiaobai/zero_autotest_front
+  https://gitee.com/xb_xiaobai/zero_autotest_front
+
 #### 💒 后端地址
+
 - github
   https://github.com/baizunxian/zero_autotest_backend
 - gitee
   https://gitee.com/xb_xiaobai/zero_autotest_backend
+
 #### ⛱️ 线上预览
 
-- ZERO AUTOTEST 自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
+- ZERO AUTOTEST
+  自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
 
 - 首页
- <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/index.png?raw=true" />
- 
+  ![](static/img/index.png)
 - 报告页面
- <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/report.png?raw=true" />
-  
+  ![](static/img/report.png)
 - 自定义函数
- <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/func.png?raw=true" />
-
-
+  ![](static/img/func.png)
 
 #### 🚧 项目启动初始化
 
@@ -77,8 +77,9 @@ celery -A autotest.corelibs.backend.celery_worker beat  -l INFO
 #### 💯 学习交流加 微信 群
 
 - 微信群
-<img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/weixin.jpg?raw=true" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
-  
+  <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/weixin.jpg?raw=true" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
+
 #### 💌 支持作者
 
-如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/baizunxian/zero_autotest_backend">Github</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持, 平台会持续迭代更新。
+如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/baizunxian/zero_autotest_backend">
+Github</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持, 平台会持续迭代更新。

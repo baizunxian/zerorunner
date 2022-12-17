@@ -28,9 +28,16 @@ export function useReportApi() {
         data,
       });
     },
-    getReportById: (data?: object) => {
+    getReportDetail: (data?: object) => {
       return request({
-        url: '/report/getReportById',
+        url: '/report/getReportDetail',
+        method: 'POST',
+        data,
+      });
+    },
+    getReportStatistics: (data?: object) => {
+      return request({
+        url: '/report/getReportStatistics',
         method: 'POST',
         data,
       });

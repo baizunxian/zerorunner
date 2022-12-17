@@ -35,9 +35,9 @@ export function useApiCaseApi() {
         data,
       });
     },
-    runTestCaseNew: (data?: object) => {
+    run: (data?: object) => {
       return request({
-        url: '/apiCase/runTestCaseNew',
+        url: '/apiCase/run',
         method: 'POST',
         data,
       });

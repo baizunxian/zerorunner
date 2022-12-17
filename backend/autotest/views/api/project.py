@@ -38,3 +38,15 @@ def deleted():
     id = parsed_data.get('id', None)
     ProjectService.deleted(id)
     return partner_success()
+
+
+@bp.route('/getProjectTree', methods=['POST'])
+def get_project_tree():
+    """
+    项目树结构
+    :return:
+    """
+    parsed_data = request.json
+    id = parsed_data.get('id', None)
+    data = ProjectService.get_project_tree(id)
+    return partner_success(data)

@@ -189,7 +189,7 @@ class ExtendJSONEncoder(json.JSONEncoder):
 def merge_variables(
         variables: VariablesMapping, variables_to_be_overridden: VariablesMapping
 ) -> VariablesMapping:
-    """ 合并map 第一个优先
+    """ 合并map
     """
     step_new_variables = {}
     for key, value in variables.items():
@@ -200,7 +200,7 @@ def merge_variables(
 
         step_new_variables[key] = value
 
-    merged_variables = copy.copy(variables_to_be_overridden)
+    merged_variables = copy.deepcopy(variables_to_be_overridden)
     merged_variables.update(step_new_variables)
     return merged_variables
 

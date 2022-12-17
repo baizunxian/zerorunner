@@ -1,12 +1,15 @@
 <template>
-  <variable-controller :data="data.variables"></variable-controller>
+  <div class="content">
+    <div class="block-title">环境变量</div>
+    <variable-controller :data="data.variables"></variable-controller>
+  </div>
 </template>
 
 <script lang="ts">
 
 import {handleEmpty} from "/@/utils/other";
 import {defineComponent, reactive, ref, toRefs} from "vue";
-import variableController from "/@/components/StepController/variableController.vue";
+import variableController from "/@/components/StepController/variable/variableController.vue";
 
 interface baseState {
   key: string,
@@ -58,6 +61,19 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-
+.block-title {
+  position: relative;
+  padding-left: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  height: 20px;
+  line-height: 20px;
+  background: #f7f7fc;
+  color: #333333;
+  border-left: 2px solid #409eff;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+}
 
 </style>

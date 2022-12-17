@@ -28,5 +28,12 @@ export function useProjectApi() {
         data,
       });
     },
+    getTree: (data?: object) => {
+      return request({
+        url: '/project/getProjectTree',
+        method: 'POST',
+        data,
+      });
+    },
   };
 }

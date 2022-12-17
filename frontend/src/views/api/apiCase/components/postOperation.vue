@@ -1,6 +1,6 @@
 <template>
   <div class="step-details">
-    <step-controller step_type="post" :data="setup_hooks" :case_id="case_id"></step-controller>
+    <step-controller use_type="post" :data="setup_hooks" :case_id="case_id"></step-controller>
   </div>
 </template>
 

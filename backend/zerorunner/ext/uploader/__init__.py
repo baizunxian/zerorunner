@@ -46,7 +46,7 @@ import os
 import sys
 from typing import Text
 
-from zerorunner.models import TStep, FunctionsMapping
+from zerorunner.models import TCaseController, FunctionsMapping
 from zerorunner.parser import parse_variables_mapping, parse_data
 from loguru import logger
 
@@ -75,7 +75,7 @@ def ensure_upload_ready():
     sys.exit(1)
 
 
-def prepare_upload_step(step: TStep, functions: FunctionsMapping):
+def prepare_upload_step(step: TCaseController, functions: FunctionsMapping):
     """ preprocess for upload test
         replace `upload` info with MultipartEncoder
 

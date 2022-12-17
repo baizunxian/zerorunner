@@ -6,6 +6,9 @@ import monacoEditorPlugin from "vite-plugin-monaco-editor"
 const pathResolve = (dir: string): any => {
   return resolve(__dirname, '.', dir);
 };
+import MonacoEditorNlsPlugin, {esbuildPluginMonacoEditorNls, Languages,} from '/@/components/monaco/nls';
+
+const zh_CN = require('/@/components/monaco/nls/zh-hans.json')
 
 const alias: Record<string, string> = {
   '/@': pathResolve('./src/'),
@@ -14,7 +17,31 @@ const alias: Record<string, string> = {
 const viteConfig = defineConfig((mode: ConfigEnv) => {
   const env = loadEnv(mode.mode, process.cwd());
   return {
-    plugins: [vue(), monacoEditorPlugin()],
+    plugins: [
+      vue(),
+      monacoEditorPlugin(),
+      MonacoEditorNlsPlugin({
+        locale: Languages.zh_hans,
+        /**
+         * The weight of `localedata` is higher than that of `locale`
+         */
+        localeData: zh_CN.contents
+      })
+    ],
+    optimizeDeps: {
+      /** vite >= 2.3.0 */
+      esbuildOptions: {
+        plugins: [
+          esbuildPluginMonacoEditorNls({
+            locale: Languages.zh_hans,
+            /**
+             * The weight of `localedata` is higher than that of `locale`
+             */
+            localeData: zh_CN.contents
+          }),
+        ],
+      },
+    },
     root: process.cwd(),
     resolve: {alias},
     base: mode.command === 'serve' ? '/' : env.VITE_PUBLIC_PATH,
@@ -62,7 +89,7 @@ const viteConfig = defineConfig((mode: ConfigEnv) => {
       preprocessorOptions: {
         // less: {
         //   charset: false,
-        //   additionalData: '@import "./src/components/fab/style/vars.less";',
+        //   additionalData: '@import "./src/components/fabButton/style/vars.less";',
         // },
       },
       postcss: {
@@ -78,6 +105,7 @@ const viteConfig = defineConfig((mode: ConfigEnv) => {
             },
           },
         ],
+
       },
     },
   };

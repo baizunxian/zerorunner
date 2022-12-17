@@ -4,7 +4,7 @@
 # @create time: 2022/9/9 14:53
 import json
 
-from zerorunner.models import TConfig, TStep, TestCase, WaitController, SqlController, ScriptController
+from zerorunner.models import TConfig, TCaseController, TestCase, WaitController, SqlController, ScriptController
 from zerorunner.runner import ZeroRunner
 
 config = TConfig(name="test")
@@ -51,7 +51,7 @@ zero.headers.set("test", "test3")
 # step_type: Text = ""
 # enable: bool = False  # 是否有效
 
-step_info = TStep(**step_dict)
+step_info = TCaseController(**step_dict)
 wait_info = WaitController(**dict(name="test", value=1, setp_type="wait", enable=True))
 
 sql_info = SqlController(**dict(name="sql",

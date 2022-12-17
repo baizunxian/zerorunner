@@ -63,11 +63,13 @@
         >
           <el-table-column prop="func_name" label="函数名称" width="180">
             <template #default="{row}">
-              <strong>{{ row.func_name }}</strong>
-              <div @click="copyFunc(row)">
-                <el-icon>
-                  <ele-DocumentCopy/>
-                </el-icon>
+              <div style="display: flex; justify-content: space-between">
+                <strong>{{ row.func_name }}</strong>
+                <span @click="copyFunc(row)">
+                  <el-icon>
+                    <ele-DocumentCopy/>
+                  </el-icon>
+                </span>
               </div>
             </template>
           </el-table-column>

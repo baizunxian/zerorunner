@@ -25,7 +25,9 @@ export function zeroTables(app: App) {
 export function stepController(app: App) {
   app.component('StepController', StepController);
 
-}/**
+}
+
+/**
  * 导出全局注册 Step Controller
  * @param app vue 实例
  */

@@ -15,26 +15,7 @@
             placeholder="输入执行人查询" style="width: 150px;"
             class="ml10"
             @keyup.enter.native="search"/>
-        <!--      <el-select v-model="listQuery.status" placeholder="运行结果" style="width: 150px;"-->
-        <!--                 class="filter-item">-->
-        <!--        <el-option-->
-        <!--            v-for="item in options"-->
-        <!--            :key="item.value"-->
-        <!--            :label="item.label"-->
-        <!--            :value="item.value">-->
-        <!--        </el-option>-->
-        <!--      </el-select>-->
-        <!--        <el-date-picker-->
-        <!--            v-model="listQuery.min_and_max"-->
-        <!--            type="datetimerange"-->
-        <!--            align="right"-->
-        <!--            start-placeholder="起始日期"-->
-        <!--            end-placeholder="截止日期"-->
-        <!--            style="width: 340px;"-->
-        <!--            value-format="yyyy-MM-dd HH:mm:ss"-->
-        <!--            class="filter-item"-->
-        <!--            :default-time="['00:00:00', '23:59:59']">-->
-        <!--        </el-date-picker>-->
+
         <el-button class="ml10" type="primary" @click="search">
           <el-icon>
             <ele-Search/>
@@ -43,65 +24,6 @@
         </el-button>
 
       </div>
-
-      <!--      <el-table-->
-      <!--          v-loading="tableLoading"-->
-      <!--          :data="listData"-->
-      <!--          stripe-->
-      <!--          border-->
-      <!--          fit-->
-      <!--          highlight-current-row-->
-      <!--          style="width: 100%;"-->
-      <!--      >-->
-      <!--        <el-table-column type="selection" width="40"></el-table-column>-->
-      <!--        <el-table-column label="序号" width="45px" align="center">-->
-      <!--          <template #default="scope">-->
-      <!--            {{ scope.$index + (listQuery.page - 1) * listQuery.pageSize + 1 }}-->
-      <!--          </template>-->
-      <!--        </el-table-column>-->
-      <!--        <el-table-column-->
-      <!--            v-for="field in fieldData"-->
-      <!--            :key="field.fieldName"-->
-      <!--            :label="field.label"-->
-      <!--            :align="field.align"-->
-      <!--            :width="field.width"-->
-      <!--            :show-overflow-tooltip="field.show"-->
-      <!--            :prop="field.fieldName"-->
-      <!--        >-->
-      <!--          <template #default="{row}">-->
-      <!--            <template v-if="field.fieldName === 'name'">-->
-      <!--              <el-button size="small"-->
-      <!--                         type="primary" link-->
-      <!--                         @click="onOpenReport(row)">-->
-      <!--                {{ row[field.fieldName] }}-->
-      <!--              </el-button>-->
-      <!--            </template>-->
-
-      <!--            <template v-else-if="field.fieldName === 'status'">-->
-      <!--              <el-tag type="success" v-if="row.success">通过</el-tag>-->
-      <!--              <el-tag type="danger" v-else>不通过</el-tag>-->
-      <!--            </template>-->
-
-      <!--            <template v-else>-->
-      <!--              <span>{{ field.lookupCode?formatLookup(field.lookupCode, row[field.fieldName]): row[field.fieldName]  }}</span>-->
-      <!--            </template>-->
-
-      <!--          </template>-->
-      <!--        </el-table-column>-->
-
-      <!--        <el-table-column label="操作" align="center" width="80" fixed="right">-->
-      <!--          <template #default="{row}">-->
-      <!--            <el-button type="primary" link @click="deleteReport(row)">-->
-      <!--              删除-->
-      <!--            </el-button>-->
-      <!--          </template>-->
-      <!--        </el-table-column>-->
-      <!--      </el-table>-->
-      <!--      <pagination :total="total"-->
-      <!--                  :hidden="total === 0"-->
-      <!--                  v-model:page="listQuery.page"-->
-      <!--                  v-model:limit="listQuery.pageSize"-->
-      <!--                  @pagination="getList"/>-->
 
       <zero-table
           :columns="columns"
@@ -120,7 +42,26 @@
           title="报告详情"
           destroy-on-close
           :close-on-click-modal="false">
-        <test-report :reportBody="reportBody"/>
+        <template #title>
+          <span>报告详情</span>
+          <el-button class="ml5" style="font-size: 12px" type="primary" link @click="showLog=!showLog">执行日志</el-button>
+        </template>
+        <report-detail v-if="report_id"
+                       :report_id="report_id"
+                       :start_time="start_time"
+                       :run_user_name="run_user_name"/>
+      </el-dialog>
+
+
+      <el-dialog
+          draggable
+          v-model="showLog"
+          width="80%"
+          top="8vh"
+          title="日志"
+          destroy-on-close
+          :close-on-click-modal="false">
+        <pre>{{ report_log }}</pre>
       </el-dialog>
     </el-card>
   </div>
@@ -129,15 +70,17 @@
 
 <script lang="ts">
 
-import TestReport from '/@/views/api/Report/components/report.vue';
 import {useReportApi} from '/@/api/useAutoApi/report';
 import {defineComponent, h, onMounted, reactive, toRefs} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus'
+import reportDetail from "/@/views/api/Report/components/reportDetail.vue";
 
 
 export default defineComponent({
   name: 'apiReport',
-  components: {TestReport},
+  components: {
+    reportDetail,
+  },
   setup() {
     const state = reactive({
       columns: [
@@ -174,12 +117,12 @@ export default defineComponent({
           showTooltip: true,
           lookupCode: 'api_report_run_mode'
         },
-        {key: 'run_test_count', label: '运行用例', align: 'center', width: '', showTooltip: true},
+        {key: 'run_count', label: '运行数', align: 'center', width: '', showTooltip: true},
         // {key: 'successes', label: '执行结果', width: '', showTooltip: true},
-        {key: 'successful_use_case', label: '成功用例', align: 'center', width: '', showTooltip: true},
-        {key: 'duration', label: '执行耗时(秒)', align: 'center', width: '', showTooltip: true},
-        {key: 'start_at', label: '执行时间', align: 'center', width: '150', showTooltip: true},
-        {key: 'execute_user_name', label: '执行人', align: 'center', width: '', showTooltip: true},
+        {key: 'run_success_count', label: '成功数', align: 'center', width: '', showTooltip: true},
+        {key: 'duration', label: '运行耗时(秒)', align: 'center', width: '', showTooltip: true},
+        {key: 'start_time', label: '运行时间', align: 'center', width: '150', showTooltip: true},
+        {key: 'run_user_name', label: '执行人', align: 'center', width: '', showTooltip: true},
         {
           label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '80',
           render: (row: any) => h("div", null, [
@@ -210,8 +153,11 @@ export default defineComponent({
         ids: [],
       },
       // report
-      reportBody: {},
-      reportID: '',
+      showLog: false,
+      report_id: '',
+      start_time: '',
+      run_user_name: '',
+      report_log: ''
     });
 
     // 获取列表
@@ -245,11 +191,11 @@ export default defineComponent({
     }
 
     const onOpenReport = (row: any) => {
-      useReportApi().getReportById({id: row.id})
-          .then((res: any) => {
-            state.reportBody = res.data.report_body
-            state.showReportDialog = !state.showReportDialog
-          })
+      state.report_id = row.id
+      state.start_time = row.start_time
+      state.run_user_name = row.run_user_name
+      state.report_log = row.run_log
+      state.showReportDialog = !state.showReportDialog
     }
 
     // 获取列表
@@ -269,40 +215,4 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.employee_body {
-  margin: 10px 20px 0;
-  overflow: hidden;
-}
-
-.inputclass {
-  width: 300px;
-}
-
-.el-dialog {
-  height: 50%;
-}
-
-table {
-  width: 50%;
-  border-collapse: collapse;
-
-  tr, td {
-    border: 1px solid #d2d2d6;
-    padding: 5px;
-  }
-}
-
-.filter-container {
-  .filter-item {
-    margin-right: 10px;
-  }
-}
-
-:deep(.el-dialog--center .el-dialog__body) {
-  padding: 5px;
-}
 </style>
-
-<style lang="css"> .el-tooltip__popper {
-  max-width: 20%
-} </style>

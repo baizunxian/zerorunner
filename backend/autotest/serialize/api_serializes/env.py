@@ -3,6 +3,7 @@ from pydantic import root_validator, BaseModel
 
 from autotest.exc.exceptions import ParameterError
 from autotest.models.api_models import Env
+from autotest.serialize.api_serializes.api_case import ApiCaseBaseSchema
 from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
 
 
@@ -13,13 +14,6 @@ class EnvQuerySchema(BaseQuerySchema):
     ids: Optional[List[Union[int, Text]]]
     name: Optional[Text]
     created_by_name: Optional[Text]
-
-
-# class EnvListSchema(BaseListSchema):
-#     """环境序列化"""
-#     name: Optional[Text]
-#     url: Optional[Text]
-#     remarks: Optional[Text]
 
 
 class EnvListSchema(BaseListSchema):

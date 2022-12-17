@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import {defineComponent, reactive, toRefs} from "vue";
-import assertController from "/@/components/StepController/validatorsController.vue";
+import assertController from "/@/components/StepController/validators/validatorsController.vue";
 import {handleEmpty} from "/@/utils/other";
 
 interface baseState {
@@ -37,16 +37,9 @@ export default defineComponent({
       return handleEmpty(state.validators)
     }
 
-    // 获取是否填写状态
-    const getStatus = () => {
-      return handleEmpty(state.validators).length > 0
-    }
-
-
     return {
       setData,
       getData,
-      getStatus,
       ...toRefs(state),
     };
   },

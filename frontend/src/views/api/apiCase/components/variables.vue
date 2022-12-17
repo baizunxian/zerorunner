@@ -5,8 +5,8 @@
 <script lang="ts">
 
 import {handleEmpty} from "/@/utils/other";
-import {defineComponent, reactive, ref, toRefs} from "vue";
-import variableController from "/@/components/StepController/variableController.vue";
+import {defineComponent, reactive, toRefs} from "vue";
+import variableController from "/@/components/StepController/variable/variableController.vue";
 
 interface baseState {
   key: string,
@@ -23,7 +23,6 @@ export default defineComponent({
   name: 'commonConfig',
   components: {variableController},
   setup() {
-    const formRef = ref()
     const state = reactive<variablesState>({
       variables: [],   // 变量列表
     });
@@ -37,16 +36,9 @@ export default defineComponent({
       return handleEmpty(state.variables)
     }
 
-    // 获取是否填写状态
-    const getStatus = () => {
-      return handleEmpty(state.variables).length > 0
-    }
-
     return {
-      formRef,
       setData,
       getData,
-      getStatus,
       ...toRefs(state),
     };
   },

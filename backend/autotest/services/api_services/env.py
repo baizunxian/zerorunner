@@ -1,7 +1,7 @@
 from typing import Dict, Any, Text
 
 from autotest.models.api_models import Env
-from autotest.serialize.api_serializes.env import EnvQuerySchema, EnvSaveOrUpdateSchema, EnvListSchema
+from autotest.serialize.api_serializes.env import EnvQuerySchema, EnvSaveOrUpdateSchema
 from autotest.utils.api import parse_pagination
 
 

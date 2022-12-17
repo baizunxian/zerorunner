@@ -6,10 +6,10 @@
 
 <script lang="ts">
 import {defineComponent, nextTick, onMounted, reactive, toRefs} from 'vue';
-import * as kity from "kity"
-import * as kityminder from "kityminder-core"
-
-window.kity = kity
+// import * as kity from "kity"
+// import * as kityminder from "kityminder-core"
+//
+// window.kity = kity
 
 
 export default defineComponent({

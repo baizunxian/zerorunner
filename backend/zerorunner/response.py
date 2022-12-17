@@ -3,14 +3,13 @@
 # @author: xiaobai
 # @create time: 2022/9/9 14:53
 
-from typing import Dict, Text, Any
+from typing import Dict, Text, Any, List
 import jmespath
 import requests
 from jmespath.exceptions import JMESPathError
 from loguru import logger
-from zerorunner import exceptions
 from zerorunner.exceptions import ValidationFailure, ParamsError
-from zerorunner.models import VariablesMapping, Validators, FunctionsMapping
+from zerorunner.models import VariablesMapping, Validators, FunctionsMapping, ExtractData
 from zerorunner.parser import parse_data, parse_string_value, get_mapping_function
 
 
@@ -128,29 +127,17 @@ class ResponseObject(object):
         self.resp_obj = resp_obj
         self.validation_results: Dict = {}
 
-    def __getattr__(self, key):
-        if key in ["json", "content", "body"]:
-            try:
-                value = self.resp_obj.json()
-            except ValueError:
-                value = self.resp_obj.content
-        elif key == "cookies":
-            value = self.resp_obj.cookies.get_dict()
-        else:
-            try:
-                value = getattr(self.resp_obj, key)
-            except AttributeError:
-                err_msg = "ResponseObject does not have attribute: {}".format(key)
-                logger.error(err_msg)
-                raise exceptions.ParamsError(err_msg)
-
-        self.__dict__[key] = value
-        return value
+        self.cookies = self.resp_obj.cookies.get_dict()
+        try:
+            self.body = self.resp_obj.json()
+        except ValueError:
+            self.body = self.resp_obj.content
 
     def _search_jmespath(self, expr: Text) -> Any:
+
         resp_obj_meta = {
-            "status_code": self.status_code,
-            "headers": self.headers,
+            "status_code": self.resp_obj.status_code,
+            "headers": self.resp_obj.headers,
             "cookies": self.cookies,
             "body": self.body,
         }
@@ -171,7 +158,7 @@ class ResponseObject(object):
         return check_value
 
     def extract(self,
-                extractors: Dict[Text, Text],
+                extractors: List[ExtractData],
                 variables_mapping: VariablesMapping = None,
                 functions_mapping: FunctionsMapping = None,
                 ) -> Dict[Text, Any]:
@@ -179,14 +166,17 @@ class ResponseObject(object):
             return {}
 
         extract_mapping = {}
-        for key, field in extractors.items():
-            if '$' in field:
+        for extractor in extractors:
+            if '$' in extractor.path:
                 # field contains variable or function
-                field = parse_data(
-                    field, variables_mapping, functions_mapping
+                extractor.path = parse_data(
+                    extractor.path, variables_mapping, functions_mapping
                 )
-            field_value = self._search_jmespath(field)
-            extract_mapping[key] = field_value
+            if extractor.extract_type == "jmespath":
+                field_value = self._search_jmespath(extractor.path)
+            else:
+                raise ValueError(f"提取类型{extractor.extract_type}错误！")
+            extract_mapping[extractor.name] = field_value
 
         logger.info(f"extract mapping: {extract_mapping}")
         return extract_mapping

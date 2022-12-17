@@ -25,11 +25,6 @@
           @pagination-change="getList"
       >
       </zero-table>
-      <pagination :total="total"
-                  :hidden="total === 0"
-                  v-model:page="listQuery.page"
-                  v-model:limit="listQuery.pageSize"
-                  @pagination="getList"/>
     </el-card>
     <save-or-update ref="saveOrUpdateRef" @getList="getList"/>
   </div>
@@ -39,12 +34,11 @@
 import {defineComponent, h, onMounted, reactive, ref, toRefs} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import saveOrUpdate from '/@/views/api/module/components/saveOrUpdate.vue';
-import Pagination from '/@/components/Pagination/index.vue';
 import {useModuleApi} from "/@/api/useAutoApi/module";
 
 export default defineComponent({
   name: 'apiModule',
-  components: {saveOrUpdate, Pagination},
+  components: {saveOrUpdate},
   setup() {
     const saveOrUpdateRef = ref();
     const state = reactive({

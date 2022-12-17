@@ -4,7 +4,6 @@
 # @create time: 2022/9/9 14:53
 
 import json
-import sys
 import time
 
 import requests
@@ -212,10 +211,8 @@ class HttpSession(requests.Session):
         self.data.stat.content_size = content_size
 
         # record request and response histories, include 30X redirection
-        response_list = response.history + [response]
-        self.data.req_resps = [
-            get_req_resp_record(resp_obj) for resp_obj in response_list
-        ]
+        # response_list = response.history + [response]
+        self.data.req_resp = get_req_resp_record(response)
 
         try:
             response.raise_for_status()

@@ -3,6 +3,9 @@ import {ElMessage, ElMessageBox} from 'element-plus';
 import {Session} from '/@/utils/storage';
 import {BaseUrl} from '/@/config/config';
 
+const cancelToken = axios.CancelToken
+const source = cancelToken.source()
+
 // 配置新建一个 axios 实例
 const service = axios.create({
   baseURL: BaseUrl,
@@ -17,6 +20,7 @@ service.interceptors.request.use(
     if (Session.get('token')) {
       (<any>config.headers).common['token'] = `${Session.get('token')}`;
     }
+    config.cancelToken = source.token;
     return config;
   },
   (error) => {
@@ -34,9 +38,10 @@ service.interceptors.response.use(
       // `token` 过期或者账号已在别处登录
       if (res.code === 10201 || res.code === 4001) {
         Session.clear(); // 清除浏览器全部临时缓存
-        window.location.href = '/'; // 去登录页
+        source.cancel('Token Timeout'); // 取消其他正在进行的请求
         ElMessageBox.alert('登录信息已失效，请重新登录', {})
           .then(() => {
+            window.location.href = '/'; // 去登录页
           })
           .catch(() => {
           });
@@ -54,6 +59,13 @@ service.interceptors.response.use(
       ElMessage.error('网络超时');
     } else if (error.message == 'Network Error') {
       ElMessage.error('网络连接错误');
+    } else if (error.message == 'Token Timeout') {
+      ElMessageBox.alert('登录信息已失效，请重新登录', {})
+        .then(() => {
+          window.location.href = '/'; // 去登录页
+        })
+        .catch(() => {
+        });
     } else {
       if (error.response.data) ElMessage.error(error.response.statusText);
       else ElMessage.error('接口路径找不到');

@@ -132,27 +132,32 @@ export default {
             triggerCharacters: ['.'],
           }
       )
+      let modEditor: any
       if (props.isDiff) {
         editor.value = monaco.editor.createDiffEditor(monacoEditorRef.value, options)
-        originalEditor.value = monaco.editor.createModel(props.value, props.long)
+        originalEditor.value = monaco.editor.createModel(props.oldString, props.long)
         modifiedEditor.value = monaco.editor.createModel(props.value, props.long)
         toRaw(editor.value).setModel({
           original: toRaw(originalEditor.value),
           modified: toRaw(modifiedEditor.value)
         })
+
+        modEditor = editor.value.getModifiedEditor()
+
       } else {
         editor.value = monaco.editor.create(monacoEditorRef.value, options)
-
+        modEditor = editor.value
       }
-      state.contentBackup = props.value;
-      state.isSettingContent = false;
-      editor.value.onDidChangeModelContent((val: any) => {
+
+      modEditor.onDidChangeModelContent((val: any) => {
         if (state.isSettingContent)
           return;
-        const content = toRaw(editor.value).getValue();
+        const content = toRaw(modEditor).getValue();
         state.contentBackup = content;
         emit("update:value", content)
       })
+      state.contentBackup = props.value;
+      state.isSettingContent = false;
     }
 
     // 获取value
@@ -163,6 +168,7 @@ export default {
     const getMode = () => {
       return toRaw(editor.value).getModel()
     }
+
 
     watch(
         () => props.value,

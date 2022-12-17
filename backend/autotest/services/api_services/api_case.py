@@ -1,28 +1,15 @@
-import copy
 import json
-import os
-import shutil
-import traceback
-import uuid
-from typing import Dict, Any, List, Union, Text
-
-import pytest
-from loguru import logger
-
+from typing import Dict, Any, Union, Text
 from autotest.config import config
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
-from autotest.httprunner.initialize_not_yaml import TestCaseMateNew
-from autotest.models.api_models import ApiCase, ApiSuite, ModuleInfo
-from autotest.serialize.api_serializes.api_case import (CaseQuerySchema, CaseSaveOrUpdateSchema,
-                                                        TestCaseRunSchema, TestCaseRunBodySchema,
-                                                        TestCaseRunBatchSchema)
+from autotest.models.api_models import ApiCase
+from autotest.serialize.api_serializes.api_case import (CaseQuerySchema, CaseSaveOrUpdateSchema)
 from autotest.services.api_services.run_handle import ApiCaseHandle
 from autotest.services.api_services.test_report import ReportService
 from autotest.services.utils_services.postman2case import Collection
 from autotest.utils.api import parse_pagination, jsonable_encoder
-from autotest.utils.common import get_user_id_by_token, get_timestamp
-from autotest.utils.service_utils import DumpTestCase
+from autotest.utils.common import get_user_id_by_token
 from zerorunner.models import TestCase
 from zerorunner.runner import ZeroRunner
 
@@ -63,7 +50,7 @@ class ApiCaseService:
         if config.EDIT_SWITCH:
             if case_info.created_by != user_id:
                 raise ValueError(partner_errmsg.get(codes.CANNOT_EDIT_CREATED_BY_YOURSELF).format('用例'))
-        case_info.update(**parsed_data.dict())
+        case_info.update(**parsed_data.dict(exclude_none=True))
         return case_info
 
     @staticmethod
@@ -104,66 +91,25 @@ class ApiCaseService:
         return case_info
 
     @staticmethod
-    def run_make(**kwargs: Any):
+    def run(**kwargs: Any):
         """
-        执行测试用例
+        运行测试用例
         :param kwargs:
         :return:
         """
         zr = ZeroRunner()
-        case_info = ApiCaseHandle(**kwargs)
+        case_info = ApiCase.get(kwargs.get("id"))
+        case_info = ApiCaseHandle(**jsonable_encoder(case_info))
         test_case = TestCase(config=case_info.config, teststeps=[case_info.step])
         zr.run_testcase(test_case)
-        print(zr.get_summary())
-        #
-        # run_type_data = ApiCaseService.handle_run_type(**kwargs)
-        # testcase_dir_path = run_type_data.get('testcase_dir_path', None)
-        # test_path_set = TestCaseMate().main_make([testcase_dir_path])
-        # params = dict(test_path_set=test_path_set, run_type_data=run_type_data)
-        # logger.info('用例初始化完成~')
-        return zr.get_summary()
+        summary = zr.get_summary()
 
+        project_id = case_info.api_case.project_id
+        module_id = case_info.api_case.module_id
+        env_id = case_info.api_case.env_id
+        report_info = ReportService.save_report(summary, project_id, module_id, env_id)
 
-    @staticmethod
-    def run_make_new(**kwargs: Any) -> Dict[Text, Any]:
-        """
-        执行测试用例
-        :param kwargs:
-        :return:
-        """
-        base_url = kwargs.get('base_url', '')
-        test_mate = TestCaseMateNew(base_url)
-        run_type_data = ApiCaseService.handle_run_type_new(test_mate, **kwargs)
-        test_path_set = test_mate.get_test_path_set()
-        params = dict(test_path_set=test_path_set, run_type_data=run_type_data)
-        logger.info('用例初始化完成~')
-        return params
-
-    @staticmethod
-    def run(test_path_set: List[Text], run_type_data: Dict) -> Dict[Text, Any]:
-        """
-        运行用例
-        :param test_path_set: py用例列表
-        :param run_type_data: 组装数据
-        :return:
-        """
-        testcase_dir_path = run_type_data['testcase_dir_path']  # 用例目录地址
-        try:
-            extra_args = ['-vs', '-W', 'ignore:Module already imported:pytest.PytestWarning']
-            extra_args.extend(test_path_set)
-            logger.info('执行用例 ~')
-            pytest.main(extra_args)
-            summary_path = run_type_data['summary_path']
-            if os.path.exists(summary_path):
-                with open(summary_path, 'r', encoding='utf-8') as f:
-                    summary = json.load(f)
-                ApiCaseService.handle_report_summary(summary=summary, run_type_data=run_type_data)
-                return summary
-            raise ValueError('测试用例执行失败，未获取到测试报告！')
-        except Exception as err:
-            logger.error(traceback.format_exc())
-        finally:
-            shutil.rmtree(testcase_dir_path)
+        return report_info
 
     @staticmethod
     def debug_testcase(**kwargs: Any) -> Any:
@@ -178,27 +124,6 @@ class ApiCaseService:
         zr.run_testcase(test_case)
         data = zr.get_summary().dict()
         return data
-
-
-    @staticmethod
-    def handle_report_summary(summary: Dict, run_type_data: Dict):
-        """
-        处理报告并入库
-        :param summary:
-        :param run_type_data:
-        :return:
-        """
-        test_report = ReportService.make_report(summary)
-        test_report.update(run_type_data)
-        ReportService.save_report(**test_report)
-
-    @staticmethod
-    def get_testcase_dir_path() -> Text:
-        """
-        生成用例运行地址
-        :return:
-        """
-        return os.path.join(config.TEST_DIR, f'run_test_{get_timestamp()}')
 
     @staticmethod
     def postman2case(json_body: Dict, **kwargs):

@@ -1,10 +1,12 @@
 import json
-from typing import Optional, Text, List, Union, Dict, Any
-from pydantic import root_validator, BaseModel
+from typing import Optional, Text, List, Union, Dict, Any, Annotated
+from pydantic import root_validator, BaseModel, Field
 from autotest.exc.exceptions import ParameterError
 from autotest.models.api_models import ApiCase
 from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
 from enum import Enum
+
+from zerorunner.models import TController, ExtractData, MethodEnum
 
 
 class CaseQuerySchema(BaseQuerySchema):
@@ -124,16 +126,6 @@ class ApiCaseHooksSchema(BaseModel):
     step_type: Text = ""
 
 
-class ExtractSchema(BaseModel):
-    name: Text = ""
-    path: Text = ""
-    extractType: Text = ""
-
-
-class StepExtractSchema(ApiCaseHooksSchema):
-    value: List[ExtractSchema]
-
-
 class StepScriptSchema(ApiCaseHooksSchema):
     pass
 
@@ -149,17 +141,9 @@ class StepWaitSchema(ApiCaseHooksSchema):
     pass
 
 
-class StepTypeEnum(Enum):
-    sql = "sql"
-    wait = "wait"
-    extract = "extract"
-    case = "case"
-    script = "script"
-
-
 class CaseSaveOrUpdateSchema(BaseModel):
     """用例保存更新"""
-    id: Union[int, Text]
+    id: Union[int, Text] = None
     name: Text = ""
     project_id: int = None
     module_id: int = None
@@ -171,11 +155,14 @@ class CaseSaveOrUpdateSchema(BaseModel):
     method: Text = ""
     url: Text = ""
     request_body: Union[ApiCaseBodySchema, None] = {}
-    setup_hooks: Union[List[Dict[Text, Any]], None] = []
-    teardown_hooks: Union[List[Dict[Text, Any]], None] = []
+    setup_hooks: List[Annotated[TController, Field(discriminator="step_type")]] = []
+    teardown_hooks: List[Annotated[TController, Field(discriminator="step_type")]] = []
     variables: Union[List[ApiCaseBaseSchema], None] = []
     headers: Union[List[ApiCaseBaseSchema], None] = []
     validators: Union[List[ApiCaseValidatorsSchema], None] = []
+    extracts: Union[List[ExtractData], None] = []
+    tags: Union[List[Text]] = []
+    remarks: Union[Text, None] = None
 
     @root_validator
     def root_validator(cls, data):
@@ -196,6 +183,8 @@ class CaseSaveOrUpdateSchema(BaseModel):
 
 
 class ApiCaseSchema(BaseModel):
+    id: Union[Text, int] = ""
+    index: int = 0
     name: Text = ""
     project_id: int = None
     module_id: int = None
@@ -203,13 +192,15 @@ class ApiCaseSchema(BaseModel):
     code_id: int = None
     code: Text = None
     priority: int = None
-    case_tag: Text = ""
-    method: Text = ""
+    case_tag: Optional[Text] = ""
+    enable: Optional[bool] = True
+    method: MethodEnum = ""
     url: Text = ""
     env_id: Union[Text, int, None] = None
     request_body: Union[ApiCaseBodySchema, None] = {}
-    setup_hooks: Union[List[Dict[Text, Any]], None] = []
-    teardown_hooks: Union[List[Dict[Text, Any]], None] = []
+    setup_hooks: List[Annotated[TController, Field(discriminator="step_type")]] = []
+    teardown_hooks: List[Annotated[TController, Field(discriminator="step_type")]] = []
     variables: Union[List[ApiCaseBaseSchema], None] = []
     headers: Union[List[ApiCaseBaseSchema], None] = []
     validators: Union[List[ApiCaseValidatorsSchema], None] = []
+    extracts: Union[List[ExtractData], None] = []

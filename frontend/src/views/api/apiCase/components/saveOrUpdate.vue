@@ -1,156 +1,161 @@
 <template>
-  <div class="save-update-card">
-    <div>
-      <el-page-header
-          class="page-header"
-          style="padding-bottom: 10px"
-          @back="goBack"
-      >
-        <template #content>
-          <span>{{editType === 'create'? '新增用例':'更新用例'}}</span>
-        </template>
-        <template #extra>
-          <el-button type="success" @click="saveOrUpdateOrDebug('debug')">调试</el-button>
-          <el-button type="primary" @click="saveOrUpdateOrDebug('save')" class="title-button">保存</el-button>
-        </template>
-      </el-page-header>
+  <div>
+    <case-info ref="caseInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug"/>
 
-      <h3 class="block-title">请求信息</h3>
-
-      <url ref="urlRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug"/>
-
-      <h3 class="block-title">基本信息</h3>
-
-      <messages ref="messagesRef"/>
-
-      <h3 class="block-title">请求参数</h3>
-      <div style="min-height: 500px">
-        <el-tabs v-model="activeName">
-          <el-tab-pane name='requestBody'>
-            <template #label>
-              <div style="align-items: center; display: flex; justify-content: center">
-                <strong>请求体</strong>
-                <div v-show="getStatus('body')" class="request-editor-tabs-badge"></div>
-              </div>
-            </template>
-            <div class="case-tabs">
-              <request-body ref="requestBodyRef" @updateHeader="updateHeader"/>
-            </div>
-          </el-tab-pane>
-
-          <el-tab-pane name='requestHeaders'>
-            <template #label><strong>请求头
-
-              <div class="el-step__icon is-text zh-header" v-show="getDataLength('header')">
-                <div class="el-step__icon-inner">{{ getDataLength('header') }}</div>
-              </div>
-
-            </strong></template>
-            <div class="case-tabs">
-              <request-headers ref="headersRef"/>
-            </div>
-          </el-tab-pane>
-
-          <el-tab-pane name='variablesParameters'>
-            <template #label>
-              <div style="align-items: center; display: flex; justify-content: center">
-                <strong>变量</strong>
-                <div class="el-step__icon is-text zh-header" v-show="getDataLength('variables')">
-                  <div class="el-step__icon-inner">{{ getDataLength('variables') }}</div>
+    <el-collapse-transition>
+      <div v-show="showRequestBody" style="margin-bottom: 20px">
+        <el-card>
+          <template #header>
+            <strong>Request</strong>
+          </template>
+          <div style="min-height: 500px">
+            <el-tabs v-model="activeName" style="overflow-y: auto">
+              <el-tab-pane name='requestBody'>
+                <template #label>
+                  <strong>请求体</strong>
+                </template>
+                <div class="case-tabs">
+                  <request-body ref="requestBodyRef" @updateHeader="updateHeader"/>
                 </div>
-              </div>
-            </template>
-            <div class="case-tabs">
-              <variables ref="variablesRef"/>
-            </div>
-          </el-tab-pane>
+              </el-tab-pane>
 
-          <el-tab-pane name='preOperation' class="h100">
-            <template #label>
-              <div style="align-items: center; display: flex; justify-content: center">
-                <strong>前置操作</strong>
-                <div class="el-step__icon is-text zh-header" v-show="getDataLength('pre')">
-                  <div class="el-step__icon-inner">{{ getDataLength('pre') }}</div>
+              <el-tab-pane name='requestHeaders'>
+                <template #label>
+                  <el-badge :hidden="!getDataLength('header')"
+                            :value="getDataLength('header')"
+                            class="badge-item"
+                            type="primary">
+                    <strong>请求头</strong>
+                  </el-badge>
+                </template>
+                <div class="case-tabs">
+                  <request-headers ref="headersRef"/>
                 </div>
-              </div>
-            </template>
-            <div class="case-tabs">
-              <pre-operation ref="preOperationRef"/>
-            </div>
-          </el-tab-pane>
+              </el-tab-pane>
 
-          <el-tab-pane name='postOperation' class="h100">
-            <template #label>
-              <div style="align-items: center; display: flex; justify-content: center">
-                <strong>后置操作</strong>
-                <div class="el-step__icon is-text zh-header" v-show="getDataLength('post')">
-                  <div class="el-step__icon-inner">{{ getDataLength('post') }}</div>
+              <el-tab-pane name='variablesParameters'>
+                <template #label>
+                  <el-badge :hidden="!getDataLength('variables')"
+                            :value="getDataLength('variables')"
+                            class="badge-item"
+                            type="primary">
+                    <strong>变量</strong>
+                  </el-badge>
+                </template>
+                <div class="case-tabs">
+                  <variables ref="variablesRef"/>
                 </div>
-              </div>
-            </template>
-            <div class="case-tabs">
-              <post-operation ref="postOperationRef"/>
-            </div>
-          </el-tab-pane>
+              </el-tab-pane>
 
-
-          <el-tab-pane name='assertController' class="h100">
-            <template #label>
-              <div style="align-items: center; display: flex; justify-content: center">
-                <strong>断言规则</strong>
-                <div class="el-step__icon is-text zh-header" v-show="getDataLength('validators')">
-                  <div class="el-step__icon-inner">{{ getDataLength('validators') }}</div>
+              <el-tab-pane name='extracts' class="h100">
+                <template #label>
+                  <el-badge :hidden="!getDataLength('extracts')"
+                            :value="getDataLength('extracts')"
+                            class="badge-item" type="primary">
+                    <strong>提取</strong>
+                  </el-badge>
+                </template>
+                <div class="case-tabs">
+                  <extracts ref="extractsRef"/>
                 </div>
-              </div>
-            </template>
-            <div class="case-tabs">
-              <validators ref="validatorsRef"/>
-            </div>
-          </el-tab-pane>
+              </el-tab-pane>
 
-        </el-tabs>
+              <el-tab-pane name='preOperation' class="h100">
+                <template #label>
+                  <el-badge :hidden="!getDataLength('pre')"
+                            :value="getDataLength('pre')"
+                            class="badge-item"
+                            type="primary">
+                    <strong>前置操作</strong>
+                  </el-badge>
+                </template>
+                <div class="case-tabs">
+                  <pre-operation ref="preOperationRef"/>
+                </div>
+              </el-tab-pane>
+
+              <el-tab-pane name='postOperation' class="h100">
+                <template #label>
+                  <el-badge :hidden="!getDataLength('post')"
+                            :value="getDataLength('post')"
+                            class="badge-item"
+                            type="primary">
+                    <strong>后置操作</strong>
+                  </el-badge>
+                </template>
+                <div class="case-tabs">
+                  <post-operation ref="postOperationRef"/>
+                </div>
+              </el-tab-pane>
+
+
+              <el-tab-pane name='assertController' class="h100">
+                <template #label>
+                  <el-badge :hidden="!getDataLength('validators')"
+                            :value="getDataLength('validators')"
+                            class="badge-item"
+                            type="primary">
+                    <strong>断言规则</strong>
+                  </el-badge>
+                </template>
+                <div class="case-tabs">
+                  <validators ref="validatorsRef"/>
+                </div>
+              </el-tab-pane>
+
+            </el-tabs>
+          </div>
+        </el-card>
       </div>
+    </el-collapse-transition>
 
-      <h3 class="block-title">响应内容</h3>
-<!--      <report-detail v-if="showTestReportDialog" :data="reportContent"></report-detail>-->
 
-    </div>
-
-    <el-dialog
-        draggable
-        v-model="showTestReportDialog"
-        width="80%"
-        top="8vh"
-        destroy-on-close
-        :close-on-click-modal="false">
-      <api-report :reportBody="reportBody"/>
-    </el-dialog>
+    <el-card id="Response" ref="ResponseRef" v-show="reportData">
+      <template #header>
+        <div style="display: flex; justify-content: space-between">
+          <div>
+            <strong>Response</strong>
+          </div>
+          <div style="font-size: 12px" v-if="apiReportStat">
+            <el-tag effect="dark" :type="apiReportStat.success? 'success': 'danger'" style="margin-right: 20px">
+              {{ apiReportStat.success ? "通过" : "不通过" }}
+            </el-tag>
+            <span :style="{color: apiReportStat.status_code === 200 ? '#67c23a': 'red'}">
+              {{ apiReportStat.status_code === 200 ? '200 OK' : apiReportStat.status_code }}
+            </span>
+            <span style="color:#67c23a; padding-left: 10px">{{ apiReportStat.response_time_ms }} ms</span>
+            <span style="color:#67c23a; padding-left: 10px">{{ apiReportStat.content_size }} B</span>
+          </div>
+        </div>
+      </template>
+      <div style="height: 500px; overflow-y: auto" v-show="showReport">
+        <api-report v-if="showReport" :reportData="reportData" ref="apiReportRef"></api-report>
+      </div>
+    </el-card>
 
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, onMounted, reactive, ref, toRefs} from 'vue'
-import Url from '/@/views/api/apiCase/components/url.vue'
-import Messages from '/@/views/api/apiCase/components/messages.vue'
+import {defineComponent, nextTick, onMounted, reactive, ref, toRefs} from 'vue'
+import caseInfo from '/@/views/api/apiCase/components/caseInfo.vue'
 import RequestBody from '/@/views/api/apiCase/components/requestBody.vue'
 import requestHeaders from '/@/views/api/apiCase/components/headers.vue'
 import Variables from '/@/views/api/apiCase/components/variables.vue'
 import preOperation from "/@/views/api/apiCase/components/preOperation.vue"
 import postOperation from "/@/views/api/apiCase/components/postOperation.vue";
 import validators from "/@/views/api/apiCase/components/validators.vue";
-import {useStore} from "/@/store"
+import Extracts from "/@/views/api/apiCase/components/extracts.vue";
+import apiReport from "/@/components/Report/ApiReport/index.vue";
 import {useRoute, useRouter} from "vue-router"
 import {useApiCaseApi} from '/@/api/useAutoApi/apiCase'
 import {ElMessage, ElLoading} from 'element-plus'
-import {handleEmpty} from "/@/utils/other";
-import apiReport from "/@/views/api/Report/components/report.vue";
 
 export default defineComponent({
   name: 'saveOrUpdateTestCase',
   components: {
-    Url,
-    Messages,
+    Extracts,
+    caseInfo,
     RequestBody,
     requestHeaders,
     Variables,
@@ -163,17 +168,18 @@ export default defineComponent({
     case_id: Number
   },
   setup(props) {
-    const store = useStore();
     const route = useRoute();
     const router = useRouter();
-    const urlRef = ref()
-    const messagesRef = ref()
+    const caseInfoRef = ref()
     const requestBodyRef = ref()
     const headersRef = ref()
     const preOperationRef = ref()
     const postOperationRef = ref()
     const variablesRef = ref()
     const validatorsRef = ref()
+    const extractsRef = ref()
+    const ResponseRef = ref()
+    const apiReportRef = ref()
     const state = reactive({
       isShowDialog: false,
       activeName: 'requestBody',
@@ -184,37 +190,55 @@ export default defineComponent({
       reportContent: [],
 
       case_id: null,
+
+      // show
+      showRequestBody: true,
+
+      //report
+      showReport: false,
+      reportData: null,
+      apiReportStat: null
     });
 
 
     const saveOrUpdateOrDebug = (type: string) => {
+      // if (!store.state.env?.envId) {
+      //   console.log("store.state.env", store.state.env)
+      //   showDriver()
+      //   // ElMessage.warning("请选择运行环境！")
+      //   return
+      // }
       try {
-        let urlData = urlRef.value.getData()   // url表单信息
-        let messagesData = messagesRef.value.getData()
+        let caseInfoData = caseInfoRef.value.getData()
         let bodyData = requestBodyRef.value.getData()
         let headerData = headersRef.value.getData()
         let preData = preOperationRef.value.getData()
         let postData = postOperationRef.value.getData()
         let variableData = variablesRef.value.getData()
         let validatorsData = validatorsRef.value.getData()
+        let extractsData = extractsRef.value.getData()
 
         // 组装表单
         let apiCaseData = {
           id: state.case_id,
-          name: messagesData.name,
-          project_id: messagesData.project_id,
-          module_id: messagesData.module_id,
-          code_id: messagesData.code_id,
-          code: messagesData.code,
-          priority: messagesData.priority,
-          method: urlData.method,
-          url: urlData.url,
+          name: caseInfoData.name,
+          project_id: caseInfoData.project_id,
+          module_id: caseInfoData.module_id,
+          code_id: caseInfoData.code_id,
+          code: caseInfoData.code,
+          priority: caseInfoData.priority,
+          method: caseInfoData.method,
+          url: caseInfoData.url,
+          tags: caseInfoData.tags,
+          remarks: caseInfoData.remarks,
+          env_id: null,
           headers: headerData,
           request_body: bodyData,
           variables: variableData,
           setup_hooks: preData,
           teardown_hooks: postData,
           validators: validatorsData,
+          extracts: extractsData,
         }
 
         // 保存用例
@@ -222,8 +246,7 @@ export default defineComponent({
           useApiCaseApi().saveOrUpdate(apiCaseData)
               .then(res => {
                 ElMessage.success('保存成功！')
-                let case_id = res.data
-                state.case_id = case_id
+                state.case_id = res.data
               })
         } else {
           // testCaseData.type = type
@@ -237,12 +260,13 @@ export default defineComponent({
           })
           useApiCaseApi().debugTestCaseNew(apiCaseData)
               .then(res => {
-                state.reportContent = res.data?.step_datas[0].data
+                state.reportData = null
+
                 if (type === 'debug') {
+                  state.reportData = res.data
                   console.log('-----------------debug---------------')
-                  // urlRef.value.onOpenCloseEnvDialog()
-                  // state.reportContent = res.data
-                  state.showTestReportDialog = true
+                  state.showReport = true
+                  toResponse()
                   loading.close()
                 } else {
                   // this.drawer = true
@@ -261,33 +285,23 @@ export default defineComponent({
     }
 
     const initTestCase = () => {
-      let case_id = route.query.id || props.case_id
+      let case_id = null
+      if (props.case_id) {
+        case_id = props.case_id
+      } else {
+        case_id = route.query.id
+      }
+      console.log("case_id------>", case_id)
       if (case_id) {
         state.case_id = case_id
         useApiCaseApi().getTestCaseInfo({id: state.case_id})
             .then(res => {
               let apiCaseData = res.data
-              // url
-              let urlData = {
-                id: apiCaseData.id,
-                url: apiCaseData.url,
-                method: apiCaseData.method,
-              }
-              urlRef.value.setData(urlData)
-
-              // 编辑赋值调用 详情
-              let messagesData = {
-                name: apiCaseData.name,
-                code_id: apiCaseData.code_id,
-                code: apiCaseData.code,
-                project_id: apiCaseData.project_id,
-                module_id: apiCaseData.module_id,
-              }
-              messagesRef.value.setData(messagesData)
-              // 编辑赋值调用 请求参数
+              caseInfoRef.value.setData(apiCaseData)
               requestBodyRef.value.setData(apiCaseData.request_body)
               headersRef.value.setData(apiCaseData.headers)
               variablesRef.value.setData(apiCaseData.variables)
+              extractsRef.value.setData(apiCaseData.extracts)
               preOperationRef.value.setData(apiCaseData.setup_hooks, state.case_id)
               postOperationRef.value.setData(apiCaseData.teardown_hooks, state.case_id)
               validatorsRef.value.setData(apiCaseData.validators)
@@ -301,59 +315,63 @@ export default defineComponent({
       router.push({name: 'apiTestCase'})
     }
 
-    // updateHeader
     const getDataLength = (ref: string) => {
       switch (ref) {
         case "header":
-          return handleEmpty(headersRef.value.headers).length
+          return headersRef.value.getData().length
         case "variables":
-          return handleEmpty(variablesRef.value.variables).length
+          return variablesRef.value.getData().length
         case "pre":
-          return handleEmpty(preOperationRef.value.teardown_hooks).length
+          return preOperationRef.value.getData().length
         case "post":
-          return handleEmpty(postOperationRef.value.setup_hooks).length
+          return postOperationRef.value.getData().length
         case "validators":
-          return handleEmpty(validatorsRef.value.validators).length
+          return validatorsRef.value.getData().length
+        case "extracts":
+          return extractsRef.value.getData().length
       }
     }
 
+    // updateHeader
     const updateHeader = (headerData: any, remove: any) => {
       headersRef.value.updateHeader(headerData, remove)
     }
 
-    // 获取是否填写参数状态
-    const getStatus = (components: string) => {
-      switch (components) {
-        case 'body':
-          return requestBodyRef.value.getStatus()
-        case 'vp':
-          return variablesRef.value.getStatus()
-        case 'ev':
-          // return extractValidateRef.value.getStatus()
-      }
+    const toResponse = () => {
+      nextTick(() => {
+        ResponseRef.value.$el.scrollIntoView({
+          behavior: "smooth",
+          // 定义动画过渡效果， "auto"或 "smooth" 之一。默认为 "auto"
+          block: "center",
+          // 定义垂直方向的对齐， "start", "center", "end", 或 "nearest"之一。默认为 "start"
+          inline: "nearest"
+        })
+        state.apiReportStat = {...apiReportRef.value.getStat(), success: state.reportData.success}
+      })
     }
+
 
     onMounted(() => {
       initTestCase()
     })
 
     return {
-      urlRef,
-      messagesRef,
+      caseInfoRef,
       requestBodyRef,
       headersRef,
       variablesRef,
       preOperationRef,
       postOperationRef,
       validatorsRef,
-      store,
+      extractsRef,
+      apiReportRef,
+      ResponseRef,
       route,
       router,
       goBack,
       getDataLength,
       updateHeader,
       saveOrUpdateOrDebug,
-      getStatus,
       ...toRefs(state),
     };
   },
@@ -361,87 +379,25 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.block-title {
-  position: relative;
-  margin-bottom: 12px;
-  padding-left: 11px;
-  font-size: 14px;
-  font-weight: 600;
-  height: 28px;
-  line-height: 28px;
-  background: #f7f7fc;
-  color: #333333;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 7px;
-    left: 0;
-    width: 3px;
-    height: 14px;
-    background: #409eff;
+:deep(.el-card) {
+  .el-card__body {
+    padding: 5px 20px;
   }
 }
 
-:deep(.page-header .el-page-header__icon .el-icon) {
-  background-color: #3883fa;
+// el-badge
+:deep(.el-badge__content) {
   border-radius: 50%;
-  color: white;
+  width: 18px;
 }
 
-:deep(.el-page-header .page-header) {
-  margin-left: 0 !important;
-}
-:deep(.el-page-header__breadcrumb) {
-  margin-bottom: 0;
-}
-//:deep(.save-update-card .el-card__body) {
-//  padding-top: 0;
-//}
-.save-update-card {
-  border-radius: 4px;
-  border: 1px solid #e4e7ed;
-  background-color: #ffffff;
-  overflow-x: hidden;
-  overflow-y: auto;
-  color: #303133;
-  transition: 0.3s;
-  padding: 10px;
+:deep(.el-badge__content.is-fixed) {
+  top: 8px;
+  right: calc(-7px + var(--el-badge-size) / 2);
 }
 
-:deep(.el-tabs__header) {
-  margin: 0 0 10px;
+//el-card
+:deep(.el-card) {
+  border-radius: 10px;
 }
-
-:deep(.el-tabs__item.is-active) {
-  color: var(--el-text-color-primary);
-}
-
-//:deep(.el-tabs__item:hover) {
-//  color: var(--el-text-color-primary);
-//}
-
-.request-editor-tabs-badge {
-  background-color: #61affe;
-  display: inline-flex;
-  width: 8px;
-  height: 8px;
-  margin-left: 5px;
-  border-radius: 8px;
-}
-
-.case-tabs {
-  border: 1px solid #E6E6E6;
-  padding: 8px;
-  border-radius: 5px;
-}
-
-.zh-header {
-  background: #61affe;
-  color: #fff;
-  height: 18px;
-  font-size: xx-small;
-  border-radius: 50%;
-}
-
 </style>

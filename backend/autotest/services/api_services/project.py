@@ -7,7 +7,7 @@ from autotest.exc.partner_message import partner_errmsg
 from autotest.serialize.api_serializes.project import ProjectQuerySchema
 from autotest.models.api_models import ProjectInfo, Functions, ModuleInfo
 from autotest.services.api_services.functions import FunctionsService
-from autotest.utils.api import parse_pagination
+from autotest.utils.api import parse_pagination, jsonable_encoder
 from autotest.utils.common import get_user_id_by_token
 
 
@@ -81,3 +81,21 @@ class ProjectService:
                 debug_info.delete()
             except Exception as err:
                 logger.error(traceback.format_exc())
+
+    @staticmethod
+    def get_project_tree(project_id: int = None):
+        project_list = ProjectInfo.get_project_list(id=project_id).all()
+        module_list = ModuleInfo.get_list().all()
+
+        project_tree_list = []
+
+        for project in project_list:
+            project_dict = jsonable_encoder(project)
+            project_dict["children"] = []
+            project_dict["disabled"] = True
+            for module in module_list:
+                if module.project_id == project.id:
+                    project_dict["children"].append(jsonable_encoder(module))
+                    project_dict["disabled"] = False
+            project_tree_list.append(project_dict)
+        return project_tree_list

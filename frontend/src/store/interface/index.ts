@@ -92,7 +92,7 @@ export interface LookUpState {
   lookup: object
 }
 
-// lookup
+// env
 export interface EnvState {
   envId: number | null
 }
@@ -105,6 +105,6 @@ export interface RootStateTypes {
   tagsViewRoutes: TagsViewRoutesState;
   userInfos: UserInfosState;
   lookup: any;
-  envId: number | null;
+  env: any;
   requestOldRoutes: RequestOldRoutesState;
 }

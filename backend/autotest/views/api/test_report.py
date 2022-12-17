@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from autotest.services.api_services.test_report import ReportService
 from autotest.utils.api import partner_success
 
-bp = Blueprint('test_report', __name__, url_prefix='/api/report', template_folder='httprunner')
+bp = Blueprint('test_report', __name__, url_prefix='/api/report')
 
 
 @bp.route('/list', methods=['POST'])
@@ -28,13 +28,27 @@ def deleted():
     return partner_success()
 
 
-@bp.route('/getReportById', methods=['POST'])
-def get_report_by_id():
+@bp.route('/getReportDetail', methods=['POST'])
+def get_report_detail():
     """
     测试报告
     :return:
     """
     parsed_data = request.json
     report_id = parsed_data.get('id', None)
-    report_info = ReportService.detail(report_id)
+    parent_step_id = parsed_data.get('parent_step_id', None)
+    report_info = ReportService.detail(report_id, parent_step_id)
     return partner_success(data=report_info)
+
+
+@bp.route('/getReportStatistics', methods=['POST'])
+def get_report_statistics():
+    """
+    测试报告
+    :return:
+    """
+    parsed_data = request.json
+    report_id = parsed_data.get('id', None)
+    parent_step_id = parsed_data.get('parent_step_id', None)
+    data = ReportService.statistics(report_id, parent_step_id)
+    return partner_success(data=data)

@@ -1,7 +1,7 @@
 from typing import List
 
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, BigInteger, func, \
-    distinct, text, and_, JSON
+from sqlalchemy import Column, Integer, String, Text, DateTime, BigInteger, func, \
+    distinct, text, and_, JSON, DECIMAL, case as func_case
 from sqlalchemy.orm import aliased
 
 from autotest.models.Base import Base, TimestampMixin
@@ -37,8 +37,7 @@ class ProjectInfo(Base, TimestampMixin):
         return cls.query.outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
             .filter(*q, cls.enabled_flag == 1) \
-            .with_entities(cls,
-                           cls.id,
+            .with_entities(cls.id,
                            cls.name,
                            cls.responsible_name,
                            cls.config_id,
@@ -204,6 +203,9 @@ class ApiCase(Base, TimestampMixin):
     headers = Column(JSON, nullable=True, comment='请求头')
     url = Column(JSON, nullable=True, comment='请求地址')
     validators = Column(JSON, nullable=True, comment='断言规则')
+    extracts = Column(JSON, nullable=True, comment='提取')
+    tags = Column(JSON, nullable=True, comment='用例标签')
+    remarks = Column(String(255), nullable=True, comment='描述')
 
     @classmethod
     def get_list(cls, **kwargs):
@@ -428,33 +430,112 @@ class ApiSuite(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
 
-class TestReports(Base, TimestampMixin):
-    """报告表"""
-    __tablename__ = 'test_reports'
+class ApiSuiteStep(Base, TimestampMixin):
+    """测试套件，集合步骤"""
+    __tablename__ = 'api_suite_step'
 
-    name = Column(String(64), nullable=False, comment='报告名', index=True)
-    start_at = Column(String(64), nullable=True, comment='开始时间')
-    scene_num = Column(Integer, nullable=True, comment='用例数量')
-    duration = Column(String(255), nullable=True, comment='用例执行时长')
-    run_type = Column(String(100), nullable=True, comment='运行类型 手动, 定时任务, 异步', default=10)
-    run_mode = Column(String(100), nullable=True, comment='运行模式，1同步，2异步，3定时任务')
-    task_type = Column(String(100), nullable=True, comment='任务类型, test,module,project')
-    project_id = Column(Integer, nullable=True, comment='项目id')
-    module_id = Column(Integer, nullable=True, comment='模块id')
-    report_type = Column(Integer, nullable=True, comment='报告类型，10测试报告，20数据构造, 30调试报告')
-    run_case_priority = Column(Integer, nullable=True, comment='执行用例等级')
-    execute_service = Column(String(100), nullable=True, comment='执行服务')
-    execute_source = Column(Integer, nullable=True, comment='执行来源')
-    execute_user_id = Column(Integer, nullable=False, comment='执行人id')
-    successful_use_case = Column(Integer, nullable=True, comment='成功用例')
-    success = Column(String(100), nullable=True, comment='成功状态')
-    run_test_count = Column(Integer, nullable=True, comment='运行用例个数')
-    report_body = Column(Text, nullable=True, comment='报告详情')
+    name = Column(String(64), nullable=False, comment='名称', index=True)
+    parent_id = Column(Integer, nullable=False, comment='父级id')
+    suite_id = Column(Integer, nullable=False, comment='套件id')
+    step_type = Column(String(255), nullable=False, comment='步骤类型')
+    case_id = Column(Integer, nullable=False, comment='case_id')
+    value = Column(JSON, nullable=False, comment='步骤参数')
+    enable = Column(Integer, nullable=False, comment='是否生效')
+    index = Column(Integer, nullable=False, comment='顺序')
+    node_id = Column(String(255), nullable=False, comment='节点id')
 
     @classmethod
-    def get_list(cls, id=None, name=None, project_id=None, module_id=None, execute_user_name=None, min_and_max=None,
-                 user_ids=None, project_ids=None, ids=None, status=None, execute_source=None, created_by=None):
+    def get_list(cls, name=None, user_ids=None, project_id=None, created_by=None, suite_type=None,
+                 created_by_name=None, project_ids=None, ids=None):
         q = list()
+        if name:
+            q.append(cls.name.like(f'%{name}%'))
+        if suite_type:
+            q.append(cls.suite_type == suite_type)
+        if project_id:
+            q.append(cls.project_id == project_id)
+        if created_by:
+            q.append(User.nickname.like(f'%{created_by}%'))
+        if user_ids:
+            q.append(cls.created_by.in_(user_ids))
+        if project_ids:
+            q.append(cls.project_id.in_(project_ids))
+        if created_by_name:
+            q.append(User.nickname.like(f'%{created_by_name}%'))
+        if ids:
+            q.append(cls.id.in_(ids))
+        u = aliased(User)
+        return cls.query.filter(*q, cls.enabled_flag == 1) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
+            .with_entities(cls.id,
+                           cls.name,
+                           cls.project_id,
+                           cls.headers,
+                           cls.variables,
+                           cls.created_by,
+                           cls.creation_date,
+                           cls.updated_by,
+                           cls.updation_date,
+                           cls.enabled_flag,
+                           User.nickname.label('created_by_name'),
+                           u.nickname.label('updated_by_name'),
+                           ProjectInfo.name.label('project_name')) \
+            .order_by(cls.creation_date.desc())
+
+    @classmethod
+    def get_suite_by_id(cls, id):
+        """根据套件id查询套件"""
+        return cls.query.filter(cls.id == id, cls.enabled_flag == 1).first()
+
+    @classmethod
+    def get_suite_by_name(cls, suite_name):
+        """根据套件名称查询套件"""
+        return cls.query.filter(cls.suite_name == suite_name, cls.enabled_flag == 1).all()
+
+    @classmethod
+    def statistic_project_suite_number(cls):
+        return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .with_entities(ProjectInfo.name,
+                           func.count(cls.id).label('case_num'),
+                           User.username.label('employee_code'),
+                           User.nickname.label('username'),
+                           ) \
+            .filter(cls.enabled_flag == 1)
+
+    @classmethod
+    def get_all_count(cls):
+        return cls.query.filter(cls.enabled_flag == 1).count()
+
+
+class ApiTestReport(Base, TimestampMixin):
+    """报告表"""
+    __tablename__ = 'api_test_report'
+
+    name = Column(String(255), nullable=False, comment='报告名称', index=True)
+    start_time = Column(DateTime, nullable=True, comment='执行时间')
+    duration = Column(String(255), nullable=True, comment='运行耗时')
+    case_id = Column(Integer, nullable=True, comment='执行用例id')
+    run_mode = Column(String(255), nullable=True, comment='运行模式， case 用例， suites 套件')
+    run_type = Column(Integer, nullable=True, comment='运行类型， 10 同步， 20 异步，30 定时任务')
+    success = Column(Integer, nullable=True, comment='是否成功， True, False')
+    run_count = Column(Integer, nullable=True, comment='运行步骤数')
+    actual_run_count = Column(Integer, nullable=True, comment='实际步骤数')
+    run_success_count = Column(Integer, nullable=True, comment='运行成功数')
+    run_fail_count = Column(Integer, nullable=True, comment='运行失败数')
+    run_skip_count = Column(Integer, nullable=True, comment='运行跳过数')
+    run_err_count = Column(Integer, nullable=True, comment='运行错误数')
+    run_log = Column(Text, nullable=True, comment='运行日志')
+    project_id = Column(Integer, nullable=True, comment='项目id')
+    module_id = Column(Integer, nullable=True, comment='模块id')
+    env_id = Column(Integer, nullable=True, comment='运行环境')
+
+    @classmethod
+    def get_list(cls, id=None, name=None, project_id=None, module_id=None, run_user_name=None, min_and_max=None,
+                 user_ids=None, project_ids=None, ids=None, status=None, execute_source=None, created_by=None):
+        q = []
         if id:
             q.append(cls.id == id)
         if name:
@@ -467,8 +548,8 @@ class TestReports(Base, TimestampMixin):
             q.append(cls.status == status)
         if execute_source:
             q.append(cls.execute_source == execute_source)
-        if execute_user_name:
-            q.append(User.nickname.like('%{}%'.format(execute_user_name)))
+        if run_user_name:
+            q.append(User.created_by.like('%{}%'.format(run_user_name)))
         if ids:
             q.append(cls.id.in_(ids))
         if user_ids:
@@ -481,27 +562,23 @@ class TestReports(Base, TimestampMixin):
             q.append(cls.creation_date.between(*min_and_max))
 
         return cls.query.filter(*q, cls.enabled_flag == 1) \
-            .outerjoin(User, User.id == cls.execute_user_id) \
+            .outerjoin(User, User.id == cls.created_by) \
             .with_entities(cls.id,
                            cls.name,
-                           cls.start_at,
-                           cls.scene_num,
+                           cls.start_time,
                            cls.duration,
-                           cls.run_type,
+                           cls.case_id,
                            cls.run_mode,
-                           cls.task_type,
+                           cls.run_type,
+                           cls.success,
+                           cls.run_count,
+                           cls.actual_run_count,
+                           cls.run_success_count,
+                           cls.run_log,
                            cls.project_id,
                            cls.module_id,
-                           cls.report_type,
-                           cls.run_case_priority,
-                           cls.execute_service,
-                           cls.execute_source,
-                           cls.execute_user_id,
-                           cls.successful_use_case,
-                           cls.success,
-                           cls.run_test_count,
-                           # cls.report_body, // 报告内容太大，列表不返回
-                           User.nickname.label('execute_user_name')) \
+                           cls.creation_date,
+                           User.nickname.label('run_user_name')) \
             .order_by(cls.creation_date.desc())
 
     @classmethod
@@ -518,11 +595,11 @@ class TestReports(Base, TimestampMixin):
                                 cls.success.isnot(None)) \
             .with_entities(cls.id,
                            cls.name,
-                           cls.start_at,
+                           cls.start_time,
                            cls.success,
-                           cls.run_test_count,
-                           cls.successful_use_case,
-                           cls.execute_user_id,
+                           cls.run_count,
+                           cls.run_success_count,
+                           cls.created_by,
                            cls.run_type,
                            cls.run_mode)
 
@@ -560,160 +637,146 @@ class TestReports(Base, TimestampMixin):
         ).group_by(text('project_name'))
 
 
-class TestReportsNew(object):
+class ApiTestReportDetail:
     """报告表"""
     _mapper = {}
 
     @staticmethod
-    def model(id):
-        table_index = id % 100
-        class_name = 'TestReportsNew_%d' % table_index
+    def model(id: int):
+        # 目前一个表，多个表修改取模数
+        table_index = id % 1
+        class_name = 'api_test_report_detail_%d' % table_index
 
-        ModelClass = TestReportsNew._mapper.get(class_name, None)
-        if ModelClass is None:
+        mode_class = ApiTestReportDetail._mapper.get(class_name, None)
+        if mode_class is None:
             class ModelClass(Base, TimestampMixin):
                 __module__ = __name__
                 __name__ = class_name,
-                __tablename__ = 'test_reports_new_%d' % table_index
-                # summary
-                summary_report_name = Column(String(64), nullable=False, comment='报告名称', index=True)
-                summary_success = Column(String(64), nullable=False, comment='结果是否成功')
-                summary_start_at = Column(Float, nullable=False, comment='开始时间戳')
-                summary_duration = Column(Float, nullable=False, comment='耗时（秒）')
+                __tablename__ = 'api_test_report_detail_%d' % table_index
 
-                # detail
-                detail_base_url = Column(String(64), nullable=True, comment='')
-                detail_output = Column(String(64), nullable=True, comment='')
-
-                # records
-                records_attachment = Column(String(64), nullable=True, comment='')
-
-                # request
-                request_url = Column(String(256), nullable=True, comment='url')
-                request_method = Column(String(64), nullable=True, comment='method')
-                request_headers = Column(String(512), nullable=True, comment='headers')
-                request_start_timestamp = Column(String(64), nullable=True, comment='start_timestamp')
-                request_body = Column(String(1024), nullable=True, comment='body')
-
-                # response
-                response_status_code = Column(Integer, nullable=True, comment='http状态码')
-                response_headers = Column(String(512), nullable=True, comment='headers')
-                response_content_size = Column(Integer, nullable=True, comment='')
-                response_time_ms = Column(Float, nullable=True, comment='')
-                response_elapsed_ms = Column(Float, nullable=True, comment='')
-                response_encoding = Column(String(64), nullable=True, comment='')
-                response_content = Column(String(2048), nullable=True, comment='')
-                response_content_type = Column(String(64), nullable=True, comment='')
-
-                # validators
-                validators_check = Column(String(64), nullable=True, comment='')
-                validators_expect = Column(String(64), nullable=True, comment='')
-                validators_comparator = Column(String(64), nullable=True, comment='')
-                validators_check_value = Column(String(64), nullable=True, comment='')
-                validators_check_result = Column(String(64), nullable=True, comment='')
-
-                # output
-                output_out = Column(String(2048), nullable=True, comment='输出参数')
-
-                # basic
-                c_id = Column(Integer, nullable=True, comment='用例id')
-                basic_execute_user = Column(String(64), nullable=True, comment='执行人')
-                basic_execute_user_id = Column(Integer, nullable=True, comment='执行人id')
-                basic_project = Column(String(64), nullable=True, comment='项目')
-                basic_project_id = Column(Integer, nullable=True, comment='项目id')
-                basic_module = Column(String(64), nullable=True, comment='模块')
-                basic_module_id = Column(Integer, nullable=True, comment='模块id')
-                basic_type = Column(String(64), nullable=False, comment='任务类型 case,suite,module,project',
-                                    default='case')
-                basic_run_type = Column(Integer, nullable=False, comment='运行类型 手动10,异步20,CICD30', default=10)
-                basic_batch = Column(Integer, nullable=False, comment='批次id')
-                basic_extend_integer_1 = Column(Integer, nullable=True, comment='扩展_integer_1')
-                basic_extend_string_1 = Column(String(64), nullable=True, comment='扩展_string_1')
-                basic_extend_float_1 = Column(String(64), nullable=True, comment='扩展_float_1')
+                name = Column(String(255), nullable=False, comment='步骤名称', index=True)
+                case_id = Column(String(255), nullable=True, comment='用例id')
+                success = Column(Integer, nullable=True, comment='是否成功， True, False')
+                status = Column(String(255), nullable=True, comment='步骤状态  success 成功  fail 失败  skip 跳过')
+                step_id = Column(String(255), nullable=True, comment='步骤id')
+                parent_step_id = Column(String(255), nullable=True, comment='父级步骤id')
+                step_type = Column(String(255), nullable=True, comment='步骤类型')
+                step_tag = Column(String(255), nullable=True, comment='步骤标签 pre 前置，post 后置，controller 控制器')
+                message = Column(Text, nullable=True, comment='步骤信息')
+                variables = Column(JSON, nullable=True, comment='步骤变量')
+                session_data = Column(JSON, nullable=True, comment='请求会话数据')
+                export_vars = Column(JSON, nullable=True, comment='导出变量')
+                report_id = Column(Integer, nullable=True, comment='报告id', index=True)
+                start_time = Column(DateTime, nullable=True, comment='开始时间')
+                duration = Column(DECIMAL(), nullable=True, comment='耗时')
+                pre_hook_data = Column(JSON, nullable=True, comment='前置步骤')
+                post_hook_data = Column(JSON, nullable=True, comment='后置步骤')
+                index = Column(Integer, nullable=True, comment='顺序')
+                status_code = Column(Integer, nullable=True, comment='顺序')
+                response_time_ms = Column(DECIMAL(), nullable=True, comment='响应耗时')
+                elapsed_ms = Column(DECIMAL(), nullable=True, comment='请求耗时')
 
                 @classmethod
-                def get_list(cls, id=None, summary_report_name=None, basic_project_id=None, basic_module_id=None,
-                             basic_execute_user=None, response_status_code=None, request_method=None,
-                             basic_batch=None, summary_success=None, ids=None, basic_execute_user_id=None,
-                             case_created_by_name=None, project_ids=None, c_id=None):
+                def get_list(cls, report_id, parent_step_id=None):
                     q = list()
-                    if id:
-                        q.append(cls.id == id)
-                    if summary_report_name:
-                        q.append(cls.summary_report_name.like('%{}%'.format(summary_report_name)))
-                    if c_id:
-                        q.append(cls.c_id == c_id)
-                    if basic_project_id:
-                        q.append(cls.basic_project_id == basic_project_id)
-                    if basic_module_id:
-                        q.append(cls.basic_module_id == basic_module_id)
-                    if basic_batch:
-                        q.append(cls.basic_batch == basic_batch)
-                    if summary_success != None:
-                        q.append(cls.summary_success == summary_success)
-                    if response_status_code:
-                        q.append(cls.response_status_code == response_status_code)
-                    if request_method:
-                        q.append(cls.request_method == request_method)
-                    if ids:
-                        q.append(cls.id.in_(ids))
-                    if basic_execute_user:
-                        q.append(User.nickname.like('%{}%'.format(basic_execute_user)))
-                    if basic_execute_user_id:
-                        q.append(cls.basic_execute_user_id == basic_execute_user_id)
-                    if case_created_by_name:
-                        q.append(User.nickname.like('%{}%'.format(case_created_by_name)))
-                    if project_ids:
-                        q.append(cls.project_id.in_(project_ids))
+                    q.append(cls.report_id == report_id)
+                    if parent_step_id:
+                        q.append(cls.parent_step_id == parent_step_id)
+                    else:
+                        q.append(cls.parent_step_id == None)
+
                     return cls.query.filter(*q, cls.enabled_flag == 1) \
-                        .outerjoin(ApiCase, ApiCase.id == cls.c_id) \
+                        .outerjoin(ApiCase, ApiCase.id == cls.case_id) \
                         .outerjoin(User, User.id == ApiCase.created_by) \
                         .with_entities(cls.id,
-                                       cls.summary_report_name,
-                                       cls.request_start_timestamp,
-                                       cls.summary_success,
-                                       cls.summary_duration,
-                                       cls.request_method,
-                                       cls.response_status_code,
-                                       cls.basic_project,
-                                       cls.basic_module,
-                                       cls.basic_batch,
-                                       cls.c_id,
-                                       cls.basic_execute_user,
+                                       cls.name,
+                                       cls.case_id,
+                                       cls.success,
+                                       cls.status,
+                                       cls.step_id,
+                                       cls.parent_step_id,
+                                       cls.step_type,
+                                       cls.message,
+                                       cls.variables,
+                                       cls.session_data,
+                                       cls.export_vars,
+                                       cls.step_tag,
+                                       cls.report_id,
+                                       cls.pre_hook_data,
+                                       cls.post_hook_data,
+                                       cls.response_time_ms,
+                                       cls.status_code,
+                                       cls.elapsed_ms,
+                                       ApiCase.name.label("case_name"),
+                                       ApiCase.method.label("method"),
+                                       ApiCase.url.label("url"),
                                        ApiCase.created_by.label('case_created_by'),
                                        User.nickname.label('case_created_by_name'),
                                        ) \
-                        .order_by(cls.creation_date.desc())
+                        .order_by(cls.index)
 
                 @classmethod
-                def get_by_batch(cls, batch):
-                    return cls.query.filter(cls.basic_batch == batch, cls.enabled_flag == 1)
+                def statistics(cls, report_id, parent_step_id=None):
+                    q = list()
+                    q.append(cls.report_id == report_id)
+                    if parent_step_id:
+                        q.append(cls.parent_step_id == parent_step_id)
+                    else:
+                        q.append(cls.parent_step_id == None)
 
-                @classmethod
-                def get_by_batch_new(cls, batch):
-                    return cls.query.filter(cls.basic_batch == batch, cls.enabled_flag == 1).all()
+                    return cls.query.filter(*q, cls.enabled_flag == 1) \
+                        .with_entities(
+                        # 总步骤数
+                        func.count('1').label("count_step"),
+                        # 成功步骤数
+                        func.sum(func.if_(cls.status == "SUCCESS" == 1, 1, 0)).label(
+                            "count_step_success"),
+                        # 失败步骤数
+                        func.sum(func.if_(cls.status == "FAILURE" == 1, 1, 0)).label(
+                            "count_step_failure"),
+                        # 跳过步骤数
+                        func.sum(func.if_(cls.status == "SKIP" == 1, 1, 0)).label("count_step_skip"),
+                        # 错误步骤数
+                        func.sum(func.if_(cls.status == "ERROR" == 1, 1, 0)).label("count_step_error"),
+                        # 平均请求时长
+                        func.avg(cls.elapsed_ms).label("avg_request_time"),
+                        # 总执行时长
+                        func.sum(cls.duration).label("count_request_time"),
+                        # 用例数
+                        func.sum(func.if_(cls.step_type == 'case', func.if_(cls.status != "SKIP", 1, 0), 0)).label(
+                            "count_case"),
+                        # 成功用例数
+                        func.sum(
+                            func.if_(cls.step_type == 'case', func.if_(cls.status == "SUCCESS", 1, 0), 0)).label(
+                            "count_case_success"),
+                        # 失败用例数
+                        func.sum(
+                            func.if_(cls.step_type == 'case', func.if_(cls.status == "FAILURE", 1, 0), 0)).label(
+                            "count_case_fail"),
+                        # 测试用例通过率
+                        func.round(
+                            func.sum(
+                                func.if_(cls.step_type == 'case',
+                                         func.if_(cls.status == "SUCCESS", func.if_(cls.status != "SKIP", 1, 0), 0),
+                                         0)) / func.sum(
+                                func.if_(cls.step_type == 'case', func.if_(cls.status != "SKIP", 1, 0), 0)) * 100, 2).label("case_pass_rate"),
+                        # 测试步骤通过率
+                        func.round(
+                            func.sum(func.if_(cls.status == "SUCCESS", 1, 0)) / func.count('1') * 100, 2).label(
+                            "step_pass_rate"),
+                    ).first()
 
-                @classmethod
-                def rdp_get_by_batch(cls, batch):
-                    return cls.query.filter(cls.basic_batch == batch, cls.enabled_flag == 1) \
-                        .with_entities(cls.summary_success, cls.summary_duration).all()
+            mode_class = ModelClass
+            ApiTestReportDetail._mapper[class_name] = ModelClass
 
-                @classmethod
-                def get_output_by_batch(cls, batch):
-                    return cls.query.filter(cls.basic_batch == batch, cls.enabled_flag == 1) \
-                        .with_entities(cls.output_out) \
-                        .order_by(cls.id.desc()).first()
-
-            TestReportsNew._mapper[class_name] = ModelClass
-
-        cls = ModelClass()
+        cls = mode_class()
         cls.id = id
         return cls
 
 
 class Env(Base, TimestampMixin):
     """环境表"""
-    __tablename__ = 'environment'
+    __tablename__ = 'env'
 
     name = Column(String(255), nullable=False, comment='环境名称', index=True)
     domain_name = Column(String(255), nullable=False, comment='url地址')

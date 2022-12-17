@@ -1,24 +1,42 @@
 <template>
-  <pre>
-      {{data}}
-    </pre>
+  <json-view v-model:data="data"></json-view>
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent, nextTick, onMounted, reactive, toRefs, watch} from 'vue';
+import jsonView from "/@/components/jsonView/index.vue";
 
 
 export default defineComponent({
-  name: 'scriptController',
+  name: 'extracts',
+  components: {jsonView},
   props: {
     data: Object
   },
   emits: ['update:data'],
   setup(props: any) {
+    const state = reactive({
+      // data
+      extractsData: props.data
 
-    // 删除节点
+    });
+
+    watch(
+        () => props.data,
+        () => {
+          state.extractsData = props.data
+        },
+        {deep: true}
+    )
+
+    onMounted(() => {
+      nextTick(() => {
+        state.extractsData = props.data
+      })
+    })
+
     return {
-
+      ...toRefs(state)
     };
   },
 });
