@@ -11,7 +11,7 @@
               class="response-info__item"> 响应时间：{{ stat.response_time_ms }} ms
       </el-tag>
       <el-tag effect="plain"
-              class="response-info__item"> Body长度：{{ stat.content_size }}
+              class="response-info__item"> Body长度：{{ formatSizeUnits(stat.content_size) }}
       </el-tag>
       <el-tag type="info"
               effect="plain"
@@ -60,6 +60,7 @@
 <script lang="ts">
 import {defineComponent, nextTick, onMounted, reactive, toRefs, watch} from 'vue';
 import jsonView from "/@/components/jsonView/index.vue";
+import {formatSizeUnits} from "/@/utils/case"
 
 
 export default defineComponent({
@@ -92,6 +93,7 @@ export default defineComponent({
     })
 
     return {
+      formatSizeUnits,
       ...toRefs(state)
     };
   },

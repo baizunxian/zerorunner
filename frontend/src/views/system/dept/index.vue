@@ -1,6 +1,6 @@
 <template>
 	<div class="system-dept-container">
-		<el-card shadow="hover">
+		<el-card>
 			<div class="system-dept-search mb15">
 				<el-input size="default" placeholder="请输入部门名称" style="max-width: 180px"> </el-input>
 				<el-button size="default" type="primary" class="ml10">

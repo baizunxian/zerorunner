@@ -1,6 +1,6 @@
 <template>
   <div class="system-user-container">
-    <el-card shadow="hover">
+    <el-card>
       <div class="system-user-search mb15">
         <el-input v-model="listQuery.username" placeholder="请输入用户名称" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="search">
@@ -80,30 +80,27 @@ export default defineComponent({
     const state = reactive<StateRow>({
       columns: [
         {
-          key: 'username', label: '账户名称', width: '', align: 'center', showTooltip: true,
+          key: 'username', label: '账户名称', width: '', align: 'center', show: true,
           render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
             onClick: () => {
               onOpenSaveOrUpdate("update", row)
             }
-          }, row.username)
+          }, () => row.username)
         },
-        {key: 'nickname', label: '用户昵称', width: '', align: 'center', showTooltip: true},
+        {key: 'nickname', label: '用户昵称', width: '', align: 'center', show: true},
         {
-          key: 'roles', label: '关联角色', width: '', align: 'center', showTooltip: true,
+          key: 'roles', label: '关联角色', width: '', align: 'center', show: true,
           render: (row: any) => handleRoles(row.roles)
         },
-        {key: 'email', label: '邮箱', width: '', align: 'center', showTooltip: true},
-        {key: 'status', label: '用户状态', width: '', align: 'center', showTooltip: true,
+        {key: 'email', label: '邮箱', width: '', align: 'center', show: true},
+        {key: 'status', label: '用户状态', width: '', align: 'center', show: true,
           render: (row: any) => h(ElTag, {
             type: row.status ? "success" : "info",
-          }, row.status ? "启用" : "禁用",)},
-        {key: 'remarks', label: '备注', width: '', align: 'center', showTooltip: true},
-        // {key: 'updation_date', label: '更新时间', width: '150', align: 'center', showTooltip: true},
-        // {key: 'updated_by_name', label: '更新人', width: '', align: 'center', showTooltip: true},
-        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', showTooltip: true},
-        // {key: 'created_by_name', label: '创建人', width: '', align: 'center', showTooltip: true},
+          }, () => row.status ? "启用" : "禁用",)},
+        {key: 'remarks', label: '备注', width: '', align: 'center', show: true},
+        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
       ],
       // list
       listData: [],

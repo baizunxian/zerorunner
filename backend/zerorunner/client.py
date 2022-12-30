@@ -130,8 +130,7 @@ class HttpSession(requests.Session):
         update request and response info from Response() object.
         """
         # TODO: fix
-        self.data.req_resps.pop()
-        self.data.req_resps.append(get_req_resp_record(resp_obj))
+        self.data.req_resps = get_req_resp_record(resp_obj)
 
     def request(self, method, url, name=None, **kwargs):
         """
@@ -218,6 +217,7 @@ class HttpSession(requests.Session):
             response.raise_for_status()
         except RequestException as ex:
             logger.error(f"{str(ex)}")
+            raise RequestException(ex)
         else:
             logger.info(
                 f"status_code: {response.status_code}, "

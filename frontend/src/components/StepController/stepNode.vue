@@ -159,7 +159,7 @@ export default defineComponent({
 
     // 是否展示展开图标
     const shouDetailIcon = (step_type: string) => {
-      let noneType = ["wait", "condition"]
+      let noneType = ["wait", "if"]
       return noneType.indexOf(step_type) === -1
     }
 
@@ -186,6 +186,7 @@ export default defineComponent({
   .step-header {
     display: flex;
     min-height: 26px;
+    padding: 0 10px;
 
     .el-tag--small {
       height: 24px;

@@ -6,7 +6,7 @@ import traceback
 from flask_sqlalchemy import SQLAlchemy
 from loguru import logger
 
-db = SQLAlchemy(session_options={"autoflush": False, "autocommit": False, "expire_on_commit": False})
+db = SQLAlchemy()
 
 
 def get_host_ip():
@@ -110,8 +110,8 @@ LOGGING_CONFIG = {
             # If delay is true,
             # then file opening is deferred until the first call to emit().
             'delay': True,
-            # 'filename': '/app/logs/autotest_backend.log',
-            'filename': '/app/logs/autotest_backend.log' if SERVER_IP == PRD_IP else 'logs/autotest_backend.log',
+            # 'filename': '/app/logs/zerorunner.log',
+            'filename': '/app/logs/zerorunner.log' if SERVER_IP == PRD_IP else 'logs/zerorunner.log',
             'formatter': 'common_format'
         }
     },

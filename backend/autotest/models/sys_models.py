@@ -141,8 +141,8 @@ class Roles(Base, TimestampMixin):
                            cls.updation_date,
                            cls.creation_date,
                            u.nickname.label('created_by_name'),
-                           User.nickname.label('updated_by_name'),
-                           ).order_by(cls.creation_date.desc())
+                           User.nickname.label('updated_by_name'),)\
+            .order_by(cls.creation_date.desc())
 
     @classmethod
     def get_all(cls, role_type=10):

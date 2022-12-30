@@ -2,7 +2,6 @@
 # @project: zerorunner
 # @author: xiaobai
 # @create time: 2022/9/9 14:53
-import copy
 import os
 import sys
 import time
@@ -14,7 +13,6 @@ from typing import List, Dict, Text, Any, Union, Iterable
 
 from loguru import logger
 
-from zerorunner import exceptions
 from zerorunner import utils
 from zerorunner.client import HttpSession
 from zerorunner.exceptions import ValidationFailure, ParamsError, LoopNotFound
@@ -41,52 +39,33 @@ from zerorunner.snowflake import id_center
 from zerorunner.utils import merge_variables
 
 
-class ZeroRunner(object):
-    config: TConfig
-    teststeps: List[Any]
+class Runner(object):
 
-    extracted_variables: VariablesMapping = {}
-    success: bool = False  # indicate testcase execution result
-    message: Text = ""  # 错误信息或备注等信息记录
-    __case_id: Text = ""
-    __teststeps: List[Any]
-    __export: List[Text] = []
-    __step_datas: List[StepData] = []
-    __session: HttpSession = None
-    __session_variables: VariablesMapping = {}
-    __session_headers: Headers = {}
-    # time
-    __start_time: float = 0
-    __duration: float = 0
-    # count
-    __run_count: int = 0  # 运行的步骤数
-    __actual_run_count: int = 0  # 实际运行的步骤数  可能循环控制 多次执行
-    __run_success_count: int = 0  # 运行成功数
-    __run_fail_count: int = 0  # 运行失败数
-    __run_err_count: int = 0  # 运行错误数
-    __run_skip_count: int = 0  # 运行跳过数
-    # log
-    __log__: Text = ""
-
-    def __init_tests__(self):
-        self.__teststeps = []
-        for step in self.teststeps:
-            # step parameters
-            if step.parameters:
-                try:
-                    parameters = parse_parameters(step.parameters)
-                    for p_index, param in enumerate(parameters):
-                        p_step = copy.deepcopy(step)
-                        p_step.variables.update(param)
-                        self.__teststeps.append(p_step)
-                except exceptions.ParamsError as err:
-                    self.message = repr(err)
-                    self.success = False
-
-                    logger.error(traceback.format_exc())
-
-            else:
-                self.__teststeps.append(step)
+    def __init__(self):
+        self.config: TConfig
+        self.teststeps: List[Any]
+        self.extracted_variables: VariablesMapping = {}
+        self.success: bool = False  # indicate testcase execution result
+        self.message: Text = ""  # 错误信息或备注等信息记录
+        self.__case_id: Text = ""
+        self.__teststeps: List[Any]
+        self.__export: List[Text] = []
+        self.__step_datas: List[StepData] = []
+        self.__session: HttpSession = HttpSession()
+        self.__session_variables: VariablesMapping = {}
+        self.__session_headers: Headers = {}
+        # time
+        self.__start_time: float = 0
+        self.__duration: float = 0
+        # count
+        self.__run_count: int = 0  # 运行的步骤数
+        self.__actual_run_count: int = 0  # 实际运行的步骤数  可能循环控制 多次执行
+        self.__run_success_count: int = 0  # 运行成功数
+        self.__run_fail_count: int = 0  # 运行失败数
+        self.__run_err_count: int = 0  # 运行错误数
+        self.__run_skip_count: int = 0  # 运行跳过数
+        # log
+        self.__log__: Text = ""
 
     @property
     def raw_testcase(self) -> TestCase:
@@ -95,36 +74,35 @@ class ZeroRunner(object):
 
         return TestCase(config=self.config, teststeps=self.__teststeps)
 
-    # def with_project_meta(self, project_meta: ProjectMeta) -> "ZeroRunner":
-    #     self.__project_meta = project_meta
-    #     return self
+    def with_config(self, config: TConfig):
+        self.config = config
 
     def with_functions(self, function_map: FunctionsMapping):
         self.config.functions.update(function_map)
 
-    def with_session(self, session: HttpSession) -> "ZeroRunner":
+    def with_session(self, session: HttpSession) -> "Runner":
         self.__session = session
         return self
 
-    def with_case_id(self, case_id: Text) -> "ZeroRunner":
+    def with_case_id(self, case_id: Text) -> "Runner":
         self.__case_id = case_id
         return self
 
-    def with_variables(self, variables: VariablesMapping, cover=False) -> "ZeroRunner":
+    def with_variables(self, variables: VariablesMapping, cover=False) -> "Runner":
         if cover:
             self.__session_variables = variables
         else:
             self.__session_variables.update(variables)
         return self
 
-    def with_headers(self, headers: Headers, cover=False) -> "ZeroRunner":
+    def with_headers(self, headers: Headers, cover=False) -> "Runner":
         if cover:
             self.__session_headers.update(headers)
         else:
             self.__session_headers = headers
         return self
 
-    def with_export(self, export: List[Text]) -> "ZeroRunner":
+    def with_export(self, export: List[Text]) -> "Runner":
         self.__export = export
         return self
 
@@ -159,10 +137,7 @@ class ZeroRunner(object):
             self.__log__ += f"{log_header}{message}\n"
 
     def __call_hooks(
-            self,
-            hooks: Hooks,
-            parent_step: TController,
-            hook_type: Text,
+            self, hooks: Hooks, step_variables: VariablesMapping, hook_msg: Text,
     ) -> Union[List[StepData], Any]:
         """ 调用钩子.
 
@@ -182,22 +157,35 @@ class ZeroRunner(object):
             hook_type: pre 前置  post后置
 
         """
-        logger.info(f"call hook actions: {hook_type}")
+        logger.info(f"call hook actions: {hook_msg}")
 
         if not isinstance(hooks, List):
             logger.error(f"Invalid hooks format: {hooks}")
             return
 
-        step_data_list = []
-        for (index, hook) in enumerate(hooks):
-            step_data = self.__run_step_controller(hook, parent_step, hook_type)
-            step_data_list.append(step_data)
-        return step_data_list
+        for hook in hooks:
+            if isinstance(hook, Text):
+                # format 1: ["${func()}"]
+                logger.debug(f"call hook function: {hook}")
+                parse_data(hook, step_variables, self.config.functions)
+            elif isinstance(hook, Dict) and len(hook) == 1:
+                # format 2: {"var": "${func()}"}
+                var_name, hook_content = list(hook.items())[0]
+                hook_content_eval = parse_data(
+                    hook_content, step_variables, self.config.functions
+                )
+                logger.debug(
+                    f"call hook function: {hook_content}, got value: {hook_content_eval}"
+                )
+                logger.debug(f"assign variable: {var_name} = {hook_content_eval}")
+                step_variables[var_name] = hook_content_eval
+            else:
+                logger.error(f"Invalid hook format: {hook}")
 
-    def __run_step_request(self, step: TCaseController, parent_step: TController, step_tag: Text = None) -> StepData:
+    def __run_step_request(self, step: TCaseController) -> StepData:
         """执行用例请求"""
 
-        step_data = self.__get_step_data(step, parent_step, step_tag)
+        step_data = self.__get_step_data(step)
         self.__set_run_log(step_data=step_data, log_type=TStepLogType.start)
         # parse
         prepare_upload_step(step, self.config.functions)
@@ -208,14 +196,6 @@ class ZeroRunner(object):
         resp_obj = None
         # 捕获异常
         try:
-            # setup hooks
-            if step.setup_hooks:
-                self.__set_run_log(f"{step_data.name} 前置脚本执行开始~~~")
-                pre_step_data_list = self.__call_hooks(step.setup_hooks, step, "pre")
-                step_data.pre_hook_data = pre_step_data_list
-
-                self.__set_run_log(f"{step_data.name} 前置脚本执行结束~~~")
-
             # override variables  优先级
             """
             __session_variables(会话变量) > extracted_variables(提取变量) > step.variables(用例变量) >
@@ -235,6 +215,12 @@ class ZeroRunner(object):
                 merge_variable, self.config.functions
             )
             self.__session_variables = merge_variable
+
+            # setup hooks
+            if step.setup_hooks:
+                self.__set_run_log(f"{step_data.name} 前置脚本执行开始~~~")
+                self.__call_hooks(step.setup_hooks, merge_variable, "pre hook")
+                self.__set_run_log(f"{step_data.name} 前置脚本执行结束~~~")
 
             parsed_request_dict = parse_data(
                 request_dict, merge_variable, self.config.functions
@@ -268,12 +254,7 @@ class ZeroRunner(object):
             # teardown hooks
             if step.teardown_hooks:
                 self.__set_run_log(f"{step_data.name} 后置脚本执行开始~~~")
-                post_step_list = self.__call_hooks(step.teardown_hooks, step, "post")
-                step_data.post_hook_data = post_step_list
-                # 提取步骤的提取参数同步到用例
-                for step_data_item in post_step_list:
-                    if step_data_item.step_type == 'extract':
-                        step_data.export_vars.update(step_data_item.export_vars)
+                self.__call_hooks(step.teardown_hooks, step.variables, "teardown request")
                 self.__set_run_log(f"{step_data.name} 后置脚本执行结束~~~")
 
             def log_req_resp_details():
@@ -315,21 +296,24 @@ class ZeroRunner(object):
                     validators, merge_variable, self.config.functions
                 )
                 session_success = True
+                self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
             except ValidationFailure as err:
                 session_success = False
                 self.__set_step_data_status(step_data, TStepDataStatusEnum.fail, str(err))
                 log_req_resp_details()
                 # log testcase duration before raise ValidationFailure
-                # self.__duration = time.time() - self.__start_time
+                raise
         except Exception as err:
             err_info = traceback.format_exc()
             logger.error(err_info)
-            self.__set_step_data_status(step_data, TStepDataStatusEnum.err, str(err))
-            return step_data
+            self.__set_step_data_status(step_data, TStepDataStatusEnum.err, err_info)
+            raise
+
         finally:
             step_data.env_variables = self.config.env_variables
             step_data.variables = step.variables
             step_data.case_id = step.case_id
+            step_data.duration = time.time() - step_data.start_time
 
             if hasattr(self.__session, "data"):
                 # ZeroRunner.client.HttpSession, not locust.clients.HttpSession
@@ -339,17 +323,6 @@ class ZeroRunner(object):
 
                 # save step data
                 step_data.session_data = self.__session.data
-        # 前后置步骤判断用例是否失败
-        step_success = True
-        for step_info in step_data.pre_hook_data:
-            if step_info.success is False:
-                step_success = False
-        for step_info in step_data.post_hook_data:
-            if step_info.success is False:
-                step_success = False
-
-        self.__set_step_data_status(step_data,
-                                    TStepDataStatusEnum.success if step_success else TStepDataStatusEnum.fail)
         self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
         return step_data
 
@@ -525,33 +498,33 @@ class ZeroRunner(object):
             self.__session_variables.update(son_step_data.export_vars)
             parent_step_data.step_data.append(deepcopy(son_step_data))
 
-    def __run_step_controller(self, step: TController, parent_step: TController = None,
-                              step_tag: Text = None) -> StepData:
-        """执行控制器"""
-
-        if not step.enable:
-            step_data = self.__get_step_data(step, parent_step, step_tag)
-            self.__set_step_data_status(step_data, TStepDataStatusEnum.skip, "跳过")
-            return step_data
-        if isinstance(step, TCaseController):
-            step_data = self.__run_step_request(step, parent_step, step_tag)
-        elif isinstance(step, TWaitController):
-            step_data = self.__run_step_wait(step, parent_step, step_tag)
-        elif isinstance(step, TSqlController):
-            step_data = self.__run_step_sql(step, parent_step, step_tag)
-        elif isinstance(step, TScriptController):
-            step_data = self.__run_step_script(step, parent_step, step_tag)
-        elif isinstance(step, TIFController):
-            step_data = self.__run_step_if(step, parent_step, step_tag)
-        elif isinstance(step, TLoopController):
-            step_data = self.__run_step_loop(step, parent_step)
-        else:
-            raise ParamsError(
-                f"测试步骤不是一个用例😅: {step.dict()}"
-            )
-        step_data.duration = time.time() - step_data.start_time
-        self.__actual_run_count += 1
-        return step_data
+    # def __run_step_controller(self, step: TController, parent_step: TController = None,
+    #                           step_tag: Text = None) -> StepData:
+    #     """执行控制器"""
+    #
+    #     if not step.enable:
+    #         step_data = self.__get_step_data(step, parent_step, step_tag)
+    #         self.__set_step_data_status(step_data, TStepDataStatusEnum.skip, "跳过")
+    #         return step_data
+    #     if isinstance(step, TCaseController):
+    #         step_data = self.__run_step_request(step, parent_step, step_tag)
+    #     elif isinstance(step, TWaitController):
+    #         step_data = self.__run_step_wait(step, parent_step, step_tag)
+    #     elif isinstance(step, TSqlController):
+    #         step_data = self.__run_step_sql(step, parent_step, step_tag)
+    #     elif isinstance(step, TScriptController):
+    #         step_data = self.__run_step_script(step, parent_step, step_tag)
+    #     elif isinstance(step, TIFController):
+    #         step_data = self.__run_step_if(step, parent_step, step_tag)
+    #     elif isinstance(step, TLoopController):
+    #         step_data = self.__run_step_loop(step, parent_step)
+    #     else:
+    #         raise ParamsError(
+    #             f"测试步骤不是一个用例😅: {step.dict()}"
+    #         )
+    #     step_data.duration = time.time() - step_data.start_time
+    #     self.__actual_run_count += 1
+    #     return step_data
 
     def __set_step_data_status(self, step_data: StepData, status: TStepDataStatusEnum, msg: Text = ""):
         """设置步骤状态"""
@@ -590,30 +563,42 @@ class ZeroRunner(object):
             self.success = False
 
     @staticmethod
-    def __get_step_data(step: TController, parent_step: TController = None, step_tag: Text = None):
+    def __get_step_data(step: TController, step_tag: Text = None):
         """步初始化骤结果对象"""
         step_data = StepData(name=step.name,
                              step_type=step.step_type,
-                             step_id=step.step_id,
                              start_time=time.time(),
                              step_tag=step_tag,
-                             parent_step_id=parent_step.step_id if parent_step else None
                              )
         if hasattr(step, "case_id"):
             step_data.case_id = step.case_id
         return step_data
 
-    def __run_step(self, step: TController, parent_step: TController = None) -> Dict:
+    def run_step(self, step: TController):
         """运行步骤，可能是用例，可能是步骤控制器"""
         logger.info(f"run step begin: {step.name} >>>>>>")
         self.__set_run_log(f"执行步骤->{step.name} >>>>>>")
 
-        step_data = self.__run_step_controller(step, parent_step, "controller")
+        if isinstance(step, TCaseController):
+            self.__run_step_request(step)
+        elif isinstance(step, TWaitController):
+            self.__run_step_wait(step)
+        elif isinstance(step, TSqlController):
+            self.__run_step_sql(step)
+        elif isinstance(step, TScriptController):
+            self.__run_step_script(step)
+        elif isinstance(step, TIFController):
+            self.__run_step_if(step)
+        elif isinstance(step, TLoopController):
+            self.__run_step_loop(step)
+        else:
+            raise ParamsError(
+                f"测试步骤不是一个用例😅: {step.dict()}"
+            )
+        # step_data = self.__run_step_controller(step, parent_step, "controller")
         self.__run_count += 1
-        self.__step_datas.append(step_data)
         logger.info(f"run step end: {step.name} <<<<<<\n")
         self.__set_run_log(f"步骤执行完成->{step.name} <<<<<<")
-        return step_data.export_vars
 
     def __comparators(self, check: Text, expect: Text, comparator: Text) -> Dict[Text, Any]:
         """
@@ -661,12 +646,12 @@ class ZeroRunner(object):
         config.base_url = parse_data(config.base_url, config.variables, self.config.functions)
         self.with_case_id(config.case_id)
 
-    def run_testcase(self, testcase: TestCase) -> "ZeroRunner":
+    def run_testcase(self, testcase: TestCase) -> "Runner":
         """run specified testcase
 
         Examples:
             >>> testcase_obj = TestCase(config=TConfig(...), teststeps=[TCaseController(...)])
-            >>> ZeroRunner().run_testcase(testcase_obj)
+            >>> Runner().run_testcase(testcase_obj)
 
         """
         logger.info("用例开始执行 🚀")
@@ -678,24 +663,29 @@ class ZeroRunner(object):
         self.__start_time = time.time()
         self.__step_datas: List[StepData] = []
         self.__session = self.__session or HttpSession()
+        self.__session_variables = {}
         # save extracted variables of teststeps
         self.extracted_variables: VariablesMapping = {}
 
         # run teststeps
         for index, step in enumerate(self.__teststeps):
             # 运行步骤
-            extract_mapping = self.__run_step(step)
+            if not step.enable:
+                logger.debug(f"禁用步骤跳过---> {step.name}")
+                continue
+            self.run_step(step)
+            # extract_mapping = self.__run_step(step)
 
-            # 保存提取的变量
-            self.extracted_variables.update(extract_mapping)
-
-        self.__session_variables.update(self.extracted_variables)
+        #     # 保存提取的变量
+        #     self.extracted_variables.update(extract_mapping)
+        #
+        # self.__session_variables.update(self.extracted_variables)
         self.__duration = time.time() - self.__start_time
         return self
 
-    def run(self) -> "ZeroRunner":
+    def run(self) -> "Runner":
         """ 运行用例"""
-        self.__init_tests__()
+        # self.__init_tests__()
         testcase_obj = TestCase(config=self.config, teststeps=self.teststeps)
         return self.run_testcase(testcase_obj)
 
@@ -745,7 +735,7 @@ class ZeroRunner(object):
         )
         return testcase_summary
 
-    def test_start(self, param: Dict = None) -> "ZeroRunner":
+    def test_start(self, param: Dict = None) -> "Runner":
         """主入口"""
         self.__init_tests__()
         self.__case_id = self.__case_id or str(uuid.uuid4())
@@ -771,31 +761,3 @@ class ZeroRunner(object):
             )
         finally:
             logger.remove(log_handler)
-
-
-class HandleStepData:
-    """设置步骤状态"""
-
-    @staticmethod
-    def success(step_data: StepData, msg: Text = ""):
-        step_data.success = True
-        step_data.status = "success"
-        step_data.message = msg
-
-    @staticmethod
-    def skip(step_data: StepData, msg: Text = ""):
-        step_data.success = True
-        step_data.status = "skip"
-        step_data.message = msg
-
-    @staticmethod
-    def fail(step_data: StepData, msg: Text = ""):
-        step_data.success = False
-        step_data.status = "fail"
-        step_data.message = msg
-
-    @staticmethod
-    def err(step_data: StepData, msg: Text = ""):
-        step_data.success = False
-        step_data.status = "err"
-        step_data.message = msg

@@ -19,16 +19,18 @@ class DataSource(Base, TimestampMixin):
     env_id = Column(Integer, nullable=False, comment='关联环境')
 
     @classmethod
-    def get_list(cls, id=None, source_type=None, name=None, env_id=None):
+    def get_list(cls, id=None, source_type=None, name=None, env_id=None, source_ids=None):
         q = []
         if id:
             q.append(cls.id == id)
         if source_type:
             q.append(cls.type == source_type)
         if name:
-            q.append(cls.name == name)
+            q.append(cls.name.like(f"%{name}%"))
         if env_id:
             q.append(cls.env_id == env_id)
+        if source_ids and isinstance(source_ids, list):
+            q.append(cls.id.in_(source_ids))
         u = aliased(User)
         return cls.query.filter(*q, cls.enabled_flag == 1) \
             .outerjoin(Env, cls.env_id == Env.id) \
@@ -40,7 +42,6 @@ class DataSource(Base, TimestampMixin):
                            cls.host,
                            cls.port,
                            cls.user,
-                           cls.password,
                            cls.env_id,
                            cls.created_by,
                            cls.updation_date,

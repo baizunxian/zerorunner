@@ -2,11 +2,11 @@
 # @author: xiaobai
 from typing import List, Dict, Text, Any, Union
 
-from autotest.models.api_models import ApiCase, Env
+from autotest.models.api_models import ApiInfo, Env
 from autotest.models.tools_models import DataSource
-from autotest.serialize.api_serializes.api_case import ApiCaseSchema, \
-    ApiCaseBaseSchema
-from autotest.serialize.api_serializes.api_suites import ApiSuitesSchema
+from autotest.serialize.api_serializes.api_info import ApiInfoSchema, \
+    ApiBaseSchema
+from autotest.serialize.api_serializes.api_case import ApiCaseSchema
 from autotest.utils.api import jsonable_encoder
 from zerorunner.loader import load_module_functions
 from zerorunner.models import (
@@ -18,9 +18,10 @@ from zerorunner.models import (
     TWaitController,
     TIFController,
     TLoopController,
-    TController
+    TController, TestCase, TestSuite
 )
 from zerorunner.parser import parse_string_value
+from zerorunner.runner import Runner
 
 
 class HandleData(object):
@@ -60,11 +61,11 @@ class HandleData(object):
         for step in step_data:
             controller = None
             if isinstance(step, TCaseController):
-                case_info = ApiCase.get(step.case_id)
+                case_info = ApiInfo.get(step.case_id)
                 if case_info:
                     case_info_dict = step.dict()
                     case_info_dict.update(jsonable_encoder(case_info))
-                    controller = ApiCaseHandle(**case_info_dict).step
+                    controller = ApiInfoHandle(**case_info_dict).step
 
             if isinstance(step, TSqlController):
                 controller = step
@@ -96,7 +97,7 @@ class HandleData(object):
         return steps
 
     @staticmethod
-    def handle_headers_or_validators(param: List[ApiCaseBaseSchema]) -> Dict[Text, Any]:
+    def handle_headers_or_validators(param: List[ApiBaseSchema]) -> Dict[Text, Any]:
         """处理请求头，跟变量
         args  param List[ApiCaseBaseSchema] 对象
         [
@@ -118,54 +119,59 @@ class HandleData(object):
             return data
         for p in param:
             if isinstance(p, dict):
-                p = ApiCaseBaseSchema(**p)
+                p = ApiBaseSchema(**p)
             data[p.key] = p.value
         return data
 
 
-class ApiCaseHandle(object):
+class ApiInfoHandle(object):
 
     def __init__(self, **kwargs: Any):
-        self.api_case = ApiCaseSchema(**kwargs)
-        self.config = TConfig(name=self.api_case.name, case_id=self.api_case.id)
+        self.api_info = ApiInfoSchema(**kwargs)
+        self.config = TConfig(name=self.api_info.name, case_id=self.api_info.id)
+        self.teststeps = []
         self.step = TCaseController(
             step_type="case",
-            enable=self.api_case.enable,
-            case_id=self.api_case.id,
-            index=self.api_case.index,
-            name=self.api_case.name,
+            enable=self.api_info.enable,
+            case_id=self.api_info.id,
+            index=self.api_info.index,
+            name=self.api_info.name,
             request=TRequest(
-                name=self.api_case.name,
-                url=self.api_case.url,
-                method=self.api_case.method
+                name=self.api_info.name,
+                url=self.api_info.url,
+                method=self.api_info.method
             ),
-            extracts=self.api_case.extracts
+            extracts=self.api_info.extracts
 
         )
         self.make_env()
-        self.make_headers(HandleData.handle_headers_or_validators(self.api_case.headers))
+        self.make_headers(HandleData.handle_headers_or_validators(self.api_info.headers))
         self.make_request_body()
-        self.make_variables(HandleData.handle_headers_or_validators(self.api_case.variables), "var")
+        self.make_variables(HandleData.handle_headers_or_validators(self.api_info.variables), "var")
         self.make_setup_hooks()
         self.make_teardown_hooks()
         self.make_validators()
         self.make_functions()
+        self.teststeps.append(self.step)
 
     def make_functions(self):
         from autotest.utils import basic_function
         self.config.functions.update(load_module_functions(basic_function))
 
     def make_env(self):
-        env_info = HandleData.handle_env(self.api_case.env_id)
+        env_info = HandleData.handle_env(self.api_info.env_id)
         self.config.base_url = env_info.get("base_url")
         self.make_headers(env_info.get("headers", {}))
         self.make_variables(env_info.get("variables", {}), "env_var")
+
+    def make_step(self):
+        ...
 
     def make_headers(self, headers: Dict[Text, Text]):
         self.step.request.headers.update(headers)
 
     def make_request_body(self):
-        self.step.request.data = self.api_case.request_body.data
+        self.step.request.data = self.api_info.request_body.data
 
     def make_variables(self, variables: Dict[Text, Text], var_type: Text):
         """
@@ -182,39 +188,45 @@ class ApiCaseHandle(object):
             self.config.env_variables.update(variables)
 
     def make_setup_hooks(self):
-        for step in HandleData.handle_step(self.api_case.setup_hooks):
+        for step in HandleData.handle_step(self.api_info.setup_hooks):
             self.step.setup_hooks.append(step)
 
     def make_teardown_hooks(self):
-        for step in HandleData.handle_step(self.api_case.teardown_hooks):
+        for step in HandleData.handle_step(self.api_info.teardown_hooks):
             self.step.teardown_hooks.append(step)
 
     def make_validators(self):
-        if self.api_case.validators and isinstance(self.api_case.validators, List):
-            for vail in self.api_case.validators:
+        if self.api_info.validators and isinstance(self.api_info.validators, List):
+            for vail in self.api_info.validators:
                 vail.expect = parse_string_value(vail.expect)
                 self.step.validators.append(vail.dict())
 
+    def get_testcase(self) -> "TestCase":
+        return TestCase(config=self.config, teststeps=self.teststeps)
 
-class ApiSuiteHandle:
+
+class ApiCaseHandle:
 
     def __init__(self, **kwargs: Any):
-        self.api_suites = ApiSuitesSchema(**kwargs)
-        self.config = TConfig(name=self.api_suites.name)
+        """
+        kwargs: -> suites info
+        """
+        self.api_case = ApiCaseSchema(**kwargs)
+        self.config = TConfig(name=self.api_case.name)
         self.teststeps = []
-        self.make_step()
-        self.make_headers(HandleData.handle_headers_or_validators(self.api_suites.headers))
-        self.make_variables(HandleData.handle_headers_or_validators(self.api_suites.variables), 'var')
+        self.make_testcase()
+        self.make_headers(HandleData.handle_headers_or_validators(self.api_case.headers))
+        self.make_variables(HandleData.handle_headers_or_validators(self.api_case.variables), 'var')
 
     def make_env(self):
-        if self.api_suites.env_id:
-            env_info = HandleData.handle_env(self.api_suites.env_id)
-            self.config.base_url = env_info.get("base_url")
+        if self.api_case.env_id:
+            env_info = HandleData.handle_env(self.api_case.env_id)
+            self.config.base_url = env_info.get("base_url", "")
             self.make_headers(env_info.get("headers", {}))
             self.make_variables(env_info.get("variables", {}), "env_var")
 
-    def make_step(self):
-        for step in HandleData.handle_step(self.api_suites.step_data):
+    def make_testcase(self):
+        for step in HandleData.handle_step(self.api_case.step_data):
             self.teststeps.append(step)
 
     def make_headers(self, headers: Dict[Text, Text]):
@@ -225,3 +237,18 @@ class ApiSuiteHandle:
             self.config.env_variables.update(variables)
         if var_type == "var":
             self.config.variables.update(variables)
+
+    def get_testcase(self) -> "TestCase":
+        return TestCase(config=self.config, teststeps=self.teststeps)
+
+
+class Runner(object):
+    def __init__(self, testcase: TestCase):
+        self.zr = Runner()
+        self.testcase = testcase
+
+    def run(self):
+        self.zr.run_testcase(self.testcase)
+
+    def get_summary(self):
+        return self.zr.get_summary()

@@ -13,7 +13,7 @@ import platform
 from multiprocessing import Queue
 from typing import Any, Dict, List
 
-from zerorunner import exceptions
+from zerorunner import exceptions, __version__
 from loguru import logger
 from zerorunner.models import VariablesMapping
 
@@ -154,7 +154,7 @@ def omit_long_data(body, omit_len=512):
 
 def get_platform():
     return {
-        "httprunner_version": "test",
+        "zerorunner_version": __version__,
         "python_version": "{} {}".format(
             platform.python_implementation(), platform.python_version()
         ),

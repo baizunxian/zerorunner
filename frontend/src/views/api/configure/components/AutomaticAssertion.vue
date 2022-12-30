@@ -336,7 +336,7 @@
 <script>
 // import JsonViewer from '@/utils/vue-json-viewer'
 // import 'vue-json-viewer/style.css'
-// import {get_case_assertion} from '@/api/apiCase'
+// import {get_case_assertion} from '@/api/apiInfo'
 
 export default {
   components: {

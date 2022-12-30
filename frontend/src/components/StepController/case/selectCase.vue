@@ -1,5 +1,5 @@
 <template>
-  <el-card shadow="hover">
+  <el-card>
     <div class="mb8">
       <div>
         <el-input v-model="listQuery.name" placeholder="请输入用例名称" style="max-width: 180px"></el-input>
@@ -28,7 +28,7 @@
 
 <script lang="ts">
 import {defineComponent, h, onMounted, reactive, toRefs} from 'vue';
-import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
+import {useApiInfoApi} from "/@/api/useAutoApi/apiInfo";
 import {ElTag} from "element-plus";
 import {getMethodColor} from "/@/utils/case";
 
@@ -38,23 +38,23 @@ export default defineComponent({
   setup() {
     const state = reactive({
       columns: [
-        {label: '序号', columnType: 'selection', width: 'auto', showTooltip: true},
-        {label: '序号', columnType: 'index', width: 'auto', showTooltip: true},
-        {key: 'id', label: 'ID', columnType: 'string', width: 'auto', showTooltip: true},
-        {key: 'name', label: '用例名', width: '', showTooltip: true},
+        {label: '序号', columnType: 'selection', width: 'auto', show: true},
+        {label: '序号', columnType: 'index', width: 'auto', show: true},
+        {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
+        {key: 'name', label: '用例名', width: '', show: true},
         {
-          key: 'method', label: '请求方式', width: '', showTooltip: true,
+          key: 'method', label: '请求方式', width: '', show: true,
           render: (row: any) => h(ElTag, {
             type: "",
             style: {"background": getMethodColor(row.method), color: "#ffffff",}
-          }, row.method)
+          }, () => row.method)
         },
-        {key: 'project_name', label: '所属项目', width: 'auto', showTooltip: true},
-        {key: 'module_name', label: '所属模块', width: 'auto', showTooltip: true},
-        {key: 'updation_date', label: '更新时间', width: '150', showTooltip: true},
-        {key: 'updated_by_name', label: '更新人', width: 'auto', showTooltip: true},
-        {key: 'creation_date', label: '创建时间', width: '150', showTooltip: true},
-        {key: 'created_by_name', label: '创建人', width: 'auto', showTooltip: true},
+        {key: 'project_name', label: '所属项目', width: 'auto', show: true},
+        {key: 'module_name', label: '所属模块', width: 'auto', show: true},
+        {key: 'updation_date', label: '更新时间', width: '150', show: true},
+        {key: 'updated_by_name', label: '更新人', width: 'auto', show: true},
+        {key: 'creation_date', label: '创建时间', width: '150', show: true},
+        {key: 'created_by_name', label: '创建人', width: 'auto', show: true},
 
       ],
       listData: [],
@@ -66,12 +66,12 @@ export default defineComponent({
         name: '',
       },
       selectionData: [],
-      // run test apiCase
+      // run test apiInfo
     });
     // 初始化表格数据
     const getList = () => {
       state.tableLoading = true
-      useApiCaseApi().getList(state.listQuery)
+      useApiInfoApi().getList(state.listQuery)
           .then((res: any) => {
             state.listData = res.data.rows
             state.total = res.data.rowTotal

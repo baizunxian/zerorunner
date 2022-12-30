@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-card shadow="hover">
+    <el-card>
       <div class="mb15">
         <el-input v-model="listQuery.name" placeholder="请输入配置名称" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="search">
@@ -58,25 +58,25 @@ export default defineComponent({
     const router = useRouter();
     const state = reactive({
       columns: [
-        {label: '序号', columnType: 'index', width: 'auto', showTooltip: true},
+        {label: '序号', columnType: 'index', width: 'auto', show: true},
         {
-          key: 'name', label: '配置名称', width: '', showTooltip: true,
+          key: 'name', label: '配置名称', width: '', show: true,
           render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
             onClick: () => {
               onOpenSaveOrUpdate("update", row)
             }
-          }, row.name)
+          }, () => row.name)
         },
-        {key: 'project_name', label: '所属项目', width: '', showTooltip: true},
-        {key: 'module_name', label: '所属模块', width: '', showTooltip: true},
-        {key: 'updation_date', label: '更新时间', width: '150', showTooltip: true},
-        {key: 'updated_by_name', label: '更新人', width: '', showTooltip: true},
-        {key: 'creation_date', label: '创建时间', width: '150', showTooltip: true},
-        {key: 'created_by_name', label: '创建人', width: '', showTooltip: true},
+        {key: 'project_name', label: '所属项目', width: '', show: true},
+        {key: 'module_name', label: '所属模块', width: '', show: true},
+        {key: 'updation_date', label: '更新时间', width: '150', show: true},
+        {key: 'updated_by_name', label: '更新人', width: '', show: true},
+        {key: 'creation_date', label: '创建时间', width: '150', show: true},
+        {key: 'created_by_name', label: '创建人', width: '', show: true},
         {
-          label: '操作', fixed: 'right', width: '100',
+          label: '操作', fixed: 'right', width: 'auto',
           render: (row: any) => h("div", null, [
             h(ElButton, {
               link: true,

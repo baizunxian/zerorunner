@@ -262,16 +262,25 @@ export default defineComponent({
 
     // 初始化表单
     const setData = (data: any) => {
-      let mode = data.mode
+      if (data) {
+        let mode = data.mode
 
-      if (mode === 'form_data') {
-        state.formData = data.data ? data.form_data : []
+        if (mode === 'form_data') {
+          state.formData = data.data ? data.form_data : []
+        }
+
+        if (mode === 'raw') {
+          state.rawData = data.data.replace('/\\n/g', "\n")
+          state.language = data.language
+        }
+      } else {
+        state.mode = "raw"
+        state.language = "JSON"
+        state.rawData = ""
+        state.formData = []
+        state.fileData = {}
       }
 
-      if (mode === 'raw') {
-        state.rawData = data.data.replace('/\\n/g', "\n")
-        state.language = data.language
-      }
     }
 
     // 获取是否填写状态

@@ -1,6 +1,5 @@
 from typing import Optional, Text, List
 
-from marshmallow import fields
 from pydantic import root_validator
 
 from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema

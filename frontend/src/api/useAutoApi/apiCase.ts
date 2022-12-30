@@ -1,5 +1,6 @@
 import request from '/@/utils/request';
 
+const BaseApiPath = "/apiCase"
 /**
  * 项目使用接口
  * @method getProjectList 获取项目列表
@@ -9,65 +10,43 @@ export function useApiCaseApi() {
   return {
     getList: (data?: object) => {
       return request({
-        url: '/apiCase/list',
+        url: `${BaseApiPath}/list`,
         method: 'POST',
         data,
       });
     },
     saveOrUpdate(data?: object) {
       return request({
-        url: '/apiCase/saveOrUpdate',
+        url: `${BaseApiPath}/saveOrUpdate`,
+        method: 'POST',
+        data
+      })
+    },
+    runSuites(data?: object) {
+      return request({
+        url: `${BaseApiPath}/runTestCase`,
+        method: 'POST',
+        data
+      })
+    },
+    debugSuites(data?: object) {
+      return request({
+        url: `${BaseApiPath}/debugTestCase`,
         method: 'POST',
         data
       })
     },
     deleted: (data?: object) => {
       return request({
-        url: '/apiCase/deleted',
+        url: `${BaseApiPath}/deleted`,
         method: 'POST',
         data,
       });
     },
-    runTestCase: (data?: object) => {
+    getSuitesInfo: (data?: object) => {
       return request({
-        url: '/apiCase/runTestCase',
+        url: `${BaseApiPath}/getSuiteInfo`,
         method: 'POST',
-        data,
-      });
-    },
-    run: (data?: object) => {
-      return request({
-        url: '/apiCase/run',
-        method: 'POST',
-        data,
-      });
-    },
-    debugTestCase: (data?: object) => {
-      return request({
-        url: '/apiCase/debugTestCase',
-        method: 'POST',
-        data,
-      });
-    },
-    debugTestCaseNew: (data?: object) => {
-      return request({
-        url: '/apiCase/debugTestCaseNew',
-        method: 'POST',
-        data,
-      });
-    },
-    getTestCaseInfo: (data?: object) => {
-      return request({
-        url: '/apiCase/getTestCaseInfo',
-        method: 'POST',
-        data,
-      });
-    },
-    postman2case: (data?: object) => {
-      return request({
-        url: '/apiCase/postman2case',
-        method: 'POST',
-        headers: {"Content-Type": "multipart/form-data"},
         data,
       });
     },

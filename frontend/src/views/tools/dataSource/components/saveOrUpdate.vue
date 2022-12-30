@@ -10,19 +10,19 @@
             </el-form-item>
           </el-col>
 
-          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <el-form-item label="关联环境" prop="type">
-              <el-select v-model="form.env_id" clearable placeholder="选择关联环境" style="width: 100%">
-                <el-option
-                    v-for="env in envList"
-                    :key="env.id"
-                    :label="env.name"
-                    :value="env.id"
-                >
-                </el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
+<!--          <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">-->
+<!--            <el-form-item label="关联环境" prop="type">-->
+<!--              <el-select v-model="form.env_id" clearable placeholder="选择关联环境" style="width: 100%">-->
+<!--                <el-option-->
+<!--                    v-for="env in envList"-->
+<!--                    :key="env.id"-->
+<!--                    :label="env.name"-->
+<!--                    :value="env.id"-->
+<!--                >-->
+<!--                </el-option>-->
+<!--              </el-select>-->
+<!--            </el-form-item>-->
+<!--          </el-col>-->
 
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="数据源类型" prop="type">
@@ -126,7 +126,7 @@ export default defineComponent({
         state.form = createForm()
       }
       onDialog();
-      getEnvList()
+      // getEnvList()
     };
     // 关闭弹窗
     const onDialog = () => {

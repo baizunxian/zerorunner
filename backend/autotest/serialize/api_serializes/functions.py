@@ -17,7 +17,7 @@ class FuncQuerySchema(BaseQuerySchema):
 class FuncListSchema(BaseListSchema):
     """自定义函数"""
     project_id: Optional[int]
-    project_name: Optional[Text]
+    name: Optional[Text]
     content: Optional[Text]
 
 
@@ -25,6 +25,8 @@ class FuncSaveOrUpdateSchema(BaseModel):
     id: Optional[int]
     content: Optional[Text]
     project_id: Optional[Text]
+    name: Optional[Text]
+    remarks: Optional[Text]
 
 
 class FuncDebugSchema(BaseModel):

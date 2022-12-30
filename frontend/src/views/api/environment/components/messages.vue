@@ -31,7 +31,7 @@ export default defineComponent({
     }
     const state = reactive({
       isShowDialog: false,
-      handleType: '',   //apiCase 调用类型， 保存，调试
+      handleType: '',   //apiInfo 调用类型， 保存，调试
       // 表单及校验
       data: createData(),
       rules: {

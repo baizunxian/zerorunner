@@ -1,15 +1,15 @@
 import json
-from typing import Optional, Text, List, Union, Dict, Any, Annotated
-from pydantic import root_validator, BaseModel, Field
-from autotest.exc.exceptions import ParameterError
-from autotest.models.api_models import ApiCase
-from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
-from enum import Enum
+from typing import Optional, Text, List, Union, Any, Annotated
 
+from pydantic import root_validator, BaseModel, Field
+
+from autotest.exc.exceptions import ParameterError
+from autotest.models.api_models import ApiInfo
+from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
 from zerorunner.models import TController, ExtractData, MethodEnum
 
 
-class CaseQuerySchema(BaseQuerySchema):
+class ApiInfoQuerySchema(BaseQuerySchema):
     """查询参数序列化"""
 
     id: Optional[int]
@@ -29,7 +29,7 @@ class CaseQuerySchema(BaseQuerySchema):
     created_by_name: Optional[Text]
 
 
-class TestCaseRunBodySchema(BaseListSchema):
+class ApiRunBodySchema(BaseListSchema):
     """"""
     name: Optional[Text]
     # user_id: Optional[int]
@@ -55,7 +55,7 @@ class TestCaseRunBodySchema(BaseListSchema):
         return data
 
 
-class TestCaseRunSchema(BaseModel):
+class ApiRunSchema(BaseModel):
     """运行用例"""
 
     id: Optional[int]
@@ -78,7 +78,7 @@ class TestCaseRunSchema(BaseModel):
         return data
 
 
-class TestCaseRunBatchSchema(BaseModel):
+class ApiRunBatchSchema(BaseModel):
     """批量运行用例"""
 
     ids: Optional[List[Union[Text, int]]]
@@ -99,26 +99,26 @@ class TestCaseRunBatchSchema(BaseModel):
         return data
 
 
-class ApiCaseBaseSchema(BaseModel):
+class ApiBaseSchema(BaseModel):
     key: Text = ""
     value: Text = ""
     remarks: Text = ""
 
 
-class ApiCaseValidatorsSchema(BaseModel):
+class ApiValidatorsSchema(BaseModel):
     mode: Text = ""
     check: Text = ""
     expect: Text = ""
     comparator: Text = ""
 
 
-class ApiCaseBodySchema(BaseModel):
+class ApiBodySchema(BaseModel):
     mode: Text = ""
     data: Text = ""
     language: Text = ""
 
 
-class ApiCaseHooksSchema(BaseModel):
+class ApiHooksSchema(BaseModel):
     name: Text = ""
     index: Union[Text, int] = ""
     value: Union[Any] = ""
@@ -126,22 +126,22 @@ class ApiCaseHooksSchema(BaseModel):
     step_type: Text = ""
 
 
-class StepScriptSchema(ApiCaseHooksSchema):
+class StepScriptSchema(ApiHooksSchema):
     pass
 
 
-class StepSqlSchema(ApiCaseHooksSchema):
+class StepSqlSchema(ApiHooksSchema):
     env_id: int = None
     source_id: int = None
     variable_name: Text = ""
     timeout: int = None
 
 
-class StepWaitSchema(ApiCaseHooksSchema):
+class StepWaitSchema(ApiHooksSchema):
     pass
 
 
-class CaseSaveOrUpdateSchema(BaseModel):
+class ApiInfoSaveOrUpdateSchema(BaseModel):
     """用例保存更新"""
     id: Union[int, Text] = None
     name: Text = ""
@@ -154,12 +154,14 @@ class CaseSaveOrUpdateSchema(BaseModel):
     case_tag: Text = ""
     method: Text = ""
     url: Text = ""
-    request_body: Union[ApiCaseBodySchema, None] = {}
+    request_body: Union[ApiBodySchema, None] = {}
+    pre_steps: List[Annotated[TController, Field(discriminator="step_type")]] = []
+    post_steps: List[Annotated[TController, Field(discriminator="step_type")]] = []
     setup_hooks: List[Annotated[TController, Field(discriminator="step_type")]] = []
     teardown_hooks: List[Annotated[TController, Field(discriminator="step_type")]] = []
-    variables: Union[List[ApiCaseBaseSchema], None] = []
-    headers: Union[List[ApiCaseBaseSchema], None] = []
-    validators: Union[List[ApiCaseValidatorsSchema], None] = []
+    variables: Union[List[ApiBaseSchema], None] = []
+    headers: Union[List[ApiBaseSchema], None] = []
+    validators: Union[List[ApiValidatorsSchema], None] = []
     extracts: Union[List[ExtractData], None] = []
     tags: Union[List[Text]] = []
     remarks: Union[Text, None] = None
@@ -172,17 +174,17 @@ class CaseSaveOrUpdateSchema(BaseModel):
             raise ParameterError("用例名不能为空!")
         # 判断用例名是否重复
         if id:
-            case_info = ApiCase.get(id)
-            if not case_info:
+            api_info = ApiInfo.get(id)
+            if not api_info:
                 raise ParameterError("用例不存在!")
-            if case_info.name != name:
-                if ApiCase.get_case_by_name(name=name):
+            if api_info.name != name:
+                if ApiInfo.get_api_by_name(name=name):
                     raise ParameterError("用例名重复!")
 
         return data
 
 
-class ApiCaseSchema(BaseModel):
+class ApiInfoSchema(BaseModel):
     id: Union[Text, int] = ""
     index: int = 0
     name: Text = ""
@@ -197,10 +199,10 @@ class ApiCaseSchema(BaseModel):
     method: MethodEnum = ""
     url: Text = ""
     env_id: Union[Text, int, None] = None
-    request_body: Union[ApiCaseBodySchema, None] = {}
+    request_body: Union[ApiBodySchema, None] = {}
     setup_hooks: List[Annotated[TController, Field(discriminator="step_type")]] = []
     teardown_hooks: List[Annotated[TController, Field(discriminator="step_type")]] = []
-    variables: Union[List[ApiCaseBaseSchema], None] = []
-    headers: Union[List[ApiCaseBaseSchema], None] = []
-    validators: Union[List[ApiCaseValidatorsSchema], None] = []
+    variables: Union[List[ApiBaseSchema], None] = []
+    headers: Union[List[ApiBaseSchema], None] = []
+    validators: Union[List[ApiValidatorsSchema], None] = []
     extracts: Union[List[ExtractData], None] = []

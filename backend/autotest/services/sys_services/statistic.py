@@ -2,7 +2,7 @@ import datetime
 
 from sqlalchemy import text
 
-from autotest.models.api_models import ProjectInfo, ModuleInfo, ApiCase, ApiSuite, ApiTestReport
+from autotest.models.api_models import ProjectInfo, ModuleInfo, ApiInfo, ApiCase, ApiTestReport
 from autotest.models.sys_models import User
 from autotest.serialize.sys_serializes.statistic import StatisticProjectCaseNum, StatisticReportNum, StatisticReportRate
 from autotest.utils.basic_function import get_today_start, get_today_end
@@ -21,23 +21,23 @@ class StatisticService:
         # 模块统计
         module_count = ModuleInfo.get_all_count()
         # 用例统计
-        case_count = ApiCase.get_all_count()
+        case_count = ApiInfo.get_all_count()
         # 套件统计
-        suite_count = ApiSuite.get_all_count()
+        suite_count = ApiCase.get_all_count()
 
         # 当天执行数
         test_ex_data = StatisticService.get_case_execution_by_time(today_start_time, today_end_time)
 
         # 新增用例数
-        add_case_count = ApiCase.get_case_by_time(today_start_time, today_end_time).count()
+        add_case_count = ApiInfo.get_api_by_time(today_start_time, today_end_time).count()
 
         # case 分布
-        pcn_sql = ApiCase.statistic_project_case_number()
+        pcn_sql = ApiInfo.statistic_project_api_number()
         pcns_data = pcn_sql.group_by(ProjectInfo.name).order_by(text('case_num desc')).all()
         ucns_data = pcn_sql.group_by(User.nickname).order_by(text('case_num desc')).all()
 
         # 套件分布
-        scn_sql = ApiSuite.statistic_project_suite_number()
+        scn_sql = ApiCase.statistic_project_case_number()
         scns_data = scn_sql.group_by(ProjectInfo.name).order_by(text('case_num asc')).all()
 
         #  project top

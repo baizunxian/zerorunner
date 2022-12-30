@@ -97,6 +97,7 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   width: 100%;
+  padding: 0 10px;
 
   .el-tag--small {
     height: 24px;

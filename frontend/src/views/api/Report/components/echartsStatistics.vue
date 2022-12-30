@@ -210,6 +210,18 @@ export default defineComponent({
         //   left: 'right',
         //   data: ['成功', '失败']
         // },
+        graphic: {
+          type: "text",
+          left: "center",
+          top: "45%",
+          style: {
+            text: `${value}%`,
+            textAlign: "center",
+            // fill: "#333",
+            fontSize: 12,
+            fontWeight: 500
+          }
+        },
         series: [
           {
             name: '用例结果',
@@ -222,7 +234,7 @@ export default defineComponent({
               borderWidth: 2
             },
             label: {
-              show: true,
+              show: false,
               position: 'center',
               // normal: {
               //   show: false,
@@ -231,9 +243,9 @@ export default defineComponent({
             },
             emphasis: {
               label: {
-                show: true,
+                show: false,
                 fontSize: '14',
-                fontWeight: '200'
+                fontWeight: 'bold'
               }
             },
             labelLine: {

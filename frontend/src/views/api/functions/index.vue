@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-card shadow="hover">
+    <el-card>
       <div class="mb15">
         <el-input
             clearable
@@ -61,7 +61,7 @@
             highlight-current-row
             style="width: 100%;"
         >
-          <el-table-column prop="func_name" label="函数名称" width="180">
+          <el-table-column prop="func_name" label="函数名称" width="180" align="center">
             <template #default="{row}">
               <div style="display: flex; justify-content: space-between">
                 <strong>{{ row.func_name }}</strong>
@@ -73,19 +73,19 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="func_args" label="函数参数" width="300">
+          <el-table-column prop="func_args" label="函数参数" width="300" align="left">
             <template #default="{row}">
               <strong>{{ row.func_args }}</strong>
             </template>
           </el-table-column>
-          <el-table-column prop="func_doc" label="函数说明" show-overflow-tooltip>
+          <el-table-column prop="func_doc" label="函数说明" show-overflow-tooltip align="left">
             <template #default="{row}">
               <div v-html="row.func_doc"></div>
             </template>
           </el-table-column>
-          <el-table-column prop="" label="操作" width="100">
+          <el-table-column prop="" label="操作" width="100" align="center">
             <template #default="{row}">
-              <el-button type="primary" link icon="el-icon-caret-right" @click="showDebugFunc(row)">
+              <el-button type="primary" @click="showDebugFunc(row)">
                 调试
               </el-button>
             </template>
@@ -173,24 +173,41 @@ export default defineComponent({
     const {copyText} = commonFunction();
     const state = reactive({
       columns: [
-        {label: '序号', columnType: 'index', width: 'auto', showTooltip: true},
-        {key: 'id', label: 'ID', width: '55', align: 'center', show: true},
-        {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
+        {label: '序号', columnType: 'index', width: 'auto', align: 'center', show: true},
+        // {key: 'id', label: 'ID', width: '55', align: 'center', show: true},
         {
-          key: 'debug_talk', label: 'scriptcode', width: '', align: 'center', show: true,
+          key: 'name', label: '函数名称', width: 'auto', align: 'center', show: true,
           render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
             onClick: () => {
               onOpenSaveOrUpdate(row)
             }
-          }, "script_code.py")
+          }, () => row.name)
         },
+        {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
         {key: 'module_name', label: '所属模块', width: '', align: 'center', show: true},
         {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
         {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
-        // {fieldName: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
-        // {fieldName: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
+        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
+        {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
+        {
+          label: '操作', columnType: 'string', fixed: 'right', width: '160', align: 'center',
+          render: (row: any) => h("div", null, [
+            h(ElButton, {
+              type: "primary",
+              onClick: () => {
+                openFuncList(row)
+              }
+            }, () => "函数列表"),
+            h(ElButton, {
+              type: "danger",
+              onClick: () => {
+                openFuncList(row)
+              }
+            }, () => "删除"),
+          ])
+        },
       ],
       // list
       listData: [],

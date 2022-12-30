@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-card shadow="hover" style="height: 100%">
+    <el-card style="height: 100%">
       <splitpanes class="default-theme" @resize="paneSize = $event[0].size" style="height: 100%;">
         <pane :size="32">
           <db-list></db-list>
@@ -30,8 +30,6 @@ import {defineComponent, reactive, toRefs, ref} from 'vue';
 import dbList from '/@/views/tools/queryDB/components/dbList.vue';
 import containerTop from '/@/views/tools/queryDB/components/containerTop.vue';
 import containerBottom from '/@/views/tools/queryDB/components/containerBottom.vue';
-import {Splitpanes, Pane} from "splitpanes";
-import 'splitpanes/dist/splitpanes.css';
 
 export default defineComponent({
   name: 'query_db',
@@ -39,8 +37,6 @@ export default defineComponent({
     dbList,
     containerTop,
     containerBottom,
-    Splitpanes,
-    Pane,
   },
   setup() {
     const containerRef = ref()
@@ -85,19 +81,4 @@ export default defineComponent({
   }
 }
 
-.splitpanes.default-theme .splitpanes__pane {
-  background-color: #ffffff;
-}
-
-.splitpanes__pane .content {
-  padding: 0 6px;
-}
-
-:deep(.el-tabs) {
-  height: 100%;
-
-  .el-tabs__header {
-    //height: 30px;
-  }
-}
 </style>

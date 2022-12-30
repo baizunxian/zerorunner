@@ -60,8 +60,8 @@ def gen_celery_for_worker():
         由于celery作为worker跑的时候,并不会创建flask app
         因此我们需要单独处理worker跑的情况
     """
-    from autotest.app import create_app
-    create_app()
+    from autotest.app import create_celery_app
+    create_celery_app()
     global celery
     return celery
 

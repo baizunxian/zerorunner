@@ -1,6 +1,6 @@
 <template>
   <div class="step-details">
-    <step-controller use_type="post" :data="setup_hooks" :case_id="case_id"></step-controller>
+    <step-controller use_type="post" :data="postSteps" :case_id="case_id"></step-controller>
   </div>
 </template>
 
@@ -13,22 +13,21 @@ export default defineComponent({
   name: 'postOperation',
   setup() {
     const state = reactive({
-      setup_hooks: [],
+      postSteps: [],
       case_id: 0,
     });
 
     //
     const setData = (data: any, case_id: number) => {
-      state.case_id = case_id
-      console.log("preOperation--case_id--->", state.case_id)
-      if (data) {
-        state.setup_hooks = data
-      }
+      state.postSteps = []
+      state.case_id = 0
+      if (data) state.postSteps = data
+      if (case_id) state.case_id = case_id
     }
 
     // 获取表单数据
     const getData = () => {
-      return handleEmpty(state.setup_hooks)
+      return handleEmpty(state.postSteps)
     }
 
     return {

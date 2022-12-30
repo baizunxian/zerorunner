@@ -133,9 +133,9 @@ class ModuleInfo(Base, TimestampMixin):
             .outerjoin(ProjectInfo, and_(cls.project_id == ProjectInfo.id, ProjectInfo.enabled_flag == 1)) \
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
-            .outerjoin(ApiCase,
-                       and_(cls.id == ApiCase.module_id, ApiCase.enabled_flag == 1)) \
-            .with_entities(func.count(distinct(ApiCase.id)).label('case_count'),
+            .outerjoin(ApiInfo,
+                       and_(cls.id == ApiInfo.module_id, ApiInfo.enabled_flag == 1)) \
+            .with_entities(func.count(distinct(ApiInfo.id)).label('case_count'),
                            cls.id,
                            cls.name,
                            cls.project_id,
@@ -183,9 +183,9 @@ class ModuleInfo(Base, TimestampMixin):
         return cls.query.filter(cls.packages_id == packages_id, cls.enabled_flag == 1).first()
 
 
-class ApiCase(Base, TimestampMixin):
+class ApiInfo(Base, TimestampMixin):
     """接口用例"""
-    __tablename__ = 'api_case'
+    __tablename__ = 'api_info'
 
     name = Column(String(255), nullable=False, comment="用例名称", index=True)
     project_id = Column(Integer, nullable=False, comment='所属项目')
@@ -196,6 +196,8 @@ class ApiCase(Base, TimestampMixin):
     priority = Column(Integer, nullable=False, comment='优先级', default=3)
     case_tag = Column(String(255), nullable=True, comment='用例标签')
     method = Column(String(255), nullable=True, comment='请求方式')
+    pre_steps = Column(JSON, nullable=True, comment='前置步骤')
+    post_steps = Column(JSON, nullable=True, comment='后置步骤')
     setup_hooks = Column(JSON, nullable=True, comment='前置操作')
     teardown_hooks = Column(JSON, nullable=True, comment='后置操作')
     variables = Column(JSON, nullable=True, comment='变量')
@@ -253,18 +255,18 @@ class ApiCase(Base, TimestampMixin):
         sort_type = 'asc' if sort_type == 0 else 'desc'
 
         if not order_field or order_field == 'creation_date':
-            order_field = 'api_case.creation_date'
+            order_field = 'api_info.creation_date'
         if order_field == 'updation_date':
-            order_field = 'api_case.updation_date'
+            order_field = 'api_info.updation_date'
         if order_field == 'name':
-            order_field = 'case_info.name'
+            order_field = 'api_info.name'
         if order_field == 'project_name':
             order_field = 'project_info.name'
         if order_field == 'module_name':
             order_field = 'module_info.name'
         if order_field == 'created_by_name' or order_field == 'updated_by_name':
             order_field = 'user.nickname'
-        order_by = f'{order_field} {sort_type} {",api_case.id"} {sort_type}'
+        order_by = f'{order_field} {sort_type} {",api_info.id"} {sort_type}'
 
         return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
@@ -300,7 +302,7 @@ class ApiCase(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1, cls.type == 1).all()
 
     @classmethod
-    def get_case_by_module_id(cls, module_id=None, module_ids=None):
+    def get_api_by_module_id(cls, module_id=None, module_ids=None):
         """查询模块是否有case关联"""
         q = list()
         if module_id:
@@ -310,26 +312,64 @@ class ApiCase(Base, TimestampMixin):
         return cls.query.filter(*q, cls.enabled_flag == 1)
 
     @classmethod
-    def get_case_by_project_id(cls, project_id):
+    def get_api_by_project_id(cls, project_id):
         """查询项目是否有case关联"""
         return cls.query.filter(cls.project_id == project_id, cls.enabled_flag == 1)
 
     @classmethod
-    def get_case_by_name(cls, name):
+    def get_api_by_name(cls, name):
         """获取用例名是否存在"""
         return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
 
     @classmethod
-    def get_case_by_ids(cls, ids: List):
+    def get_api_by_ids(cls, ids: List):
         q = []
         return cls.query.filter(cls.id.in_(ids), *q, cls.enabled_flag == 1)
 
     @classmethod
-    def get_case_by_time(cls, start_time, end_time):
+    def get_api_by_id(cls, id: int):
+        u = aliased(User)
+        return cls.query.filter(cls.id == id, cls.enabled_flag == 1) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .with_entities(
+            cls.id,
+            cls.name,
+            cls.url,
+            cls.method,
+            cls.project_id,
+            cls.module_id,
+            cls.code_id,
+            cls.code,
+            cls.priority,
+            cls.case_status,
+            cls.case_tag,
+            cls.request_body,
+            cls.pre_steps,
+            cls.post_steps,
+            cls.teardown_hooks,
+            cls.setup_hooks,
+            cls.extracts,
+            cls.request_body,
+            cls.headers,
+            cls.validators,
+            cls.remarks,
+            cls.tags,
+            cls.updated_by,
+            cls.created_by,
+            cls.updation_date,
+            cls.creation_date,
+            cls.enabled_flag,
+            User.nickname.label('created_by_name'),
+            u.nickname.label('updated_by_name')
+        ).first()
+
+    @classmethod
+    def get_api_by_time(cls, start_time, end_time):
         return cls.query.filter(cls.creation_date.between(start_time, end_time), cls.enabled_flag == 1)
 
     @classmethod
-    def statistic_project_case_number(cls):
+    def statistic_project_api_number(cls):
         return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(User, User.id == cls.created_by) \
             .with_entities(ProjectInfo.name,
@@ -340,7 +380,7 @@ class ApiCase(Base, TimestampMixin):
             .filter(cls.enabled_flag == 1)
 
     @classmethod
-    def get_case_by_project_id_or_body(cls, project_id, body_name):
+    def get_api_by_project_id_or_body(cls, project_id, body_name):
         """查询项目是否有case关联"""
         return cls.query.filter(cls.project_id == project_id, cls.request.like(('%{}%'.format(body_name))),
                                 cls.enabled_flag == 1) \
@@ -352,9 +392,9 @@ class ApiCase(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
 
-class ApiSuite(Base, TimestampMixin):
+class ApiCase(Base, TimestampMixin):
     """测试套件，集合"""
-    __tablename__ = 'api_suite'
+    __tablename__ = 'api_case'
 
     name = Column(String(64), nullable=False, comment='名称', index=True)
     project_id = Column(Integer, nullable=False, comment='所属项目')
@@ -405,17 +445,17 @@ class ApiSuite(Base, TimestampMixin):
             .order_by(cls.creation_date.desc())
 
     @classmethod
-    def get_suite_by_id(cls, id):
+    def get_case_by_id(cls, id):
         """根据套件id查询套件"""
         return cls.query.filter(cls.id == id, cls.enabled_flag == 1).first()
 
     @classmethod
-    def get_suite_by_name(cls, suite_name):
+    def get_case_by_name(cls, suite_name):
         """根据套件名称查询套件"""
         return cls.query.filter(cls.suite_name == suite_name, cls.enabled_flag == 1).all()
 
     @classmethod
-    def statistic_project_suite_number(cls):
+    def statistic_project_case_number(cls):
         return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(User, User.id == cls.created_by) \
             .with_entities(ProjectInfo.name,
@@ -430,9 +470,9 @@ class ApiSuite(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
 
-class ApiSuiteStep(Base, TimestampMixin):
-    """测试套件，集合步骤"""
-    __tablename__ = 'api_suite_step'
+class ApiCaseStep(Base, TimestampMixin):
+    """用例步骤"""
+    __tablename__ = 'api_case_step'
 
     name = Column(String(64), nullable=False, comment='名称', index=True)
     parent_id = Column(Integer, nullable=False, comment='父级id')
@@ -483,31 +523,6 @@ class ApiSuiteStep(Base, TimestampMixin):
                            u.nickname.label('updated_by_name'),
                            ProjectInfo.name.label('project_name')) \
             .order_by(cls.creation_date.desc())
-
-    @classmethod
-    def get_suite_by_id(cls, id):
-        """根据套件id查询套件"""
-        return cls.query.filter(cls.id == id, cls.enabled_flag == 1).first()
-
-    @classmethod
-    def get_suite_by_name(cls, suite_name):
-        """根据套件名称查询套件"""
-        return cls.query.filter(cls.suite_name == suite_name, cls.enabled_flag == 1).all()
-
-    @classmethod
-    def statistic_project_suite_number(cls):
-        return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
-            .outerjoin(User, User.id == cls.created_by) \
-            .with_entities(ProjectInfo.name,
-                           func.count(cls.id).label('case_num'),
-                           User.username.label('employee_code'),
-                           User.nickname.label('username'),
-                           ) \
-            .filter(cls.enabled_flag == 1)
-
-    @classmethod
-    def get_all_count(cls):
-        return cls.query.filter(cls.enabled_flag == 1).count()
 
 
 class ApiTestReport(Base, TimestampMixin):
@@ -686,8 +701,8 @@ class ApiTestReportDetail:
                         q.append(cls.parent_step_id == None)
 
                     return cls.query.filter(*q, cls.enabled_flag == 1) \
-                        .outerjoin(ApiCase, ApiCase.id == cls.case_id) \
-                        .outerjoin(User, User.id == ApiCase.created_by) \
+                        .outerjoin(ApiInfo, ApiInfo.id == cls.case_id) \
+                        .outerjoin(User, User.id == ApiInfo.created_by) \
                         .with_entities(cls.id,
                                        cls.name,
                                        cls.case_id,
@@ -707,10 +722,10 @@ class ApiTestReportDetail:
                                        cls.response_time_ms,
                                        cls.status_code,
                                        cls.elapsed_ms,
-                                       ApiCase.name.label("case_name"),
-                                       ApiCase.method.label("method"),
-                                       ApiCase.url.label("url"),
-                                       ApiCase.created_by.label('case_created_by'),
+                                       ApiInfo.name.label("case_name"),
+                                       ApiInfo.method.label("method"),
+                                       ApiInfo.url.label("url"),
+                                       ApiInfo.created_by.label('case_created_by'),
                                        User.nickname.label('case_created_by_name'),
                                        ) \
                         .order_by(cls.index)
@@ -759,7 +774,8 @@ class ApiTestReportDetail:
                                 func.if_(cls.step_type == 'case',
                                          func.if_(cls.status == "SUCCESS", func.if_(cls.status != "SKIP", 1, 0), 0),
                                          0)) / func.sum(
-                                func.if_(cls.step_type == 'case', func.if_(cls.status != "SKIP", 1, 0), 0)) * 100, 2).label("case_pass_rate"),
+                                func.if_(cls.step_type == 'case', func.if_(cls.status != "SKIP", 1, 0), 0)) * 100,
+                            2).label("case_pass_rate"),
                         # 测试步骤通过率
                         func.round(
                             func.sum(func.if_(cls.status == "SUCCESS", 1, 0)) / func.count('1') * 100, 2).label(
@@ -783,6 +799,7 @@ class Env(Base, TimestampMixin):
     remarks = Column(String(255), nullable=False, comment='说明')
     variables = Column(JSON(), nullable=False, comment='环境变量')
     headers = Column(JSON(), nullable=False, comment='环境请求头')
+    data_sources = Column(JSON(), nullable=False, comment='数据源')
 
     @classmethod
     def get_list(cls, name=None, created_by_name=None):
@@ -835,7 +852,8 @@ class TimedTask(Base, TimestampMixin):
     description = Column(String(255), comment='备注')
     crontab_id = Column(Integer, comment='定时器id')
     interval_id = Column(Integer, comment='参数')
-    run_type = Column(Integer, nullable=False, comment='作业类型, case, module, suite')
+    run_mode = Column(String(255), nullable=False, comment='作业类型, case, module, suite')
+    run_type = Column(Integer, nullable=False, comment='30 定时任务')
     project_id = Column(Integer, nullable=True, comment='项目id')
     module_id = Column(Integer, nullable=True, comment='模块id')
     suite_id = Column(Integer, nullable=True, comment='套件id')
@@ -932,7 +950,9 @@ class PeriodicTaskChanged(Base):
 class Functions(Base, TimestampMixin):
     __tablename__ = 'functions'
 
-    project_id = Column(Integer, nullable=False, comment='项目id')
+    name = Column(Integer, nullable=False, comment='name')
+    remarks = Column(Integer, nullable=False, comment='备注')
+    project_id = Column(Integer, nullable=False, comment='关联项目')
     content = Column(Text, nullable=True, comment='自定义函数内容')
 
     @classmethod
@@ -940,16 +960,21 @@ class Functions(Base, TimestampMixin):
         q = []
         if project_name:
             q.append(ProjectInfo.name.like(f'%{project_name}%'))
+        u = aliased(User)
         return cls.query.filter(*q, cls.enabled_flag == 1) \
             .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
             .outerjoin(User, User.id == cls.updated_by) \
+            .outerjoin(u, u.id == cls.created_by) \
             .with_entities(cls.id,
                            cls.project_id,
+                           cls.name,
+                           cls.remarks,
                            cls.content,
                            cls.creation_date,
                            cls.updation_date,
                            ProjectInfo.name.label('project_name'),
-                           User.nickname.label('updated_by_name')
+                           User.nickname.label('updated_by_name'),
+                           u.nickname.label('created_by_name'),
                            ) \
             .order_by(cls.creation_date.desc())
 
@@ -960,6 +985,8 @@ class Functions(Base, TimestampMixin):
             .with_entities(cls.id,
                            cls.project_id,
                            cls.content,
+                           cls.name,
+                           cls.remarks,
                            cls.creation_date,
                            cls.updation_date,
                            ProjectInfo.name.label('project_name')) \

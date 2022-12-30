@@ -1,13 +1,13 @@
 <template>
   <div class="api-case el-card">
     <el-row>
-      <div class="api-case__ssl">
-        <strong :style="{color: form.ssl ? '#409eff' : '', paddingRight: '5px'}">SSL</strong>
-        <el-switch
-            v-model="form.ssl"
-            size="default"
-        />
-      </div>
+      <!--      <div class="api-case__ssl">-->
+      <!--        <strong :style="{color: form.ssl ? '#409eff' : '', paddingRight: '5px'}">SSL</strong>-->
+      <!--        <el-switch-->
+      <!--            v-model="form.ssl"-->
+      <!--            size="default"-->
+      <!--        />-->
+      <!--      </div>-->
 
       <el-col :xs="15" :sm="15" :md="15" :lg="15" :xl="15" class="mb20">
         <div class="api-case__method" style="padding-left: 5px">
@@ -57,7 +57,7 @@
         <el-row :gutter="24">
           <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
             <el-form-item label="用例名称" prop="name" style="width: 100%">
-              <el-input size="default"
+              <el-input size=""
                         v-model.trim="form.name"
                         style="width: 100%;"
                         placeholder="请输入用例名称"></el-input>
@@ -72,6 +72,8 @@
                            :props="{label:'name', value:'id'}"
                            :options="projectTree"
                            filterable
+                           size=""
+                           style="width: 100%"
                            @change="projectModuleChange"/>
             </el-form-item>
           </el-col>
@@ -117,6 +119,35 @@
                         placeholder="请输入用例名称"></el-input>
             </el-form-item>
           </el-col>
+
+          <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+
+          </el-col>
+
+          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+            <el-form-item label="创建用户" prop="" style="width: 100%;">
+              <strong>{{ form.created_by_name }}</strong>
+            </el-form-item>
+          </el-col>
+
+          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+            <el-form-item label="创建时间" prop="" style="width: 100%;">
+              <strong>{{ form.creation_date }}</strong>
+            </el-form-item>
+          </el-col>
+
+          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+            <el-form-item label="更新用户" prop="" style="width: 100%;">
+              <strong>{{ form.updated_by_name }}</strong>
+            </el-form-item>
+          </el-col>
+
+          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+            <el-form-item label="更新时间" prop="" style="width: 100%;">
+              <strong>{{ form.updation_date }}</strong>
+            </el-form-item>
+          </el-col>
+
         </el-row>
       </el-form>
     </div>
@@ -160,14 +191,14 @@ export default defineComponent({
       }
     }
     const state = reactive({
-      // cat apiCase info
+      // cat apiInfo info
       showCaseInfo: false,
       //tag
       editTag: false,
       tagValue: "",
       // form
       isShowDialog: false,
-      handleType: '',   //apiCase 调用类型， 保存，调试
+      handleType: '',   //apiInfo 调用类型， 保存，调试
       // 表单及校验
       form: createForm(),
       rules: {
@@ -199,14 +230,17 @@ export default defineComponent({
     });
     // 初始化表单
     const setData = (formData: any) => {
-      if (formData) state.form = {...createForm(), ...formData}
-      state.form.project_module = [state.form.project_id, state.form.module_id]
-      if (!state.form.tags) state.form.tags = []
-      if (formData.project_id) {
-        state.moduleQuery.project_id = formData.project_id
-        getModuleList()
+      state.form = createForm()
+      if (formData) {
+        state.form = {...createForm(), ...formData}
+        state.form.project_module = [state.form.project_id, state.form.module_id]
+        if (!state.form.tags) state.form.tags = []
+        if (formData.project_id) {
+          state.moduleQuery.project_id = formData.project_id
+          getModuleList()
+        }
+        methodChange(state.form.method)
       }
-      methodChange(state.form.method)
     }
 
     // 获取表单数据
@@ -326,7 +360,7 @@ export default defineComponent({
 .api-case {
   padding: 15px 16px;
   background-color: #ffffff;
-  border-radius: 4px;
+  border-radius: 10px;
   border-left: 5px solid #409eff;
   margin-bottom: 20px;
   box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.12);

@@ -1,6 +1,6 @@
 <template>
   <div class="system-menu-container">
-    <el-card shadow="hover">
+    <el-card>
       <div class="system-menu-search mb15">
         <el-input v-model="listQuery.name" placeholder="请输入菜单名称" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="getList">
@@ -16,54 +16,18 @@
           新增菜单
         </el-button>
       </div>
-      <el-table
-          border
+
+      <zero-table
+          :columns="columns"
           :data="menuList"
-          v-loading="menuTableLoading"
-          style="width: 100%"
-          row-key="path"
-          :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
+          border
+          row-key="id"
+          v-model:page-size="listQuery.pageSize"
+          v-model:page="listQuery.page"
+          :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+          @pagination-change="getList"
+      />
 
-        <el-table-column
-            v-for="field in fieldData"
-            :key="field.fieldName"
-            :label="field.label"
-            :align="field.align"
-            :width="field.width"
-            :show-overflow-tooltip="field.show"
-            :prop="field.fieldName"
-        >
-          <template #default="{row}">
-            <template v-if="field.fieldName === 'title'">
-              <SvgIcon :name="row.icon"/>
-              <span class="ml10">{{ row.title }}</span>
-<!--              <el-button size="small"-->
-<!--                         type="primary" link-->
-<!--                         class="ml10"-->
-<!--                         @click="onOpenSaveOrUpdate('update', row)">-->
-<!--                {{ row[field.fieldName] }}-->
-<!--              </el-button>-->
-            </template>
-
-            <template v-else-if="field.fieldName === 'menu_type'">
-              <el-tag type="success" v-if="row.menu_type === 10">菜单</el-tag>
-              <el-tag type="info" v-else>按钮</el-tag>
-            </template>
-
-            <template v-else>
-              {{ row[field.fieldName] }}
-            </template>
-
-          </template>
-        </el-table-column>
-
-        <el-table-column label="操作" show-overflow-tooltip width="140" fixed="right">
-          <template #default="scope">
-            <el-button size="small" type="primary" link @click="onOpenSaveOrUpdate('update', scope.row)">修改</el-button>
-            <el-button size="small" type="primary" link @click="deleted(scope.row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
     </el-card>
     <save-or-update :moduleName="moduleName" :menuList="menuList" :allMenuList="allMenuList" @getList="getList"
                     ref="saveOrUpdateRef"/>
@@ -71,10 +35,10 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, onMounted, reactive, ref, toRefs} from 'vue';
+import {defineComponent, h, onMounted, reactive, ref, toRefs} from 'vue';
 import {useMenuApi} from '/@/api/useSystemApi/menu';
 import {RouteRecordRaw} from 'vue-router';
-import {ElMessage, ElMessageBox} from 'element-plus';
+import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import saveOrUpdate from '/@/views/system/menu/components/saveOrUpdate.vue';
 
 export default defineComponent({
@@ -83,18 +47,39 @@ export default defineComponent({
   setup() {
     const saveOrUpdateRef = ref();
     const state = reactive({
-      fieldData: [
-        {fieldName: 'title', label: '菜单名称', width: '', align: 'left', show: true},
-        {fieldName: 'path', label: '路由路径', width: '', align: 'left', show: true},
-        {fieldName: 'component', label: '组件路径', width: '', align: 'left', show: true},
-        {fieldName: 'roles', label: '权限标识', width: '', align: 'left', show: true},
-        {fieldName: 'name', label: '路由名称', width: '', align: 'left', show: true},
-        {fieldName: 'sort', label: '排序', width: '', align: 'left', show: true},
-        {fieldName: 'menu_type', label: '类型', width: '', align: 'left', show: true},
-        // {fieldName: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
-        // {fieldName: 'updated_by', label: '更新人', width: '', align: 'center', show: true},
-        // {fieldName: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
-        // {fieldName: 'created_by', label: '创建人', width: '', align: 'center', show: true},
+      columns: [
+        {
+          key: 'title', label: '菜单名称', width: '', align: 'left', show: true, render: (row: any) =>
+              h(ElButton, {
+                link: true,
+                type: "primary",
+                onClick: () => {
+                  onOpenSaveOrUpdate('update', row)
+                }
+              }, () => row.title),
+        },
+        {key: 'path', label: '路由路径', width: '', align: 'left', show: true},
+        {key: 'component', label: '组件路径', width: '', align: 'left', show: true},
+        {key: 'roles', label: '权限标识', width: '', align: 'left', show: true},
+        {key: 'name', label: '路由名称', width: '', align: 'left', show: true},
+        {key: 'sort', label: '排序', width: '', align: 'left', show: true},
+        {key: 'menu_type', label: '类型', width: '', align: 'left', show: true}, {
+          label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
+          render: (row: any) => h("div", null, [
+            h(ElButton, {
+              type: "primary",
+              onClick: () => {
+                onOpenSaveOrUpdate('update', row)
+              }
+            }, () => '编辑'),
+            h(ElButton, {
+              type: "danger",
+              onClick: () => {
+                deleted(row)
+              }
+            }, () => '删除')
+          ])
+        },
       ],
       // list
       moduleName: '菜单', // 模块名称

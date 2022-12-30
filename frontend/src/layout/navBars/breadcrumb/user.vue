@@ -1,21 +1,21 @@
 <template>
   <div class="layout-navbars-breadcrumb-user" :style="{ flex: layoutUserFlexNum }">
-<!--    <div class="layout-navbars-breadcrumb-user-icon" id="header-run-env">-->
-<!--      <el-select size="default" v-model="env_id"-->
-<!--                 placeholder="运行环境"-->
-<!--                 filterable-->
-<!--                 style="width: 100%;"-->
-<!--                 @change="setEndId"-->
-<!--      >-->
-<!--        <el-option-->
-<!--            v-for="env in envList"-->
-<!--            :key="env.id + env.name"-->
-<!--            :label="env.name"-->
-<!--            :value="env.id">-->
-<!--          <span style="float: left">{{ env.name }}</span>-->
-<!--        </el-option>-->
-<!--      </el-select>-->
-<!--    </div>-->
+    <!--    <div class="layout-navbars-breadcrumb-user-icon" id="header-run-env">-->
+    <!--      <el-select size="default" v-model="env_id"-->
+    <!--                 placeholder="运行环境"-->
+    <!--                 filterable-->
+    <!--                 style="width: 100%;"-->
+    <!--                 @change="setEndId"-->
+    <!--      >-->
+    <!--        <el-option-->
+    <!--            v-for="env in envList"-->
+    <!--            :key="env.id + env.name"-->
+    <!--            :label="env.name"-->
+    <!--            :value="env.id">-->
+    <!--          <span style="float: left">{{ env.name }}</span>-->
+    <!--        </el-option>-->
+    <!--      </el-select>-->
+    <!--    </div>-->
 
     <el-dropdown :show-timeout="70" :hide-timeout="50" trigger="click" @command="onComponentSizeChange">
       <div class="layout-navbars-breadcrumb-user-icon">
@@ -36,7 +36,7 @@
     <!--    </div>-->
 
     <div class="layout-navbars-breadcrumb-user-icon" @click="onLayoutSetingClick">
-      <i class="icon-skin iconfont" title="布局配置"></i>
+      <i class="iconfont icon-setting" title="布局配置"></i>
     </div>
     <div class="layout-navbars-breadcrumb-user-icon">
       <el-popover placement="bottom" trigger="click" width="400px">

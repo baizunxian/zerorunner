@@ -39,7 +39,7 @@ export default {
     // 主题
     theme: {
       type: String,
-      default: 'vs',   // vs hc-black  vs-dark
+      default: 'vs-dark',   // vs hc-black  vs-dark
     },
     //lineNumbers
     options: {

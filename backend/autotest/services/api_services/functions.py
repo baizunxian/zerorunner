@@ -33,7 +33,7 @@ class FunctionsService:
         return result
 
     @staticmethod
-    def get_debug_talk_info(**kwargs: Any) -> Dict[Text, Text]:
+    def get_function_info(**kwargs: Any) -> Dict[Text, Text]:
         """
         获取自定义函数信息
         :param kwargs:
@@ -49,14 +49,14 @@ class FunctionsService:
             basic_function = w.read()
             data = {
                 'content': basic_function,
-                'project_name': '公共函数',
+                'name': '公共函数',
                 'edit': False,
             }
             return data
-        debug_talk_info = Functions.get_by_id(d_id)
-        debug_talk_info = FuncListSchema.serialize(debug_talk_info)
-        debug_talk_info['edit'] = True
-        return debug_talk_info
+        function_info = Functions.get_by_id(d_id)
+        function_info = FuncListSchema.serialize(function_info)
+        function_info['edit'] = True
+        return function_info
 
     @staticmethod
     def save_or_update(**kwargs: Any) -> "Functions":
@@ -65,9 +65,10 @@ class FunctionsService:
         :param kwargs:
         :return:
         """
-        parsed_data = FuncSaveOrUpdateSchema().load(kwargs)
-        d_id = parsed_data.get('id', None)
-        debug_info = Functions.get(d_id) if d_id else Functions()
+        parsed_data = FuncSaveOrUpdateSchema(**kwargs)
+        func_id = parsed_data.id
+        load_func_content(content=parsed_data.content, module_name=uuid.uuid4().hex)
+        debug_info = Functions.get(func_id) if func_id else Functions()
         debug_info.update(**kwargs)
         return debug_info
 
@@ -84,7 +85,7 @@ class FunctionsService:
         func_parse_str = parsed_data.func_parse_str
         func_name = parsed_data.func_name
         try:
-            data = FunctionsService.get_function_by_path(func_id)
+            data = FunctionsService.get_function_by_id(func_id)
             functions_mapping = data.get('functions_mapping')
             func = get_mapping_function(func_name, functions_mapping)
             if not func:
@@ -96,7 +97,7 @@ class FunctionsService:
             raise ValueError(err)
 
     @staticmethod
-    def get_function_by_path(func_id: Union[str, int, None] = None, name: Text = None) -> Dict[Text, Any]:
+    def get_function_by_id(func_id: Union[str, int, None] = None, name: Text = None) -> Dict[Text, Any]:
         """
         获取函数信息
         :param func_id:
@@ -114,8 +115,8 @@ class FunctionsService:
                 file_content = common_content
             else:
                 file_content = content
-            # if file_content.find(f'def {func_name}(') == -1:
-            #     continue
+            if file_content.find(f'def {func_name}(') == -1:
+                continue
             if name:
                 if name in func.__name__ or name in func.__doc__ if func.__doc__ else '':
                     func_list.append(FunctionsService.handle_func_info(func))

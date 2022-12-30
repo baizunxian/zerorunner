@@ -84,7 +84,7 @@ export const getId = async () => {
 }
 
 
-export function getStatusTag(status:string) {
+export function getStatusTag(status: string) {
   switch (status) {
     case "FAILURE":
       return "warning"
@@ -95,4 +95,25 @@ export function getStatusTag(status:string) {
     case "SKIP":
       return "info"
   }
+}
+
+
+export function formatSizeUnits(bytes: number) {
+  let BodySizeStr
+  if (bytes >= 1073741824) {
+    BodySizeStr = (bytes / 1073741824).toFixed(2) + " GB";
+  } else if (bytes >= 1048576) {
+    BodySizeStr = (bytes / 1048576).toFixed(2) + " MB";
+  } else if (bytes >= 1024) {
+    BodySizeStr = (bytes / 1024).toFixed(2) + " KB";
+  } else if (bytes > 1) {
+    BodySizeStr = bytes + " B";
+  } else if (bytes == 1) {
+    BodySizeStr = bytes + " B";
+  } else {
+    BodySizeStr = "0 B";
+  }
+
+  return BodySizeStr;
+
 }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-card shadow="hover">
+    <el-card>
       <div class="mb15">
         <el-input v-model="listQuery.name" placeholder="请输入配置名称" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="search">
@@ -51,16 +51,16 @@ import {useRouter} from "vue-router";
 import saveOrUpdate from '/@/views/api/environment/components/saveOrUpdate.vue';
 
 export default defineComponent({
-  name: 'Env',
+  name: 'apiEnv',
   components: {saveOrUpdate},
   setup() {
     const saveOrUpdateRef = ref();
     const router = useRouter();
     const state = reactive({
       columns: [
-        {label: '序号', columnType: 'index', width: 'auto', showTooltip: true},
+        {label: '序号', columnType: 'index', width: 'auto', align: 'center', show: true},
         {
-          key: 'name', label: '配置名称', width: '', showTooltip: true,
+          key: 'name', label: '配置名称', width: '', align: 'center', show: true,
           render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
@@ -69,17 +69,16 @@ export default defineComponent({
             }
           }, () => row.name)
         },
-        {key: 'domain_name', label: '域名地址', width: 'auto', showTooltip: true},
-        {key: 'remarks', label: '备注', width: 'auto', showTooltip: true},
-        {key: 'updation_date', label: '更新时间', width: '150', showTooltip: true},
-        {key: 'updated_by_name', label: '更新人', width: '', showTooltip: true},
-        {key: 'creation_date', label: '创建时间', width: '150', showTooltip: true},
-        {key: 'created_by_name', label: '创建人', width: '', showTooltip: true},
+        {key: 'domain_name', label: '域名地址', width: 'auto', align: 'center', show: true},
+        {key: 'remarks', label: '备注', width: 'auto', align: 'center', show: true},
+        {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
+        {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
+        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
+        {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
         {
-          label: '操作', fixed: 'right', width: '100',
+          label: '操作', fixed: 'right', width: '140', align: 'center',
           render: (row: any) => h("div", null, [
             h(ElButton, {
-              link: true,
               type: "primary",
               onClick: () => {
                 onOpenSaveOrUpdate("update", row)
@@ -87,8 +86,7 @@ export default defineComponent({
             }, () => '编辑'),
 
             h(ElButton, {
-              link: true,
-              type: "primary",
+              type: "danger",
               onClick: () => {
                 deleted(row)
               }

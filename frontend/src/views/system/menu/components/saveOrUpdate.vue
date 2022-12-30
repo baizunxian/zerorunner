@@ -64,14 +64,14 @@
                 </el-input>
               </el-form-item>
             </el-col>
-            <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-              <el-form-item label="权限标识">
-                <el-select v-model="form.roles" placeholder="取角色管理" clearable class="w100">
-                  <el-option label="admin" value="admin"></el-option>
-                  <el-option label="common" value="common"></el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
+<!--            <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">-->
+<!--              <el-form-item label="权限标识">-->
+<!--                <el-select v-model="form.roles" placeholder="取角色管理" clearable class="w100">-->
+<!--                  <el-option label="admin" value="admin"></el-option>-->
+<!--                  <el-option label="common" value="common"></el-option>-->
+<!--                </el-select>-->
+<!--              </el-form-item>-->
+<!--            </el-col>-->
           </template>
           <template v-if="form.menuType === 'btn'">
             <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">

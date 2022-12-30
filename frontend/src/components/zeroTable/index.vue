@@ -64,7 +64,7 @@
         <!---日期格式化 (END)-->
         <!-- 自定义slot (START) -->
         <el-table-column
-            :show-overflow-tooltip="col.showTooltip"
+            :show-overflow-tooltip="col.show"
             v-else-if="col.slot"
             :sortable="col.sortable"
             :prop="col.key"
@@ -103,7 +103,7 @@
 
         <!-- render函数 (START) -->
         <el-table-column
-            :show-overflow-tooltip="col.showTooltip"
+            :show-overflow-tooltip="col.show"
             v-else-if="col.render"
             :label="col.label"
             :sortable="col.sortable"
@@ -120,7 +120,7 @@
 
         <!-- 默认渲染列 (START) -->
         <el-table-column
-            :show-overflow-tooltip="col.showTooltip"
+            :show-overflow-tooltip="col.show"
             v-else
             :label="col.label"
             :sortable="col.sortable"

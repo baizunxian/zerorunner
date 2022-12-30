@@ -1,18 +1,36 @@
 <template>
   <div>
-    <div style=" height: 45px">[{{ isEdit ? '编辑' : '只读' }}] - [{{ funcFrom.project_name }}]
-      <el-button v-show="isEdit" type="success" @click="saveOrUpdate" style="margin-left: 10px;">保存</el-button>
-    </div>
-    <el-button type="success" @click="showDiff=!showDiff" style="margin-left: 10px;">showDiff
-    </el-button>
+    <div style=" height: 45px" class="header">
+      <el-form ref="formRef"
+               v-model="funcFrom"
+               inline
+               label-width="auto"
+      >
+        <el-form-item prop="name" label="函数名称">
+          <el-input type="primary"
+                    size=""
+                    placeholder="备注"
+                    style="width: 200px"
+                    v-model="funcFrom.name">
+          </el-input>
 
+          <el-button type="primary" @click="showDiff=!showDiff" style="margin-left: 10px;">保存</el-button>
+
+        </el-form-item>
+
+        <el-form-item>
+        </el-form-item>
+
+      </el-form>
+
+    </div>
 
     <div class="code-box">
       <!--      展示-->
       <monaco-editor
           v-model:value="funcFrom.content"
           v-model:long="long"
-      />
+      ></monaco-editor>
     </div>
 
 
@@ -51,7 +69,7 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, onMounted, reactive, ref, toRefs} from "vue";
+import {defineComponent, onMounted, reactive, toRefs} from "vue";
 import {useRoute} from 'vue-router'
 import {useFunctionsApi} from "/@/api/useAutoApi/functions";
 import {ElMessage} from "element-plus/es";
@@ -67,7 +85,7 @@ export default defineComponent({
       funcFrom: {
         id: null,
         content: '',
-        project_name: ''
+        name: ''
       },
 
       long: 'python',
@@ -83,7 +101,7 @@ export default defineComponent({
             .then(res => {
               state.funcFrom.content = res.data.content
               state.originalFuncContent = res.data.content
-              state.funcFrom.project_name = res.data.project_name
+              state.funcFrom.name = res.data.name
               state.funcFrom.id = res.data.id
               state.isEdit = res.data.edit
               // initEditor(state.debugTalkFrom.debug_talk)
@@ -95,6 +113,7 @@ export default defineComponent({
       useFunctionsApi().saveOrUpdate(state.funcFrom)
           .then(() => {
             ElMessage.success('操作成功');
+            state.showDiff = false
           })
       // setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
     };
@@ -116,6 +135,14 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+.header {
+  display: flex;
+  padding: 10px 5px;
+  background-color: #ffffff;
+  border-radius: 0px;
+  border-left: 5px solid #409eff;
+}
+
 .echart-pie-wrap {
   //height: calc(100% - 45px);
 

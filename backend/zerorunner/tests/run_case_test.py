@@ -5,7 +5,7 @@
 import json
 
 from zerorunner.models import TConfig, TCaseController, TestCase, WaitController, SqlController, ScriptController
-from zerorunner.runner import ZeroRunner
+from zerorunner.runner import Runner
 
 config = TConfig(name="test")
 
@@ -86,7 +86,7 @@ teststep_list.append(sql_info)
 teststep_list.append(script_info)
 testcase = TestCase(config=config, teststeps=teststep_list)
 
-zr = ZeroRunner()
+zr = Runner()
 zr.run_testcase(testcase)
 a = zr.get_summary()
 print(a)

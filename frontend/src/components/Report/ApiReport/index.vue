@@ -32,9 +32,6 @@
         <variables :data="variables" ref=""></variables>
       </el-tab-pane>
 
-      <el-tab-pane label="运行日志" name="log">
-        <log :data="log"></log>
-      </el-tab-pane>
 
       <el-tab-pane name="preHookData">
         <template #label>
@@ -57,6 +54,21 @@
         </template>
         <step-info :data="post_hook_data"></step-info>
       </el-tab-pane>
+
+      <el-tab-pane label="运行日志" name="log">
+        <log :data="log"></log>
+      </el-tab-pane>
+
+      <el-tab-pane label="错误信息" name="message">
+        <template #label>
+          <span>错误信息</span>
+          <el-icon v-if="message !== ''">
+            <ele-CircleClose style="color: red"/>
+          </el-icon>
+        </template>
+        <log :data="message"></log>
+      </el-tab-pane>
+
     </el-tabs>
   </div>
 </template>
@@ -116,6 +128,7 @@ export default defineComponent({
       variables: {},
       // 日志
       log: "",
+      // 错误信息
       //前置步骤
       post_hook_data: [],
       post_hook_status: "",
@@ -137,7 +150,6 @@ export default defineComponent({
       state.success = step_data.success
       state.stat = step_data.session_data.stat
       state.responseInfo = step_data.session_data.req_resp.response
-      console.table(state.responseInfo)
       state.requestInfo = step_data.session_data.req_resp.request
       state.validators = step_data.session_data.validators
       state.extracts = step_data.export_vars

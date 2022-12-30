@@ -1,377 +1,278 @@
 <template>
-  <div>
-    <case-info ref="caseInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug"/>
-
-    <el-collapse-transition>
-      <div v-show="showRequestBody" style="margin-bottom: 20px">
-        <el-card>
-          <template #header>
-            <strong>Request</strong>
-          </template>
-          <div style="min-height: 500px">
-            <el-tabs v-model="activeName" style="overflow-y: auto">
-              <el-tab-pane name='requestBody'>
-                <template #label>
-                  <strong>请求体</strong>
-                </template>
-                <div class="case-tabs">
-                  <request-body ref="requestBodyRef" @updateHeader="updateHeader"/>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane name='requestHeaders'>
-                <template #label>
-                  <el-badge :hidden="!getDataLength('header')"
-                            :value="getDataLength('header')"
-                            class="badge-item"
-                            type="primary">
-                    <strong>请求头</strong>
-                  </el-badge>
-                </template>
-                <div class="case-tabs">
-                  <request-headers ref="headersRef"/>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane name='variablesParameters'>
-                <template #label>
-                  <el-badge :hidden="!getDataLength('variables')"
-                            :value="getDataLength('variables')"
-                            class="badge-item"
-                            type="primary">
-                    <strong>变量</strong>
-                  </el-badge>
-                </template>
-                <div class="case-tabs">
-                  <variables ref="variablesRef"/>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane name='extracts' class="h100">
-                <template #label>
-                  <el-badge :hidden="!getDataLength('extracts')"
-                            :value="getDataLength('extracts')"
-                            class="badge-item" type="primary">
-                    <strong>提取</strong>
-                  </el-badge>
-                </template>
-                <div class="case-tabs">
-                  <extracts ref="extractsRef"/>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane name='preOperation' class="h100">
-                <template #label>
-                  <el-badge :hidden="!getDataLength('pre')"
-                            :value="getDataLength('pre')"
-                            class="badge-item"
-                            type="primary">
-                    <strong>前置操作</strong>
-                  </el-badge>
-                </template>
-                <div class="case-tabs">
-                  <pre-operation ref="preOperationRef"/>
-                </div>
-              </el-tab-pane>
-
-              <el-tab-pane name='postOperation' class="h100">
-                <template #label>
-                  <el-badge :hidden="!getDataLength('post')"
-                            :value="getDataLength('post')"
-                            class="badge-item"
-                            type="primary">
-                    <strong>后置操作</strong>
-                  </el-badge>
-                </template>
-                <div class="case-tabs">
-                  <post-operation ref="postOperationRef"/>
-                </div>
-              </el-tab-pane>
-
-
-              <el-tab-pane name='assertController' class="h100">
-                <template #label>
-                  <el-badge :hidden="!getDataLength('validators')"
-                            :value="getDataLength('validators')"
-                            class="badge-item"
-                            type="primary">
-                    <strong>断言规则</strong>
-                  </el-badge>
-                </template>
-                <div class="case-tabs">
-                  <validators ref="validatorsRef"/>
-                </div>
-              </el-tab-pane>
-
-            </el-tabs>
-          </div>
-        </el-card>
-      </div>
-    </el-collapse-transition>
-
-
-    <el-card id="Response" ref="ResponseRef" v-show="reportData">
-      <template #header>
-        <div style="display: flex; justify-content: space-between">
-          <div>
-            <strong>Response</strong>
-          </div>
-          <div style="font-size: 12px" v-if="apiReportStat">
-            <el-tag effect="dark" :type="apiReportStat.success? 'success': 'danger'" style="margin-right: 20px">
-              {{ apiReportStat.success ? "通过" : "不通过" }}
-            </el-tag>
-            <span :style="{color: apiReportStat.status_code === 200 ? '#67c23a': 'red'}">
-              {{ apiReportStat.status_code === 200 ? '200 OK' : apiReportStat.status_code }}
-            </span>
-            <span style="color:#67c23a; padding-left: 10px">{{ apiReportStat.response_time_ms }} ms</span>
-            <span style="color:#67c23a; padding-left: 10px">{{ apiReportStat.content_size }} B</span>
-          </div>
-        </div>
+  <el-card style="padding: 0 5px; margin-bottom: 8px; padding-right: 20px">
+    <el-page-header
+        class="page-header"
+        style="margin: 5px 0;"
+        @back="goBack"
+    >
+      <template #content>
+        <span style="padding-right: 10px;">{{ editType === 'save' ? '新增套件' : '更新套件' }}</span>
       </template>
-      <div style="height: 500px; overflow-y: auto" v-show="showReport">
-        <api-report v-if="showReport" :reportData="reportData" ref="apiReportRef"></api-report>
-      </div>
-    </el-card>
+      <template #extra>
+        <el-button type="success" @click="debugSuite">调试</el-button>
+        <el-button type="primary" @click="saveOrUpdate" class="title-button">保存</el-button>
+      </template>
+    </el-page-header>
+  </el-card>
 
+  <div class="el-card" style="height: calc(100% - 60.50px); overflow: auto">
+
+    <div >
+      <splitpanes class="default-theme" style="height: 100%;">
+        <pane :size="20">
+          <div style="padding: 0 10px 0 0">
+
+            <el-form
+                ref="formRef"
+                :model="form"
+                :rules="rules"
+                label-position="right"
+                label-width="80px"
+                size="small"
+                status-icon
+            >
+              <el-form-item label="套件名称：" prop="name">
+                <el-input v-model="form.name" placeholder="套件名称"></el-input>
+              </el-form-item>
+
+              <el-form-item label="所属项目：" prop="project_id">
+                <el-select size="small"
+                           v-model="form.project_id"
+                           placeholder="选择所属项目"
+                           filterable
+                           style="width: 100%;"
+                >
+                  <el-option
+                      v-for="project in projectList"
+                      :key="project.id"
+                      :label="project.name"
+                      :value="project.id">
+                    <span style="float: left">{{ project.name }}</span>
+                  </el-option>
+                </el-select>
+              </el-form-item>
+
+
+              <el-form-item label="运行环境：" prop="env_id">
+                <el-select size="small"
+                           v-model="form.env_id"
+                           placeholder="运行环境"
+                           filterable
+                           style="width: 100%;"
+                >
+                  <el-option
+                      v-for="env in envList"
+                      :key="env.id + env.name"
+                      :label="env.name"
+                      :value="env.id">
+                    <span style="float: left">{{ env.name }}</span>
+                  </el-option>
+                </el-select>
+              </el-form-item>
+
+              <el-form-item label="步骤总数：">
+                {{ form.step_data?.length }}
+              </el-form-item>
+
+              <el-form-item label="套件变量：">
+                <el-link type="info" @click="isShowVariable = ! isShowVariable">
+                  {{ handleEmpty(form.headers).length + handleEmpty(form.variables).length }}
+                </el-link>
+              </el-form-item>
+
+            </el-form>
+
+          </div>
+        </pane>
+        <pane :size="80" :min-size="50">
+          <step-controller
+              ref="stepControllerRef"
+              use_type="suite"
+              style="margin-bottom: 10px"
+              v-model:data="form.step_data"></step-controller>
+        </pane>
+      </splitpanes>
+
+    </div>
+
+
+    <el-dialog
+        draggable
+        title="变量" v-model="isShowVariable" width="769px"
+    >
+      <el-tabs v-model="activeTabName" class="demo-tabs">
+        <el-tab-pane label="变量" name="variable">
+          <template #label>
+            <strong>变量
+              <div class="el-step__icon is-text zh-header" v-show="handleEmpty(form.variables).length">
+                <div class="el-step__icon-inner">{{ handleEmpty(form.variables).length }}</div>
+              </div>
+            </strong>
+          </template>
+          <variable-controller :data="form.variables"></variable-controller>
+        </el-tab-pane>
+        <el-tab-pane label="请求头" name="second">
+          <template #label>
+            <strong>请求头
+              <div class="el-step__icon is-text zh-header" v-show="handleEmpty(form.headers).length">
+                <div class="el-step__icon-inner">{{ handleEmpty(form.headers).length }}</div>
+              </div>
+            </strong>
+          </template>
+          <headers-controller :data="form.headers"></headers-controller>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, nextTick, onMounted, reactive, ref, toRefs} from 'vue'
-import caseInfo from '/@/views/api/apiCase/components/caseInfo.vue'
-import RequestBody from '/@/views/api/apiCase/components/requestBody.vue'
-import requestHeaders from '/@/views/api/apiCase/components/headers.vue'
-import Variables from '/@/views/api/apiCase/components/variables.vue'
-import preOperation from "/@/views/api/apiCase/components/preOperation.vue"
-import postOperation from "/@/views/api/apiCase/components/postOperation.vue";
-import validators from "/@/views/api/apiCase/components/validators.vue";
-import Extracts from "/@/views/api/apiCase/components/extracts.vue";
-import apiReport from "/@/components/Report/ApiReport/index.vue";
+import {defineComponent, onMounted, reactive, ref, toRefs} from 'vue';
+import {ElMessage} from "element-plus";
+import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRoute, useRouter} from "vue-router"
-import {useApiCaseApi} from '/@/api/useAutoApi/apiCase'
-import {ElMessage, ElLoading} from 'element-plus'
+import {useEnvApi} from "/@/api/useAutoApi/env";
+import variableController from "/@/components/StepController/variable/variableController.vue";
+import headersController from "/@/components/StepController/headers/headersController.vue";
+import {useProjectApi} from "/@/api/useAutoApi/project";
+import 'splitpanes/dist/splitpanes.css';
+import {handleEmpty} from "/@/utils/other";
+
 
 export default defineComponent({
-  name: 'saveOrUpdateTestCase',
+  name: 'saveOrUpdateCase',
   components: {
-    Extracts,
-    caseInfo,
-    RequestBody,
-    requestHeaders,
-    Variables,
-    preOperation,
-    postOperation,
-    validators,
-    apiReport,
+    variableController,
+    headersController,
   },
-  props: {
-    case_id: Number
-  },
-  setup(props) {
-    const route = useRoute();
-    const router = useRouter();
-    const caseInfoRef = ref()
-    const requestBodyRef = ref()
-    const headersRef = ref()
-    const preOperationRef = ref()
-    const postOperationRef = ref()
-    const variablesRef = ref()
-    const validatorsRef = ref()
-    const extractsRef = ref()
-    const ResponseRef = ref()
-    const apiReportRef = ref()
+  setup() {
+    const createForm = () => {
+      return {
+        name: '', // 名称
+        env_id: null, // 环境id
+        project_id: '', // 关联项目
+        remarks: '', // 简要描述
+        step_data: [],
+        variables: [],
+        headers: [],
+      }
+    }
+    const stepControllerRef = ref()
+    const formRef = ref()
+    const route = useRoute()
+    const router = useRouter()
     const state = reactive({
-      isShowDialog: false,
-      activeName: 'requestBody',
+      isShowVariable: false,
       editType: '',
-
-      // report
-      showTestReportDialog: false,
-      reportContent: [],
-
-      case_id: null,
-
-      // show
-      showRequestBody: true,
-
-      //report
-      showReport: false,
-      reportData: null,
-      apiReportStat: null
+      // 参数请参考 `/src/router/route.ts` 中的 `dynamicRoutes` 路由菜单格式
+      form: createForm(),
+      rules: {
+        name: [{required: true, message: '请输入用例名', trigger: 'blur'}],
+        project_id: [{required: true, message: '请选择所属项目', trigger: 'blur'}],
+        env_id: [{required: true, message: '请选择运行环境', trigger: 'blur'}],
+      },
+      // project
+      projectList: [],
+      // environment
+      envList: [],
+      // tabs
+      activeTabName: "variable",
     });
 
+    // init suite
+    const initData = () => {
+      if (route.query.id) {
+        useApiCaseApi().getSuitesInfo({id: route.query.id}).then(res => {
+          state.form = res.data
+        })
+      }
+    }
 
-    const saveOrUpdateOrDebug = (type: string) => {
-      // if (!store.state.env?.envId) {
-      //   console.log("store.state.env", store.state.env)
-      //   showDriver()
-      //   // ElMessage.warning("请选择运行环境！")
-      //   return
-      // }
-      try {
-        let caseInfoData = caseInfoRef.value.getData()
-        let bodyData = requestBodyRef.value.getData()
-        let headerData = headersRef.value.getData()
-        let preData = preOperationRef.value.getData()
-        let postData = postOperationRef.value.getData()
-        let variableData = variablesRef.value.getData()
-        let validatorsData = validatorsRef.value.getData()
-        let extractsData = extractsRef.value.getData()
+    // environment
+    const getEnvList = () => {
+      useEnvApi().getList({page: 1, pageSize: 100})
+          .then(res => {
+            state.envList = res.data.rows
+          })
+    };
 
-        // 组装表单
-        let apiCaseData = {
-          id: state.case_id,
-          name: caseInfoData.name,
-          project_id: caseInfoData.project_id,
-          module_id: caseInfoData.module_id,
-          code_id: caseInfoData.code_id,
-          code: caseInfoData.code,
-          priority: caseInfoData.priority,
-          method: caseInfoData.method,
-          url: caseInfoData.url,
-          tags: caseInfoData.tags,
-          remarks: caseInfoData.remarks,
-          env_id: null,
-          headers: headerData,
-          request_body: bodyData,
-          variables: variableData,
-          setup_hooks: preData,
-          teardown_hooks: postData,
-          validators: validatorsData,
-          extracts: extractsData,
-        }
+    // project
+    // 初始化表格数据
+    const getProjectList = () => {
+      useProjectApi().getList({page: 1, pageSize: 1000})
+          .then(res => {
+            state.projectList = res.data.rows
+          })
+    };
 
-        // 保存用例
-        if (type === 'save') {
-          useApiCaseApi().saveOrUpdate(apiCaseData)
-              .then(res => {
-                ElMessage.success('保存成功！')
-                state.case_id = res.data
+
+    // 新增
+    const saveOrUpdate = () => {
+      if (!state.form.project_id) {
+        ElMessage.warning('请选择所属项目！');
+        return
+      }
+      if (!state.form.env_id) {
+        ElMessage.warning('请选择对应运行环境！');
+        return
+      }
+      if (state.form?.step_data.length === 0) {
+        ElMessage.warning('请添加步骤！');
+        return
+      }
+
+      useApiCaseApi().saveOrUpdate(state.form)
+          .then(() => {
+            ElMessage.success('操作成功');
+          })
+    };
+
+    // debugSuite
+    const debugSuite = () => {
+      formRef.value.validate((valid: any) => {
+        if (valid) {
+          if (state.form.step_data.length == 0) {
+            ElMessage.warning("请先添加步骤！")
+            return
+          }
+          useApiCaseApi().debugSuites(state.form)
+              .then((res: any) => {
+                ElMessage.success('操作成功');
               })
         } else {
-          // testCaseData.type = type
-          // testCaseData.base_url = urlForm.base_url
-          const loading = ElLoading.service({
-            lock: true,
-            text: '用例执行中,请稍候。。。',
-            spinner: 'el-icon-loading',
-            background: 'rgba(0, 0, 0, 0.8)',
-            customClass: 'loading-class'
-          })
-          useApiCaseApi().debugTestCaseNew(apiCaseData)
-              .then(res => {
-                state.reportData = null
-
-                if (type === 'debug') {
-                  state.reportData = res.data
-                  console.log('-----------------debug---------------')
-                  state.showReport = true
-                  toResponse()
-                  loading.close()
-                } else {
-                  // this.drawer = true
-                  loading.close()
-                }
-              })
-              .catch(() => {
-                loading.close()
-              })
+          ElMessage.warning("必填信息不能为空！")
         }
-      } catch (err: any) {
-        console.log(err)
-        ElMessage.info(err || '信息表单填写不完整')
 
-      }
-    }
-
-    const initTestCase = () => {
-      let case_id = null
-      if (props.case_id) {
-        case_id = props.case_id
-      } else {
-        case_id = route.query.id
-      }
-      console.log("case_id------>", case_id)
-      if (case_id) {
-        state.case_id = case_id
-        useApiCaseApi().getTestCaseInfo({id: state.case_id})
-            .then(res => {
-              let apiCaseData = res.data
-              caseInfoRef.value.setData(apiCaseData)
-              requestBodyRef.value.setData(apiCaseData.request_body)
-              headersRef.value.setData(apiCaseData.headers)
-              variablesRef.value.setData(apiCaseData.variables)
-              extractsRef.value.setData(apiCaseData.extracts)
-              preOperationRef.value.setData(apiCaseData.setup_hooks, state.case_id)
-              postOperationRef.value.setData(apiCaseData.teardown_hooks, state.case_id)
-              validatorsRef.value.setData(apiCaseData.validators)
-
-            })
-      }
-    }
-
-    // 返回到列表
-    const goBack = () => {
-      router.push({name: 'apiTestCase'})
-    }
-
-    const getDataLength = (ref: string) => {
-      switch (ref) {
-        case "header":
-          return headersRef.value.getData().length
-        case "variables":
-          return variablesRef.value.getData().length
-        case "pre":
-          return preOperationRef.value.getData().length
-        case "post":
-          return postOperationRef.value.getData().length
-        case "validators":
-          return validatorsRef.value.getData().length
-        case "extracts":
-          return extractsRef.value.getData().length
-      }
-    }
-
-    // updateHeader
-    const updateHeader = (headerData: any, remove: any) => {
-      headersRef.value.updateHeader(headerData, remove)
-    }
-
-    const toResponse = () => {
-      nextTick(() => {
-        ResponseRef.value.$el.scrollIntoView({
-          behavior: "smooth",
-          // 定义动画过渡效果， "auto"或 "smooth" 之一。默认为 "auto"
-          block: "center",
-          // 定义垂直方向的对齐， "start", "center", "end", 或 "nearest"之一。默认为 "start"
-          inline: "nearest"
-        })
-        state.apiReportStat = {...apiReportRef.value.getStat(), success: state.reportData.success}
       })
+
     }
 
-
+    // 全局点击事件，取消step 选中
+    window.onclick = () => {
+      stepControllerRef.value?.clickBlank()
+      stepControllerRef.value?.initFabMenu(null)
+    }
+    // goBack
+    const goBack = () => {
+      router.push({name: 'apiCase'})
+    }
+    // 页面加载时
     onMounted(() => {
-      initTestCase()
-    })
+      initData()
+      getEnvList()
+      getProjectList()
+    });
 
     return {
-      caseInfoRef,
-      requestBodyRef,
-      headersRef,
-      variablesRef,
-      preOperationRef,
-      postOperationRef,
-      validatorsRef,
-      extractsRef,
-      apiReportRef,
-      ResponseRef,
+      formRef,
+      initData,
+      saveOrUpdate,
+      debugSuite,
+      goBack,
       route,
       router,
-      goBack,
-      getDataLength,
-      updateHeader,
-      saveOrUpdateOrDebug,
+      handleEmpty,
+      stepControllerRef,
       ...toRefs(state),
     };
   },
@@ -379,25 +280,43 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-:deep(.el-card) {
-  .el-card__body {
-    padding: 5px 20px;
-  }
+
+.block-title {
+  position: relative;
+  padding-left: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  height: 20px;
+  line-height: 20px;
+  background: #f7f7fc;
+  color: #333333;
+  border-left: 2px solid #409eff;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
 }
 
-// el-badge
-:deep(.el-badge__content) {
+.el-card {
+  padding: 10px;
+}
+
+:deep(.el-page-header__breadcrumb) {
+  display: none;
+}
+
+.splitpanes.default-theme .splitpanes__pane {
+  background-color: #ffffff;
+}
+
+.zh-header {
+  background: #61affe;
+  color: #fff;
+  height: 18px;
+  font-size: xx-small;
   border-radius: 50%;
-  width: 18px;
 }
 
-:deep(.el-badge__content.is-fixed) {
-  top: 8px;
-  right: calc(-7px + var(--el-badge-size) / 2);
-}
-
-//el-card
-:deep(.el-card) {
-  border-radius: 10px;
+:deep(.el-card__body) {
+  padding: 5px 0px;
 }
 </style>

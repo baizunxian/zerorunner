@@ -85,7 +85,7 @@ class ProjectService:
     @staticmethod
     def get_project_tree(project_id: int = None):
         project_list = ProjectInfo.get_project_list(id=project_id).all()
-        module_list = ModuleInfo.get_list().all()
+        module_list = ModuleInfo.get_list(project_id=project_id).all()
 
         project_tree_list = []
 

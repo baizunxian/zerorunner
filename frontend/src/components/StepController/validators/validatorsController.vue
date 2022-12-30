@@ -29,7 +29,7 @@
               class="el-row--flex"
               style="margin: 0 -5px">
         <el-col :span="12">
-          <el-input type="primary" link maxlength="60" placeholder="jmespath表达式" v-model="jsonPath.check">
+          <el-input type="primary" link maxlength="60" placeholder="jmespath表达式 例如：body.code, 或者可以使用变量${test}" v-model="jsonPath.check">
           </el-input>
         </el-col>
 

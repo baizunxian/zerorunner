@@ -22,6 +22,16 @@ def create_app():
     return app
 
 
+def create_celery_app():
+    app = Flask(__name__)
+    init_logging()
+    load_configs(app)
+    db.init_app(app)
+    celery.init_app(app)
+    br.init_app(app)
+    return app
+
+
 def load_configs(app: Flask):
     """加载配置"""
     for name, value in config.iteritems():

@@ -1,6 +1,6 @@
 <template>
   <div class="step-details">
-    <step-controller use_type="pre" :data="teardown_hooks" :case_id="case_id"></step-controller>
+    <step-controller use_type="pre" :data="preSteps" :case_id="case_id"></step-controller>
   </div>
 </template>
 
@@ -13,22 +13,21 @@ export default defineComponent({
   name: 'preOperation',
   setup() {
     const state = reactive({
-      teardown_hooks: [],
+      preSteps: [],
       case_id: 0,
     });
 
     // init suite
     const setData = (data: any, case_id: number) => {
-      state.case_id = case_id
-      console.log("preOperation--case_id--->", state.case_id)
-      if (data) {
-        state.teardown_hooks = data
-      }
+      state.preSteps = []
+      state.case_id = 0
+      if (data) state.preSteps = data
+      if (case_id) state.case_id = case_id
     }
 
     // 获取表单数据
     const getData = () => {
-      return handleEmpty(state.teardown_hooks)
+      return handleEmpty(state.preSteps)
     }
 
     return {

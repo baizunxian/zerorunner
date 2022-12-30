@@ -1,6 +1,6 @@
 <template>
   <div class="system-user-container">
-    <el-card shadow="hover">
+    <el-card>
       <div class="system-user-search mb15">
         <el-input v-model="listQuery.code" placeholder="请输入编码查询" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="search">
@@ -16,40 +16,6 @@
           新增
         </el-button>
       </div>
-      <!--      <el-table-->
-      <!--          border-->
-      <!--          :data="listData"-->
-      <!--          v-loading="tableLoading"-->
-      <!--          style="width: 100%"-->
-      <!--      >-->
-
-      <!--        <el-table-column label="序号" width="50px" align="center">-->
-      <!--          <template #default="scope">-->
-      <!--            {{ scope.$index + (listQuery.page - 1) * listQuery.pageSize + 1 }}-->
-      <!--          </template>-->
-      <!--        </el-table-column>-->
-
-      <!--        <el-table-column label="操作" width="150" fixed="left">-->
-      <!--          <template #default="{row}">-->
-      <!--            <el-button-->
-      <!--                size="small"-->
-      <!--                type="primary" link-->
-      <!--                @click="onOpenSaveOrUpdateLookupValuePage(row)">字典管理-->
-      <!--            </el-button>-->
-      <!--            <el-button-->
-      <!--                size="small"-->
-      <!--                type="primary" link-->
-      <!--                @click="onOpenSaveOrUpdateLookup('update', row)">修改-->
-      <!--            </el-button>-->
-      <!--            <el-button-->
-      <!--                :disabled="userInfos.user_type !== 10"-->
-      <!--                size="small"-->
-      <!--                type="primary" link-->
-      <!--                @click="deleted(row)">-->
-      <!--              删除-->
-      <!--            </el-button>-->
-      <!--          </template>-->
-      <!--        </el-table-column>-->
 
       <zero-table
           :columns="columns"
@@ -123,32 +89,41 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="100">
+        <el-table-column label="操作" width="140">
           <template #default="{row}">
             <template v-if="row._edit">
               <el-button
                   size="small"
-                  type="primary" link
+                  type="primary"
                   @click="saveOrUpdateLookupValue(row)">保存
               </el-button>
+
+              <el-button
+                  size="small"
+                  type=""
+                  @click="row._edit = !row._edit">取消
+              </el-button>
+
             </template>
 
             <template v-else>
               <el-button
                   size="small"
-                  type="primary" link
+                  type="primary"
                   @click="editLookupValue(row)">编辑
               </el-button>
+
+              <el-button
+                  :disabled="userInfos.user_type !== 10"
+                  size="small"
+                  type="danger"
+                  @click="deletedLookupValue(row)">
+                删除
+              </el-button>
+
             </template>
 
 
-            <el-button
-                :disabled="userInfos.user_type !== 10"
-                size="small"
-                type="primary" link
-                @click="deletedLookupValue(row)">
-              删除
-            </el-button>
           </template>
         </el-table-column>
 
@@ -200,38 +175,44 @@ export default defineComponent({
     const lookupInfo = store.state.lookup.lookup;
     const state = reactive({
       columns: [
-        {key: 'code', label: '编码', width: '', align: 'center', showTooltip: true},
-        {key: 'description', label: '描述', width: '', align: 'center', showTooltip: true},
-        {key: 'updation_date', label: '更新时间', width: '150', align: 'center', showTooltip: true},
-        {key: 'updated_by_name', label: '更新人', width: '', align: 'center', showTooltip: true},
-        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', showTooltip: true},
-        {key: 'created_by_name', label: '创建人', width: '', align: 'center', showTooltip: true},
         {
-          label: '操作', columnType: 'string', fixed: 'left', align: 'center', width: '160',
+          key: 'code', label: '编码', width: '', align: 'center', show: true,
+          render: (row: any) => h(ElButton, {
+            link: true,
+            type: "primary",
+            onClick: () => {
+              onOpenSaveOrUpdateLookup("update", row)
+            }
+          }, () => row.code)
+        },
+        {key: 'description', label: '描述', width: '', align: 'center', show: true},
+        {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
+        {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
+        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
+        {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
+        {
+          label: '操作', columnType: 'string', fixed: 'left', align: 'center', width: '220',
           render: (row: any) => h("div", null, [
             h(ElButton, {
-              link: true,
-              type: "primary",
+              type: "success",
               onClick: () => {
                 onOpenSaveOrUpdateLookupValuePage(row)
               }
-            }, '字典管理'),
+            }, () => '字典管理'),
 
             h(ElButton, {
-              link: true,
               type: "primary",
               onClick: () => {
                 onOpenSaveOrUpdateLookup("update", row)
               }
-            }, '编辑'),
+            }, () => '编辑'),
 
             h(ElButton, {
-              link: true,
-              type: "primary",
+              type: "danger",
               onClick: () => {
                 deleted(row)
               }
-            }, '删除')
+            }, () => '删除')
           ])
         },
       ],

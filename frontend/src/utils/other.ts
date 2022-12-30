@@ -9,6 +9,8 @@ import zeroTable from '/@/components/zeroTable/index.vue';
 import StepController from '/@/components/StepController/index.vue';
 import monacoEditor from '/@/components/monaco/index.vue';
 import apiReport from "/@/components/Report/ApiReport/index.vue";
+// @ts-ignore
+import {Splitpanes, Pane} from "splitpanes";
 
 /**
  * 导出全局注册 zero table
@@ -33,6 +35,15 @@ export function stepController(app: App) {
  */
 export function ApiReport(app: App) {
   app.component('apiReport', apiReport);
+}
+
+/**
+ * 导出全局注册 splitpanes.scss
+ * @param app vue 实例
+ */
+export function splitpanes(app: App) {
+  app.component('Splitpanes', Splitpanes);
+  app.component('Pane', Pane);
 }
 
 /**
@@ -174,6 +185,7 @@ const other = {
     stepController(app);
     monaco(app);
     ApiReport(app);
+    splitpanes(app);
   },
 
   elSvg: (app: App) => {

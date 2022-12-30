@@ -2,7 +2,7 @@
   <el-collapse-transition>
     <div v-show="data.showDetail" @click.stop="">
       <el-divider style="margin: 10px 0 5px 0;"/>
-      <el-row>
+      <el-row class="controller-content">
         <el-col :span="18">
           <div style="border: 1px solid #E6E6E6">
             <monaco-editor
@@ -91,5 +91,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+
+.controller-content {
+  padding: 5px 10px;
+}
 
 </style>

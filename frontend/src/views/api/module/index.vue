@@ -1,33 +1,31 @@
 <template>
-  <div>
-    <el-card shadow="hover">
-      <div class="mb15">
-        <el-input v-model="listQuery.name" placeholder="请输入模块名称" style="max-width: 180px"></el-input>
-        <el-button type="primary" class="ml10" @click="search">
-          <el-icon>
-            <ele-Search/>
-          </el-icon>
-          查询
-        </el-button>
-        <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">
-          <el-icon>
-            <ele-FolderAdd/>
-          </el-icon>
-          新增
-        </el-button>
-      </div>
-      <zero-table
-          :columns="columns"
-          :data="listData"
-          v-model:page-size="listQuery.pageSize"
-          v-model:page="listQuery.page"
-          :total="total"
-          @pagination-change="getList"
-      >
-      </zero-table>
-    </el-card>
-    <save-or-update ref="saveOrUpdateRef" @getList="getList"/>
-  </div>
+  <el-card>
+    <div class="mb15">
+      <el-input v-model="listQuery.name" placeholder="请输入模块名称" style="max-width: 180px"></el-input>
+      <el-button type="primary" class="ml10" @click="search">
+        <el-icon>
+          <ele-Search/>
+        </el-icon>
+        查询
+      </el-button>
+      <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">
+        <el-icon>
+          <ele-FolderAdd/>
+        </el-icon>
+        新增
+      </el-button>
+    </div>
+    <zero-table
+        :columns="columns"
+        :data="listData"
+        v-model:page-size="listQuery.pageSize"
+        v-model:page="listQuery.page"
+        :total="total"
+        @pagination-change="getList"
+    >
+    </zero-table>
+  </el-card>
+  <save-or-update ref="saveOrUpdateRef" @getList="getList"/>
 </template>
 
 <script lang="ts">
@@ -43,9 +41,9 @@ export default defineComponent({
     const saveOrUpdateRef = ref();
     const state = reactive({
       columns: [
-        {label: '序号', columnType: 'index', width: 'auto', showTooltip: true},
+        {label: '序号', columnType: 'index', width: 'auto', show: true},
         {
-          key: 'name', label: '模块名称', width: '', showTooltip: true,
+          key: 'name', label: '模块名称', width: '', show: true,
           render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
@@ -54,22 +52,21 @@ export default defineComponent({
             }
           }, () => row.name)
         },
-        {key: 'project_name', label: '所属项目', width: '', showTooltip: true},
-        {key: 'test_user', label: '测试人员', width: '', showTooltip: true},
-        {key: 'dev_user', label: '开发人员', width: '', showTooltip: true},
-        {key: 'case_count', label: '用例数', width: '', showTooltip: true},
-        {key: 'simple_desc', label: '描述', width: '', showTooltip: true},
-        {key: 'remarks', label: '备注', width: '', showTooltip: true},
-        {key: 'config_id', label: '关联配置', width: '', showTooltip: true},
-        {key: 'updation_date', label: '更新时间', width: '150', showTooltip: true},
-        {key: 'updated_by_name', label: '更新人', width: '', showTooltip: true},
-        {key: 'creation_date', label: '创建时间', width: '150', showTooltip: true},
-        {key: 'created_by_name', label: '创建人', width: '', showTooltip: true},
+        {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
+        {key: 'test_user', label: '测试人员', width: '', align: 'center', show: true},
+        {key: 'dev_user', label: '开发人员', width: '', align: 'center', show: true},
+        {key: 'case_count', label: '用例数', width: '', align: 'center', show: true},
+        {key: 'simple_desc', label: '描述', width: '', align: 'center', show: true},
+        {key: 'remarks', label: '备注', width: '', align: 'center', show: true},
+        {key: 'config_id', label: '关联配置', width: '', align: 'center', show: true},
+        {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
+        {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
+        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
+        {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
         {
-          label: '操作', fixed: 'right', width: '100',
+          label: '操作', fixed: 'right', width: '140', align: 'center',
           render: (row: any) => h("div", null, [
             h(ElButton, {
-              link: true,
               type: "primary",
               onClick: () => {
                 onOpenSaveOrUpdate("update", row)
@@ -77,8 +74,7 @@ export default defineComponent({
             }, () => '编辑'),
 
             h(ElButton, {
-              link: true,
-              type: "primary",
+              type: "danger",
               onClick: () => {
                 deleted(row)
               }

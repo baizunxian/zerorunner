@@ -5,7 +5,7 @@
 
       <div v-if="data.loop_type === 'count'">
 
-        <el-row>
+        <el-row class="controller-content">
 
           <el-col :span="6">
             <div>
@@ -197,5 +197,9 @@ export default defineComponent({
 
 .el-input {
   //display: inline-block;
+}
+
+.controller-content {
+  padding: 5px 10px;
 }
 </style>

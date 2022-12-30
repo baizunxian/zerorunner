@@ -340,8 +340,6 @@ class StepData(BaseModel):
     duration: float = 0  # duration
     success: bool = False
     status: Text = ""  # 步骤状态  success 成功  fail 失败  skip 跳过  err 错误
-    step_id: Text = None  # 步骤id
-    parent_step_id: Text = None  # 父级步骤id
     step_type: Text = ""
     step_tag: Union[Text, None] = None  # pre 前置，post 后置，controller 控制器
     message: Text = ""  # err or message

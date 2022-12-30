@@ -23,7 +23,7 @@ def get_debug_talk_info():
     获取自定义函数详情
     :return:
     """
-    data = FunctionsService.get_debug_talk_info(**request.json)
+    data = FunctionsService.get_function_info(**request.json)
     return partner_success(data=data)
 
 
@@ -33,7 +33,7 @@ def save_debug_talk():
     更新保存
     :return:
     """
-    return partner_success(code=codes.PARTNER_CODE_FAIL, msg='演示环境不保存！')
+    # return partner_success(code=codes.PARTNER_CODE_FAIL, msg='演示环境不保存！')
     data = FunctionsService.save_or_update(**request.json)
     return partner_success(data=data)
 
@@ -48,7 +48,7 @@ def get_func_list():
         parsed_data = request.json
         func_id = parsed_data.get('id', None)
         func_name = parsed_data.get('func_name', None)
-        func_list = FunctionsService.get_function_by_path(func_id, func_name).get('func_list')
+        func_list = FunctionsService.get_function_by_id(func_id, func_name).get('func_list')
         return partner_success(data=func_list)
     except Exception as err:
         raise ValueError(f"查询函数名称失败:{err}")

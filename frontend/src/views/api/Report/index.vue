@@ -1,77 +1,47 @@
 <template>
-  <div>
-    <el-card shadow="hover">
-      <div class="mb15">
-        <el-input
-            clearable
-            v-model="listQuery.name"
-            placeholder="输入报告名查询"
-            style="width: 200px;"
-            class="ml10"
-            @keyup.enter.native="search"/>
-        <el-input
-            clearable
-            v-model="listQuery.execute_user_name"
-            placeholder="输入执行人查询" style="width: 150px;"
-            class="ml10"
-            @keyup.enter.native="search"/>
+  <el-card>
+    <div class="mb15">
+      <el-input
+          clearable
+          v-model="listQuery.name"
+          placeholder="输入报告名查询"
+          style="width: 200px;"
+          class="ml10"
+          @keyup.enter.native="search"/>
+      <el-input
+          clearable
+          v-model="listQuery.execute_user_name"
+          placeholder="输入执行人查询" style="width: 150px;"
+          class="ml10"
+          @keyup.enter.native="search"/>
 
-        <el-button class="ml10" type="primary" @click="search">
-          <el-icon>
-            <ele-Search/>
-          </el-icon>
-          查询
-        </el-button>
+      <el-button class="ml10" type="primary" @click="search">
+        <el-icon>
+          <ele-Search/>
+        </el-icon>
+        查询
+      </el-button>
 
-      </div>
+    </div>
 
-      <zero-table
-          :columns="columns"
-          :data="listData"
-          v-model:page-size="listQuery.pageSize"
-          v-model:page="listQuery.page"
-          :total="total"
-          @pagination-change="getList"
-      />
+    <zero-table
+        :columns="columns"
+        :data="listData"
+        v-model:page-size="listQuery.pageSize"
+        v-model:page="listQuery.page"
+        :total="total"
+        @pagination-change="getList"
+    />
 
-      <el-dialog
-          draggable
-          v-model="showReportDialog"
-          width="80%"
-          top="8vh"
-          title="报告详情"
-          destroy-on-close
-          :close-on-click-modal="false">
-        <template #title>
-          <span>报告详情</span>
-          <el-button class="ml5" style="font-size: 12px" type="primary" link @click="showLog=!showLog">执行日志</el-button>
-        </template>
-        <report-detail v-if="report_id"
-                       :report_id="report_id"
-                       :start_time="start_time"
-                       :run_user_name="run_user_name"/>
-      </el-dialog>
+    <report-detail :report-info="reportInfo" ref="reportDetailRef"/>
 
-
-      <el-dialog
-          draggable
-          v-model="showLog"
-          width="80%"
-          top="8vh"
-          title="日志"
-          destroy-on-close
-          :close-on-click-modal="false">
-        <pre>{{ report_log }}</pre>
-      </el-dialog>
-    </el-card>
-  </div>
-
+  </el-card>
 </template>
 
 <script lang="ts">
 
 import {useReportApi} from '/@/api/useAutoApi/report';
-import {defineComponent, h, onMounted, reactive, toRefs} from 'vue';
+import {defineComponent, h, onMounted, reactive, toRefs, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus'
 import reportDetail from "/@/views/api/Report/components/reportDetail.vue";
 
@@ -82,11 +52,12 @@ export default defineComponent({
     reportDetail,
   },
   setup() {
+    const reportDetailRef = ref()
     const state = reactive({
       columns: [
-        {label: '序号', columnType: 'index', align: 'center', width: 'auto', showTooltip: true},
+        {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
         {
-          key: 'name', label: '报告名称', align: 'center', width: '', showTooltip: true,
+          key: 'name', label: '报告名称', align: 'center', width: '', show: true,
           render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
@@ -96,7 +67,7 @@ export default defineComponent({
           }, () => row.name)
         },
         {
-          key: 'status', label: '运行结果', align: 'center', width: '', showTooltip: true,
+          key: 'status', label: '运行结果', align: 'center', width: '', show: true,
           render: (row: any) => h(ElTag, {
             type: row.success ? "success" : "danger",
           }, () => row.success ? "通过" : "不通过",)
@@ -117,18 +88,17 @@ export default defineComponent({
           showTooltip: true,
           lookupCode: 'api_report_run_mode'
         },
-        {key: 'run_count', label: '运行数', align: 'center', width: '', showTooltip: true},
+        {key: 'run_count', label: '运行数', align: 'center', width: '', show: true},
         // {key: 'successes', label: '执行结果', width: '', showTooltip: true},
-        {key: 'run_success_count', label: '成功数', align: 'center', width: '', showTooltip: true},
-        {key: 'duration', label: '运行耗时(秒)', align: 'center', width: '', showTooltip: true},
-        {key: 'start_time', label: '运行时间', align: 'center', width: '150', showTooltip: true},
-        {key: 'run_user_name', label: '执行人', align: 'center', width: '', showTooltip: true},
+        {key: 'run_success_count', label: '成功数', align: 'center', width: '', show: true},
+        {key: 'duration', label: '运行耗时(秒)', align: 'center', width: '', show: true},
+        {key: 'start_time', label: '运行时间', align: 'center', width: '150', show: true},
+        {key: 'run_user_name', label: '执行人', align: 'center', width: '', show: true},
         {
           label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '80',
           render: (row: any) => h("div", null, [
             h(ElButton, {
-              link: true,
-              type: "primary",
+              type: "danger",
               onClick: () => {
                 deleted(row)
               }
@@ -153,11 +123,7 @@ export default defineComponent({
         ids: [],
       },
       // report
-      showLog: false,
-      report_id: '',
-      start_time: '',
-      run_user_name: '',
-      report_log: ''
+      reportInfo: {},
     });
 
     // 获取列表
@@ -191,11 +157,8 @@ export default defineComponent({
     }
 
     const onOpenReport = (row: any) => {
-      state.report_id = row.id
-      state.start_time = row.start_time
-      state.run_user_name = row.run_user_name
-      state.report_log = row.run_log
-      state.showReportDialog = !state.showReportDialog
+      state.reportInfo = row
+      reportDetailRef.value.showReport()
     }
 
     // 获取列表
@@ -207,6 +170,7 @@ export default defineComponent({
       onOpenReport,
       search,
       deleted,
+      reportDetailRef,
       ...toRefs(state),
     };
   }

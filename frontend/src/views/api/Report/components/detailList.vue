@@ -17,7 +17,6 @@
 
 <script lang="ts">
 import {defineComponent, h, onMounted, reactive, toRefs} from "vue";
-import echartsStatistics from "/@/views/api/Report/components/echartsStatistics.vue";
 import ZeroTable from "/@/components/zeroTable/index.vue";
 import {ElButton, ElTag} from "element-plus";
 import {useReportApi} from "/@/api/useAutoApi/report";
@@ -28,16 +27,15 @@ export default defineComponent({
   name: 'detailList',
   components: {
     ZeroTable,
-    echartsStatistics,
   },
   props: {},
 
-  setup(props) {
+  setup() {
     const state = reactive({
       columns: [
-        {label: 'N', columnType: 'index', align: 'center', width: 'auto', showTooltip: false},
+        {label: 'N', columnType: 'index', align: 'center', width: 'auto', show: false},
         {
-          key: 'name', label: '名称', align: 'left', width: '200', showTooltip: true,
+          key: 'name', label: '名称', align: 'left', width: '200', show: true,
           render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
@@ -47,7 +45,7 @@ export default defineComponent({
           }, () => row.name)
         },
         {
-          key: 'step_tag', label: '步骤类型', align: 'center', width: '', showTooltip: true,
+          key: 'step_tag', label: '步骤类型', align: 'center', width: '', show: true,
           lookupCode: "api_step_type"
         },
         {
@@ -55,7 +53,7 @@ export default defineComponent({
           label: '接口名称',
           width: '',
           align: 'center',
-          showTooltip: true,
+          show: true,
           lookupCode: 'api_report_run_type'
         },
         {
@@ -63,25 +61,25 @@ export default defineComponent({
           label: '运行模式',
           align: 'center',
           width: '',
-          showTooltip: true,
+          show: true,
           lookupCode: 'api_report_run_mode'
         },
-        {key: 'has_step_data', label: '子步骤', align: 'center', width: '', showTooltip: true},
-        {key: 'case_name', label: '用例名', align: 'center', width: '', showTooltip: true},
+        {key: 'has_step_data', label: '子步骤', align: 'center', width: '', show: true},
+        {key: 'case_name', label: '用例名', align: 'center', width: '', show: true},
         {
-          key: 'method', label: '请求方法', align: 'center', width: '', showTooltip: true,
+          key: 'method', label: '请求方法', align: 'center', width: '', show: true,
           render: (row: any) => row.method ? h(ElTag, {
             type: "",
             style: {"background": getMethodColor(row.method), color: "#ffffff",}
           }, () => row.method) : ""
         },
-        {key: 'url', label: 'url', align: 'center', width: '', showTooltip: true},
-        {key: 'run_count', label: '运行数', align: 'center', width: '', showTooltip: true},
-        {key: 'success', label: '是否成功', width: '', showTooltip: true},
-        {key: 'status', label: 'Status', width: '', showTooltip: true},
-        {key: 'message', label: '错误信息', width: '', showTooltip: true},
+        {key: 'url', label: 'url', align: 'center', width: '', show: true},
+        {key: 'run_count', label: '运行数', align: 'center', width: '', show: true},
+        {key: 'success', label: '是否成功', width: '', show: true},
+        {key: 'status', label: 'Status', width: '', show: true},
+        {key: 'message', label: '错误信息', width: '', show: true},
         {
-          label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '80',
+          label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: 'auto',
           render: (row: any) => h("div", null, [
             h(ElButton, {
               link: true,

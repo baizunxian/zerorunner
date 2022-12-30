@@ -1,6 +1,6 @@
 <template>
   <div class="system-role-container">
-    <el-card shadow="hover">
+    <el-card>
       <div class="system-user-search mb15">
         <el-input v-model="listQuery.name" placeholder="请输入角色名称" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="search">
@@ -44,7 +44,7 @@ export default defineComponent({
     const state = reactive({
       columns: [
         {
-          key: 'name', label: '角色名称', width: '', align: 'center', showTooltip: true,
+          key: 'name', label: '角色名称', width: '', align: 'center', show: true,
           render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
@@ -53,37 +53,35 @@ export default defineComponent({
             }
           }, row.name)
         },
-        {key: 'role_type', label: '权限类型', width: '', align: 'center', showTooltip: true},
+        {key: 'role_type', label: '权限类型', width: '', align: 'center', show: true},
         {
-          key: 'status', label: '角色状态', width: '', align: 'center', showTooltip: true,
+          key: 'status', label: '角色状态', width: '', align: 'center', show: true,
           render: (row: any) => h(ElTag, {
             type: row.status == 10 ? "success" : "info",
           }, row.status == 10 ? "启用" : "禁用",)
         },
-        {key: 'description', label: '角色描述', width: '', align: 'center', showTooltip: true},
-        {key: 'description', label: '备注', width: '', align: 'center', showTooltip: true},
-        {key: 'updation_date', label: '更新时间', width: '150', align: 'center', showTooltip: true},
-        {key: 'updated_by_name', label: '更新人', width: '', align: 'center', showTooltip: true},
-        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', showTooltip: true},
-        {key: 'created_by_name', label: '创建人', width: '', align: 'center', showTooltip: true},
+        {key: 'description', label: '角色描述', width: '', align: 'center', show: true},
+        {key: 'description', label: '备注', width: '', align: 'center', show: true},
+        {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
+        {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
+        {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
+        {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
         {
-          label: '操作', fixed: 'right', width: '100',
+          label: '操作', fixed: 'right', width: '140', align: 'center',
           render: (row: any) => h("div", null, [
             h(ElButton, {
-              link: true,
               type: "primary",
               onClick: () => {
                 onOpenSaveOrUpdate("update", row)
               }
-            }, '编辑'),
+            }, () => '编辑'),
 
             h(ElButton, {
-              link: true,
-              type: "primary",
+              type: "danger",
               onClick: () => {
                 deleted(row)
               }
-            }, '删除')
+            }, () => '删除')
           ])
         },
       ],

@@ -3,7 +3,7 @@ from pydantic import root_validator, BaseModel
 
 from autotest.exc.exceptions import ParameterError
 from autotest.models.api_models import Env
-from autotest.serialize.api_serializes.api_case import ApiCaseBaseSchema
+from autotest.serialize.api_serializes.api_info import ApiBaseSchema
 from autotest.serialize.base_serialize import BaseListSchema, BaseQuerySchema
 
 
@@ -30,6 +30,7 @@ class EnvSaveOrUpdateSchema(BaseModel):
     remarks: Optional[Text]
     headers: Optional[List[Dict[Text, Any]]]
     variables: Optional[List[Dict[Text, Any]]]
+    data_sources: Optional[List[int]]
 
     @root_validator
     def root_validator(cls, data):

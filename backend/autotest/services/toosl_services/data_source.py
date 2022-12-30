@@ -30,6 +30,7 @@ class SourceListQuery(BaseQuerySchema):
     id: Optional[Union[Text, None]]
     source_type: Text = "mysql"
     env_id: Optional[int]
+    name: Optional[Text]
 
 
 class SourceSaveSchema(BaseModel):
@@ -59,6 +60,7 @@ class DataSourceService:
 
     @staticmethod
     def get_source_list(**kwargs: Any) -> Dict[Text, Any]:
+        """获取数据源列表"""
         query_data = SourceListQuery(**kwargs)
         data = parse_pagination(DataSource().get_list(**query_data.dict(exclude_none=True)))
         _result, pagination = data.get('result'), data.get('pagination')
@@ -71,6 +73,7 @@ class DataSourceService:
 
     @staticmethod
     def save_or_update(**kwargs: Any) -> "DataSource":
+        """更新保存"""
         source_param = SourceSaveSchema(**kwargs)
         if source_param.id:
             source_info = DataSource.get(source_param.id)
@@ -83,8 +86,9 @@ class DataSourceService:
 
     @staticmethod
     def deleted_source(id: int):
-        env = DataSource.get(id)
-        env.delete() if env else ...
+        """删除"""
+        data_source = DataSource.get(id)
+        data_source.delete() if data_source else ...
 
     @staticmethod
     def test_connect(**kwargs: Any):
@@ -95,6 +99,7 @@ class DataSourceService:
 
     @staticmethod
     def get_db_list(source_id: int):
+        """获取数据库列表"""
         db_info = DataSourceService.get_db_connect(source_id)
         data = db_info.execute("show databases;")
         db_list = []
@@ -104,6 +109,7 @@ class DataSourceService:
 
     @staticmethod
     def get_table_list(source_id: int, databases: Text):
+        """获取数据库表列表"""
         db_info = DataSourceService.get_db_connect(source_id, databases)
         data = db_info.execute(f"show tables from {databases};")
         table_list = []
@@ -113,6 +119,7 @@ class DataSourceService:
 
     @staticmethod
     def get_column_list(source_id: int, databases: Text):
+        """获取数据库表字段"""
         sql = f"""SELECT TABLE_NAME AS "table_name", COLUMN_NAME AS 'column_name', DATA_TYPE AS "data_type" FROM information_schema.COLUMNS  WHERE TABLE_SCHEMA = '{databases}';"""
         db_info = DataSourceService.get_db_connect(source_id, databases)
         data = db_info.execute(sql)
@@ -131,6 +138,7 @@ class DataSourceService:
 
     @staticmethod
     def execute(**kwargs: Any):
+        """执行语句"""
         param = ExecuteParam(**kwargs)
         db_info = DataSourceService.get_db_connect(param.source_id, param.database)
         data = db_info.execute(param.sql)

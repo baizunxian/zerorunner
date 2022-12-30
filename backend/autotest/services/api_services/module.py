@@ -4,7 +4,7 @@ from autotest.config import config
 from autotest.exc import codes
 from autotest.exc.partner_message import partner_errmsg
 from autotest.serialize.api_serializes.module import ModuleQuerySchema
-from autotest.models.api_models import ModuleInfo, ApiCase
+from autotest.models.api_models import ModuleInfo, ApiInfo
 from autotest.utils.api import parse_pagination
 from autotest.utils.common import get_user_id_by_token
 
@@ -62,7 +62,7 @@ class ModuleService:
         user_id = get_user_id_by_token()
         module = ModuleInfo.get(id)
         if module:
-            case_info = ApiCase.get_case_by_module_id(id).count()
+            case_info = ApiInfo.get_api_by_module_id(id).count()
             if config.EDIT_SWITCH:
                 if module.created_by != user_id:
                     raise ValueError(partner_errmsg.get(codes.CANNOT_DELETE_CREATED_BY_YOURSELF).format('模块'))

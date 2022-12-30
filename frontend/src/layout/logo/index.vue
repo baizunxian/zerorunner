@@ -10,7 +10,7 @@
 <script lang="ts">
 import {computed, defineComponent} from 'vue';
 import {useStore} from '/@/store';
-import logo from '/@/assets/whiteLogo.svg';
+import logo from '/@/assets/logo.svg';
 import logoMini from '/@/assets/logo-mini4.svg';
 import SvgIcon from "/@/components/svgIcon/index.vue";
 
