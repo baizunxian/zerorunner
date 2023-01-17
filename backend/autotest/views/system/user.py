@@ -33,8 +33,7 @@ def get_user_info():
     根据token获取用户信息
     :return:
     """
-    parsed_data = request.json
-    token = parsed_data.get('token')
+    token = request.headers.get("token")
     user_info = UserService.get_user_info_by_token(token)
     return partner_success(user_info)
 
@@ -76,8 +75,8 @@ def save_or_update():
     :return:
     """
     parsed_data = request.json
-    UserService.save_or_update(**parsed_data)
-    return partner_success()
+    data = UserService.save_or_update(**parsed_data)
+    return partner_success(data)
 
 
 @bp.route('/deleted', methods=['POST'])
@@ -98,4 +97,10 @@ def authorize_token():
     parsed_data = request.json
     token = parsed_data.get('token', '')
     user_info = UserService.check_token(token)
+    return partner_success(user_info)
+
+
+@bp.route('/getMenuByToken', methods=['POST'])
+def get_menu_by_token():
+    user_info = UserService.get_menu_by_token()
     return partner_success(user_info)

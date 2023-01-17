@@ -39,7 +39,7 @@
 import {defineComponent, reactive, ref, toRefs} from "vue";
 import {Search} from '@element-plus/icons-vue'
 import {handleEmpty} from "/@/utils/other";
-import headersController from "/@/components/StepController/headers/headersController.vue";
+import headersController from "/@/components/StepController/headers/HeadersController.vue";
 
 
 interface baseState {

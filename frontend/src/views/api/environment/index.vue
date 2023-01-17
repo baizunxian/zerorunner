@@ -3,20 +3,10 @@
     <el-card>
       <div class="mb15">
         <el-input v-model="listQuery.name" placeholder="请输入配置名称" style="max-width: 180px"></el-input>
-        <el-button type="primary" class="ml10" @click="search">
-          <el-icon>
-            <ele-Search/>
-          </el-icon>
-          查询
-        </el-button>
-        <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">
-          <el-icon>
-            <ele-FolderAdd/>
-          </el-icon>
-          新增
-        </el-button>
+        <el-button type="primary" class="ml10" @click="search">查询</el-button>
+        <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增</el-button>
       </div>
-      <zero-table
+      <z-table
           :columns="columns"
           :data="listData"
           v-model:page-size="listQuery.pageSize"

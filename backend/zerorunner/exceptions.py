@@ -3,9 +3,7 @@
 # @author: xiaobai
 # @create time: 2022/9/9 14:53
 
-""" failure type exceptions
-    these exceptions will mark test as failure
-"""
+""" 标记失败的错误类型"""
 
 
 class MyBaseFailure(Exception):
@@ -32,9 +30,7 @@ class TeardownHooksFailure(MyBaseFailure):
     pass
 
 
-""" error type exceptions
-    these exceptions will mark test as error
-"""
+"""标记错误的错误类型"""
 
 
 class MyBaseError(Exception):

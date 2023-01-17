@@ -1,0 +1,58 @@
+// vs-code
+.json-view-container {
+  &.one-dark {
+    background-color: #292c33;
+
+    .json-view {
+      font-family: Menlo, Consolas, "Courier New", Courier, FreeMono, monospace !important;
+
+      .json-note {
+        color: #909399;
+        font-size: 12px;
+        font-style: italic;
+      }
+
+      .json-key {
+        color: #d27277;
+      }
+
+      .json-value {
+        color: #c6937c;
+
+        &.number {
+          color: #bacdab;
+        }
+
+        &.string {
+          color: #c6937c;
+        }
+
+        &.boolean {
+          color: #659bd1;
+        }
+
+        &.null {
+          color: #659bd1;
+        }
+      }
+
+      .first-line {
+        color: #acb2be;
+      }
+
+      .json-body {
+        .base-line {
+          border-left: 1px solid #3c4047;
+        }
+      }
+
+      .last-line {
+        color: #acb2be;
+      }
+
+      .json-item {
+        color: #acb2be;
+      }
+    }
+  }
+}

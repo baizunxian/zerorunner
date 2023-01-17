@@ -11,10 +11,10 @@ from autotest.services.api_services.run_handle import ApiInfoHandle
 from autotest.services.utils_services.postman2case import Collection
 from autotest.utils.api import parse_pagination, jsonable_encoder
 from autotest.utils.common import get_user_id_by_token
-from zerorunner.models import TestSuite as ZTestSuite, TestCase as ZTestCase
+from zerorunner.models import TestSuite as ZTestSuite, TestCase as ZTestCase, TestCase
 from zerorunner.report import HtmlTestResult
 from zerorunner.runner import Runner
-from zerorunner.testcase import TestCase, ZeroRunner
+from zerorunner.testcase import ZeroRunner
 
 
 class ApiInfoService:
@@ -107,8 +107,8 @@ class ApiInfoService:
         # zr.teststeps = [case_info.step]
         # zr.run()
         # summary = zr.get_summary()
-        test_case = TestCase(case_info.get_testcase())
-        runner = unittest.TextTestRunner(failfast=False)
+        runner = ZeroRunner()
+        runner.run_tests(case_info.get_testcase())
         result = runner.run(test_case)
 
         project_id = case_info.api_info.project_id
@@ -126,11 +126,9 @@ class ApiInfoService:
         :return:
         """
         case_info = ApiInfoHandle(**kwargs)
-        runner = ZeroRunner()
-        runner.run_tests(case_info.get_testcase())
-        test_case = TestCase(case_info.get_testcase())
-        result = runner.run(test_case)
-        return result.summary
+        runner = Runner()
+        runner.run_testcase(case_info.get_testcase())
+        return runner.get_summary()
 
     @staticmethod
     def postman2api(json_body: Dict, **kwargs):

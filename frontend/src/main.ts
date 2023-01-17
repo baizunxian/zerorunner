@@ -1,8 +1,7 @@
 import {createApp} from 'vue';
 import App from './App.vue';
 import router from './router';
-import {key, store} from './store';
-import {directive} from '/@/utils/directive';
+import pinia from '/@/stores/index';
 import other from '/@/utils/other';
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import ElementPlus from 'element-plus';
@@ -12,10 +11,9 @@ import mitt from 'mitt';
 
 const app = createApp(App);
 
-directive(app);
 other.elSvg(app);
 other.apiPublicAssembly(app)
 
-app.use(router).use(store, key).use(ElementPlus, {size: 'small'}).mount('#app');
+app.use(router).use(pinia).use(ElementPlus, {size: 'small'}).mount('#app');
 
 app.config.globalProperties.mittBus = mitt();

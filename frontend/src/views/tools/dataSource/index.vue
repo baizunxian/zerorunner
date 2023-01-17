@@ -17,7 +17,7 @@
         </el-button>
       </div>
 
-      <zero-table
+      <z-table
           :columns="columns"
           :data="listData"
           v-model:page-size="listQuery.pageSize"
@@ -65,7 +65,7 @@ export default defineComponent({
         {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
         {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
         {
-          label: '操作', fixed: 'right', width: 'auto', align: 'center',
+          label: '操作', fixed: 'right', width: '140', align: 'center',
           render: (row: any) => h("div", null, [
             h(ElButton, {
               type: "primary",

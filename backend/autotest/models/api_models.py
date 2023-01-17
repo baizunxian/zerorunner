@@ -549,7 +549,8 @@ class ApiTestReport(Base, TimestampMixin):
 
     @classmethod
     def get_list(cls, id=None, name=None, project_id=None, module_id=None, run_user_name=None, min_and_max=None,
-                 user_ids=None, project_ids=None, ids=None, status=None, execute_source=None, created_by=None):
+                 user_ids=None, project_ids=None, ids=None, status=None, execute_source=None, created_by=None,
+                 execute_user_name=None):
         q = []
         if id:
             q.append(cls.id == id)
@@ -575,6 +576,8 @@ class ApiTestReport(Base, TimestampMixin):
             q.append(cls.project_id.in_(project_ids))
         if min_and_max:
             q.append(cls.creation_date.between(*min_and_max))
+        if execute_user_name:
+            q.append(User.nickname.like('%{}%'.format(execute_user_name)))
 
         return cls.query.filter(*q, cls.enabled_flag == 1) \
             .outerjoin(User, User.id == cls.created_by) \
@@ -956,10 +959,12 @@ class Functions(Base, TimestampMixin):
     content = Column(Text, nullable=True, comment='自定义函数内容')
 
     @classmethod
-    def get_list(cls, project_name=None):
+    def get_list(cls, project_name=None, name=None):
         q = []
         if project_name:
             q.append(ProjectInfo.name.like(f'%{project_name}%'))
+        if name:
+            q.append(cls.name.like(f'%{name}%'))
         u = aliased(User)
         return cls.query.filter(*q, cls.enabled_flag == 1) \
             .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \

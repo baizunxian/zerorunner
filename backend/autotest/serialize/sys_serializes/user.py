@@ -33,8 +33,22 @@ class UserListSchema(BaseListSchema):
         return data
 
 
-class UserRegisterSchema(BaseModel):
-    username: Optional[Text]
-    password: Optional[Text]
+class UserSchema(BaseModel):
+    id: Optional[Text]
+    username: Text
+    # password: Text
+    nickname: Text
+    user_type: int
+    status: int
+    avatar: Optional[Text]
+    remarks: Optional[Text]
     email: Optional[Text]
     link: Optional[Text]
+    tags: Optional[Text]
+
+    @root_validator(pre=True)
+    def root_validator(cls, data):
+        """"""
+        tags = data.get("tags", [])
+        data['tags'] = ','.join(tags) if tags else ""
+        return data

@@ -104,7 +104,7 @@ class TStepTagEnum(Text, Enum):
 
 
 class TConfig(BaseModel):
-    case_id: Union[Text, int] = ""
+    # case_id: Union[Text, int] = ""
     name: Name
     verify: Verify = False
     base_url: BaseUrl = ""
@@ -341,7 +341,7 @@ class StepData(BaseModel):
     success: bool = False
     status: Text = ""  # 步骤状态  success 成功  fail 失败  skip 跳过  err 错误
     step_type: Text = ""
-    step_tag: Union[Text, None] = None  # pre 前置，post 后置，controller 控制器
+    step_tag: Union[Text, None] = None  # 标签
     message: Text = ""  # err or message
     env_variables: VariablesMapping = {}
     variables: VariablesMapping = {}

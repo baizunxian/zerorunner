@@ -18,7 +18,9 @@ class User(Base, TimestampMixin):
     status = Column(Integer, nullable=False, comment='用户状态', default=0)  # 1 锁定， 0 正常
     nickname = Column(String, nullable=False, comment='用户昵称')
     user_type = Column(String, nullable=False, comment='用户类型', default=20)  # 10 管理人员, 20 测试人员
-    remarks = Column(String, nullable=False, comment='用户描述')  # 10 管理人员, 20 测试人员
+    remarks = Column(String, nullable=False, comment='用户描述')
+    avatar = Column(Text, nullable=False, comment='头像')
+    tags = Column(String, nullable=False, comment='标签')
 
     @classmethod
     def get_user_by_name(cls, username):

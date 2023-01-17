@@ -7,15 +7,13 @@ import sys
 import time
 import traceback
 import uuid
-from copy import deepcopy
 from datetime import datetime
 from typing import List, Dict, Text, Any, Union, Iterable
 
 from loguru import logger
 
-from zerorunner import utils
+from zerorunner import utils, exceptions
 from zerorunner.client import HttpSession
-from zerorunner.exceptions import ValidationFailure, ParamsError, LoopNotFound
 from zerorunner.ext.db import DB
 from zerorunner.ext.uploader import prepare_upload_step
 from zerorunner.loader import load_script_content, load_module_functions
@@ -32,7 +30,7 @@ from zerorunner.models import (
     TWaitController,
     TScriptController, TIFController, TLoopController, LoopTypeEnum, TStepDataStatusEnum, TStepLogType,
     TStepControllerDict, )
-from zerorunner.parser import parse_variables_mapping, parse_data, build_url, parse_parameters, get_mapping_function, \
+from zerorunner.parser import parse_variables_mapping, parse_data, build_url, get_mapping_function, \
     parse_string_value
 from zerorunner.response import ResponseObject, uniform_validator
 from zerorunner.snowflake import id_center
@@ -40,39 +38,50 @@ from zerorunner.utils import merge_variables
 
 
 class Runner(object):
+    config: TConfig
+    teststeps: List[Any]
+    extracted_variables: VariablesMapping = {}
+    success: bool = False  # indicate testcase execution result
+    message: Text = ""  # 错误信息或备注等信息记录
+    __case_id: Text = ""
+    __teststeps: List[Any]
+    __export: List[Text] = []
+    __step_datas: List[StepData] = []
+    __session: HttpSession = HttpSession()
+    __session_variables: VariablesMapping = {}
+    __session_headers: Headers = {}
+    # time
+    __start_time: float = 0
+    __duration: float = 0
+    # count
+    __run_count: int = 0  # 运行的步骤数
+    __actual_run_count: int = 0  # 实际运行的步骤数  可能循环控制 多次执行
+    __run_success_count: int = 0  # 运行成功数
+    __run_fail_count: int = 0  # 运行失败数
+    __run_err_count: int = 0  # 运行错误数
+    __run_skip_count: int = 0  # 运行跳过数
+    # log
+    __log__: Text = ""
 
-    def __init__(self):
-        self.config: TConfig
-        self.teststeps: List[Any]
-        self.extracted_variables: VariablesMapping = {}
-        self.success: bool = False  # indicate testcase execution result
-        self.message: Text = ""  # 错误信息或备注等信息记录
-        self.__case_id: Text = ""
-        self.__teststeps: List[Any]
-        self.__export: List[Text] = []
+    # @property
+    # def raw_testcase(self) -> TestCase:
+    #     if not hasattr(self, "config"):
+    #         self.__init_tests__()
+    #
+    #     return TestCase(config=self.config, teststeps=self.__teststeps)
+
+    def __init_tests__(self):
+        # 参数初始化
+        self.__case_id = ""
+        self.__teststeps = []
+        self.message = ""
+        self.__start_time = time.time()
+        self.__duration = 0
+        self.__session = self.__session or HttpSession()
+        self.__session_variables = {}
         self.__step_datas: List[StepData] = []
-        self.__session: HttpSession = HttpSession()
-        self.__session_variables: VariablesMapping = {}
-        self.__session_headers: Headers = {}
-        # time
-        self.__start_time: float = 0
-        self.__duration: float = 0
-        # count
-        self.__run_count: int = 0  # 运行的步骤数
-        self.__actual_run_count: int = 0  # 实际运行的步骤数  可能循环控制 多次执行
-        self.__run_success_count: int = 0  # 运行成功数
-        self.__run_fail_count: int = 0  # 运行失败数
-        self.__run_err_count: int = 0  # 运行错误数
-        self.__run_skip_count: int = 0  # 运行跳过数
-        # log
-        self.__log__: Text = ""
-
-    @property
-    def raw_testcase(self) -> TestCase:
-        if not hasattr(self, "config"):
-            self.__init_tests__()
-
-        return TestCase(config=self.config, teststeps=self.__teststeps)
+        self.__log__ = ""
+        # self.extracted_variables: VariablesMapping = {}
 
     def with_config(self, config: TConfig):
         self.config = config
@@ -182,16 +191,17 @@ class Runner(object):
             else:
                 logger.error(f"Invalid hook format: {hook}")
 
-    def __run_step_request(self, step: TCaseController) -> StepData:
+    def __run_step_request(self, step: TCaseController, step_tag=None):
         """执行用例请求"""
 
-        step_data = self.__get_step_data(step)
+        step_data = self.__get_step_data(step, step_tag=step_tag)
         self.__set_run_log(step_data=step_data, log_type=TStepLogType.start)
         # parse
         prepare_upload_step(step, self.config.functions)
         request_dict = step.request.dict()
         request_dict.pop("upload", None)
         session_success = False
+        extract_mapping = {}
         # 初始化resp_obj
         resp_obj = None
         # 捕获异常
@@ -297,13 +307,13 @@ class Runner(object):
                 )
                 session_success = True
                 self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
-            except ValidationFailure as err:
+            except exceptions.ValidationFailure as err:
                 session_success = False
                 self.__set_step_data_status(step_data, TStepDataStatusEnum.fail, str(err))
                 log_req_resp_details()
                 # log testcase duration before raise ValidationFailure
                 raise
-        except Exception as err:
+        except exceptions.MyBaseError as err:
             err_info = traceback.format_exc()
             logger.error(err_info)
             self.__set_step_data_status(step_data, TStepDataStatusEnum.err, err_info)
@@ -323,12 +333,14 @@ class Runner(object):
 
                 # save step data
                 step_data.session_data = self.__session.data
-        self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
-        return step_data
+            self.__step_datas.append(step_data)
+            self.extracted_variables.update(extract_mapping)
+            self.__session_variables.update(self.extracted_variables)
+            self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
 
-    def __run_step_sql(self, step: TSqlController, parent_step: TController, step_tag: Text = None) -> StepData:
+    def __run_step_sql(self, step: TSqlController, step_tag: Text = None):
         """执行sql控制器"""
-        step_data = self.__get_step_data(step, parent_step, step_tag)
+        step_data = self.__get_step_data(step, step_tag)
         self.__set_run_log(step_data=step_data, log_type=TStepLogType.start)
         try:
             db_info = DB(
@@ -344,41 +356,45 @@ class Runner(object):
             step_data.export_vars.update(variables)
             logger.info(f"SQL查询---> {step.value}")
             self.__set_run_log(f"SQL查询-> 设置变量:{step.variable_name}, 设置变量值：{data}")
+            self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
         except Exception as err:
             self.__set_step_data_status(step_data, TStepDataStatusEnum.err, str(err))
-            return step_data
-        self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
-        self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
-        return step_data
+            raise
+        finally:
+            self.__step_datas.append(step_data)
+            self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
 
-    def __run_step_wait(self, step: TWaitController, parent_step: TController, step_tag: Text = None) -> StepData:
+    def __run_step_wait(self, step: TWaitController, step_tag: Text = None):
         """等待控制器"""
         step.name = "等待控制器"
-        step_data = self.__get_step_data(step, parent_step, step_tag)
+        step_data = self.__get_step_data(step)
         try:
             self.__set_run_log(step_data=step_data, log_type=TStepLogType.start)
             if step.value:
                 time.sleep(step.value)
                 logger.info(f"等待控制器---> {step.value}m")
                 self.__set_run_log(f"等待控制器---> {step.value}m")
+                step_data.step_tag = f"wait[{step.value}]m]"
+                self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
+                self.__step_datas.append(step_data)
+            else:
+                raise ValueError("等待时间不能为空！")
         except Exception as err:
             self.__set_step_data_status(step_data, TStepDataStatusEnum.err, str(err))
-            return step_data
-        self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
-        self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
-        return step_data
+            raise
+        finally:
+            self.__step_datas.append(step_data)
+            self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
 
-    def __run_step_script(self, step: TScriptController, parent_step: TController, step_tag: Text = None) -> StepData:
+    def __run_step_script(self, step: TScriptController, step_tag: Text = None):
         """执行脚本控制器"""
 
-        step_data = self.__get_step_data(step, parent_step, step_tag)
+        step_data = self.__get_step_data(step, step_tag)
         self.__set_run_log(step_data=step_data, log_type=TStepLogType.start)
 
         try:
             module_name = uuid.uuid4().hex
             base_script_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "script_code.py")
-            logger.info(os.getcwd())
-            logger.info(os.path.abspath(os.path.dirname(__file__)))
             with open(base_script_path, 'r', encoding='utf8') as f:
                 base_script = f.read()
             script = f"{base_script}\n\n{step.value}"
@@ -393,138 +409,82 @@ class Runner(object):
             self.with_variables(variables)
             functions = load_module_functions(script_module)
             self.with_functions(functions)
-        except Exception as err:
-            self.__set_step_data_status(step_data, TStepDataStatusEnum.err, str(err))
-            return step_data
-        self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
-        self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
-        return step_data
+        finally:
+            self.__step_datas.append(step_data)
+            self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
 
-    def __run_step_if(self, step: TIFController, parent_step: TController,
-                      step_tag: Text = None) -> StepData:
+    def __run_step_if(self, step: TIFController, step_tag: Text = None):
         """条件控制器"""
         step.name = "条件控制器"
-        step_data = self.__get_step_data(step, parent_step, step_tag)
         try:
-            self.__set_run_log(step_data=step_data, log_type=TStepLogType.start)
-            step_data.step_data = []
             if not step.comparator:
-                self.__set_step_data_status(step_data, TStepDataStatusEnum.fail, "条件控制器--> 条件不能为空！")
-                return step_data
+                raise ValueError("条件控制器--> 条件不能为空！")
             c_result = self.__comparators(step.check, step.expect, step.comparator)
+            check_value = c_result.get("check_value", "")
             if c_result.get("check_result", "fail") == "success":
-                self.__execute_loop(step.teststeps, step_data)
+                self.__execute_loop(step.teststeps, step_tag=f"IF {check_value}")
             else:
-                self.__set_step_data_status(step_data, TStepDataStatusEnum.fail, f"😑条件不满足跳过跳过 ---> {c_result}")
                 self.__set_run_log(f"条件不符---> {c_result.get('validate_msg', '')}")
-                return step_data
-        except Exception as err:
-            self.__set_step_data_status(step_data, TStepDataStatusEnum.err, str(err))
-            return step_data
-        self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
-        self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
-        return step_data
+                raise exceptions.ValidationFailure(f"条件不符---> {c_result.get('validate_msg', '')}")
+        except exceptions.VariableNotFound as err:
+            raise
 
-    def __run_step_loop(self, step: TLoopController, parent_step: TController, step_tag: Text = None) -> StepData:
+    def __run_step_loop(self, step: TLoopController, step_tag: Text = None):
         """循环控制器"""
         step.name = "循环控制器"
-        step_data = self.__get_step_data(step, parent_step, step_tag)
-        step_data.step_data = []
-        try:
-            if not step.teststeps:
-                self.__set_step_data_status(step_data, TStepDataStatusEnum.skip, "循环控制器没有子步骤跳过")
-                return step_data
 
-            # 次数循环
-            if step.loop_type.lower() == LoopTypeEnum.Count.value:
-                self.__set_run_log(f"🔄次数循环---> 开始")
-                for i in range(min(step.count_number, 100)):
-                    self.__execute_loop(step.teststeps, step_data)
-                    self.__set_run_log(f"次数循环---> 第{i + 1}次")
+        # 次数循环
+        if step.loop_type.lower() == LoopTypeEnum.Count.value:
+            self.__set_run_log(f"🔄次数循环---> 开始")
+            for i in range(min(step.count_number, 100)):
+                self.__execute_loop(step.teststeps, step_tag=f"Loop[{i + 1}]")
+                self.__set_run_log(f"次数循环---> 第{i + 1}次")
 
-                    time.sleep(step.count_sleep_time)
-                self.__set_run_log(f"次数循环---> 结束")
+                time.sleep(step.count_sleep_time)
+            self.__set_run_log(f"次数循环---> 结束")
 
-            # for 循环
-            elif step.loop_type.lower() == LoopTypeEnum.For.value:
-                for_variable_name = step.for_variable_name
-                iterable_obj = parse_data(step.for_variable, self.__session_variables, self.config.functions)
-                if not isinstance(iterable_obj, Iterable):
-                    self.__set_run_log(f"for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
-                    return step_data
-                self.__set_run_log(f"🔄for循环---> 开始")
-                for for_variable_value in iterable_obj:
-                    self.with_variables({for_variable_name: for_variable_value})
-                    self.__execute_loop(step.teststeps, step_data)
-                    time.sleep(step.for_sleep_time)
-                self.__set_run_log(f"🔄for循环---> 结束")
+        # for 循环
+        elif step.loop_type.lower() == LoopTypeEnum.For.value:
+            for_variable_name = step.for_variable_name
+            iterable_obj = parse_data(step.for_variable, self.__session_variables, self.config.functions)
+            if not isinstance(iterable_obj, Iterable):
+                self.__set_run_log(f"for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
+                raise ValueError("for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
+            self.__set_run_log(f"🔄for循环---> 开始")
+            for for_variable_value in iterable_obj:
+                self.with_variables({for_variable_name: for_variable_value})
+                self.__execute_loop(step.teststeps, step_tag=f"for {for_variable_value} in {iterable_obj}")
+                time.sleep(step.for_sleep_time)
+            self.__set_run_log(f"🔄for循环---> 结束")
 
-            # while 循环  最大循环次数 100
-            elif step.loop_type.lower() == LoopTypeEnum.While.value:
-                # todo 循环超时时间待实现
-                run_number = 0
-                self.__set_run_log(f"🔄while循环---> 开始")
-                while True:
-                    c_result = self.__comparators(step.while_variable, step.while_value, step.while_comparator)
-                    if c_result.get("check_result", "fail") == "success":
-                        self.__set_run_log(f"条件符合退出while循环 ---> {c_result}")
-                        break
-                    self.__set_run_log(f"条件不满足继续while循环 ---> {c_result}")
-                    self.__execute_loop(step.teststeps, step_data)
-                    run_number += 1
-                    if run_number > 100:
-                        self.__set_run_log(f"循环次数大于100退出while循环")
-                        break
-                    time.sleep(step.while_sleep_time)
-                self.__set_run_log(f"🔄while循环---> 结束")
-            else:
-                self.__set_step_data_status(step_data, TStepDataStatusEnum.fail,
-                                            "😑请确认循环类型是否为 count for while")
-                self.__set_run_log(step_data=step_data, log_type=TStepLogType.fail)
-                raise LoopNotFound("请确认循环类型是否为 count for while ")
-        except Exception as err:
-            self.__set_step_data_status(step_data, TStepDataStatusEnum.err, str(err))
-            return step_data
-        self.__set_step_data_status(step_data, TStepDataStatusEnum.success)
-        self.__set_run_log(step_data=step_data, log_type=TStepLogType.end)
-        return step_data
+        # while 循环  最大循环次数 100
+        elif step.loop_type.lower() == LoopTypeEnum.While.value:
+            # todo 循环超时时间待实现
+            run_number = 0
+            self.__set_run_log(f"🔄while循环---> 开始")
+            while True:
+                c_result = self.__comparators(step.while_variable, step.while_value, step.while_comparator)
+                check_value = c_result.get("check_value", "")
+                if c_result.get("check_result", "fail") == "success":
+                    self.__set_run_log(f"条件符合退出while循环 ---> {c_result}")
+                    break
+                self.__set_run_log(f"条件不满足继续while循环 ---> {c_result}")
+                self.__execute_loop(step.teststeps, step_tag=f"while {check_value}")
+                run_number += 1
+                if run_number > 100:
+                    self.__set_run_log(f"循环次数大于100退出while循环")
+                    break
+                time.sleep(step.while_sleep_time)
+            self.__set_run_log(f"🔄while循环---> 结束")
+        else:
+            raise exceptions.LoopNotFound("请确认循环类型是否为 count for while ")
 
-    def __execute_loop(self, teststeps: List[TController], parent_step_data: StepData):
+    def __execute_loop(self, teststeps: List[TController], step_tag=None):
         """执行循环"""
         for teststep in teststeps:
             # 循环会导致 循环下的步骤的step_id 一致，这里重新赋值，保证step_id唯一
             teststep.step_id = id_center.get_id()
-            son_step_data = self.__run_step_controller(teststep)
-            self.__session_variables.update(son_step_data.export_vars)
-            parent_step_data.step_data.append(deepcopy(son_step_data))
-
-    # def __run_step_controller(self, step: TController, parent_step: TController = None,
-    #                           step_tag: Text = None) -> StepData:
-    #     """执行控制器"""
-    #
-    #     if not step.enable:
-    #         step_data = self.__get_step_data(step, parent_step, step_tag)
-    #         self.__set_step_data_status(step_data, TStepDataStatusEnum.skip, "跳过")
-    #         return step_data
-    #     if isinstance(step, TCaseController):
-    #         step_data = self.__run_step_request(step, parent_step, step_tag)
-    #     elif isinstance(step, TWaitController):
-    #         step_data = self.__run_step_wait(step, parent_step, step_tag)
-    #     elif isinstance(step, TSqlController):
-    #         step_data = self.__run_step_sql(step, parent_step, step_tag)
-    #     elif isinstance(step, TScriptController):
-    #         step_data = self.__run_step_script(step, parent_step, step_tag)
-    #     elif isinstance(step, TIFController):
-    #         step_data = self.__run_step_if(step, parent_step, step_tag)
-    #     elif isinstance(step, TLoopController):
-    #         step_data = self.__run_step_loop(step, parent_step)
-    #     else:
-    #         raise ParamsError(
-    #             f"测试步骤不是一个用例😅: {step.dict()}"
-    #         )
-    #     step_data.duration = time.time() - step_data.start_time
-    #     self.__actual_run_count += 1
-    #     return step_data
+            self.run_step(teststep, step_tag)
 
     def __set_step_data_status(self, step_data: StepData, status: TStepDataStatusEnum, msg: Text = ""):
         """设置步骤状态"""
@@ -574,25 +534,25 @@ class Runner(object):
             step_data.case_id = step.case_id
         return step_data
 
-    def run_step(self, step: TController):
+    def run_step(self, step: TController, step_tag=None):
         """运行步骤，可能是用例，可能是步骤控制器"""
         logger.info(f"run step begin: {step.name} >>>>>>")
         self.__set_run_log(f"执行步骤->{step.name} >>>>>>")
 
         if isinstance(step, TCaseController):
-            self.__run_step_request(step)
+            self.__run_step_request(step, step_tag)
         elif isinstance(step, TWaitController):
-            self.__run_step_wait(step)
+            self.__run_step_wait(step, step_tag)
         elif isinstance(step, TSqlController):
-            self.__run_step_sql(step)
+            self.__run_step_sql(step, step_tag)
         elif isinstance(step, TScriptController):
-            self.__run_step_script(step)
+            self.__run_step_script(step, step_tag)
         elif isinstance(step, TIFController):
-            self.__run_step_if(step)
+            self.__run_step_if(step, step_tag)
         elif isinstance(step, TLoopController):
-            self.__run_step_loop(step)
+            self.__run_step_loop(step, step_tag)
         else:
-            raise ParamsError(
+            raise exceptions.ParamsError(
                 f"测试步骤不是一个用例😅: {step.dict()}"
             )
         # step_data = self.__run_step_controller(step, parent_step, "controller")
@@ -644,9 +604,9 @@ class Runner(object):
         config.variables = parse_variables_mapping(config.variables, self.config.functions)
         config.name = parse_data(config.name, config.variables, self.config.functions)
         config.base_url = parse_data(config.base_url, config.variables, self.config.functions)
-        self.with_case_id(config.case_id)
+        # self.with_case_id(config.case_id)
 
-    def run_testcase(self, testcase: TestCase) -> "Runner":
+    def run_testcase(self, testcase: Union[TestCase, TController]) -> "Runner":
         """run specified testcase
 
         Examples:
@@ -655,27 +615,30 @@ class Runner(object):
 
         """
         logger.info("用例开始执行 🚀")
-        self.config = testcase.config
-        self.__teststeps = testcase.teststeps
 
-        # 参数初始化
-        self.__parse_config(self.config)
-        self.__start_time = time.time()
-        self.__step_datas: List[StepData] = []
-        self.__session = self.__session or HttpSession()
-        self.__session_variables = {}
-        # save extracted variables of teststeps
-        self.extracted_variables: VariablesMapping = {}
+        self.__init_tests__()
 
-        # run teststeps
-        for index, step in enumerate(self.__teststeps):
-            # 运行步骤
-            if not step.enable:
-                logger.debug(f"禁用步骤跳过---> {step.name}")
-                continue
-            self.run_step(step)
-            # extract_mapping = self.__run_step(step)
+        if isinstance(testcase, TestCase):
+            self.config = testcase.config
+            self.__parse_config(self.config)
+            self.__teststeps = testcase.teststeps
 
+            # run teststeps
+            for index, step in enumerate(self.__teststeps):
+                # 运行步骤
+                if not step.enable:
+                    logger.debug(f"禁用步骤跳过---> {step.name}")
+                    continue
+                self.run_step(step)
+        elif isinstance(testcase, (TCaseController,
+                                   TScriptController,
+                                   TSqlController,
+                                   TWaitController,
+                                   TLoopController,
+                                   TIFController,)):
+            self.run_step(testcase)
+        else:
+            raise
         #     # 保存提取的变量
         #     self.extracted_variables.update(extract_mapping)
         #
@@ -700,7 +663,7 @@ class Runner(object):
         export_vars_mapping = {}
         for var_name in export_var_names:
             if var_name not in self.__session_variables:
-                raise ParamsError(
+                raise exceptions.ParamsError(
                     f"failed to export variable {var_name} from session variables {self.__session_variables}"
                 )
 

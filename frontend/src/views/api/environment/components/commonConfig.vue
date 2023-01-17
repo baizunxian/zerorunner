@@ -9,7 +9,7 @@
 
 import {handleEmpty} from "/@/utils/other";
 import {defineComponent, reactive, ref, toRefs} from "vue";
-import variableController from "/@/components/StepController/variable/variableController.vue";
+import variableController from "/@/components/StepController/variable/VariableController.vue";
 
 interface baseState {
   key: string,

@@ -17,7 +17,7 @@
         </el-button>
       </div>
 
-      <zero-table
+      <z-table
           :columns="columns"
           :data="menuList"
           border

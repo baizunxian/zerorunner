@@ -27,6 +27,11 @@ from zerorunner.runner import Runner
 class HandleData(object):
 
     @staticmethod
+    def handle_functions(config: TConfig):
+        from autotest.utils import basic_function
+        config.functions.update(load_module_functions(basic_function))
+
+    @staticmethod
     def handle_env(env_id: Union[Text, int]) -> Dict[Text, Any]:
         env_dict = {}
         env_info = Env.get(env_id)
@@ -128,7 +133,7 @@ class ApiInfoHandle(object):
 
     def __init__(self, **kwargs: Any):
         self.api_info = ApiInfoSchema(**kwargs)
-        self.config = TConfig(name=self.api_info.name, case_id=self.api_info.id)
+        self.config = TConfig(name=self.api_info.name)
         self.teststeps = []
         self.step = TCaseController(
             step_type="case",
@@ -155,8 +160,7 @@ class ApiInfoHandle(object):
         self.teststeps.append(self.step)
 
     def make_functions(self):
-        from autotest.utils import basic_function
-        self.config.functions.update(load_module_functions(basic_function))
+        HandleData.handle_functions(self.config)
 
     def make_env(self):
         env_info = HandleData.handle_env(self.api_info.env_id)
@@ -215,8 +219,12 @@ class ApiCaseHandle:
         self.config = TConfig(name=self.api_case.name)
         self.teststeps = []
         self.make_testcase()
+        self.make_functions()
         self.make_headers(HandleData.handle_headers_or_validators(self.api_case.headers))
         self.make_variables(HandleData.handle_headers_or_validators(self.api_case.variables), 'var')
+
+    def make_functions(self):
+        HandleData.handle_functions(self.config)
 
     def make_env(self):
         if self.api_case.env_id:

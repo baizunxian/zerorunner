@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <zero-table
+    <z-table
         :columns="columns"
         :data="listData"
         row-key="id"
@@ -11,13 +11,13 @@
         :total="total"
         :tree-props="{ children: 'children', hasChildren: 'has_step_data' }"
         @pagination-change="getList"
-    ></zero-table>
+    ></z-table>
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent, h, onMounted, reactive, toRefs} from "vue";
-import ZeroTable from "/@/components/zeroTable/index.vue";
+import ZeroTable from "/@/components/Z-Table/index.vue";
 import {ElButton, ElTag} from "element-plus";
 import {useReportApi} from "/@/api/useAutoApi/report";
 import {getMethodColor} from "/@/utils/case"

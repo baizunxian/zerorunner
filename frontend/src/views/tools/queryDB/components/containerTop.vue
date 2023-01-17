@@ -10,7 +10,7 @@
     </div>
 
     <div style="border: 1px solid #E6E6E6; overflow-y: auto" ref="monacoEditDivRef">
-      <monaco-editor
+      <z-monaco-editor
           :style="{height: height + 'px'}"
           ref="monacoEditRef"
           :dbs="dbs"

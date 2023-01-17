@@ -1,36 +1,37 @@
 <template>
-  <div>
-    <div style=" height: 45px" class="header">
-      <el-form ref="formRef"
-               v-model="funcFrom"
-               inline
-               label-width="auto"
+  <el-card class="h100">
+    <template #header>
+      <z-detail-page-header
+          @back="goBack"
       >
-        <el-form-item prop="name" label="函数名称">
+        <template #content>
           <el-input type="primary"
                     size=""
-                    placeholder="备注"
+                    placeholder="函数名称"
+                    style="width: 200px"
+                    v-model="funcFrom.name">
+          </el-input>
+          <el-input type="primary"
+                    size=""
+                    placeholder="函数名称"
                     style="width: 200px"
                     v-model="funcFrom.name">
           </el-input>
 
-          <el-button type="primary" @click="showDiff=!showDiff" style="margin-left: 10px;">保存</el-button>
+          <el-button type="primary" @click="showDiffPage" style="margin-left: 10px;">保存</el-button>
+        </template>
 
-        </el-form-item>
+      </z-detail-page-header>
 
-        <el-form-item>
-        </el-form-item>
+    </template>
 
-      </el-form>
-
-    </div>
 
     <div class="code-box">
       <!--      展示-->
-      <monaco-editor
+      <z-monaco-editor
           v-model:value="funcFrom.content"
           v-model:long="long"
-      ></monaco-editor>
+      />
     </div>
 
 
@@ -55,7 +56,7 @@
           <el-col :span="12">修改后</el-col>
         </el-row>
 
-        <monaco-editor
+        <z-monaco-editor
             :isDiff="true"
             v-model:oldString="originalFuncContent"
             v-model:value="funcFrom.content"
@@ -65,12 +66,12 @@
 
     </el-dialog>
 
-  </div>
+  </el-card>
 </template>
 
 <script lang="ts">
 import {defineComponent, onMounted, reactive, toRefs} from "vue";
-import {useRoute} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {useFunctionsApi} from "/@/api/useAutoApi/functions";
 import {ElMessage} from "element-plus/es";
 
@@ -78,6 +79,7 @@ export default defineComponent({
   name: 'saveOrUpdateDebugTalk',
   setup() {
     const route = useRoute()
+    const router = useRouter()
     const state = reactive({
       isEdit: true,
       editor: null,
@@ -108,8 +110,16 @@ export default defineComponent({
             })
       }
     }
+    const showDiffPage = () => {
+      if (state.funcFrom.name === "") {
+        ElMessage.warning("函数名称不能为空！")
+        return
+      }
+      state.showDiff = !state.showDiff
+    }
     // 新增
     const saveOrUpdate = () => {
+
       useFunctionsApi().saveOrUpdate(state.funcFrom)
           .then(() => {
             ElMessage.success('操作成功');
@@ -117,6 +127,10 @@ export default defineComponent({
           })
       // setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
     };
+
+    const goBack = () => {
+      router.push({name: "apiFunctions"})
+    }
 
     // diff
 
@@ -126,7 +140,9 @@ export default defineComponent({
 
     return {
       initData,
+      showDiffPage,
       saveOrUpdate,
+      goBack,
       ...toRefs(state),
     };
   },
@@ -135,31 +151,13 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-.header {
-  display: flex;
-  padding: 10px 5px;
-  background-color: #ffffff;
-  border-radius: 0px;
-  border-left: 5px solid #409eff;
-}
 
-.echart-pie-wrap {
-  //height: calc(100% - 45px);
-
-  .myEditorTop {
-    height: 45px;
-    display: flex;
-    align-items: center;
-    background-color: #333;
-    padding-left: 50px;
-    color: rgb(241, 238, 8);
-    font-weight: bold;
-  }
-
+:deep(.el-card__body) {
+  height: 100%;
 }
 
 .code-box {
-  height: calc(100% - 45px);
+  height: calc(100%);
 }
 
 .diff-box {

@@ -11,35 +11,6 @@ from zerorunner.report import HtmlTestResult
 from zerorunner import runner
 
 
-class TestCase(unittest.TestCase):
-
-    def __init__(self, runner: runner.Runner, teststep: models.TController):
-        super(TestCase, self).__init__()
-        self.runner = runner
-        self.teststep = copy.copy(teststep)
-
-    def runTest(self):
-        """ 运行测试用例.
-        """
-        if self.runner.config.name:
-            TestCase.__doc__ = self.runner.config.name
-        try:
-            self.runner.run_step(self.teststep)
-        except exceptions.MyBaseFailure as ex:
-            self.fail(str(ex))
-
-
-# class TestSuite(unittest.TestSuite):
-#     def __init__(self, test_suites: models.TestCase):
-#         super(TestSuite, self).__init__()
-#         for test_step in test_suites.teststeps:
-#             self.__add_case_to_suite(test_step)
-#
-#     def __add_case_to_suite(self, test_step: models.TController):
-#         test = TestCase(test_step)
-#         self.addTest(test)
-
-
 class ZeroRunner(object):
     def __init__(self, failfast: bool = False):
         self.exception_stage = "initialize HttpRunner()"
@@ -50,19 +21,46 @@ class ZeroRunner(object):
 
     def add_tests(self, testcase: models.TestCase) -> "unittest.TestSuite":
 
+        def _add_test(test_runner: runner.Runner, test_step: models.TController):
+            """
+            test_runner : Runner
+            test_step : TController
+            """
+
+            def test(self):
+                try:
+                    test_runner.run_testcase(test_step)
+                except exceptions.MyBaseFailure as ex:
+                    self.fail(str(ex))
+                finally:
+                    self.summary = test_runner.get_summary()
+
+            test.__doc__ = test_step.name
+
+            return test
+
         test_suite = unittest.TestSuite()
 
-        for test_step in testcase.teststeps:
+        for index, step in enumerate(testcase.teststeps):
             test_runner = runner.Runner()
             test_runner.with_config(testcase.config)
-            testcase = TestCase(runner=test_runner, teststep=test_step)
-            # suppose one testcase should not have more than 9999 steps,
-            # and one step should not run more than 999 times.
-            test_suite.addTest(testcase)
+            test_method_name = "test_{:04}".format(index)
+            test_method = _add_test(test_runner, step)
+
+            TestSequence = type("TestSequence", (unittest.TestCase,), {})
+
+            setattr(TestSequence, test_method_name, test_method)
+
+            loaded_testcase = self.test_loader.loadTestsFromTestCase(TestSequence)
+
+            setattr(loaded_testcase, "config", testcase.config)
+            setattr(loaded_testcase, "teststeps", testcase.teststeps)
+            setattr(loaded_testcase, "runner", test_runner)
+            test_suite.addTest(loaded_testcase)
 
         return test_suite
 
-    def _run_suite(self, test_suite: unittest.TestSuite):
+    def _run_suite(self, test_suite: unittest.TestSuite) -> List:
         """run tests in test_suite
 
         Args:
@@ -75,8 +73,8 @@ class ZeroRunner(object):
         tests_results = []
 
         for testcase in test_suite:
-            testcase_name = testcase.runner.config.name
-            logger.info("Start to run testcase: {}".format(testcase_name))
+            testcase_name = testcase.config.name
+            logger.info(f"开始运行测试用例: {testcase_name}")
 
             result = self.unittest_runner.run(testcase)
             if result.wasSuccessful():
@@ -86,20 +84,19 @@ class ZeroRunner(object):
 
         return tests_results
 
-    def run_tests(self, tests_mapping):
+    def run_tests(self, testcase: models.TestCase):
         """run testcase/testsuite data"""
 
-
         # add tests to test suite
-        self.exception_stage = "add tests to test suite"
-        test_suite = self.add_tests(tests_mapping)
+        self.exception_stage = "添加用例到套件"
+        test_suite = self.add_tests(testcase)
 
         # run test suite
-        self.exception_stage = "run test suite"
+        self.exception_stage = "运行测试套件"
         results = self._run_suite(test_suite)
 
         # aggregate results
-        self.exception_stage = "aggregate results"
+        self.exception_stage = "汇总结果"
         # self._summary = self._aggregate(results)
         #
         # # generate html report
@@ -113,3 +110,42 @@ class ZeroRunner(object):
         #     utils.dump_logs(vars_out, project_mapping, "io")
 
         return self._summary
+
+    def _aggregate(self, tests_results):
+        """aggregate results
+
+        Args:
+            tests_results (list): list of (testcase, result)
+
+        """
+        summary = {
+            "success": True,
+            "stat": {
+                "testcases": {"total": len(tests_results), "success": 0, "fail": 0},
+                "teststeps": {},
+            },
+            "time": {},
+            "details": [],
+        }
+
+        for tests_result in tests_results:
+            testcase, result = tests_result
+            testcase_summary = report.get_summary(result)
+
+            if testcase_summary["success"]:
+                summary["stat"]["testcases"]["success"] += 1
+            else:
+                summary["stat"]["testcases"]["fail"] += 1
+
+            summary["success"] &= testcase_summary["success"]
+            testcase_summary["name"] = testcase.config.get("name")
+            testcase_summary["in_out"] = utils.get_testcase_io(testcase)
+
+            report.aggregate_stat(
+                summary["stat"]["teststeps"], testcase_summary["stat"]
+            )
+            report.aggregate_stat(summary["time"], testcase_summary["time"])
+
+            summary["details"].append(testcase_summary)
+
+        return summary

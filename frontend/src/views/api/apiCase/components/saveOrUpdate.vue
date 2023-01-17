@@ -1,25 +1,26 @@
 <template>
-  <el-card style="padding: 0 5px; margin-bottom: 8px; padding-right: 20px">
-    <el-page-header
-        class="page-header"
-        style="margin: 5px 0;"
-        @back="goBack"
-    >
-      <template #content>
-        <span style="padding-right: 10px;">{{ editType === 'save' ? '新增套件' : '更新套件' }}</span>
-      </template>
-      <template #extra>
-        <el-button type="success" @click="debugSuite">调试</el-button>
-        <el-button type="primary" @click="saveOrUpdate" class="title-button">保存</el-button>
-      </template>
-    </el-page-header>
-  </el-card>
+  <div class="h100">
+    <el-card class="step-content" style="min-height: 100%;">
+      <template #header>
+        <z-detail-page-header
+            class="page-header"
+            style="margin: 5px 0;"
+            @back="goBack"
+        >
+          <template #content>
+            <span style="padding-right: 10px;">{{ editType === 'save' ? '新增套件' : '更新套件' }}</span>
+          </template>
 
-  <div class="el-card" style="height: calc(100% - 60.50px); overflow: auto">
+          <template #extra>
+            <el-button type="success" @click="debugSuite">调试</el-button>
+            <el-button type="primary" @click="saveOrUpdate" class="title-button">保存</el-button>
+          </template>
+        </z-detail-page-header>
+      </template>
 
-    <div >
-      <splitpanes class="default-theme" style="height: 100%;">
-        <pane :size="20">
+
+      <z-splitpanes class="default-theme h100">
+        <z-pane :size="20">
           <div style="padding: 0 10px 0 0">
 
             <el-form
@@ -70,11 +71,20 @@
                 </el-select>
               </el-form-item>
 
+              <el-form-item label="步骤依赖：">
+                <el-radio-group v-model="form.step_rely">
+                  <el-radio :label="true" size="small">是</el-radio>
+                  <el-radio :label="false" size="small">否</el-radio>
+                </el-radio-group>
+              </el-form-item>
               <el-form-item label="步骤总数：">
                 {{ form.step_data?.length }}
               </el-form-item>
 
               <el-form-item label="套件变量：">
+                <template #label>
+                  <el-link type="primary" @click="isShowVariable = ! isShowVariable">套件变量：</el-link>
+                </template>
                 <el-link type="info" @click="isShowVariable = ! isShowVariable">
                   {{ handleEmpty(form.headers).length + handleEmpty(form.variables).length }}
                 </el-link>
@@ -83,46 +93,46 @@
             </el-form>
 
           </div>
-        </pane>
-        <pane :size="80" :min-size="50">
-          <step-controller
+        </z-pane>
+        <z-pane :size="80" :min-size="50">
+          <!--          <apiInfo-step></apiInfo-step>-->
+          <z-step-controller
               ref="stepControllerRef"
               use_type="suite"
               style="margin-bottom: 10px"
-              v-model:data="form.step_data"></step-controller>
-        </pane>
-      </splitpanes>
-
-    </div>
+              v-model:data="form.step_data"></z-step-controller>
+        </z-pane>
+      </z-splitpanes>
 
 
-    <el-dialog
-        draggable
-        title="变量" v-model="isShowVariable" width="769px"
-    >
-      <el-tabs v-model="activeTabName" class="demo-tabs">
-        <el-tab-pane label="变量" name="variable">
-          <template #label>
-            <strong>变量
-              <div class="el-step__icon is-text zh-header" v-show="handleEmpty(form.variables).length">
-                <div class="el-step__icon-inner">{{ handleEmpty(form.variables).length }}</div>
-              </div>
-            </strong>
-          </template>
-          <variable-controller :data="form.variables"></variable-controller>
-        </el-tab-pane>
-        <el-tab-pane label="请求头" name="second">
-          <template #label>
-            <strong>请求头
-              <div class="el-step__icon is-text zh-header" v-show="handleEmpty(form.headers).length">
-                <div class="el-step__icon-inner">{{ handleEmpty(form.headers).length }}</div>
-              </div>
-            </strong>
-          </template>
-          <headers-controller :data="form.headers"></headers-controller>
-        </el-tab-pane>
-      </el-tabs>
-    </el-dialog>
+      <el-dialog
+          draggable
+          title="变量" v-model="isShowVariable" width="769px"
+      >
+        <el-tabs v-model="activeTabName" class="demo-tabs">
+          <el-tab-pane label="变量" name="variable">
+            <template #label>
+              <strong>变量
+                <div class="el-step__icon is-text zh-header" v-show="handleEmpty(form.variables).length">
+                  <div class="el-step__icon-inner">{{ handleEmpty(form.variables).length }}</div>
+                </div>
+              </strong>
+            </template>
+            <variable-controller :data="form.variables"></variable-controller>
+          </el-tab-pane>
+          <el-tab-pane label="请求头" name="second">
+            <template #label>
+              <strong>请求头
+                <div class="el-step__icon is-text zh-header" v-show="handleEmpty(form.headers).length">
+                  <div class="el-step__icon-inner">{{ handleEmpty(form.headers).length }}</div>
+                </div>
+              </strong>
+            </template>
+            <headers-controller :data="form.headers"></headers-controller>
+          </el-tab-pane>
+        </el-tabs>
+      </el-dialog>
+    </el-card>
   </div>
 </template>
 
@@ -132,8 +142,8 @@ import {ElMessage} from "element-plus";
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRoute, useRouter} from "vue-router"
 import {useEnvApi} from "/@/api/useAutoApi/env";
-import variableController from "/@/components/StepController/variable/variableController.vue";
-import headersController from "/@/components/StepController/headers/headersController.vue";
+import variableController from "/@/components/StepController/variable/VariableController.vue";
+import headersController from "/@/components/StepController/headers/HeadersController.vue";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import 'splitpanes/dist/splitpanes.css';
 import {handleEmpty} from "/@/utils/other";
@@ -150,6 +160,7 @@ export default defineComponent({
       return {
         name: '', // 名称
         env_id: null, // 环境id
+        step_rely: true, // 步骤依赖
         project_id: '', // 关联项目
         remarks: '', // 简要描述
         step_data: [],
@@ -164,7 +175,6 @@ export default defineComponent({
     const state = reactive({
       isShowVariable: false,
       editType: '',
-      // 参数请参考 `/src/router/route.ts` 中的 `dynamicRoutes` 路由菜单格式
       form: createForm(),
       rules: {
         name: [{required: true, message: '请输入用例名', trigger: 'blur'}],
@@ -180,29 +190,25 @@ export default defineComponent({
     });
 
     // init suite
-    const initData = () => {
+    const initData = async () => {
       if (route.query.id) {
-        useApiCaseApi().getSuitesInfo({id: route.query.id}).then(res => {
-          state.form = res.data
-        })
+        let {data} = await useApiCaseApi().getSuitesInfo({id: route.query.id})
+        state.form = data
       }
     }
 
     // environment
-    const getEnvList = () => {
-      useEnvApi().getList({page: 1, pageSize: 100})
-          .then(res => {
-            state.envList = res.data.rows
-          })
+    const getEnvList = async () => {
+      let {data} = await useEnvApi().getList({page: 1, pageSize: 100})
+      state.envList = data.rows
     };
 
     // project
     // 初始化表格数据
-    const getProjectList = () => {
-      useProjectApi().getList({page: 1, pageSize: 1000})
-          .then(res => {
-            state.projectList = res.data.rows
-          })
+    const getProjectList = async () => {
+      let {data} = await useProjectApi().getList({page: 1, pageSize: 1000})
+      state.projectList = data.rows
+
     };
 
 
@@ -236,7 +242,7 @@ export default defineComponent({
             return
           }
           useApiCaseApi().debugSuites(state.form)
-              .then((res: any) => {
+              .then(() => {
                 ElMessage.success('操作成功');
               })
         } else {
@@ -281,33 +287,6 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 
-.block-title {
-  position: relative;
-  padding-left: 11px;
-  font-size: 14px;
-  font-weight: 600;
-  height: 20px;
-  line-height: 20px;
-  background: #f7f7fc;
-  color: #333333;
-  border-left: 2px solid #409eff;
-  margin-bottom: 5px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.el-card {
-  padding: 10px;
-}
-
-:deep(.el-page-header__breadcrumb) {
-  display: none;
-}
-
-.splitpanes.default-theme .splitpanes__pane {
-  background-color: #ffffff;
-}
-
 .zh-header {
   background: #61affe;
   color: #fff;
@@ -316,7 +295,9 @@ export default defineComponent({
   border-radius: 50%;
 }
 
-:deep(.el-card__body) {
-  padding: 5px 0px;
+.step-content {
+  :deep(.el-card__body) {
+    min-height: 100%;
+  }
 }
 </style>

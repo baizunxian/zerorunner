@@ -16,7 +16,7 @@
           新增用户
         </el-button>
       </div>
-      <zero-table
+      <z-table
           :columns="columns"
           :data="listData"
           v-model:page-size="listQuery.pageSize"

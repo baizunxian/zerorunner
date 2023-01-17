@@ -24,7 +24,7 @@
 
     </div>
 
-    <zero-table
+    <z-table
         :columns="columns"
         :data="listData"
         v-model:page-size="listQuery.pageSize"
@@ -38,7 +38,7 @@
   </el-card>
 </template>
 
-<script lang="ts">
+<script setup lang="ts" name="apiReport">
 
 import {useReportApi} from '/@/api/useAutoApi/report';
 import {defineComponent, h, onMounted, reactive, toRefs, ref} from 'vue';
@@ -95,8 +95,14 @@ export default defineComponent({
         {key: 'start_time', label: '运行时间', align: 'center', width: '150', show: true},
         {key: 'run_user_name', label: '执行人', align: 'center', width: '', show: true},
         {
-          label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '80',
+          label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
           render: (row: any) => h("div", null, [
+            h(ElButton, {
+              type: "primary",
+              onClick: () => {
+                onOpenReport(row)
+              }
+            }, () => '查看'),
             h(ElButton, {
               type: "danger",
               onClick: () => {

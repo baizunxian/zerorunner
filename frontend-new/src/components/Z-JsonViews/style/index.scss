@@ -1,0 +1,103 @@
+// default
+
+.json-view-container {
+  background-color: #fff;
+
+  &.deep-1 {
+    // overflow: auto;
+    padding-right: 10px;
+  }
+
+  .json-view {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    white-space: nowrap;
+    padding-left: 2rem;
+    box-sizing: border-box;
+    font-family: Consolas !important;
+    cursor: default;
+
+    .json-note {
+      color: #909399;
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    .json-key {
+      color: #8c6325;
+    }
+
+    .json-value {
+      display: inline-block;
+      color: #57b73b;
+      word-break: break-all;
+      white-space: normal;
+
+      &.number {
+        color: #2d8cf0;
+      }
+
+      &.string {
+        color: #57b73b;
+      }
+
+      &.boolean {
+        color: #eb3324;
+      }
+
+      &.null {
+        color: #eb3324;
+      }
+    }
+
+    .json-item {
+      margin: 0;
+      padding-left: 2rem;
+      display: flex;
+    }
+
+    .first-line {
+      padding: 0;
+      margin: 0;
+
+      &.pointer {
+        cursor: pointer !important;
+      }
+    }
+
+    .json-body {
+      position: relative;
+      padding: 0;
+      margin: 0;
+
+      .base-line {
+        position: absolute;
+        height: 100%;
+        border-left: 1px dashed #bbb;
+        top: 0;
+        left: 2px;
+
+        &:hover {
+        }
+      }
+    }
+
+    .last-line {
+      padding: 0;
+      margin: 0;
+    }
+
+    .angle {
+      position: absolute;
+      display: block;
+      cursor: pointer;
+      float: left;
+      width: 20px;
+      text-align: center;
+      /*left: ~"calc(2rem - 18px)";*/
+      left: 12px;
+    }
+  }
+}

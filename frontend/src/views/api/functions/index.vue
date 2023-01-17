@@ -4,28 +4,21 @@
       <div class="mb15">
         <el-input
             clearable
-            v-model="listQuery.project_name"
-            placeholder="输入项目名查询"
+            v-model="listQuery.name"
+            placeholder="函数名称"
             style="width: 200px;"
             class="filter-item"
             @keyup.enter.native="search">
 
         </el-input>
 
-        <el-button class="ml10" type="primary" @click="search">
-          <el-icon>
-            <ele-Search/>
-          </el-icon>
-          查询
+        <el-button class="ml10" type="primary" @click="search">查询
         </el-button>
         <el-button class="ml10" type="warning" @click="onOpenSaveOrUpdate(null)">
-          <el-icon>
-            <ele-Guide/>
-          </el-icon>
           公共函数
         </el-button>
         <!--        函数列表-->
-        <el-button class="ml10" type="primary" @click="openFuncList">公共函数列表
+        <el-button class="ml10" type="success" @click="openFuncList">公共函数列表
         </el-button>
       </div>
 
@@ -127,7 +120,7 @@
               <el-input v-model="funcArgsInfo[key]"></el-input>
             </el-descriptions-item>
             <el-descriptions-item width="150px" label="执行结果">
-              <monaco-editor
+              <z-monaco-editor
                   ref="monacoEdit"
                   :options="options"
                   style="height: 300px;"
@@ -141,7 +134,7 @@
         </div>
       </el-dialog>
 
-      <zero-table
+      <z-table
           :columns="columns"
           :data="listData"
           v-model:page-size="listQuery.pageSize"
@@ -149,7 +142,7 @@
           :total="total"
           @pagination-change="getList"
       >
-      </zero-table>
+      </z-table>
 
     </el-card>
   </div>

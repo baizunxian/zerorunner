@@ -54,7 +54,7 @@
     <div class="block-title">关联数据库</div>
 
     <div>
-      <zero-table
+      <z-table
           :columns="columns"
           :data="dataSourceList"
           v-model:page-size="dataSourceQuery.pageSize"

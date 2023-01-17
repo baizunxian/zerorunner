@@ -11,8 +11,8 @@
     <div class="login-content">
       <div class="login-content-main">
         <h4 class="login-content-title ml15">{{ getThemeConfig.globalTitle }}</h4>
-        <div v-if="!isScan">
-          <el-tabs v-model="tabsActiveName">
+        <div v-if="!state.isScan">
+          <el-tabs v-model="state.tabsActiveName">
             <el-tab-pane label="账号密码登录" name="account">
               <Account/>
             </el-tab-pane>
@@ -31,72 +31,37 @@
   </div>
 </template>
 
-<script lang="ts">
-import {computed, defineComponent, onBeforeUnmount, onMounted, reactive, ref, toRefs} from 'vue';
-import Account from '/@/views/login/component/account.vue';
-import {useStore} from '/@/store';
-
+<script setup lang="ts" name="loginIndex">
+import {computed, defineAsyncComponent, onMounted, reactive} from 'vue';
+import {storeToRefs} from 'pinia';
+import {NextLoading} from '/@/utils/loading';
+import {useThemeConfig} from '/@/stores/themeConfig';
 import logoMini from '/@/assets/logo.svg';
 import loginIconTwo from '/@/assets/login-icon-two.svg';
 
-// import BIRDS from 'vanta/src/vanta.birds.js'
-// import '/@/assets/three/three.js'
+// 引入组件
+const Account = defineAsyncComponent(() => import('/@/views/login/component/account.vue'));
+// const Mobile = defineAsyncComponent(() => import('/@/views/login/component/mobile.vue'));
+// const Scan = defineAsyncComponent(() => import('/@/views/login/component/scan.vue'));
 
-// 定义接口来定义对象的类型
-interface LoginState {
-  tabsActiveName: string;
-  isScan: boolean;
-  vantaEffect: any;
-}
-
-export default defineComponent({
-  name: 'loginIndex',
-  components: {Account},
-  setup() {
-    const store = useStore();
-    const vantaRef = ref();
-    const state = reactive<LoginState>({
-      tabsActiveName: 'account',
-      isScan: false,
-      vantaEffect: null,
-    });
-    // 获取布局配置信息
-    const getThemeConfig = computed(() => {
-      return store.state.themeConfig.themeConfig;
-    });
-    onMounted(() => {
-      // state.vantaEffect = BIRDS({
-      //   el: vantaRef.value,
-      //   THREE: window.THREE,
-      //   mouseControls: true,
-      //   touchControls: true,
-      //   gyroControls: false,
-      //   minHeight: 200.00,
-      //   minWidth: 200.00,
-      //   scale: 1.00,
-      //   scaleMobile: 1.00,
-      //   birdSize: 0.80,
-      //   wingSpan: 17.00,
-      //   speedLimit: 3.00,
-      //   alignment: 18.00,
-      //   cohesion: 19.00,
-      //   quantity: 3.00,
-      //   backgroundColor: 0x5050c
-      // })
-    })
-
-    onBeforeUnmount(() => {
-      // if (state.vantaEffect) state.vantaEffect.destroy()
-    })
-    return {
-      vantaRef,
-      logoMini,
-      loginIconTwo,
-      getThemeConfig,
-      ...toRefs(state),
-    };
-  },
+// 定义变量内容
+const storesThemeConfig = useThemeConfig();
+const {themeConfig} = storeToRefs(storesThemeConfig);
+const state = reactive({
+  tabsActiveName: 'account',
+  isScan: false,
 });
+
+// 获取布局配置信息
+const getThemeConfig = computed(() => {
+  return themeConfig.value;
+});
+
+// 页面加载时
+onMounted(() => {
+  NextLoading.done();
+});
+
 </script>
 
 <style scoped lang="scss">
@@ -118,6 +83,7 @@ export default defineComponent({
       display: flex;
       align-items: center;
       width: 350px;
+
       img {
         width: 30px;
         height: 30px;

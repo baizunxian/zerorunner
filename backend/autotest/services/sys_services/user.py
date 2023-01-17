@@ -1,3 +1,4 @@
+import copy
 import traceback
 import uuid
 from typing import Dict, Union, Any, Text
@@ -10,7 +11,7 @@ from autotest.exc import codes
 from autotest.exc.consts import TEST_USER_INFO, CACHE_DAY
 from autotest.exc.partner_message import partner_errmsg
 from autotest.models.sys_models import User, Menu, Roles
-from autotest.serialize.sys_serializes.user import (UserListSchema, UserRegisterSchema, UserQuery)
+from autotest.serialize.sys_serializes.user import (UserListSchema, UserSchema, UserQuery)
 from autotest.services.sys_services.menu import MenuService
 from autotest.utils.api import parse_pagination, jsonable_encoder
 from autotest.utils.des import encrypt_rsa_password, decrypt_rsa_password
@@ -41,19 +42,6 @@ class UserService:
         user = UserListSchema.serialize(user_info)
         result = user
         result['token'] = token
-        # 菜单权限
-        roles = Roles.get_roles_by_ids(user['roles'])
-        menu_ids = []
-        if roles:
-            for i in roles:
-                menu_ids += list(map(int, i.menus.split(',')))
-        # 前端角色报错只保存子节点数据，所有这里要做处理，把父级菜单也返回给前端
-        parent_ids = Menu.get_parent_id_by_ids(set(menu_ids))
-        menu_ids += [i.parent_id for i in parent_ids]
-        all_menu = jsonable_encoder(Menu.get_menu_by_ids(set(menu_ids)).all())
-        parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]
-        result['menus'] = MenuService.menu_assembly(parent_menu, all_menu) if menu_ids else []
-        result['roles'] = ['all']
 
         br.set(TEST_USER_INFO.format(token), result, CACHE_DAY)
         logger.info('用户 [{}] 登录了系统'.format(user_info.username))
@@ -75,7 +63,7 @@ class UserService:
     def user_register(**kwargs: Any) -> "User":
         """用户注册"""
         try:
-            user_data = UserRegisterSchema(**kwargs)
+            user_data = UserSchema(**kwargs)
             user_info = User.get_user_by_name(user_data.username)
             if user_info:
                 raise ValueError(partner_errmsg.get(codes.USERNAME_OR_EMAIL_IS_REGISTER))
@@ -108,16 +96,24 @@ class UserService:
         :param kwargs: 用户字段
         :return:
         """
-        user = User.get(kwargs.get('id')) if kwargs.get('id', None) else User()
+        param = UserSchema(**kwargs)
+        user = User.get(param.id) if param.id else User()
         if not user.id:
             if User.get_user_by_name(kwargs.get('username')):
                 raise ValueError('用户名以存在！')
             user = User()
-        kwargs['password'] = encrypt_rsa_password('Aa123456')
-        if kwargs.get('roles', None):
-            kwargs['roles'] = ','.join(list(map(str, kwargs['roles'])))
-        user.update(**kwargs)
-        return user
+        # param.password = encrypt_rsa_password('Aa123456')
+        # if param.roles:
+        #     param.roles = ','.join(list(map(str, param.roles)))
+        user_info = param.dict()
+        user.update(**user_info)
+        token = request.headers.get("token")
+        if 'roles' in user_info:
+            user_info['roles'] = list(map(int, user_info['roles'].split(",")))
+        if 'tags' in user_info:
+            user_info['tags'] = user_info['tags'].split(",")
+        br.set(TEST_USER_INFO.format(token), user_info, CACHE_DAY)
+        return user_info
 
     @staticmethod
     def deleted(id: Union[str, int]):
@@ -174,5 +170,28 @@ class UserService:
     @staticmethod
     def get_user_info_by_token(token: str) -> Dict[Text, Any]:
         """根据token获取用户信息"""
+        if not token:
+            return
         user_info = br.get(TEST_USER_INFO.format(token))
         return user_info
+
+    @staticmethod
+    def get_menu_by_token():
+        # 菜单权限
+        user = UserService.get_user_info_by_token(request.headers.get("token", None))
+        if not user:
+            return []
+        user_info = User.get(user.get("id"))
+        if not user_info:
+            return []
+        roles = Roles.get_roles_by_ids(user_info.roles.split(","))
+        menu_ids = []
+        if roles:
+            for i in roles:
+                menu_ids += list(map(int, i.menus.split(',')))
+        # 前端角色报错只保存子节点数据，所有这里要做处理，把父级菜单也返回给前端
+        parent_ids = Menu.get_parent_id_by_ids(set(menu_ids))
+        menu_ids += [i.parent_id for i in parent_ids]
+        all_menu = jsonable_encoder(Menu.get_menu_by_ids(set(menu_ids)).all())
+        parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]
+        return MenuService.menu_assembly(parent_menu, all_menu) if menu_ids else []

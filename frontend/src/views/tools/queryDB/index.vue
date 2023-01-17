@@ -1,25 +1,25 @@
 <template>
   <div>
     <el-card style="height: 100%">
-      <splitpanes class="default-theme" @resize="paneSize = $event[0].size" style="height: 100%;">
-        <pane :size="32">
+      <z-splitpanes class="default-theme" @resize="paneSize = $event[0].size" style="height: 100%;">
+        <z-pane :size="32">
           <db-list></db-list>
-        </pane>
-        <pane :size="100">
-          <splitpanes class=""
+        </z-pane>
+        <z-pane :size="100">
+          <z-splitpanes class=""
                       ref="containerRef"
                       @resize="winChange('resize', $event)"
                       @ready="winChange('ready', $event)"
                       :horizontal="true">
-            <pane :size="50">
+            <z-pane :size="50">
               <container-top ref="containerTopRef"></container-top>
-            </pane>
-            <pane :size="50">
+            </z-pane>
+            <z-pane :size="50">
               <container-bottom ref="containerBottomRef"></container-bottom>
             </pane>
-          </splitpanes>
+          </z-splitpanes>
         </pane>
-      </splitpanes>
+      </z-splitpanes>
     </el-card>
   </div>
 

@@ -1,38 +1,30 @@
 <template>
-  <el-tabs v-model="activeName" class="case-tabs">
-    <el-tab-pane label="接口列表" name="case_list">
-      <case-list></case-list>
-    </el-tab-pane>
-    <el-tab-pane label="接口树" name="case_tree">
-      <case-tree></case-tree>
-    </el-tab-pane>
-  </el-tabs>
+
+  <CaseList></CaseList>
+
+  <!--  <el-card>-->
+  <!--    <el-tabs v-model="activeName" class="apiInfo-tabs h100">-->
+  <!--      <el-tab-pane label="接口列表" name="case_list">-->
+  <!--        <apiInfo-list></apiInfo-list>-->
+  <!--      </el-tab-pane>-->
+  <!--      <el-tab-pane label="接口树" name="case_tree">-->
+  <!--        <apiInfo-tree></apiInfo-tree>-->
+  <!--      </el-tab-pane>-->
+  <!--    </el-tabs>-->
+  <!--  </el-card>-->
 </template>
 
-<script lang="ts">
-import {defineComponent, reactive, toRefs} from 'vue';
-import caseList from "/@/views/api/apiInfo/components/apiList.vue";
-import caseTree from "/@/views/api/apiInfo/components/apiTree.vue";
+<script setup lang="ts" name="apiInfo">
+import {defineAsyncComponent, reactive} from 'vue';
 
+// 引入组件
+const CaseList = defineAsyncComponent(() => import("./components/ApiList.vue"))
+const caseTree = defineAsyncComponent(() => import("./components/ApiTree.vue"))
 
-export default defineComponent({
-  name: 'apiInfo',
-  components: {
-    caseTree,
-    caseList,
-  },
-  setup() {
-
-    const state = reactive({
-      activeName: "case_list",
-    });
-
-    return {
-
-      ...toRefs(state),
-    };
-  },
+const state = reactive({
+  activeName: "case_list",
 });
+
 </script>
 
 <style lang="scss" scoped>

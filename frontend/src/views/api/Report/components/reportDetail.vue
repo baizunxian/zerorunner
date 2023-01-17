@@ -21,7 +21,7 @@
         </echarts-statistics>
       </el-card>
       <el-card>
-        <zero-table
+        <z-table
             :columns="columns"
             :data="listData"
             row-key="id"
@@ -32,7 +32,7 @@
             :total="total"
             :tree-props="{ children: 'children', hasChildren: 'has_step_data' }"
             @pagination-change="getList"
-        ></zero-table>
+        ></z-table>
       </el-card>
 
       <div>
@@ -42,7 +42,7 @@
             direction="ltr"
             title="报告详情"
             :with-header="true">
-          <api-report :reportData="reportData"/>
+          <z-api-report :reportData="reportData"/>
         </el-drawer>
       </div>
 
@@ -65,7 +65,7 @@
 <script lang="ts">
 import {defineComponent, h, onMounted, reactive, toRefs, watch} from "vue";
 import echartsStatistics from "/@/views/api/Report/components/echartsStatistics.vue";
-import ZeroTable from "/@/components/zeroTable/index.vue";
+import ZeroTable from "/@/components/Z-Table/index.vue";
 import {ElButton, ElTag} from "element-plus";
 import {useReportApi} from "/@/api/useAutoApi/report";
 import {getMethodColor, getStatusTag} from "/@/utils/case"

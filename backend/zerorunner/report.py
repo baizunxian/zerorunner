@@ -8,8 +8,9 @@ from loguru import logger
 
 import zerorunner.runner
 from zerorunner.runner import Runner
-# from zerorunner.testcase import TestCase
 
+
+# from zerorunner.testcase import TestCase
 
 
 def stringify_data(meta_data, request_or_response):
@@ -55,10 +56,10 @@ class HtmlTestResult(unittest.TextTestResult):
 
     def __init__(self, stream, descriptions, verbosity):
         super(HtmlTestResult, self).__init__(stream, descriptions, verbosity)
-        self.summary = []
+        self.summary = None
 
     def _record_test(self, test, status, attachment=''):
-        self.summary.append(test.runner.get_summary())
+        self.summary = test.summary
 
     def startTestRun(self):
         self.start_at = time.time()
