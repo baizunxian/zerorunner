@@ -58,7 +58,7 @@
         <el-dropdown-menu>
 
 <!--          <el-dropdown-item command="/home">首页</el-dropdown-item>-->
-          <el-dropdown-item command="logOut">个人中心</el-dropdown-item>
+          <el-dropdown-item command="/system/personal">个人中心</el-dropdown-item>
           <el-dropdown-item command="logOut">退出登录</el-dropdown-item>
         </el-dropdown-menu>
       </template>
