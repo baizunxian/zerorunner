@@ -3,7 +3,7 @@
     <div class="mb8">
       <div>
         <el-input v-model="state.listQuery.name"
-                  placeholder="请输入用例名称"
+                  placeholder="请输入接口名称"
                   style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="getList">查询</el-button>
       </div>
@@ -32,10 +32,10 @@ import {getMethodColor} from "/@/utils/case";
 
 const state = reactive({
   columns: [
-    {label: '序号', columnType: 'selection', width: 'auto', show: true},
+    {label: '选择', columnType: 'selection', width: 'auto', show: true},
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
-    {key: 'name', label: '用例名', width: '', show: true},
+    {key: 'name', label: '接口名', width: '', show: true},
     {
       key: 'method', label: '请求方式', width: '', show: true,
       render: (row: any) => h(ElTag, {
@@ -87,6 +87,10 @@ const getSelectionData = () => {
 onMounted(() => {
   getList();
 });
+
+defineExpose({
+  getSelectionData
+})
 
 
 </script>

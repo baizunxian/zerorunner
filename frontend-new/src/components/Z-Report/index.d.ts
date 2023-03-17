@@ -28,6 +28,7 @@ declare interface StepData {
   case_id: string | number
   duration: string | number
   env_variables: object
+  case_variables: object
   export_vars: object
   message: string
   parent_step_id: string
@@ -103,8 +104,3 @@ declare interface statData {
   elapsed_ms: number
   response_time_ms: number
 }
-
-
-
-
-

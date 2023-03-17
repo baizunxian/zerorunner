@@ -11,6 +11,8 @@ export function getMethodColor(method: string) {
     color = "#f93e3d"
   } else if (method == "PUT") {
     color = "#fca130"
+  }else if (method == "N/A") {
+    color = "#f56c6c"
   }
   return color
 }
@@ -21,6 +23,7 @@ export function getStepTypeInfo(stepType: string, type: string) {
   let obj: any = {
     script: {color: "#7B4D12FF", background: "#F1EEE9FF", icon: 'iconfont icon-code'},
     wait: {color: "#67C23AFF", background: "#F2F9EEFF", icon: 'iconfont icon-time'},
+    api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-apiInfo-o'},
     case: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-apiInfo-o'},
     loop: {color: "#02A7F0FF", background: "#F4F4F5FF", icon: 'iconfont icon-loop'},
     extract: {color: "#015478FF", background: "#E6EEF2FF", icon: ''},
@@ -31,50 +34,45 @@ export function getStepTypeInfo(stepType: string, type: string) {
 }
 
 /*步骤类型*/
-export const stepTypes = {
+export const stepTypes: object = {
   extract: "参数提取",
   script: "自定义脚本",
-  condition: "条件控制器",
+  if: "条件控制器",
   loop: "循环控制器",
   sql: "SQL控制器",
   wait: "等待控制器",
   scene: "场景断言",
-  case: "用例引用",
+  api: "引用接口",
+  case: "引用用例",
+}
+
+/*字典过滤*/
+export function objectFilter(obj: object, field: Array<string>) {
+  let res = Object.entries(obj).filter(([key, val]) => field.includes(key))
+  return Object.fromEntries(res)
 }
 
 /* 根据使用类型获取对应展示的菜单 */
 export function getStepTypesByUse(use_type: String) {
-  let stepTypes: any
+  let stepTypeMapping: object
+  let stepContain: Array<string>
   switch (use_type) {
     case "pre":
-      stepTypes = {
-        script: "前置脚本",
-        sql: "前置SQL",
-        wait: "等待控制器",
-        // apiInfo: "引用用例",
-      }
+      stepContain = ["script", "sql", "wait"]
+      stepTypeMapping = objectFilter(stepTypes, stepContain)
       break
     case "post":
-      stepTypes = {
-        script: "后置脚本",
-        sql: "后置SQL",
-        wait: "等待控制器",
-        // extract: "提取参数",
-      }
+      stepContain = ["script", "sql", "wait"]
+      stepTypeMapping = objectFilter(stepTypes, stepContain)
       break
     case "suite":
-      stepTypes = {
-        script: "自定义脚本",
-        if: "条件控制器",
-        loop: "循环控制器",
-        // sql: "SQL控制器",
-        wait: "等待控制器",
-        // scene: "场景断言",
-        case: "引用用例",
-      }
+      stepContain = ["script", "if", "loop", "wait", "api"]
+      stepTypeMapping = objectFilter(stepTypes, stepContain)
       break
+    default:
+      stepTypeMapping = {}
   }
-  return stepTypes
+  return stepTypeMapping
 }
 
 

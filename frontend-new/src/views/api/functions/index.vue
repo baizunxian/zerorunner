@@ -137,8 +137,8 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
-          :page-size="state.listQuery.pageSize"
-          :page="state.listQuery.page"
+          v-model:page-size="state.listQuery.pageSize"
+          v-model:page="state.listQuery.page"
           :total="state.total"
           @pagination-change="getList"
       >
@@ -171,8 +171,9 @@ const state = reactive({
         }
       }, () => row.name)
     },
-    {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
-    {key: 'module_name', label: '所属模块', width: '', align: 'center', show: true},
+    {key: 'remarks', label: '备注', width: '', align: 'center', show: true},
+    // {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
+    // {key: 'module_name', label: '所属模块', width: '', align: 'center', show: true},
     {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
     {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
@@ -189,7 +190,7 @@ const state = reactive({
         h(ElButton, {
           type: "danger",
           onClick: () => {
-            openFuncList(row)
+            deleted(row)
           }
         }, () => "删除"),
       ])
@@ -202,7 +203,7 @@ const state = reactive({
   listQuery: {
     page: 1,
     pageSize: 20,
-    project_name: '',
+    name: '',
   },
 
   // funcInfo

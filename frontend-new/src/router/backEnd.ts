@@ -10,6 +10,7 @@ import {useRoutesList} from '/@/stores/routesList';
 import {useTagsViewRoutes} from '/@/stores/tagsViewRoutes';
 import {useUserApi} from '/@/api/useSystemApi/user';
 import {useLookup} from "/@/stores/lookup";
+import {useMenuInfo} from "/@/stores/menu";
 
 
 /**
@@ -35,11 +36,11 @@ export async function initBackEndControlRoutes() {
   // 无 token 停止执行下一步
   if (!Session.get('token')) return false;
   // 触发初始化用户信息 pinia
-  await useUserInfo().setUserInfos(null);
+  await useUserInfo().setUserInfos();
   // 设置数据字典
   await useLookup().setLookup();
   // 获取路由菜单数据
-  const menuData = await getBackEndControlRoutes();
+  const menuData = await useMenuInfo().getMenuData();
   // 无登录权限时，添加判断
   // if (res.data.length <= 0) return Promise.resolve(true);
   // 存储接口原始路由（未处理component），根据需求选择使用

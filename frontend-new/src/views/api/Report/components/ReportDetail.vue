@@ -8,10 +8,10 @@
       destroy-on-close
       :close-on-click-modal="false">
     <template #header>
-      <span>报告详情</span>
-      <el-button class="ml5" style="font-size: 12px" type="primary" link @click="state.showLog=!state.showLog">
-        执行日志
-      </el-button>
+      <strong>报告详情</strong>
+      <!--      <el-button class="ml5" style="font-size: 12px" type="primary" link @click="state.showLog=!state.showLog">-->
+      <!--        执行日志-->
+      <!--      </el-button>-->
     </template>
 
     <div class="">
@@ -22,11 +22,46 @@
         </ReportStatistics>
       </el-card>
       <el-card>
+
+        <div class="mb15">
+          <el-input
+              clearable
+              v-model="state.listQuery.name"
+              placeholder="用例名称"
+              style="width: 200px;"
+              class="ml10"
+              @keyup.enter.native="searchDetail"/>
+          <el-input
+              clearable
+              v-model="state.listQuery.api_name"
+              placeholder="接口名称" style="width: 150px;"
+              class="ml10"
+              @keyup.enter.native="searchDetail"/>
+          <el-input
+              clearable
+              v-model="state.listQuery.url"
+              placeholder="url查询" style="width: 150px;"
+              class="ml10"
+              @keyup.enter.native="searchDetail"/>
+
+          <el-button class="ml10" type="primary" @click="searchDetail">
+            查询
+          </el-button>
+
+          <el-checkbox class="ml10" v-model="state.viewErrOrFailApiStatus" @change="viewErrOrFailApi">
+            只看错误/失败接口
+          </el-checkbox>
+
+        </div>
+
+
         <z-table
             :columns="state.columns"
             :data="state.listData"
             row-key="id"
             :lazy="true"
+            :showPlaceholder="true"
+            :loading="state.tableLoading"
             :load="getChildrenData"
             v-model:page-size="state.listQuery.pageSize"
             v-model:page="state.listQuery.page"
@@ -42,8 +77,10 @@
             size="70%"
             append-to-body
             direction="ltr"
-            title="报告详情"
             :with-header="true">
+          <template #header>
+            <strong>报告详情</strong>
+          </template>
           <z-api-report :reportData="state.reportData"/>
         </el-drawer>
       </div>
@@ -51,33 +88,38 @@
     </div>
   </el-dialog>
 
-  <el-dialog
-      draggable
-      v-if="state.showReportDialog"
-      v-model="state.showLog"
-      width="80%"
-      top="8vh"
-      destroy-on-close
-      :close-on-click-modal="false">
-    <template #header>
-      <span>日志</span>
-    </template>
-    <pre>{{ reportInfo.run_log }}</pre>
-  </el-dialog>
+  <!--  <el-dialog-->
+  <!--      draggable-->
+  <!--      v-if="state.showReportDialog"-->
+  <!--      v-model="state.showLog"-->
+  <!--      width="80%"-->
+  <!--      top="8vh"-->
+  <!--      destroy-on-close-->
+  <!--      :close-on-click-modal="false">-->
+  <!--    <template #header>-->
+  <!--      <span>日志</span>-->
+  <!--    </template>-->
+  <!--    <pre>{{ reportInfo.run_log }}</pre>-->
+  <!--  </el-dialog>-->
 </template>
 
 <script lang="ts" setup name="ReportDetail">
 import {h, onMounted, reactive, watch} from "vue";
 import {ElButton, ElTag} from "element-plus";
+import {useRouter} from "vue-router"
 import {useReportApi} from "/@/api/useAutoApi/report";
 import {getMethodColor, getStatusTag} from "/@/utils/case"
 import ReportStatistics from "./ReportStatistics.vue"
+import {Promotion} from "@element-plus/icons-vue"
 
 const props = defineProps({
   reportInfo: {
     type: Object,
+    required: true
   }
 })
+
+const router = useRouter()
 
 const state = reactive({
   columns: [
@@ -88,7 +130,7 @@ const state = reactive({
         link: true,
         type: "primary",
         onClick: () => {
-          if (row.step_type === 'case' && row.status !== 'SKIP') {
+          if (row.status !== 'SKIP') {
             viewDetail(row)
           }
         }
@@ -99,12 +141,18 @@ const state = reactive({
       render: (row: any) => row.method ? h(ElTag, {
         type: "",
         style: {"background": getMethodColor(row.method), color: "#ffffff",}
-      }, () => row.method) : ""
+      }, () => row.method) : "-"
     },
     {key: 'url', label: 'url', align: 'center', width: '', show: true},
     {
       key: 'step_type', label: '步骤类型', align: 'center', width: '', show: true,
       lookupCode: "api_step_type"
+    },
+    {
+      key: 'step_tag', label: '步骤标签', align: 'center', width: '', show: true,
+      render: (row: any) => row.step_tag ? h(ElTag, {
+        type: getStatusTag(row.status),
+      }, () => row.step_tag) : "-"
     },
     {
       key: 'case_name',
@@ -118,39 +166,54 @@ const state = reactive({
       key: 'status_code', label: 'HttpCode', width: '', align: 'center', show: true,
       render: (row: any) => row.status_code ? h(ElTag, {
         type: row.status_code == 200 ? "success" : "warning",
-      }, () => row.status_code == 200 ? "200 OK" : row.status_code) : ""
+      }, () => row.status_code == 200 ? "200 OK" : row.status_code) : "-"
     },
     {
-      key: 'run_mode',
-      label: '运行模式',
+      key: 'elapsed_ms',
+      label: '请求耗时(ms)',
       align: 'center',
       width: '',
       show: true,
-      lookupCode: 'api_report_run_mode'
+    },
+    {
+      key: 'duration',
+      label: '执行耗时(s)',
+      align: 'center',
+      width: '',
+      show: true,
     },
     // {key: 'has_step_data', label: '子步骤', align: 'center', width: '', show: true},
     {key: 'case_name', label: '用例名', align: 'center', width: '', show: true},
-    {key: 'run_count', label: '运行数', align: 'center', width: '', show: true},
+    // {key: 'run_count', label: '运行数', align: 'center', width: '', show: true},
     {
-      key: 'status', label: 'Status', align: "center", width: 'auto', show: true,
+      key: 'status', label: '状态', align: "center", width: 'auto', show: true,
       render: (row: any) => h(ElTag, {
         type: getStatusTag(row.status),
       }, () => row.status.toUpperCase())
     },
     {key: 'message', label: '错误信息', align: "center", width: 'auto', show: true},
     {
-      label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: 'auto',
+      label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '150',
       render: (row: any) => h("div", null, [
         h(ElButton, {
-          link: true,
           type: "primary",
-          disabled: row.step_type !== 'case' || row.status === 'SKIP',
           onClick: () => {
-            if (row.step_type === 'case' && row.status !== 'SKIP') {
+            if (row.status !== 'SKIP') {
               viewDetail(row)
             }
           }
-        }, () => '查看')
+        }, () => '查看'),
+        h(ElButton, {
+          type: "warning",
+          disabled: row.step_type !== 'api',
+          title: "跳转到api",
+          icon: Promotion,
+          onClick: () => {
+            if (row.status !== 'SKIP') {
+              toApiInfo(row)
+            }
+          }
+        }, () => '跳转')
       ])
     },
   ],
@@ -161,18 +224,20 @@ const state = reactive({
   report_id: null,
   start_time: null,
   run_user_name: null,
+  // view
+  viewErrOrFailApiStatus: false,
 
   listQuery: {
     page: 1,
     pageSize: 20,
     id: null,
     name: null,
-    min_and_max: null,
-    execute_user_name: null,
-    responsible_name: null,
-    status: null,
-    ids: [],
+    api_name: null,
+    url: null,
+    step_type: null,
+    status_list: []
   },
+  tableLoading: false,
   listData: [],
   total: 0,
 
@@ -184,6 +249,7 @@ const state = reactive({
   statQuery: {
     id: null,
   },
+
 })
 
 const initReport = () => {
@@ -200,10 +266,29 @@ const initReport = () => {
 
 // 获取报告列表
 const getList = () => {
+  state.tableLoading = true
   useReportApi().getReportDetail(state.listQuery).then((res: any) => {
     state.listData = res.data.rows
     state.total = res.data.rowTotal
+    state.tableLoading = false
+  }).catch(() => {
+    state.tableLoading = false
   })
+}
+
+const searchDetail = () => {
+  state.listQuery.page = 1
+  getList()
+}
+
+const viewErrOrFailApi = (value: any) => {
+  state.listQuery.step_type = null
+  state.listQuery.status_list = []
+  if (value) {
+    state.listQuery.step_type = "api"
+    state.listQuery.status_list = ["ERROR", "FAILURE"]
+  }
+  getList()
 }
 
 // 获取统计数据
@@ -229,6 +314,10 @@ const getChildrenData = async (row: any, treeNode: any, resolve: any) => {
 
 const showReport = () => {
   state.showReportDialog = !state.showReportDialog
+}
+
+const toApiInfo = (row: any) => {
+  router.push({name: "EditApiInfo", query: {editType: "update", id: row.case_id}})
 }
 
 onMounted(() => {

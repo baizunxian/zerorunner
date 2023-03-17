@@ -25,9 +25,9 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
-          :page-size="state.listQuery.pageSize"
-          :page="state.listQuery.page"
-          :total="state.total"
+          v-model:page-size="state.listQuery.pageSize"
+          v-model:page="state.listQuery.page"
+          v-model:total="state.total"
           @pagination-change="getList"
       />
 

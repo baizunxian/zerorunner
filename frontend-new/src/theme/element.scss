@@ -20,6 +20,9 @@
 
 /* Input 输入框、InputNumber 计数器
 ------------------------------- */
+.el-input__inner {
+  @include default-font-family;
+}
 
 // 菜单搜索
 .el-autocomplete-suggestion__wrap {
@@ -286,6 +289,7 @@
 .el-card {
   border-radius: 15px;
 }
+
 .el-card__header {
   padding: 15px 20px;
 }

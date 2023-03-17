@@ -96,7 +96,7 @@ const onSignIn = async () => {
       .then(async res => {
         Session.set('token', res.data.token);
         // Session.set('userInfo', res.data);
-        await useUserInfo().setUserInfos(res.data);
+        await useUserInfo().setUserInfos();
         // await initBackEndControlRoutes();
         await initFrontEndControlRoutes();
         signInSuccess(false);
@@ -139,7 +139,6 @@ const signInSuccess = (isNoPower: boolean | undefined) => {
     } else {
       router.push('/home');
     }
-    console.log(11111111111111111)
     // 登录成功提示
     const signInText = '欢迎回来！';
     ElMessage.success(`${currentTimeInfo}，${signInText}`);

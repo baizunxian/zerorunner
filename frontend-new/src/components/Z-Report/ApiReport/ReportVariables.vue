@@ -2,15 +2,15 @@
   <el-row>
     <el-col :span="8">
       <div>环境变量</div>
-      <JsonViews v-if="state.envVariables" v-model:data="state.envVariables"></JsonViews>
+      <JsonViews v-if="state.envVariables" v-model:data="state.envVariables" :deep="1"></JsonViews>
     </el-col>
     <el-col :span="8">
       <div>用例变量</div>
-      <JsonViews v-if="state.variables" v-model:data="state.variables"></JsonViews>
+      <JsonViews v-if="state.caseVariables" v-model:data="state.caseVariables" :deep="1"></JsonViews>
     </el-col>
     <el-col :span="8">
-      <div>会话变量</div>
-      <JsonViews v-if="state.sessionVariables" v-model:data="state.sessionVariables"></JsonViews>
+      <div>步骤变量</div>
+      <JsonViews v-if="state.variables" v-model:data="state.variables" :deep="1"></JsonViews>
     </el-col>
   </el-row>
 </template>
@@ -33,14 +33,14 @@ const state = reactive({
   variables: {},
   globalVariables: {},
   envVariables: {},
-  sessionVariables: {}
+  caseVariables: {},
 });
 
 const initData = () => {
   state.variables = props.data.variables
+  state.caseVariables = props.data.caseVariables
   state.globalVariables = props.data.variables
   state.envVariables = props.data.envVariables
-  state.sessionVariables = props.data.sessionVariables
 }
 
 onMounted(() => {

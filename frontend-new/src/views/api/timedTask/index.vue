@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="app-container">
     <el-card>
       <div class="mb15">
         <el-input v-model="state.listQuery.name" placeholder="请输入名称" style="max-width: 180px"></el-input>
@@ -19,8 +19,8 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
-          :page-size="state.listQuery.pageSize"
-          :page="state.listQuery.page"
+          v-model:page-size="state.listQuery.pageSize"
+          v-model:page="state.listQuery.page"
           :total="state.total"
           @pagination-change="getList"
       />
@@ -34,38 +34,49 @@ import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import EditTimedTask from './EditTimedTask.vue';
 import {useTimedTasksApi} from "/@/api/useAutoApi/timedTasks";
-
+import {formatLookup} from "/@/utils/lookup";
 
 
 const saveOrUpdateRef = ref();
 const state = reactive({
   columns: [
-    {key: 'name', label: '任务名称', width: '', align: 'center', show: true},
-    {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
-    {key: 'crontab_str', label: '执行时间', width: '', align: 'center', show: true},
     {
-      key: 'run_type',
-      label: '任务类型',
+      key: 'name', label: '任务名称', width: '', align: 'center', show: true,
+      render: (row: any) => h(ElButton, {
+        type: "primary",
+        link: true,
+        onClick: () => {
+          onOpenSaveOrUpdate("update", row)
+        }
+      }, () => row.name)
+    },
+    {
+      key: 'task_type',
+      label: '调度模式',
       width: '',
       align: 'center',
       show: true,
-      lookupCode: 'api_report_run_type'
+      render: (row: any) => handleTaskType(row)
     },
+    {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
     {
       key: 'enabled',
       label: '任务状态',
       width: '',
       align: 'center',
       show: true,
-      lookupCode: 'api_timed_task_status',
+      render: (row: any) => {
+        let value = formatLookup("api_timed_task_status", row.enabled)
+        return h("span", {style: {color: row.enabled ? '#0cbb52' : '#e6a23c'}}, value)
+      }
     },
-    {key: 'description', label: '备注', width: '', align: 'center', show: true},
+    {key: 'description', label: '任务描述', width: '', align: 'center', show: true},
     {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
     {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
-      label: '操作', columnType: 'string', fixed: 'right', width: 'auto',
+      label: '操作', columnType: 'string', fixed: 'right', width: '200',
       render: (row: any) => h("div", null, [
         h(ElButton, {
           type: "success",
@@ -132,7 +143,7 @@ const taskSwitch = (row: any) => {
 
 };
 
-// 删除角色
+// 删除
 const deleted = (row: any) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
@@ -149,6 +160,15 @@ const deleted = (row: any) => {
       .catch(() => {
       });
 };
+
+const handleTaskType = (row: any) => {
+  if (row.task_type === 'crontab') {
+    return `${row.task_type}[${row.crontab}]`
+  } else if (row.task_type === 'interval') {
+    return `${row.task_type}[${row.interval_every} ${row.interval_period}]`;
+  }
+}
+
 // 页面加载时
 onMounted(() => {
   getList();

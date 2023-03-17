@@ -1,11 +1,11 @@
 <template>
   <el-collapse-transition>
     <div v-show="data.showDetail" class="w100" @pointerdown.stop @click.stop>
-      <el-divider style="margin: 10px 0 5px 0;"/>
+<!--      <el-divider style="margin: 10px 0 5px 0;"/>-->
 
-      <div v-if="data.loop_type === 'count'">
+      <div v-if="data.loop_type === 'count'" class="controller-content">
 
-        <el-row class="controller-content">
+        <el-row>
 
           <el-col :span="6">
             <div>
@@ -21,6 +21,7 @@
             <div>
               <span style="padding-right: 5px">循环间隔</span>
               <el-input-number v-model.number="data.count_sleep_time"
+                               controls-position="right"
                                @pointerdown.stop.native
                                @click.stop.native
                                placeholder="秒">
@@ -32,7 +33,7 @@
 
       </div>
 
-      <div v-else-if="data.loop_type === 'for'">
+      <div v-else-if="data.loop_type === 'for'" class="controller-content">
 
         <el-row>
           <el-col :span="6">
@@ -70,9 +71,9 @@
           </el-col>
         </el-row>
 
-      </div>
+      </div >
 
-      <div v-else-if="data.loop_type === 'while'">
+      <div v-else-if="data.loop_type === 'while'" class="controller-content">
 
         <el-row>
           <el-col :span="5">
@@ -91,7 +92,7 @@
                        filterable
                        class="w100 com-padding">
               <el-option
-                  v-for="(value, key) in comparatorOptions"
+                  v-for="(value, key) in state.comparatorOptions"
                   :key="key"
                   :label="value"
                   :value="key">
@@ -109,6 +110,7 @@
           <el-col :span="5">
             <span>循环超时时间</span>
             <el-input-number @pointerdown.stop.native
+                             controls-position="right"
                              @click.stop.native
                              v-model="data.while_timeout"
                              placeholder="秒"></el-input-number>
@@ -121,7 +123,7 @@
 </template>
 
 <script lang="ts" setup name="LoopController">
-import {defineComponent, reactive, toRefs} from 'vue';
+import {reactive} from 'vue';
 import commonFunction from '/@/utils/commonFunction';
 
 const {copyText} = commonFunction()
@@ -194,6 +196,6 @@ const state = reactive({
 }
 
 .controller-content {
-  padding: 5px 10px;
+  padding: 5px 20px;
 }
 </style>

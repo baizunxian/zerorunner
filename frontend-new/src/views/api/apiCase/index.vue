@@ -2,7 +2,7 @@
   <div class="h100 app-container">
     <el-card>
       <div class="mb15">
-        <el-input v-model="listQuery.name" placeholder="请输入套件名称" style="max-width: 180px"></el-input>
+        <el-input v-model="listQuery.name" placeholder="请输入用例名称" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="search">查询</el-button>
         <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增</el-button>
       </div>
@@ -68,7 +68,7 @@ export default defineComponent({
       columns: [
         {key: 'id', label: 'ID', width: '55', align: 'center', show: true},
         {
-          key: 'name', label: '套件名称', width: '', align: 'center', show: true, render: (row: any) => h(ElButton, {
+          key: 'name', label: '用例名称', width: '', align: 'center', show: true, render: (row: any) => h(ElButton, {
             link: true,
             type: "primary",
             onClick: () => {
@@ -76,6 +76,7 @@ export default defineComponent({
             }
           }, () => row.name)
         },
+        {key: 'remarks', label: '用例描述', width: '', align: 'center', show: true},
         {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
         {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
         {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
@@ -173,7 +174,7 @@ export default defineComponent({
     const runTestSuite = (row: any) => {
       state.runForm.id = row.id
       useApiCaseApi().runSuites(state.runForm).then(res => {
-        console.log(res)
+        ElMessage.success(res.msg)
       })
     }
 

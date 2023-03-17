@@ -21,8 +21,8 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
-          :page-size="state.listQuery.pageSize"
-          :page="state.listQuery.page"
+          v-model:page-size="state.listQuery.pageSize"
+          v-model:page="state.listQuery.page"
           :total="state.total"
           @pagination-change="getList"
           @selection-change="selectionChange"
@@ -31,7 +31,7 @@
     </el-card>
 
 
-<!--    运行用例-->
+    <!--    运行用例-->
     <el-dialog
         draggable
         v-model="state.showRunPage"
@@ -44,7 +44,7 @@
           label-width="70px"
 
       >
-        <el-form-item label="运行模式" prop="run_mode">
+        <el-form-item label="运行模式" prop="run_type">
           <el-select v-model="state.runForm.run_type" placeholder="选择运行模式" filterable style="width:100%">
             <el-option :value="10" label="同步运行(同步执行,等待执行结果)"></el-option>
             <el-option :value="20" label="异步运行(异步执行用例,后台运行,执行结束后报告列表查看)"></el-option>
@@ -52,14 +52,14 @@
         </el-form-item>
 
         <el-form-item label="运行环境" prop="base_url">
-          <el-select v-model="state.runForm.base_url" placeholder="选择环境" filterable style="width:100%">
-            <el-option value="" label="自带环境">自带环境</el-option>
+          <el-select v-model="state.runForm.env_id" placeholder="选择环境" filterable style="width:100%">
+            <el-option :value="0" label="自带环境">自带环境</el-option>
             <el-option
                 v-for="item in state.envList"
                 :key="item.id"
-                :label="item.name"
-                :value="item.domain_name">
-              <span style="float: left">{{ item.name }}</span>
+                :label="`${item.name}(${item.domain_name})`"
+                :value="item.id">
+              <span style="float: left">{{ `${item.name}(${item.domain_name})` }}</span>
             </el-option>
           </el-select>
         </el-form-item>
@@ -72,11 +72,11 @@
       </template>
     </el-dialog>
 
-<!--    测试报告-->
+    <!--    测试报告-->
 
     <ReportDetail :report-info="state.reportInfo" ref="reportDetailRef"/>
 
-<!--    postman 导入 import-->
+    <!--    postman 导入 import-->
     <el-dialog
         draggable
         v-model="state.showImportPage"
@@ -128,7 +128,8 @@
               <input size="small" type="file" id="selectFile" @change="state.fileChange($event)"
                      class="file-input__native">
 
-              <el-button v-if="!state.importForm.file_info.raw" type="info" size="small" @click="state.selectFile()">选择文件
+              <el-button v-if="!state.importForm.file_info.raw" type="info" size="small" @click="state.selectFile()">
+                选择文件
               </el-button>
               <div v-else class="file-input__name">
                 <div class="file-input__name__title" :title="state.importForm.file_info.name">
@@ -246,7 +247,7 @@ const state = reactive({
   envList: [],
   runForm: {
     id: null,
-    base_url: '',
+    env_id: 0,
     run_type: 10,
     run_mode: "case",
   },
@@ -350,7 +351,7 @@ const runTestCase = () => {
   state.runCaseLoading = !state.runCaseLoading;
   useApiInfoApi().run(state.runForm)
       .then((res: any) => {
-        if (state.runForm.run_mode === 1) {
+        if (state.runForm.run_type === 10) {
           ElMessage.success('运行成功');
           state.reportInfo = res.data
           state.runCaseLoading = !state.runCaseLoading;

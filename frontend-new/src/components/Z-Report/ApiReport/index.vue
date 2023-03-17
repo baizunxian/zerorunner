@@ -1,59 +1,62 @@
 <template>
   <div class="report-container">
     <el-tabs v-model="state.activeName" class="demo-tabs">
-      <el-tab-pane label="响应信息" name="ResponseInfo">
-        <ResponseInfo :data="state.responseInfo" :stat="state.stat" ref="responseInfoRef"></ResponseInfo>
-      </el-tab-pane>
+      <template v-if="state.step_type === 'api'">
+        <el-tab-pane label="响应信息" name="ResponseInfo">
+          <ResponseInfo :data="state.responseInfo" :stat="state.stat" ref="responseInfoRef"></ResponseInfo>
+        </el-tab-pane>
 
-      <el-tab-pane label="请求信息" name="RequestInfo">
-        <RequestInfo :data="state.requestInfo"></RequestInfo>
-      </el-tab-pane>
+        <el-tab-pane label="请求信息" name="RequestInfo">
+          <RequestInfo :data="state.requestInfo"></RequestInfo>
+        </el-tab-pane>
 
-      <el-tab-pane label="结果验证" name="ReportValidators">
-        <template #label>
-          <span>结果验证</span>
-          <el-icon v-show="getValidatorsResult() !== ''">
-            <ele-CircleCheck v-if="getValidatorsResult() === 'pass'" style="color: #0cbb52"/>
-            <ele-CircleClose v-else style="color: red"/>
-          </el-icon>
-        </template>
-        <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
-      </el-tab-pane>
+        <el-tab-pane label="结果断言" name="ReportValidators">
+          <template #label>
+            <span>结果断言</span>
+            <el-icon v-show="getValidatorsResult() !== ''">
+              <ele-CircleCheck v-if="getValidatorsResult() === 'pass'" style="color: #0cbb52"/>
+              <ele-CircleClose v-else style="color: red"/>
+            </el-icon>
+          </template>
+          <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
+        </el-tab-pane>
 
-      <el-tab-pane label="参数提取" name="extracts">
-        <ReportExtracts :data="state.extracts"></ReportExtracts>
-      </el-tab-pane>
+        <el-tab-pane label="参数提取" name="extracts">
+          <ReportExtracts :data="state.extracts"></ReportExtracts>
+        </el-tab-pane>
 
-      <!--      <el-tab-pane label="异常信息" name="message">-->
-      <!--        <request-content :data="data.req_resps[0].request"></request-content>-->
-      <!--      </el-tab-pane>-->
+        <!--      <el-tab-pane label="异常信息" name="message">-->
+        <!--        <request-content :data="data.req_resps[0].request"></request-content>-->
+        <!--      </el-tab-pane>-->
 
-      <el-tab-pane label="变量追踪" name="ReportVariables">
-        <ReportVariables :data="state.variables" ref=""></ReportVariables>
-      </el-tab-pane>
+        <el-tab-pane label="变量追踪" name="ReportVariables">
+          <ReportVariables :data="state.variables" ref=""></ReportVariables>
+        </el-tab-pane>
 
 
-      <el-tab-pane name="preHookData">
-        <template #label>
-          <span>前置步骤</span>
-          <el-icon v-show="state.pre_hook_status !== ''">
-            <ele-CircleCheck v-if="state.pre_hook_status === 'success'" style="color: #0cbb52"/>
-            <ele-CircleClose v-else style="color: red"/>
-          </el-icon>
-        </template>
-        <ReportStepInfo :data="state.pre_hook_data"></ReportStepInfo>
-      </el-tab-pane>
+<!--        <el-tab-pane name="preHookData">-->
+<!--          <template #label>-->
+<!--            <span>前置步骤</span>-->
+<!--            <el-icon v-show="state.pre_hook_status !== ''">-->
+<!--              <ele-CircleCheck v-if="state.pre_hook_status === 'success'" style="color: #0cbb52"/>-->
+<!--              <ele-CircleClose v-else style="color: red"/>-->
+<!--            </el-icon>-->
+<!--          </template>-->
+<!--          <ReportStepInfo :data="state.pre_hook_data"></ReportStepInfo>-->
+<!--        </el-tab-pane>-->
 
-      <el-tab-pane name="postHookData">
-        <template #label>
-          <span>后置步骤</span>
-          <el-icon v-show="state.post_hook_status !== ''">
-            <ele-CircleCheck v-if="state.post_hook_status ==='success'" style="color: #0cbb52"/>
-            <ele-CircleClose v-else style="color: red"/>
-          </el-icon>
-        </template>
-        <ReportStepInfo :data="state.post_hook_data"></ReportStepInfo>
-      </el-tab-pane>
+<!--        <el-tab-pane name="postHookData">-->
+<!--          <template #label>-->
+<!--            <span>后置步骤</span>-->
+<!--            <el-icon v-show="state.post_hook_status !== ''">-->
+<!--              <ele-CircleCheck v-if="state.post_hook_status ==='success'" style="color: #0cbb52"/>-->
+<!--              <ele-CircleClose v-else style="color: red"/>-->
+<!--            </el-icon>-->
+<!--          </template>-->
+<!--          <ReportStepInfo :data="state.post_hook_data"></ReportStepInfo>-->
+<!--        </el-tab-pane>-->
+
+      </template>
 
       <el-tab-pane label="运行日志" name="ReportLog">
         <ReportLog :data="state.log"></ReportLog>
@@ -100,6 +103,8 @@ const state = reactive({
   // 是否成功
   success: false,
   stat: {},
+  // 步骤类型
+  step_type: "",
   // 响应信息
   responseInfo: {},
   // 请求信息
@@ -135,21 +140,28 @@ const initData = () => {
   }
 
   state.success = step_data.success
-  state.stat = step_data.session_data.stat
-  state.responseInfo = step_data.session_data.req_resp.response
-  state.requestInfo = step_data.session_data.req_resp.request
-  state.validators = step_data.session_data.validators
-  state.extracts = step_data.export_vars
+  state.step_type = step_data.step_type
   state.message = step_data.message
-  state.variables = {
-    variables: step_data.variables,
-    envVariables: step_data.env_variables,
-  }
   state.log = props.reportData.log
-  state.post_hook_data = step_data.post_hook_data
-  state.pre_hook_data = step_data.pre_hook_data
-  state.pre_hook_status = getHookStatus(state.pre_hook_data)
-  state.post_hook_status = getHookStatus(state.post_hook_data)
+  if (state.step_type == 'api') {
+    state.activeName = "ResponseInfo"
+    state.stat = step_data.session_data.stat
+    state.responseInfo = step_data.session_data.req_resp.response
+    state.requestInfo = step_data.session_data.req_resp.request
+    state.validators = step_data.session_data.validators
+    state.extracts = step_data.export_vars
+    state.post_hook_data = step_data.post_hook_data
+    state.pre_hook_data = step_data.pre_hook_data
+    state.pre_hook_status = getHookStatus(state.pre_hook_data)
+    state.post_hook_status = getHookStatus(state.post_hook_data)
+    state.variables = {
+      variables: step_data.variables,
+      envVariables: step_data.env_variables,
+      caseVariables: step_data.case_variables,
+    }
+  } else {
+    state.activeName = "ReportLog"
+  }
 
 }
 

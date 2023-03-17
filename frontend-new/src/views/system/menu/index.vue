@@ -13,8 +13,9 @@
           :columns="state.columns"
           :data="state.menuList"
           :row-key="'id'"
-          :page-size="state.listQuery.pageSize"
-          :page="state.listQuery.page"
+          :showPage="false"
+          v-model:page-size="state.listQuery.pageSize"
+          v-model:page="state.listQuery.page"
           :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
           @pagination-change="getList"
       />

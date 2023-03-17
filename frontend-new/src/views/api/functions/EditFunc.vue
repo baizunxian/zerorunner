@@ -14,9 +14,9 @@
             </el-input>
             <el-input type="primary"
                       size=""
-                      placeholder="函数名称"
+                      placeholder="备注"
                       style="width: 200px"
-                      v-model="state.funcFrom.name">
+                      v-model="state.funcFrom.remarks">
             </el-input>
 
             <el-button type="primary" @click="showDiffPage" style="margin-left: 10px;">保存</el-button>
@@ -85,7 +85,8 @@ const state = reactive({
   funcFrom: {
     id: null,
     content: '',
-    name: ''
+    name: '',
+    remarks: ''
   },
 
   long: 'python',

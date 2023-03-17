@@ -80,7 +80,7 @@ const props = defineProps({
 })
 
 const state = reactive({
-  assertModes: ["jmespath"],  // ["jmespath", "JsonPath"]
+  assertModes: ["jmespath", "JsonPath"],  // ["jmespath", "JsonPath"]
   comparators: {
     jmespath: {
       equals: "等于",

@@ -221,7 +221,7 @@ import {handleEmpty} from "/@/utils/other";
 
 const emit = defineEmits(["updateHeader"])
 
-export interface StateData {
+interface StateData {
   mode: string,
   language: string,
   languageList: Array<string>,
@@ -407,7 +407,7 @@ const fileChange = (e: any, row: any) => {
   state.fileData = e.target.files[0]
   let file: any = e.target.files[0]
   let formData = new FormData
-  formData.append('name', file.name)
+  // formData.append('name', file.name)
   formData.append('file', file)
   useFileApi().upload(formData)
       .then((res: any) => {

@@ -58,7 +58,7 @@
 
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="密码">
-              <el-input v-model="state.form.password" placeholder="请输入密码" clearable></el-input>
+              <el-input type="password" v-model="state.form.password" placeholder="请输入密码" clearable></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -67,7 +67,8 @@
       <template #footer>
 				<span class="dialog-footer">
 					<el-button @click="onDialog">取 消</el-button>
-					<el-button type="primary" @click="saveOrUpdate">保 存</el-button>
+					<el-button type="primary" @click="testConnect">测试连接</el-button>
+					<el-button type="primary" @click="saveOrUpdate" :disabled="!state.isTestConnect">保 存</el-button>
 				</span>
       </template>
     </el-dialog>
@@ -75,7 +76,7 @@
 </template>
 
 <script lang="ts" setup name="EditDataSource">
-import {reactive, ref} from 'vue';
+import {reactive, ref, watch} from 'vue';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import {ElMessage} from "element-plus";
 import {useEnvApi} from "/@/api/useAutoApi/env";
@@ -91,13 +92,13 @@ const createForm = () => {
     port: "",
     user: "",
     password: "",
-    env_id: "",
   }
 }
 const formRef = ref()
 const state = reactive({
   dataSourceType: ['mysql'],
   isShowDialog: false,
+  isTestConnect: false,
   editType: '',
   form: createForm(),
   rules: {
@@ -119,6 +120,7 @@ const state = reactive({
 const openDialog = (type: string, row: any) => {
   // 获取项目列表
   state.editType = type
+  state.isTestConnect = false
   if (row) {
     state.form = JSON.parse(JSON.stringify(row));
   } else {
@@ -131,6 +133,18 @@ const openDialog = (type: string, row: any) => {
 const onDialog = () => {
   state.isShowDialog = !state.isShowDialog;
 };
+// 测试数据源连接
+const testConnect = () => {
+  useQueryDBApi().testConnect(state.form).then((res: any) => {
+    let {data} = res
+    if (data) {
+      state.isTestConnect = true
+      ElMessage.success("测试连接成功")
+    } else {
+      ElMessage.warning("测试连接失败！")
+    }
+  })
+}
 // 新增
 const saveOrUpdate = () => {
   formRef.value.validate((valid: any) => {
@@ -152,6 +166,14 @@ const getEnvList = () => {
         state.envList = res.data.rows
       })
 };
+
+watch(
+    () => state.form,
+    () => {
+      state.isTestConnect = false
+    },
+    {deep: true}
+)
 
 defineExpose({
   openDialog,

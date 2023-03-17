@@ -14,8 +14,8 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
-          :page-size="state.listQuery.pageSize"
-          :page="state.listQuery.page"
+          v-model:page-size="state.listQuery.pageSize"
+          v-model:page="state.listQuery.page"
           :total="state.total"
           @pagination-change="getList"
       />
@@ -28,7 +28,8 @@
         v-model="state.isShowLookupDialog"
         top="15vh"
         width="500px">
-      <el-form :model="state.lookupForm" :rules="state.lookupRules" ref="lookupFormRef" size="default" label-width="90px">
+      <el-form :model="state.lookupForm" :rules="state.lookupRules" ref="lookupFormRef" size="default"
+               label-width="90px">
         <el-row :gutter="35">
 
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
@@ -332,6 +333,7 @@ const editLookupValue = (row: any) => {
 
 const addLookupValue = () => {
   let lookupValue: object = {
+    id: null,
     lookup_id: state.lookupValueQuery.lookup_id,
     lookup_code: '',
     lookup_value: '',
@@ -344,9 +346,10 @@ const addLookupValue = () => {
 
 const saveOrUpdateLookupValue = (row: any) => {
   useLookupApi().saveOrUpdateLookupValue(row)
-      .then(() => {
+      .then((res: any) => {
         ElMessage.success('保存成功！');
         row._edit = false
+        row.id = res.data?.id
         // getLookupValueList()
       })
 }
@@ -379,5 +382,6 @@ onMounted(() => {
 .auto-test.el-dialog {
   height: 90%;
   margin-top: 8vh !important;
+  color: yellowgreen;
 }
 </style>

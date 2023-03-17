@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-card>
-      <template #header>
+      <template #header v-if="!isView">
         <z-detail-page-header
             class="page-header"
             style="margin: 5px 0;"
@@ -73,33 +73,60 @@
                     </div>
                   </el-tab-pane>
 
-                  <el-tab-pane name='preOperation' class="h100">
+                  <el-tab-pane name='Hook' class="h100">
                     <template #label>
                       <el-badge :hidden="!getDataLength('pre')"
                                 :value="getDataLength('pre')"
                                 class="badge-item"
                                 type="primary">
-                        <strong>前置操作</strong>
+                        <strong>Hook</strong>
                       </el-badge>
                     </template>
-                    <div class="case-tabs">
-                      <ApiPreSteps ref="ApiPreStepsRef"/>
+                    <div class="case-tabs" style="padding: 10px">
+                      <el-row>
+                        <el-col :span="12" style="padding: 0 10px">
+                          <el-card>
+                            <template #header>前置 Hook</template>
+                            <ApiPreSteps ref="ApiPreStepsRef"/>
+                          </el-card>
+                        </el-col>
+                        <el-col :span="12" style="padding: 0 10px">
+                          <el-card>
+                            <template #header>后置 Hook</template>
+                            <ApiPreSteps ref="ApiPreStepsRef"/>
+                          </el-card>
+                        </el-col>
+                      </el-row>
                     </div>
                   </el-tab-pane>
 
-                  <el-tab-pane name='postOperation' class="h100">
-                    <template #label>
-                      <el-badge :hidden="!getDataLength('post')"
-                                :value="getDataLength('post')"
-                                class="badge-item"
-                                type="primary">
-                        <strong>后置操作</strong>
-                      </el-badge>
-                    </template>
-                    <div class="case-tabs">
-                      <ApiPostSteps ref="ApiPostStepsRef"/>
-                    </div>
-                  </el-tab-pane>
+                  <!--                  <el-tab-pane name='preOperation' class="h100">-->
+                  <!--                    <template #label>-->
+                  <!--                      <el-badge :hidden="!getDataLength('pre')"-->
+                  <!--                                :value="getDataLength('pre')"-->
+                  <!--                                class="badge-item"-->
+                  <!--                                type="primary">-->
+                  <!--                        <strong>前置操作</strong>-->
+                  <!--                      </el-badge>-->
+                  <!--                    </template>-->
+                  <!--                    <div class="case-tabs">-->
+                  <!--                      <ApiPreSteps ref="ApiPreStepsRef"/>-->
+                  <!--                    </div>-->
+                  <!--                  </el-tab-pane>-->
+
+                  <!--                  <el-tab-pane name='postOperation' class="h100">-->
+                  <!--                    <template #label>-->
+                  <!--                      <el-badge :hidden="!getDataLength('post')"-->
+                  <!--                                :value="getDataLength('post')"-->
+                  <!--                                class="badge-item"-->
+                  <!--                                type="primary">-->
+                  <!--                        <strong>后置操作</strong>-->
+                  <!--                      </el-badge>-->
+                  <!--                    </template>-->
+                  <!--                    <div class="case-tabs">-->
+                  <!--                      <ApiPostSteps ref="ApiPostStepsRef"/>-->
+                  <!--                    </div>-->
+                  <!--                  </el-tab-pane>-->
 
 
                   <el-tab-pane name='assertController' class="h100">
@@ -189,6 +216,12 @@ const props = defineProps({
       return null;
     },
   },
+  isView: {
+    type: Boolean,
+    default: () => {
+      return false;
+    },
+  },
 });
 
 const route = useRoute();
@@ -197,13 +230,13 @@ const router = useRouter();
 const ApiInfoRef = ref()
 const ApiRequestBodyRef = ref()
 const ApiRequestHeadersRef = ref()
-const ApiPreStepsRef = ref()
-const ApiPostStepsRef = ref()
 const ApiVariablesRef = ref()
 const ApiValidatorsRef = ref()
 const ApiExtractsRef = ref()
 const ResponseRef = ref()
 const ApiReportRef = ref()
+// const ApiPreStepsRef = ref()
+// const ApiPostStepsRef = ref()
 
 const state = reactive({
   isShowDialog: false,
@@ -222,7 +255,7 @@ const state = reactive({
   //report
   showReport: false,
   reportData: null,
-  apiReportStat: null
+  apiReportStat: null,
 });
 
 
@@ -237,11 +270,11 @@ const saveOrUpdateOrDebug = (type: string) => {
     let caseInfoData = ApiInfoRef.value.getData()
     let bodyData = ApiRequestBodyRef.value.getData()
     let headerData = ApiRequestHeadersRef.value.getData()
-    let preData = ApiPreStepsRef.value.getData()
-    let postData = ApiPostStepsRef.value.getData()
     let variableData = ApiVariablesRef.value.getData()
     let validatorsData = ApiValidatorsRef.value.getData()
     let extractsData = ApiExtractsRef.value.getData()
+    // let preData = ApiPreStepsRef.value.getData()
+    // let postData = ApiPostStepsRef.value.getData()
 
     // 组装表单
     let apiCaseData = {
@@ -256,14 +289,15 @@ const saveOrUpdateOrDebug = (type: string) => {
       url: caseInfoData.url,
       tags: caseInfoData.tags,
       remarks: caseInfoData.remarks,
-      env_id: null,
+      env_id: caseInfoData.env_id,
       headers: headerData,
       request_body: bodyData,
       variables: variableData,
-      setup_hooks: preData,
-      teardown_hooks: postData,
+
       validators: validatorsData,
       extracts: extractsData,
+      // setup_hooks: preData,
+      // teardown_hooks: postData,
     }
 
     // 保存用例
@@ -271,7 +305,7 @@ const saveOrUpdateOrDebug = (type: string) => {
       useApiInfoApi().saveOrUpdate(apiCaseData)
           .then(res => {
             ElMessage.success('保存成功！')
-            state.case_id = res.data
+            state.case_id = res.data.id
             emit("moduleChange", caseInfoData.module_id)
           })
     } else {
@@ -331,9 +365,9 @@ const initApi = () => {
           ApiRequestHeadersRef.value.setData(apiCaseData.headers)
           ApiVariablesRef.value.setData(apiCaseData.variables)
           ApiExtractsRef.value.setData(apiCaseData.extracts)
-          ApiPreStepsRef.value.setData(apiCaseData.pre_steps, state.case_id)
-          ApiPostStepsRef.value.setData(apiCaseData.post_steps, state.case_id)
           ApiValidatorsRef.value.setData(apiCaseData.validators)
+          // ApiPreStepsRef.value.setData(apiCaseData.pre_steps, state.case_id)
+          // ApiPostStepsRef.value.setData(apiCaseData.post_steps, state.case_id)
 
         })
   } else {
@@ -344,9 +378,9 @@ const initApi = () => {
     ApiRequestHeadersRef.value.setData()
     ApiVariablesRef.value.setData()
     ApiExtractsRef.value.setData()
-    ApiPreStepsRef.value.setData()
-    ApiPostStepsRef.value.setData()
     ApiValidatorsRef.value.setData()
+    // ApiPreStepsRef.value.setData()
+    // ApiPostStepsRef.value.setData()
   }
 }
 
@@ -361,14 +395,17 @@ const getDataLength = (ref: string) => {
       return ApiRequestHeadersRef?.value.getData().length
     case "variables":
       return ApiVariablesRef.value.getData().length
-    case "pre":
-      return ApiPreStepsRef.value.getData().length
-    case "post":
-      return ApiPostStepsRef.value.getData().length
+
     case "validators":
       return ApiValidatorsRef.value.getData().length
     case "extracts":
       return ApiExtractsRef.value.getData().length
+      // case "pre":
+      //   return ApiPreStepsRef.value.getData().length
+      // case "post":
+      //   return ApiPostStepsRef.value.getData().length
+    default:
+      return 0
   }
 }
 
@@ -397,7 +434,6 @@ watch(
     },
     {deep: true}
 )
-
 
 onMounted(() => {
   initApi()

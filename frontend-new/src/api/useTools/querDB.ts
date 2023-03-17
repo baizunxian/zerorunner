@@ -21,6 +21,14 @@ export function useQueryDBApi() {
         data,
       });
     },
+    // 测试连接
+    testConnect: (data?: object) => {
+      return request({
+        url: '/dataSource/testConnect',
+        method: 'POST',
+        data,
+      });
+    },
     // 获取数数据库表
     getTableList: (data?: object) => {
       return request({

@@ -38,11 +38,11 @@
           :data="data">
         <template #default="{ node }">
           <StepNode v-model:data="node.data"
-                     :node="node"
-                     :class="[node.data.step_type ==='case'?'treeCaseStep':'']"
-                     :opt-type="state.optTypes"
-                     @copy-node="copyNode"
-                     @deleted-node="deletedNode(node)"
+                    :node="node"
+                    :class="[node.data.step_type ==='case'?'treeCaseStep':'']"
+                    :opt-type="state.optTypes"
+                    @copy-node="copyNode"
+                    @deleted-node="deletedNode(node)"
           />
         </template>
       </el-tree>
@@ -51,13 +51,13 @@
 
     <el-dialog
         draggable
-        title="用例引用"
-        v-model="state.showCaseInfo"
+        title="添加接口"
+        v-model="state.showApioInfo"
         width="60%">
       <SelectCase ref="selectCaseRef"></SelectCase>
       <template #footer>
       <span class="dialog-footer">
-        <el-button type="primary" @click="addCaseStep">引用</el-button>
+        <el-button type="primary" @click="addApiStep">添加</el-button>
       </span>
       </template>
     </el-dialog>
@@ -67,13 +67,15 @@
 
 <script lang="ts" setup name="stepController">
 import type {PropType} from 'vue'
-import {nextTick, onMounted, reactive, ref, watch} from 'vue';
+import {nextTick, onMounted, reactive, ref, watch, Directive, DirectiveBinding} from 'vue';
 import {useRoute, useRouter} from "vue-router"
 import StepNode from "/@/components/Z-StepController/StepNode.vue";
 import SelectCase from "/@/components/Z-StepController/apiInfo/SelectApi.vue";
-import {ElMessage} from "element-plus";
 import FabButton from "/@/components/fabButton/index.vue";
 import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
+// import {ClickOutside as vClickOutside} from "element-plus";
+
+
 
 const emit = defineEmits([])
 
@@ -106,7 +108,7 @@ const state = reactive({
   optType: "script",
   optTypes: {},
   // caseInfo
-  showCaseInfo: false,
+  showApioInfo: false,
   // suite opt
   suiteOpt: [],
   id: 1000,
@@ -116,7 +118,7 @@ const state = reactive({
 
 const initFabMenu = (stepType: string | null) => {
   state.optTypes = getStepTypesByUse(props.use_type)
-  let noMenuTypes = ["wait", "script", "case"]
+  let noMenuTypes = ["wait", "script", "api", "case"]
   if (props.use_type == 'suite' && (stepType === null || noMenuTypes.indexOf(stepType) === -1)) {
     let suiteOptList: any = []
     for (let optTypesKey in state.optTypes) {
@@ -174,11 +176,11 @@ const computeDataIndex = (data: any) => {
 }
 // handleAddData
 const handleAddData = async (optType: string) => {
-  if (optType !== 'case') {
+  if (optType !== 'api') {
     let stepData = await getAddData(optType)
     appendTreeDate(stepData)
   } else {
-    state.showCaseInfo = true
+    state.showApioInfo = true
   }
 }
 
@@ -258,26 +260,26 @@ const getAddData = (optType: string) => {
       count_number: 0,
       enable: true
     }
-  } else if (optType === "case") {
-    state.showCaseInfo = true
+  } else if (optType === "api") {
+    state.showApioInfo = true
   }
   return data
 }
 
 // 添加case
-const addCaseStep = () => {
+const addApiStep = () => {
   let selectCaseData = selectCaseRef.value.getSelectionData()
   if (selectCaseData) {
     selectCaseData.forEach((caseInfo: any) => {
-      if (state.optType === "case" && caseInfo.id === parseInt(props.case_id)) {
-        ElMessage.warning('不能引用用例自己！');
-      } else {
-        let stepData = {id: state.id++, name: caseInfo.name, case_id: caseInfo.id, step_type: "case", enable: true}
-        appendTreeDate(stepData)
-      }
+      // if (state.optType === "case" && caseInfo.id === parseInt(props.case_id)) {
+      //   ElMessage.warning('不能引用用例自己！');
+      // } else {
+      let stepData = {id: state.id++, name: caseInfo.name, case_id: caseInfo.id, step_type: "api", enable: true}
+      appendTreeDate(stepData)
+      // }
     })
   }
-  state.showCaseInfo = false
+  state.showApioInfo = false
 }
 
 const getRandomStr = () => {
@@ -295,6 +297,13 @@ const copyNode = (data: any) => {
 const clickBlank = () => {
   stepTreeRef.value?.setCurrentKey(null)
 }
+
+const onClickOutside = () => {
+  console.log("1111")
+  clickBlank()
+  initFabMenu(null)
+}
+
 
 // tree 自定义内容 引用组件导致宽度丢失问题
 // const setStyle = () => {

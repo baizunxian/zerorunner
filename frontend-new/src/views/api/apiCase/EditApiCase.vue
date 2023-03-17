@@ -8,7 +8,7 @@
             @back="goBack"
         >
           <template #content>
-            <span style="padding-right: 10px;">{{ state.editType === 'save' ? '新增套件' : '更新套件' }}</span>
+            <span style="padding-right: 10px;">{{ state.editType === 'save' ? '新增用例' : '更新用例' }}</span>
           </template>
 
           <template #extra>
@@ -32,8 +32,8 @@
                 size="small"
                 status-icon
             >
-              <el-form-item label="套件名称：" prop="name">
-                <el-input v-model="state.form.name" placeholder="套件名称"></el-input>
+              <el-form-item label="用例名称：" prop="name">
+                <el-input v-model="state.form.name" placeholder="用例名称"></el-input>
               </el-form-item>
 
               <el-form-item label="所属项目：" prop="project_id">
@@ -71,19 +71,23 @@
                 </el-select>
               </el-form-item>
 
+              <el-form-item label="用例描述：" prop="remarks">
+               <el-input v-model="state.form.remarks"></el-input>
+              </el-form-item>
+
               <el-form-item label="步骤依赖：">
                 <el-radio-group v-model="state.form.step_rely">
-                  <el-radio :label="true" size="small">是</el-radio>
-                  <el-radio :label="false" size="small">否</el-radio>
+                  <el-radio :label="1" size="small" border>是</el-radio>
+                  <el-radio :label="0" size="small" border>否</el-radio>
                 </el-radio-group>
               </el-form-item>
               <el-form-item label="步骤总数：">
                 {{ state.form.step_data?.length }}
               </el-form-item>
 
-              <el-form-item label="套件变量：">
+              <el-form-item label="用例变量：">
                 <template #label>
-                  <el-link type="primary" @click="state.isShowVariable = ! state.isShowVariable">套件变量：</el-link>
+                  <el-link type="primary" @click="state.isShowVariable = ! state.isShowVariable">用例变量：</el-link>
                 </template>
                 <el-link type="info" @click="state.isShowVariable = ! state.isShowVariable">
                   {{ handleEmpty(state.form.headers).length + handleEmpty(state.form.variables).length }}
@@ -154,7 +158,7 @@ const createForm = () => {
   return {
     name: '', // 名称
     env_id: null, // 环境id
-    step_rely: true, // 步骤依赖
+    step_rely: 1, // 步骤依赖
     project_id: '', // 关联项目
     remarks: '', // 简要描述
     step_data: [],
@@ -186,7 +190,7 @@ const state = reactive({
 // init suite
 const initData = async () => {
   if (route.query.id) {
-    let {data} = await useApiCaseApi().getSuitesInfo({id: route.query.id})
+    let {data} = await useApiCaseApi().getCaseInfo({id: route.query.id})
     state.form = data
   }
 }

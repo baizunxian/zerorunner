@@ -5,8 +5,10 @@
       :row-key="rowKey"
       v-bind="options"
       :load="load"
+      :border="border"
+      v-loading="loading"
       row-class-name="d-row-class-name"
-      lazy
+      :lazy="lazy"
       @selection-change="handleSelectionChange"
       @row-click="handleRowClick"
       @cell-click="handleCellClick"
@@ -112,7 +114,9 @@
           :width="col.width">
         <template #default="scope">
           <!-- Expand组件代码下方有贴出来 -->
-          <Expand :render="col.render" :row="scope.row" :index="scope.$index"/>
+          <Expand :render="col.render"
+                  :row="scope.row"
+                  :index="scope.$index"/>
         </template>
       </el-table-column>
       <!-- render函数 (END) -->
@@ -127,8 +131,8 @@
           :fixed="col.fixed"
           :align="col.align"
           :width="col.width">
-        <template #default="scope">
-          {{ col.lookupCode ? formatLookup(col.lookupCode, scope.row[col.key]) : scope.row[col.key] }}
+        <template #default="{row}">
+          {{ handleRow(row, col.key, col.lookupCode) }}
         </template>
       </el-table-column>
 
@@ -184,6 +188,12 @@ const props = defineProps({
       return ""
     }
   },
+  border: {
+    type: Boolean,
+    default() {
+      return true
+    }
+  },
   // treeProps
   treeProps: {
     type: Object,
@@ -196,29 +206,48 @@ const props = defineProps({
     type: Boolean,
     default: () => true
   },
+  // 远程加载
   lazy: {
     type: Boolean,
-    default() {
+    default: () => {
       return false
     }
   },
+  // 加载回调函数
   load: {
     type: Function,
     default: () => {
     }
   },
+  // 是否显示占位符
+  showPlaceholder: {
+    type: Boolean,
+    default: () => {
+      return false
+    }
+  },
+  placeholder: {
+    type: String,
+    default: () => {
+      return "-"
+    }
+  },
+  // 页数
   page: {
     type: Number,
     default: 0
   },
+  // 页面大小
   pageSize: {
     type: Number,
     default: 10
   },
+  // 总数
   total: {
     type: Number,
     default: 0
   },
+  //
   pageSizes: {
     type: Array,
     default() {
@@ -229,11 +258,16 @@ const props = defineProps({
     type: String,
     default: 'total, sizes, prev, pager, next, jumper'
   },
+  loading: {
+    type: Boolean,
+    default: false
+  }
 })
 
 const emit = defineEmits([
   "update:pageSize",
   "update:page",
+  "update:loading",
   "pagination-change",
   "current-change",
   "command",
@@ -246,6 +280,7 @@ const emit = defineEmits([
 
 // 自定义索引
 const indexMethod = (index: number) => {
+  if (!props.showPage) return index + 1
   return index + (props.page - 1) * props.pageSize + 1
 }
 // 切换pageSize
@@ -279,6 +314,14 @@ const handleCellClick = (row: any, column: any, cell: any, event: Event) => {
 // 在列中设置 sortable 属性即可实现以该列为基准的排序， 接受一个 Boolean，默认为 false。 可以通过 Table 的 default-sort 属性设置默认的排序列和排序顺序。 如果需要后端排序，需将 sortable 设置为 custom，同时在 Table 上监听 sort-change 事件， 在事件回调中可以获取当前排序的字段名和排序顺序，从而向接口请求排序后的表格数据。
 const handleSortChange = ({column, prop, order}: any) => {
   emit('sort-change', {column, prop, order})
+}
+
+const handleRow = (row: any, key: string, lookupCode: string) => {
+  if (props.showPlaceholder && (!row[key] || row[key] === '' || row[key] === null)) {
+    return props.placeholder
+  } else {
+    return lookupCode ? formatLookup(lookupCode, row[key]) : row[key]
+  }
 }
 
 // onMounted(() => {

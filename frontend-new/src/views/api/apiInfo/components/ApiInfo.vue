@@ -41,7 +41,7 @@
         <div class="api-case__operation" style="padding-left: 12px">
           <el-button size="default" type="primary" @click="saveOrUpdateOrDebug('save')" class="title-button">保存
           </el-button>
-          <el-button size="default" type="success" @click="saveOrUpdateOrDebug('debug')">调试</el-button>
+          <el-button size="default" type="success" @click="handleDebug">调试</el-button>
           <el-button size="default" type="danger" @click="saveOrUpdateOrDebug('debug')">删除</el-button>
         </div>
       </el-col>
@@ -152,6 +152,33 @@
       </el-form>
     </div>
 
+    <el-dialog
+        v-model="state.showEnvPage"
+        destroy-on-close
+        title="调试"
+        width="30%"
+    >
+      <el-form v-model="state.form">
+        <el-form-item label="选择环境">
+          <el-select v-model="state.form.env_id" placeholder="选择环境" filterable style="width:100%">
+            <el-option :value="0" label="自带环境">自带环境</el-option>
+            <el-option
+                v-for="item in state.envList"
+                :key="item.id"
+                :label="`${item.name}(${item.domain_name})`"
+                :value="item.id">
+              <span style="float: left">{{ `${item.name}(${item.domain_name})` }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button size="default" type="success" @click="saveOrUpdateOrDebug('debug')">调试</el-button>
+      </template>
+
+    </el-dialog>
+
   </div>
 </template>
 
@@ -172,6 +199,7 @@ const methodRef = ref()
 const caseTagInputRef = ref()
 const createForm = () => {
   return {
+    env_id: null,
     id: null,
     method: '',
     name: '',
@@ -221,8 +249,8 @@ const state = reactive({
   methodList: ['POST', "GET", "PUT", "DELETE"],
 
   // env
+  showEnvPage: false,
   envList: []
-
 
 });
 // 初始化表单
@@ -310,6 +338,11 @@ const removeTag = (tag: string) => {
   state.form.tags.splice(state.form.tags.indexOf(tag), 1)
 }
 
+const handleDebug = () => {
+  state.showEnvPage = true
+  getEnvList()
+}
+
 // 保存，或调试用例
 const saveOrUpdateOrDebug = (handleType: string = 'save') => {
   formRef.value.validate((valid: any) => {
@@ -318,6 +351,7 @@ const saveOrUpdateOrDebug = (handleType: string = 'save') => {
         emit('saveOrUpdateOrDebug', 'save')
       } else if (handleType === 'debug') {
         emit('saveOrUpdateOrDebug', 'debug')
+        state.showEnvPage = false
       }
     } else {
       ElMessage.warning('请填写请求地址信息');

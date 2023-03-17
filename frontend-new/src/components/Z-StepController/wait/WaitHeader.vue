@@ -1,5 +1,6 @@
 <template>
   <el-input-number v-model="data.value"
+                   controls-position="right"
                    @click.stop=""/>
   <span style="margin-left: 5px">m</span>
 </template>

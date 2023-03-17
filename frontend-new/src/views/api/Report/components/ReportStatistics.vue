@@ -132,7 +132,7 @@
 import * as ECharts from 'echarts'
 import {nextTick, onMounted, onUnmounted, PropType, reactive, ref, watch} from "vue";
 
-export interface StatisticsData {
+interface StatisticsData {
   count_step: number,
   count_step_success: number,
   count_step_failure: number,
@@ -147,7 +147,7 @@ export interface StatisticsData {
   step_pass_rate: number
 }
 
-export interface stateData {
+interface stateData {
   stepECharts: any
   caseECharts: any
   requestTimeECharts: any
@@ -176,18 +176,24 @@ const state = reactive<stateData>({
 })
 
 const initRequestTime = () => {
-  let requestTimeECharts = state.requestTimeECharts = ECharts.init(requestTime.value)
-  requestTimeECharts.setOption(getOption(100))
+  if (!state.requestTimeECharts) {
+    state.requestTimeECharts = ECharts.init(requestTime.value)
+  }
+  state.requestTimeECharts.setOption(getOption(100))
 }
 
 const initApiTestCase = () => {
-  let caseECharts = state.caseECharts = ECharts.init(apiTestCase.value)
-  caseECharts.setOption(getOption(props.data?.case_pass_rate))
+  if (!state.caseECharts) {
+    state.caseECharts = ECharts.init(apiTestCase.value)
+  }
+  state.caseECharts.setOption(getOption(props.data?.case_pass_rate))
 }
 
 const initApiTestStep = () => {
-  let stepECharts = state.stepECharts = ECharts.init(apiTestStep.value)
-  stepECharts.setOption(getOption(props.data?.step_pass_rate))
+  if (!state.stepECharts) {
+    state.stepECharts = ECharts.init(apiTestStep.value)
+  }
+  state.stepECharts.setOption(getOption(props.data?.step_pass_rate))
 }
 
 const initEcharts = () => {
@@ -288,9 +294,19 @@ onMounted(() => {
       })
 });
 onUnmounted(() => {
-  state.requestTimeECharts?.dispose();
-  state.stepECharts?.dispose();
-  state.caseECharts?.dispose();
+  if (state.requestTimeECharts) {
+     state.requestTimeECharts?.dispose();
+     state.requestTimeECharts = null
+  }
+  if (state.stepECharts) {
+     state.stepECharts?.dispose();
+     state.stepECharts = null
+  }
+  if (state.caseECharts) {
+     state.caseECharts?.dispose();
+     state.caseECharts = null
+  }
+
 });
 
 onMounted(() => {

@@ -1,7 +1,13 @@
 <template>
   <div class="layout-breadcrumb-seting">
-    <el-drawer title="布局配置" v-model="getThemeConfig.isDrawer" direction="rtl" destroy-on-close size="260px"
+    <el-drawer v-model="getThemeConfig.isDrawer"
+               direction="rtl"
+               destroy-on-close
+               size="260px"
                @close="onDrawerClose">
+      <template #header>
+        <span>布局配置</span>
+      </template>
       <el-scrollbar class="layout-breadcrumb-seting-bar">
         <!-- 全局主题 -->
         <el-divider content-position="left">全局主题</el-divider>

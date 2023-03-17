@@ -12,7 +12,7 @@
         >
 
           <el-row :gutter="24">
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6" class="mb10">
+            <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="运行环境" prop="project_id">
                 <el-select size="small" v-model="data.env_id"
                            placeholder="运行环境"
@@ -30,7 +30,7 @@
               </el-form-item>
             </el-col>
 
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6" class="mb10">
+            <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="数据源名称" prop="module_id">
                 <el-select size="small" v-model="data.source_id" placeholder="请选择" filterable
                            style="width: 100%;">
@@ -45,7 +45,7 @@
               </el-form-item>
             </el-col>
 
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6" class="mb10">
+            <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="超时时间" prop="config_id">
                 <el-input-number size="small" v-model="data.timeout" placeholder="秒"/>
               </el-form-item>
@@ -53,7 +53,7 @@
           </el-row>
 
           <el-row>
-            <el-col :xs="24" :sm="12" :md="12" :lg="6" :xl="6" class="mb10">
+            <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="存储结果" prop="variable_name">
                 <el-input size="small"
                           style="width: 100%"
@@ -122,13 +122,16 @@ const state = reactive({
   envQuery: {
     page: 1,
     pageSize: 200
-  }
+  },
+  // env
+  envId: null
 
 });
 
 // selectEnv
 const selectEnv = (env_id: number) => {
-  state.dataSourceQuery.env_id = env_id
+  state.envId = env_id
+  props.data.source_id = null
   getDataSourceList()
 }
 
@@ -142,9 +145,9 @@ const getEnvList = () => {
 
 // 初始化datasource
 const getDataSourceList = () => {
-  useQueryDBApi().getSourceList(state.dataSourceQuery)
+  useEnvApi().getDataSourceByEnvId({id: state.envId})
       .then(res => {
-        state.sourceList = res.data.rows
+        state.sourceList = res.data
       })
 };
 

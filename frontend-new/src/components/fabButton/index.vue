@@ -1,18 +1,18 @@
 <template>
   <div class="fab-main-container"
        id="fab"
-       @click.stop="showMenu=!showMenu">
+       @click.stop="state.showMenu=!state.showMenu">
     <div class="fab-container fab fab-size-small">
       <div class="fabMask"></div>
-      <i class="iconfont icon-add fab-container-icons" :class="[showMenu?'fab-active':'']"></i>
+      <i class="iconfont icon-add fab-container-icons" :class="[state.showMenu?'fab-active':'']"></i>
     </div>
     <transition name="breadcrumb">
-      <div class="fab-item-container fab-size-small" v-show="showMenu">
+      <div class="fab-item-container fab-size-small" v-show="state.showMenu">
         <div class="fab-container fab-item"
              v-for="(item, index) in value"
              :key="index"
              style="transition-delay: 0s;background: #F1EEE9FF;"
-             :style="{top:`-${(index+1) * 30}px`,background: item.color, color: item.color, display: showMenu?'': 'none'}"
+             :style="{top:`-${(index+1) * 30}px`,background: item.color, color: item.color, display: state.showMenu?'': 'none'}"
              @click.stop="item.func(item.param)"
         >
           <div class="fabMask" @click.stop="item.func(item.param)"></div>
@@ -30,34 +30,30 @@
   </div>
 </template>
 
-<script>
-import {defineComponent, reactive, toRefs} from "vue";
+<script lang="ts" setup name="z-fab">
+import {reactive} from "vue";
 
-export default defineComponent({
-  name: 'fab',
-  components: {},
-  props: {
-    value: {
-      type: Array,
-      default: () => []
-    }
-  },
-  setup() {
-    const state = reactive({
-      // data
-      showMenu: false,
-    });
+const props = defineProps({
+  value: {
+    type: Array,
+    default: () => []
+  }
+})
 
-    const showMenu = () => {
-      state.showMenu = !state.showMenu
-    }
-
-    return {
-      showMenu,
-      ...toRefs(state),
-    };
-  },
+const state = reactive({
+  // data
+  showMenu: false,
 });
+
+const showMenu = () => {
+  state.showMenu = !state.showMenu
+}
+
+
+defineExpose({
+  showMenu
+})
+
 </script>
 
 <style lang="scss" scoped>

@@ -19,7 +19,6 @@ const alias: Record<string, string> = {
 
 const viteConfig = defineConfig((mode: ConfigEnv) => {
   const env = loadEnv(mode.mode, process.cwd());
-  console.log(env)
   return {
     plugins: [
       vue(),

@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, g
 
 from autotest.exc import codes
 from autotest.services.sys_services.user import UserService

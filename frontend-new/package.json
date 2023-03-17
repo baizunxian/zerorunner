@@ -44,7 +44,9 @@
 		"vite": "^4.0.0",
 		"vite-plugin-monaco-editor": "1.0.5",
 		"vite-plugin-vue-setup-extend": "^0.4.0",
-		"vue-eslint-parser": "^9.1.0"
+		"vue-eslint-parser": "^9.1.0",
+		"xterm": "^5.1.0",
+		"xterm-addon-fit": "^0.7.0"
 	},
 	"browserslist": [
 		"> 1%",

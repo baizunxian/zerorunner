@@ -98,7 +98,8 @@ import {computed, onMounted, reactive, watch} from 'vue';
 const props = defineProps({
   data: { // 传入的json数据
     type: Object || Array || null || undefined,
-    default: () => {},
+    default: () => {
+    },
   },
   jsonKey: { // json的key值，用于第二层及二层以上的组件的key值
     type: String,

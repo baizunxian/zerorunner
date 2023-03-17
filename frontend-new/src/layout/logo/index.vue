@@ -29,6 +29,9 @@ const setShowLogo = computed(() => {
 const getLogo = computed(() => {
   let {isCollapse, layout} = themeConfig.value;
   if (isCollapse) {
+    if (document.body.clientWidth < 1000) {
+      return defaultLogo
+    }
     return logoMini
   } else {
     if (layout == "defaults") return defaultLogo

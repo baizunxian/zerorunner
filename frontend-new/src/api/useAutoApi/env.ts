@@ -35,5 +35,26 @@ export function useEnvApi() {
         data,
       });
     },
+    getDataSourceByEnvId: (data?: object) => {
+      return request({
+        url: '/env/getDataSourceByEnvId',
+        method: 'POST',
+        data,
+      });
+    },
+    bindingDataSource: (data?: object) => {
+      return request({
+        url: '/env/bindingDataSource',
+        method: 'POST',
+        data,
+      });
+    },
+    unbindingDataSource: (data?: object) => {
+      return request({
+        url: '/env/unbindingDataSource',
+        method: 'POST',
+        data,
+      });
+    },
   };
 }

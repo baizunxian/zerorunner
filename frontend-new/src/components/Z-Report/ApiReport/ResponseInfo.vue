@@ -28,8 +28,14 @@
         <template #title>
           <strong>Body</strong>
         </template>
-        <JsonViews v-if="state.response.content_type?.indexOf('json') !== -1"
-                  v-model:data="state.response.body"></JsonViews>
+        <z-monaco-editor
+            style="height: 400px"
+            v-if="state.content_type?.indexOf('json') !== -1"
+            ref="monacoEditRef"
+            :options="{readOnly: true}"
+            v-model:value="state.body"
+            long="json"
+        ></z-monaco-editor>
         <pre v-else>{{ state.response.body }}</pre>
       </el-collapse-item>
 
@@ -75,20 +81,35 @@ const props = defineProps({
 const state = reactive({
   // show
   accordionName: ['body', 'header', "cookies"],
-  response: props.data
+  response: props.data,
+  body: '',
+  content_type: '',
 });
+
+const initData = () => {
+  state.response = props.data
+  state.content_type = state.response.content_type
+  state.body = state.response.body
+  if (state.content_type?.indexOf('json') !== -1) {
+    state.body = JSON.stringify(state.body, null, 4)
+  }
+  console.log(state, 55555555555)
+}
 
 watch(
     () => props.data,
     () => {
-      state.response = props.data
+      nextTick(() => {
+        initData()
+      })
     },
     {deep: true}
 )
 
 onMounted(() => {
+
   nextTick(() => {
-    state.response = props.data
+      initData()
   })
 })
 

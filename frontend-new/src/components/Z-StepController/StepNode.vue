@@ -96,7 +96,7 @@
         <ScriptController v-if="data.step_type === 'script'" :data="data"/>
         <SqlController v-if="data.step_type === 'sql'" :data="data"/>
         <ExtractController v-if="data.step_type === 'extract'" :data="data"/>
-        <ApiInfoController v-if="data.step_type === 'case'" :data="data"/>
+        <ApiInfoController v-if="data.step_type === 'api'" :data="data"/>
         <LoopController v-if="data.step_type === 'loop'" :data="data"/>
       </div>
 
