@@ -6,7 +6,7 @@ from uuid import uuid4
 from fastapi import WebSocket
 
 from autotest.corelibs import g
-from autotest.db import init_redis_pool
+from autotest.db.redis import init_redis_pool
 
 
 class ConnectionManager:

@@ -1,17 +1,17 @@
 #### 🌈 介绍
 
-基于 python + flask + httprunner3.1.6 + celery + sqlalchemy + marshmallow + redis
+基于 vite + vue3 + element-plus
 
-#### 💒 前端地址
+- 使用软件版本
+- node version 18.15.0
+- vue  version 3.2.45
+- element-plus  version 2.2.26
+
+#### 💒 平台地址地址
 - github 
-https://github.com/baizunxian/zero_autotest_front
+https://github.com/baizunxian/zerorunner
 - gitee
-https://gitee.com/xb_xiaobai/zero_autotest_front
-#### 💒 后端地址
-- github
-  https://github.com/baizunxian/zero_autotest_backend
-- gitee
-  https://gitee.com/xb_xiaobai/zero_autotest_backend
+
 #### ⛱️ 线上预览
 
 - ZERORUNNER 自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
@@ -21,7 +21,7 @@ https://gitee.com/xb_xiaobai/zero_autotest_front
 ```bash
 # node 版本
 node -v 
-v14.17.5
+v18.15.0
 ```
 
 - 复制代码(桌面 cmd 运行) `npm install -g cnpm --registry=https://registry.npm.taobao.org`
@@ -29,15 +29,15 @@ v14.17.5
 
 ```bash
 # 克隆项目
-git clone https://github.com/baizunxian/zero_autotest_front
+git clone https://github.com/baizunxian/zerorunner.git
 
 # 进入项目
-cd zero_autotest_front
+cd zerorunner/frontend
 
 # 安装依赖
 cnpm install 
 # 或者
-yarn
+yarn insatll
 
 # 运行项目
 cnpm run dev

@@ -6,7 +6,7 @@ import uuid
 from fastapi.encoders import jsonable_encoder
 
 from autotest.corelibs import g
-from autotest.corelibs import logger
+from loguru import logger
 from autotest.corelibs.codes import CodeEnum
 from autotest.corelibs.consts import TEST_USER_INFO, CACHE_DAY
 from autotest.models.system_models import User, Menu, Roles, UserLoginRecord

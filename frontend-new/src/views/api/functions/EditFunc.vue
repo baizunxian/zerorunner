@@ -9,7 +9,7 @@
             <el-input type="primary"
                       size=""
                       placeholder="函数名称"
-                      style="width: 200px"
+                      style="width: 200px; padding-right: 10px"
                       v-model="state.funcFrom.name">
             </el-input>
             <el-input type="primary"

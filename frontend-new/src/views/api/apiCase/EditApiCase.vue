@@ -12,7 +12,7 @@
           </template>
 
           <template #extra>
-            <el-button type="success" @click="debugSuite">调试</el-button>
+            <el-button type="success" @click="openRunPage">调试</el-button>
             <el-button type="primary" @click="saveOrUpdate" class="title-button">保存</el-button>
           </template>
         </z-detail-page-header>
@@ -54,25 +54,25 @@
               </el-form-item>
 
 
-              <el-form-item label="运行环境：" prop="env_id">
-                <el-select size="small"
-                           v-model="state.form.env_id"
-                           placeholder="运行环境"
-                           filterable
-                           style="width: 100%;"
-                >
-                  <el-option
-                      v-for="env in state.envList"
-                      :key="env.id + env.name"
-                      :label="env.name"
-                      :value="env.id">
-                    <span style="float: left">{{ env.name }}</span>
-                  </el-option>
-                </el-select>
-              </el-form-item>
+              <!--              <el-form-item label="运行环境：" prop="env_id">-->
+              <!--                <el-select size="small"-->
+              <!--                           v-model="state.form.env_id"-->
+              <!--                           placeholder="运行环境"-->
+              <!--                           filterable-->
+              <!--                           style="width: 100%;"-->
+              <!--                >-->
+              <!--                  <el-option-->
+              <!--                      v-for="env in state.envList"-->
+              <!--                      :key="env.id + env.name"-->
+              <!--                      :label="env.name"-->
+              <!--                      :value="env.id">-->
+              <!--                    <span style="float: left">{{ env.name }}</span>-->
+              <!--                  </el-option>-->
+              <!--                </el-select>-->
+              <!--              </el-form-item>-->
 
               <el-form-item label="用例描述：" prop="remarks">
-               <el-input v-model="state.form.remarks"></el-input>
+                <el-input v-model="state.form.remarks"></el-input>
               </el-form-item>
 
               <el-form-item label="步骤依赖：">
@@ -90,7 +90,7 @@
                   <el-link type="primary" @click="state.isShowVariable = ! state.isShowVariable">用例变量：</el-link>
                 </template>
                 <el-link type="info" @click="state.isShowVariable = ! state.isShowVariable">
-                  {{ handleEmpty(state.form.headers).length + handleEmpty(state.form.variables).length }}
+                  {{ getDataLength('headers') + getDataLength('variables') }}
                 </el-link>
               </el-form-item>
 
@@ -111,13 +111,13 @@
 
       <el-dialog
           draggable
-          title="变量" v-model="state.isShowVariable" width="769px"
+          title="用例变量" v-model="state.isShowVariable" width="769px"
       >
         <el-tabs v-model="state.activeTabName" class="demo-tabs">
           <el-tab-pane label="变量" name="variable">
             <template #label>
-              <el-badge :hidden="!handleEmpty(state.form.variables).length"
-                        :value="handleEmpty(state.form.variables).length"
+              <el-badge :hidden="!getDataLength('variables')"
+                        :value="getDataLength('variables')"
                         class="badge-item"
                         type="primary">
                 <strong>变量</strong>
@@ -127,8 +127,8 @@
           </el-tab-pane>
           <el-tab-pane label="请求头" name="second">
             <template #label>
-              <el-badge :hidden="!handleEmpty(state.form.variables).length"
-                        :value="handleEmpty(state.form.variables).length"
+              <el-badge :hidden="!getDataLength('headers')"
+                        :value="getDataLength('headers')"
                         class="badge-item"
                         type="primary">
                 <strong>请求头</strong>
@@ -139,6 +139,41 @@
         </el-tabs>
       </el-dialog>
     </el-card>
+    <ReportDetail ref="ReportDetailRef" :report-info="state.reportInfo" :is-debug="true"></ReportDetail>
+
+    <el-dialog
+        draggable
+        v-model="state.showRunPage"
+        width="600px"
+        top="8vh"
+        title="运行用例"
+        :close-on-click-modal="false">
+      <el-form
+          :model="state.form"
+          label-width="70px"
+
+      >
+        <el-form-item label="运行环境" prop="belong_project_id">
+          <el-select v-model="state.form.env_id" placeholder="选择环境" filterable style="width:100%">
+            <el-option :value="''" label="自带环境">自带环境</el-option>
+            <el-option
+                v-for="item in state.envList"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              <span style="float: left">{{ `${item.name}(${item.domain_name})` }}</span>
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+                <span class="dialog-footer">
+                  <el-button @click="state.showRunPage = !state.showRunPage">取消</el-button>
+                  <el-button type="primary" :loading="state.runCaseLoading" @click="debugApiCase">运行</el-button>
+                </span>
+      </template>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -153,6 +188,7 @@ import HeadersController from "/@/components/Z-StepController/headers/HeadersCon
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import 'splitpanes/dist/splitpanes.css';
 import {handleEmpty} from "/@/utils/other";
+import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
 
 const createForm = () => {
   return {
@@ -170,14 +206,16 @@ const stepControllerRef = ref()
 const formRef = ref()
 const route = useRoute()
 const router = useRouter()
+const ReportDetailRef = ref()
 const state = reactive({
   isShowVariable: false,
   editType: '',
   form: createForm(),
+  runCaseLoading: false, // 运行loading
   rules: {
     name: [{required: true, message: '请输入用例名', trigger: 'blur'}],
     project_id: [{required: true, message: '请选择所属项目', trigger: 'blur'}],
-    env_id: [{required: true, message: '请选择运行环境', trigger: 'blur'}],
+    // env_id: [{required: true, message: '请选择运行环境', trigger: 'blur'}],
   },
   // project
   projectList: [],
@@ -185,6 +223,10 @@ const state = reactive({
   envList: [],
   // tabs
   activeTabName: "variable",
+//  report
+  reportInfo: null,
+//  showRunPage
+  showRunPage: false
 });
 
 // init suite
@@ -196,10 +238,10 @@ const initData = async () => {
 }
 
 // environment
-const getEnvList = async () => {
-  let {data} = await useEnvApi().getList({page: 1, pageSize: 100})
-  state.envList = data.rows
-};
+// const getEnvList = async () => {
+//   let {data} = await useEnvApi().getList({page: 1, pageSize: 100})
+//   state.envList = data.rows
+// };
 
 // project
 // 初始化表格数据
@@ -215,33 +257,57 @@ const saveOrUpdate = () => {
     ElMessage.warning('请选择所属项目！');
     return
   }
-  if (!state.form.env_id) {
-    ElMessage.warning('请选择对应运行环境！');
-    return
-  }
+  // if (!state.form.env_id) {
+  //   ElMessage.warning('请选择对应运行环境！');
+  //   return
+  // }
   if (state.form?.step_data.length === 0) {
     ElMessage.warning('请添加步骤！');
     return
   }
-
+  state.form.variables = handleEmpty(state.form.variables)
+  state.form.headers = handleEmpty(state.form.headers)
   useApiCaseApi().saveOrUpdate(state.form)
       .then(() => {
         ElMessage.success('操作成功');
       })
 };
+// openRunPage
+const openRunPage = () => {
+  state.showRunPage = true
+  getEnvList()
+}
 
-// debugSuite
-const debugSuite = () => {
+// 获取环境信息
+const getEnvList = () => {
+  useEnvApi().getList({page: 1, pageSize: 1000}) // 请求数据写死，后面优化
+      .then(res => {
+        state.envList = res.data.rows
+      })
+};
+
+// debugApiCase
+const debugApiCase = () => {
   formRef.value.validate((valid: any) => {
     if (valid) {
       if (state.form.step_data.length == 0) {
         ElMessage.warning("请先添加步骤！")
         return
       }
+      state.runCaseLoading = true
+      state.form.variables = handleEmpty(state.form.variables)
+      state.form.headers = handleEmpty(state.form.headers)
       useApiCaseApi().debugSuites(state.form)
-          .then(() => {
+          .then((req: any) => {
+            state.reportInfo = req.data
+            ReportDetailRef.value.showReport()
             ElMessage.success('操作成功');
-          })
+            state.runCaseLoading = false
+            state.showRunPage = false
+          }).catch((err) => {
+        console.log(err)
+        state.runCaseLoading = false
+      })
     } else {
       ElMessage.warning("必填信息不能为空！")
     }
@@ -249,6 +315,16 @@ const debugSuite = () => {
   })
 
 }
+
+const getDataLength = (dataType: string) => {
+  if (dataType == "headers") {
+    return handleEmpty(state.form.headers).length
+  }
+  if (dataType == "variables") {
+    return handleEmpty(state.form.variables).length
+  }
+}
+
 
 // 全局点击事件，取消step 选中
 window.onclick = () => {
@@ -262,7 +338,7 @@ const goBack = () => {
 // 页面加载时
 onMounted(() => {
   initData()
-  getEnvList()
+  // getEnvList()
   getProjectList()
 });
 

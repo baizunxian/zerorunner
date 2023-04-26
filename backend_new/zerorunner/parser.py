@@ -5,12 +5,13 @@
 
 import ast
 import builtins
+import json
 import re
 import typing
 
 from loguru import logger
 from zerorunner import loader, utils, exceptions
-from zerorunner.models import VariablesMapping, FunctionsMapping
+from zerorunner.model.base import VariablesMapping, FunctionsMapping
 
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 
@@ -46,7 +47,7 @@ def build_url(base_url, path):
     elif base_url:
         return "{}/{}".format(base_url.rstrip("/"), path.lstrip("/"))
     else:
-        raise exceptions.ParamsError("base url missed!")
+        raise exceptions.ParamsError("缺少基本的url 请检查url是否正确！")
 
 
 def regex_findall_variables(raw_string: str) -> typing.List[str]:
@@ -231,7 +232,7 @@ def get_mapping_variable(
         return variables_mapping[variable_name]
     except KeyError:
         raise exceptions.VariableNotFound(
-            f"{variable_name} not found in {variables_mapping}"
+            f"变量 {variable_name} 不在变量池中\n{json.dumps(variables_mapping, indent=4, ensure_ascii=False)}"
         )
 
 
@@ -569,3 +570,24 @@ def parse_parameters(parameters: typing.Dict, functions_mapping: typing.Dict = N
         parsed_parameters_list.append(parameter_content_list)
 
     return utils.gen_cartesian_product(*parsed_parameters_list)
+
+
+class Parser(object):
+    def __init__(self, functions_mapping: FunctionsMapping = None) -> None:
+        self.functions_mapping = functions_mapping
+
+    def parse_string(
+            self, raw_string: str, variables_mapping: VariablesMapping
+    ) -> typing.Any:
+        return parse_string(raw_string, variables_mapping, self.functions_mapping)
+
+    def parse_variables(self, variables_mapping: VariablesMapping) -> VariablesMapping:
+        return parse_variables_mapping(variables_mapping, self.functions_mapping)
+
+    def parse_data(
+            self, raw_data: typing.Any, variables_mapping: VariablesMapping = None
+    ) -> typing.Any:
+        return parse_data(raw_data, variables_mapping, self.functions_mapping)
+
+    def get_mapping_function(self, func_name: str) -> typing.Callable:
+        return get_mapping_function(func_name, self.functions_mapping)

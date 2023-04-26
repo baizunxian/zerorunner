@@ -1,156 +1,281 @@
-# -*- coding: utf-8 -*-
-# @author: xiaobai
-import asyncio
-import contextvars
-import functools
+"""Custom Celery worker pool."""
+
+# Future Imports
+from __future__ import annotations
+
+# Standard Library Imports
+import asyncio as aio
+import inspect
+import threading
 import typing
 
-from starlette.concurrency import run_in_threadpool
-from typing_extensions import ParamSpec
+AnyCallable = typing.Callable[..., typing.Any]
+AnyException = typing.Union[Exception, typing.Type[Exception]]
+AnyCoroutine = typing.Coroutine[typing.Any, typing.Any, typing.Any]
 
-T = typing.TypeVar("T")
-P = ParamSpec("P")
+__all__ = ("AsyncIOPool",)
 
-
-# def request_response(func: typing.Callable) -> ASGIApp:
-#     """
-#     Takes a function or coroutine `func(request) -> response`,
-#     and returns an ASGI application.
-#     """
-#     is_coroutine = is_async_callable(func)
-#
-#     async def app(scope: Scope, receive: Receive, send: Send) -> None:
-#         request = Request(scope, receive=receive, send=send)
-#         if is_coroutine:
-#             response = await func(request)
-#         else:
-#             response = await run_in_threadpool(func, request)
-#         await response(scope, receive, send)
-#
-#     return app
+WorkerPoolInfo = dict[
+    str,
+    typing.Optional[
+        typing.Union[
+            int,
+            bool,
+            tuple[int, ...],
+            aio.AbstractEventLoop,
+        ]
+    ],
+]
 
 
-def async_to_sync(func: typing.Callable, *args: P.args, **kwargs: P.kwargs):
-    async def wraps():
-        return await run_in_threadpool(func, *args, **kwargs)
+class AsyncIOPool:
+    loop: aio.AbstractEventLoop
+    loop_runner: threading.Thread
+    singleton: typing.Optional["AsyncIOPool"] = None
 
-    return wraps
+    def __new__(cls, *args: typing.Any, **kwargs: typing.Any) -> "AsyncIOPool":
 
+        # Because the worker pool uses an instance-bound thread
+        # to run its asyncio eventloop, it's a good idea to ensure
+        # that there can't be more than one instance of the pool
+        # created per process
 
-class IOLoop:
+        if not isinstance(cls.singleton, cls):
+            # Package-Level Imports
+            # from celery_aio_pool import patch_celery_tracer
 
-    @staticmethod
-    def async_to_sync(coroutine: typing.Awaitable):
-        @functools.wraps
-        async def async_handle(*args: P.args, **kwargs: P.kwargs):
-            return await run_in_threadpool(coroutine, *args, **kwargs)
+            # We can't assume that a user has elected to enable
+            # automatic patching of Celery's default `build_tracer`
+            # utility. We need to be *guarantee* that the patch
+            # has been applied though, and the patching process
+            # itself is idempotent therefore safe to call any
+            # number of times.
+            # assert patch_celery_tracer()
 
-        return async_handle
+            # Create the requested new worker pool and use it to
+            # populate the class's currently "empty" `singleton`
+            # attribute
+            cls.singleton = super(AsyncIOPool, cls).__new__(cls)
 
-    @staticmethod
-    def sync_to_async(func: typing.Callable[P, T]) -> T:
-        """同步转异步函数"""
+        # Return the class-bound worker pool instance
+        return cls.singleton
 
-        @functools.wraps(func)
-        async def async_handle(*args: P.args, **kwargs: P.kwargs) -> T:
-            loop = IOLoop.loop
-            if contextvars is not None:
-                child = functools.partial(func, *args, **kwargs)
-                context = contextvars.copy_context()
-                real_func = context.run
-                args = (child,)
-            elif kwargs:
-                real_func = functools.partial(func, **kwargs)
-            else:
-                real_func = func
-            return await loop.run_in_executor(None, real_func, *args)
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:
 
-        return async_handle
-
-    @staticmethod
-    async def _await_with_future(coroutine: typing.Awaitable, future: asyncio.Future) -> None:
-        """等待执行结果"""
+        # If there is already a running asyncio event loop
+        # in the current thread / process, it's not a great
+        # idea to allow the worker pool to create another
+        # and the `AsyncIOPool` can't function at all without
+        # one, so we'll throw a `SystemError` if one is detected
+        # as a way to short-circuit the worker start up process
         try:
-            result = await coroutine
-        except Exception as err:
-            future.set_exception(err)
-        else:
-            future.set_result(result)
+            aio.get_running_loop()
+            raise SystemError("There is already a running event loop in this thread!")
+        except RuntimeError:
+            pass
 
+        # Regardless of what the user specifies in the local
+        # configuration, `threads` and `forking_enable` should
+        # *always* be False when using `AsyncIOPool` as the
+        # worker pool class, so we'll set them forcibly here
 
-#
-#
-# def sync_to_async(func: typing.Callable[P, T]) -> T:
-#     """同步转异步函数"""
-#
-#     @functools.wraps(func)
-#     async def async_handle(*args: P.args, **kwargs: P.kwargs) -> T:
-#         loop = asyncio.get_event_loop()
-#         if contextvars is not None:
-#             child = functools.partial(func, *args, **kwargs)
-#             context = contextvars.copy_context()
-#             real_func = context.run
-#             args = (child,)
-#         elif kwargs:
-#             real_func = functools.partial(func, **kwargs)
-#         else:
-#             real_func = func
-#         return await loop.run_in_executor(BackgroundTaskExecutor, real_func, *args)
-#
-#     return async_handle
-#
-#
-# def async_to_sync(coroutine: typing.Awaitable, loop: typing.Optional[asyncio.AbstractEventLoop] = None) -> typing.Any:
-#     """异步转同步函数"""
-#     new_loop_flag = False
-#     if loop is None:
-#         try:
-#             loop = asyncio.get_event_loop()
-#         except RuntimeError:
-#             loop = asyncio.new_event_loop()
-#             new_loop_flag = True
-#
-#         result = loop.create_future()
-#         asyncio.run(_await_with_future(coroutine, result))
-#         if new_loop_flag:
-#             # result.done()
-#             shutdown_loop(loop=loop)
-#         return result.result()
-#
-#
-# def get_loop():
-#     try:
-#         return asyncio.get_event_loop()
-#     except (RuntimeError, AssertionError):
-#         return asyncio.new_event_loop()
-#
-#
-# async def _await_with_future(coroutine: typing.Awaitable, future: asyncio.Future) -> None:
-#     """等待执行结果"""
-#     try:
-#         result = await coroutine
-#     except Exception as err:
-#         future.set_exception(err)
-#     else:
-#         future.set_result(result)
+        kwargs.update(
+            threads=False,
+            forking_enable=False,
+        )
 
+        # Call the default constructor method ...
+        # celery.concurrency.base.BasePool.__init__(
+        #     self,
+        #     *args,
+        #     **kwargs,
+        # )
 
-def all_task(loop: asyncio.AbstractEventLoop = None):
-    return asyncio.all_tasks(loop=loop)
+        # ... perform the usual "housekeeping", ...
+        self.limit = 1
+        # celery.signals.worker_process_init.send(sender=None)
 
+        # ... create the pool's asyncio eventloop ...
+        self.loop = aio.new_event_loop()
 
-def shutdown_loop(loop: asyncio.AbstractEventLoop = None, timeout: float = 1.0):
-    tasks = all_task(loop=loop)
-    if tasks:
-        for task in tasks:
-            task.done()
-    loop.close()
+        # ... and let it run in an instance-bound thread.
+        self.loop_runner = threading.Thread(
+            target=self.loop.run_forever,
+            name="celery-worker-async-loop",
+            daemon=True,
+        )
 
+        self.loop_runner.start()
 
-# def background_task_executor(futures: typing.List[Future]):
-#     with ThreadPoolExecutor() as pool:
-#         fs = pool.submit(func)
-#         return as_completed(fs)
+        # Set the new event loop as the "active" eventloop
+        # in current thread / process
+        aio.set_event_loop(self.loop)
 
+    # def _get_info(self) -> WorkerPoolInfo:
+    #     info = super()._get_info()
+    #     info.update({
+    #         "timeouts": (),
+    #         "max-concurrency": 1,
+    #         "event-loop": str(self.loop),
+    #         "max-tasks-per-child": None,
+    #         "processes": (os.getpid(),),
+    #         "put-guarded-by-semaphore": True,
+    #     })
+    #     return info
 
-IOLoop = IOLoop()
+    def run(
+            self,
+            task_function: AnyCallable | AnyCoroutine,
+            *args: typing.Any,
+            **kwargs: typing.Any,
+    ) -> typing.Any:
+        """Run the supplied coroutine in the pool's bound loop-runner
+        thread."""
+
+        # If the supplied function is actually an async function
+        # (i.e. async def some_function() -> Any), call it with
+        # the supplied arguments and bind the returned coroutine
+        # so we can run it on the worker's thread-bound eventloop
+        if inspect.iscoroutinefunction(task_function):
+            task_function = task_function(*args, **kwargs)
+
+        # If the supplied function is actually a vanilla Python
+        # function (i.e. def any_function() -> Any), use asyncio's
+        # `to_thread` utility to wrap it along the supplied arguments
+        # and bind the returned coroutine so we can run it on the
+        # worker's thread-bound eventloop
+        if callable(task_function) and not bool(
+                inspect.iscoroutine(task_function) or aio.isfuture(task_function)
+        ):
+            task_function = aio.to_thread(
+                task_function,
+                *args,
+                **kwargs,
+            )
+
+        # If the value of `task_function` isn't actually something
+        # that can be awaited (i.e. run on an async eventloop),
+        # return it as it's either the actual result of having
+        # called and run `task_function` -or- it's something we
+        # can't meaningfully do anything with anyway
+        if not inspect.isawaitable(task_function):
+            return task_function
+
+        # At this point, we're guaranteed to have something
+        # that's either an actual coroutine or some other kind
+        # of `asyncio.Future` which means we need to throw it
+        # onto the worker's thread-bound eventloop to be run
+        try:
+            result: aio.Future = aio.run_coroutine_threadsafe(
+                task_function,
+                self.loop,
+            )
+        except TypeError:
+            return task_function
+
+        # Once the our future has been awaited, it will either
+        # have raised an exception or returned a result. If it
+        # raised an exception, propagate it back to the caller
+        if error := result.exception():
+            raise error
+
+        # If no exception was raised, pass `.result()` back through
+        # `AsyncIOPool.run` so that it can be checked to ensure it's
+        # properly handled in case another callable or awaitable was
+        # returned
+        return self.run(result.result())
+
+    @classmethod
+    def run_in_pool(
+            cls,
+            task_function: AnyCallable | AnyCoroutine,
+            *args: typing.Any,
+            **kwargs: typing.Any,
+    ) -> typing.Any:
+        """Run the supplied task in the pool's thread-bound async loop."""
+        if not (worker_pool := cls.singleton):
+            worker_pool = cls()
+
+        return worker_pool.run(
+            task_function,
+            *args,
+            **kwargs,
+        )
+
+    async def shutdown(self) -> None:
+        """Shut down the worker pool."""
+        if self.loop.is_running():
+            self.loop.stop()
+            await self.loop.shutdown_asyncgens()
+
+        if not self.loop.is_closed() and callable(
+                (
+                        closer := getattr(
+                            self.loop,
+                            "aclose",
+                            None,
+                        )
+                )
+        ):
+            await closer()
+
+    def join(self) -> None:
+        """Join the loop-runner thread."""
+        self.loop_runner.join()
+
+    # def on_apply(
+    #         self,
+    #         target: AnyCallable | AnyCoroutine,
+    #         args: tuple[Any, ...] = tuple(),
+    #         kwargs: Optional[dict[str, Any]] = None,
+    #         callback: Optional[AnyCallable | AnyCoroutine] = None,
+    #         accept_callback: [AnyCallable | AnyCoroutine] = None,
+    #         pid: Optional[int] = None,
+    #         getpid: Callable[[], int] = os.getpid,
+    #         propagate: tuple[AnyException, ...] = tuple(),
+    #         monotonic: Callable[[], int] = time.monotonic,
+    #         **_,
+    # ):
+    #     """Apply function within pool context."""
+    #     kwargs = kwargs or dict()
+    #     propagate += (
+    #         Exception,
+    #         WorkerShutdown,
+    #         WorkerTerminate,
+    #     )
+    #
+    #     if accept_callback:
+    #         self.run(
+    #             accept_callback,
+    #             pid or getpid(),
+    #             monotonic(),
+    #         )
+    #
+    #     try:
+    #         ret = self.run(
+    #             target,
+    #             *args,
+    #             **kwargs,
+    #         )
+    #     except propagate as error:
+    #         raise error
+    #
+    #     except BaseException as exc:
+    #         try:
+    #             reraise(
+    #                 WorkerLostError,
+    #                 WorkerLostError(repr(exc)),
+    #                 sys.exc_info()[2],
+    #             )
+    #         except WorkerLostError:
+    #             self.run(callback, ExceptionInfo())
+    #     else:
+    #         self.run(callback, ret)
+    #
+    # def terminate_job(self, pid, signal=None):
+    #     """Terminate the specified job."""
+    #     raise NotImplementedError
+    #
+    # def restart(self) -> None:
+    #     """Restart the pool instance."""
+    #     raise NotImplementedError

@@ -5,7 +5,7 @@ from zerorunner import __version__
 
 def get_platform():
     return {
-        "httprunner_version": __version__,
+        "zerorunner_version": __version__,
         "python_version": "{} {}".format(
             platform.python_implementation(), platform.python_version()
         ),

@@ -264,7 +264,6 @@ watch(
 watch(
     () => props.data,
     () => {
-      console.log("props.data---->", props.data)
     },
     {deep: true}
 )

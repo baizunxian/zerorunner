@@ -4,10 +4,12 @@ import uuid
 from fastapi import UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
 from loguru import logger
-from autotest.config import config
+from autotest.config.config import config
 from autotest.models.system_models import FileInfo
 from autotest.schemas.system.file import FileIn, FileId
 import aiofiles
+
+from autotest.utils.common import get_str_uuid
 
 
 class FileService:
@@ -32,7 +34,7 @@ class FileService:
         file_size = len(contents) / 1024
         async with aiofiles.open(abs_file_path, "wb") as f:
             await f.write(contents)
-        file_params = FileIn(file_name=file.filename,
+        file_params = FileIn(id=get_str_uuid(),
                              name=file_name,
                              file_path=abs_file_path,
                              extend_name=extend_name,
@@ -46,7 +48,7 @@ class FileService:
         data = {
             'id': file_id,
             'url': f'/file/download/{file_id}',
-            'name': file_name,
+            'name': file.filename,
             'original_name': file.filename,
         }
         return data

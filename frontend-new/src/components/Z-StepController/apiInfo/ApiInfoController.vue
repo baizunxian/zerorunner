@@ -2,19 +2,19 @@
   <el-collapse-transition>
     <div v-if="data.showDetail" @click.stop class="controller-content">
       <el-divider style="margin: 10px 0 5px 0;"/>
-      <ApiInfo :isView="true" :case_id="data.case_id"></ApiInfo>
+      <ApiInfo :isView="true" :case_id="data.request.api_id"></ApiInfo>
     </div>
   </el-collapse-transition>
 </template>
 
 <script lang="ts" setup name="apiInfoController">
-import {defineAsyncComponent} from 'vue';
+import {defineAsyncComponent, PropType} from 'vue';
 
 const ApiInfo = defineAsyncComponent(()=> import("/@/views/api/apiInfo/components/EditApi.vue"))
 
 const props = defineProps({
   data: {
-    type: Object,
+    type: Object as PropType<TStepDataStat>,
     default: () => {
         return {}
       }

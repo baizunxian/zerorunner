@@ -1,7 +1,7 @@
 <template>
   <el-row>
     <el-col :span="20" class="com-padding">
-      <el-radio-group v-model="data.loop_type" @click.stop>
+      <el-radio-group v-model="data.loop_request.loop_type" @click.stop>
         <el-radio label="count">次数循环</el-radio>
         <el-radio label="for">for循环</el-radio>
         <el-radio label="while">while循环</el-radio>
@@ -11,11 +11,11 @@
 </template>
 
 <script lang="ts" setup name="LoopHeader">
-import {defineComponent, reactive, toRefs} from 'vue';
+import {defineComponent, PropType, reactive, toRefs} from 'vue';
 
 const props = defineProps({
   data: {
-    type: Object,
+    type: Object as PropType<TStepDataStat>,
     default: () => {
       return {
         // data: {

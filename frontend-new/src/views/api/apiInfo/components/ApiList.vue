@@ -10,14 +10,16 @@
           </el-button>
         </div>
       </div>
-      <div class="mb8">
-        <el-button type="primary" link class="" @click="openImportPage">
-          <el-icon>
-            <ele-FolderAdd/>
-          </el-icon>
-          导入
-        </el-button>
-      </div>
+
+<!--      <div class="mb8">-->
+<!--        <el-button type="primary" link class="" @click="openImportPage">-->
+<!--          <el-icon>-->
+<!--            <ele-FolderAdd/>-->
+<!--          </el-icon>-->
+<!--          导入-->
+<!--        </el-button>-->
+<!--      </div>-->
+<!--      -->
       <z-table
           :columns="state.columns"
           :data="state.listData"
@@ -167,17 +169,15 @@ import {useModuleApi} from "/@/api/useAutoApi/module";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {getMethodColor} from "/@/utils/case";
 
-const ReportDetail = defineAsyncComponent(() => import("/@/views/api/Report/components/ReportDetail.vue"))
+const ReportDetail = defineAsyncComponent(() => import("/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"))
 
 const reportDetailRef = ref();
 const importFormRef = ref();
 const uploadRef = ref();
-const moduleListRef = ref();
 const router = useRouter();
 
 const state = reactive({
   columns: [
-    // {label: '序号', columnType: 'selection', width: 'auto', show: true},
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
     {

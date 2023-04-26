@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http import partner_success
+from autotest.corelibs.http_response import partner_success
 from autotest.schemas.api.module import ModuleQuery, ModuleIn, ModuleId
 from autotest.services.api.module import ModuleService
 

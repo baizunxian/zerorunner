@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request
 
 from autotest.corelibs import g
 from autotest.corelibs.codes import CodeEnum
-from autotest.corelibs.http import partner_success
+from autotest.corelibs.http_response import partner_success
 from autotest.schemas.system.user import UserLogin, UserQuery, UserIn, UserResetPwd, UserDel
 from autotest.services.system.user import UserService
 

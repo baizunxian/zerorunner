@@ -2,8 +2,7 @@
 import time
 import unittest
 
-from autotest.corelibs import logger
-from zerorunner.models import TestCaseSummary
+from loguru import logger
 
 
 class HtmlTestResult(unittest.TextTestResult):
@@ -17,11 +16,11 @@ class HtmlTestResult(unittest.TextTestResult):
         self.summary = None
 
     def _record_test(self, test, status, attachment=''):
-        test_summary: TestCaseSummary = test.summary
-        if test_summary.step_datas:
-            test_summary.step_datas[-1].status = status.upper()
-            # test_summary.step_datas[-1].message = attachment
-            test_summary.step_datas[-1].success = True if status == "success" else False
+        # test_summary: TestCaseSummary = test.summary
+        # if test_summary.step_results:
+        #     test_summary.step_results[-1].status = status.upper()
+        #     # test_summary.step_results[-1].message = attachment
+        #     test_summary.step_results[-1].success = True if status == "success" else False
         self.summary = test.summary
 
     def startTestRun(self):

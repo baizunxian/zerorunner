@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import json
+import os
 import traceback
 import typing
 
-from autotest.corelibs import logger
+from autotest.config.config import config
+from loguru import logger
 from autotest.models.api_models import ApiInfo, Env, DataSource
-from autotest.schemas.api.api_case import ApiCaseRun
+from autotest.models.system_models import FileInfo
+from autotest.schemas.api.api_case import TestCaseRun
 from autotest.schemas.api.api_info import ApiInfoRun, ApiBaseSchema
 from autotest.utils.serialize import default_serialize
 from zerorunner.loader import load_module_functions
@@ -192,14 +195,33 @@ class ApiInfoHandle(object):
 
     @classmethod
     async def make_request_body(cls):
-        if cls.api_info.request_body.language.lower() == "json":
-            try:
-                cls.step.request.req_json = json.loads(cls.api_info.request_body.data)
-            except Exception as err:
-                logger.error(traceback.format_exc())
-                cls.step.request.data = cls.api_info.request_body.data
-        else:
-            cls.step.request.data = cls.api_info.request_body.data
+        if cls.api_info.request.mode.lower() == 'raw':
+            if cls.api_info.request.language.lower() == "json":
+                try:
+                    cls.step.request.req_json = json.loads(cls.api_info.request.data)
+                except Exception as err:
+                    logger.error(traceback.format_exc())
+                    cls.step.request.data = cls.api_info.request.data
+            else:
+                cls.step.request.data = cls.api_info.request.data
+        elif cls.api_info.request.mode.lower() == 'form_data':
+            from_data_list = cls.api_info.request.data
+            upload_dict = {}
+            for data in from_data_list:
+                if data.type == "file":
+                    file_value_info = data.value
+                    file_info = await FileInfo.get(file_value_info.id)
+                    if not file_info:
+                        logger.error(f"文件不存在：{file_value_info.id}")
+                        raise PermissionError("文件不存在！")
+                    abs_file_path = os.path.join(config.TEST_FILES_DIR, file_info.name)
+                    if not os.path.exists(abs_file_path):
+                        logger.error(f"文件找不到：{file_info.name}")
+                        raise FileNotFoundError(f'文件 {file_info.name} 找不到~')
+                    upload_dict[data.key] = abs_file_path
+                else:
+                    upload_dict[data.key] = data.value
+            cls.step.request.upload = upload_dict
 
     @classmethod
     async def make_variables(cls, variables: typing.Dict, var_type: str):
@@ -216,7 +238,8 @@ class ApiInfoHandle(object):
         if var_type == "env_var":
             # 全局变量
             cls.config.env_variables.update(variables)
-            cls.config.env_variables = {key: parse_string_value(value) for key, value in cls.config.env_variables.items()}
+            cls.config.env_variables = {key: parse_string_value(value) for key, value in
+                                        cls.config.env_variables.items()}
 
     @classmethod
     async def make_setup_hooks(cls):
@@ -241,12 +264,12 @@ class ApiInfoHandle(object):
 
 
 class ApiCaseHandle:
-    api_case: ApiCaseRun = None
+    api_case: TestCaseRun = None
     config: TConfig = None
     teststeps: typing.List = []
 
     @classmethod
-    async def init(cls, api_case: ApiCaseRun):
+    async def init(cls, api_case: TestCaseRun):
         cls.api_case = None
         cls.config = None
         cls.teststeps = []
@@ -284,7 +307,8 @@ class ApiCaseHandle:
     async def make_variables(cls, variables: typing.Dict, var_type: str):
         if var_type == "env_var":
             cls.config.env_variables.update(variables)
-            cls.config.env_variables = {key: parse_string_value(value) for key, value in cls.config.env_variables.items()}
+            cls.config.env_variables = {key: parse_string_value(value) for key, value in
+                                        cls.config.env_variables.items()}
         if var_type == "var":
             cls.config.variables.update(variables)
             cls.config.variables = {key: parse_string_value(value) for key, value in cls.config.variables.items()}

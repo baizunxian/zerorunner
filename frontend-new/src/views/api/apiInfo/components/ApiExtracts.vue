@@ -15,8 +15,6 @@ const state = reactive({
 // 初始化数据
 const setData = (data: any) => {
   state.extracts = data ? data : []
-  console.log("extracts----->", state.extracts)
-  console.log("extracts-----data", data)
 }
 
 // 获取表单数据

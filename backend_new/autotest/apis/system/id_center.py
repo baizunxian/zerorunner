@@ -2,7 +2,7 @@
 # @author: xiaobai
 from fastapi import APIRouter
 
-from autotest.corelibs.http import partner_success
+from autotest.corelibs.http_response import partner_success
 from zerorunner.snowflake import id_center
 
 router = APIRouter()

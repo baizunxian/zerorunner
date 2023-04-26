@@ -1,8 +1,8 @@
 import typing
 
-from autotest.exceptions import ParameterError
-from autotest.models.api_models import Env, EnvDataSource
-from autotest.schemas.api.env import EnvQuery, EnvIn, EnvId, BindingDataSourceIn, BindingDataSourceId
+from autotest.exceptions.exceptions import ParameterError
+from autotest.models.api_models import Env, EnvDataSource, EnvFunc
+from autotest.schemas.api.env import EnvQuery, EnvIn, EnvId, BindingDataSourceIn, EnvIdIn, BindingFuncIn
 
 
 class EnvService:
@@ -69,24 +69,48 @@ class EnvService:
 
 
 class EnvDataSourceService:
-    """环境与数据源关系"""
+    """环境与数据源绑定"""
 
     @staticmethod
-    async def get_by_env_id(params: EnvId):
+    async def get_by_env_id(params: EnvIdIn):
         """获取环境绑定的数据源"""
-        data = await EnvDataSource.get_by_env_id(params.id)
+        data = await EnvDataSource.get_by_env_id(params.env_id)
         return data if data else []
 
     @staticmethod
     async def binding_data_source(params: BindingDataSourceIn):
         """环境绑定数据源"""
-        insert_data = []
-        for source_id in params.data_source_ids:
-            insert_data.append({"env_id": params.env_id, "data_source_id": source_id})
-
+        bind_list = await EnvDataSourceService.get_by_env_id(EnvIdIn(env_id=params.env_id))
+        data_source_ids = [b.get("data_source_id") for b in bind_list if 'data_source_id' in b]
+        insert_data = [{"env_id": params.env_id, "data_source_id": source_id} for source_id in params.data_source_ids if
+                       source_id not in data_source_ids]
         return await EnvDataSource.batch_create(insert_data)
 
     @staticmethod
     async def unbinding_data_source(params: BindingDataSourceIn):
         """环境解绑数据源"""
         return await EnvDataSource.unbinding_data_source(params)
+
+
+class EnvFuncService:
+    """环境与辅助函数"""
+
+    @staticmethod
+    async def get_by_env_id(params: EnvIdIn):
+        """获取环境绑定的辅助函数"""
+        data = await EnvFunc.get_by_env_id(params.env_id)
+        return data if data else []
+
+    @staticmethod
+    async def binding_funcs(params: BindingFuncIn):
+        """环境绑定辅助函数"""
+        bind_list = await EnvFuncService.get_by_env_id(EnvIdIn(env_id=params.env_id))
+        func_ids = [b.get("func_id") for b in bind_list if 'func_id' in b]
+        insert_data = [{"env_id": params.env_id, "func_id": func_id} for func_id in params.func_ids if
+                       func_id not in func_ids]
+        return await EnvFunc.batch_create(insert_data)
+
+    @staticmethod
+    async def unbinding_funcs(params: BindingFuncIn):
+        """环境解绑辅助函数"""
+        return await EnvFunc.unbinding_funcs(params)

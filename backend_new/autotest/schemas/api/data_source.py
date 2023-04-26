@@ -2,7 +2,7 @@ import typing
 
 from pydantic import root_validator, BaseModel, Field
 
-from autotest.exceptions import ParameterError
+from autotest.exceptions.exceptions import ParameterError
 from autotest.schemas.base import BaseSchema
 
 

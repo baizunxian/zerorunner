@@ -2,7 +2,7 @@ import typing
 
 from fastapi import APIRouter, UploadFile, Form, File
 
-from autotest.corelibs.http import partner_success
+from autotest.corelibs.http_response import partner_success
 from autotest.schemas.system.file import FileId
 from autotest.services.system.file import FileService
 
@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post('/upload', description="文件上传")
-async def upload(file: UploadFile = File()):
+async def upload(file: UploadFile = File(...)):
     result = await FileService.upload(file)
     return partner_success(result)
 

@@ -1,5 +1,5 @@
 <template>
-  <el-input-number v-model="data.value"
+  <el-input-number v-model="data.wait_request.wait_time"
                    controls-position="right"
                    @click.stop=""/>
   <span style="margin-left: 5px">m</span>
@@ -7,9 +7,11 @@
 
 <script lang="ts" setup name="WaitHeader">
 
+import {PropType} from "vue";
+
 const props = defineProps({
   data: {
-    type: Object,
+    type: Object as PropType<TStepDataStat>,
     default: () => {
       return {}
     }

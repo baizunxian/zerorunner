@@ -1,6 +1,6 @@
 import typing
 from autotest.corelibs.codes import CodeEnum
-from autotest.exceptions import ParameterError
+from autotest.exceptions.exceptions import ParameterError
 from autotest.models.system_models import Lookup, LookupValue
 from autotest.schemas.system.lookup import LookupIn, LookupValueIn, LookupQuery, LookupId, LookupValueQuery
 

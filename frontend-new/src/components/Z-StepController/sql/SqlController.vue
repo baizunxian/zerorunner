@@ -14,11 +14,11 @@
           <el-row :gutter="24">
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="运行环境" prop="project_id">
-                <el-select size="small" v-model="data.env_id"
+                <el-select size="small" v-model="data.sql_request.env_id"
                            placeholder="运行环境"
                            filterable
                            style="width: 100%;"
-                           @change="selectEnv(data.env_id)">
+                           @change="selectEnv">
                   <el-option
                       v-for="env in state.envList"
                       :key="env.id + env.name"
@@ -32,13 +32,13 @@
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="数据源名称" prop="module_id">
-                <el-select size="small" v-model="data.source_id" placeholder="请选择" filterable
+                <el-select size="small" v-model="data.sql_request.source_id" placeholder="请选择" filterable
                            style="width: 100%;">
                   <el-option
                       v-for="source in state.sourceList"
                       :key="source.id + source.name"
                       :label="source.name"
-                      :value="source.id">
+                      :value="source.data_source_id">
                     <span style="float: left">{{ source.name }}</span>
                   </el-option>
                 </el-select>
@@ -47,7 +47,7 @@
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="超时时间" prop="config_id">
-                <el-input-number size="small" v-model="data.timeout" placeholder="秒"/>
+                <el-input-number size="small" v-model="data.sql_request.timeout" placeholder="秒"/>
               </el-form-item>
             </el-col>
           </el-row>
@@ -57,11 +57,11 @@
               <el-form-item label="存储结果" prop="variable_name">
                 <el-input size="small"
                           style="width: 100%"
-                          v-model="data.variable_name"
+                          v-model="data.sql_request.variable_name"
                           placeholder="查询结果赋值的变量名称">
                   <template #suffix>
-                    <span v-show="data.variable_name.length > 0" class="el-input__suffix-inner"
-                          @click="copyText('${'+ data.variable_name +'}')">
+                    <span v-show="data.sql_request.variable_name.length > 0" class="el-input__suffix-inner"
+                          @click="copyText('${'+ data.sql_request.variable_name +'}')">
                     <el-icon color="#303133">
                       <ele-DocumentCopy/>
                     </el-icon>
@@ -77,7 +77,7 @@
             <z-monaco-editor
                 style="height: 150px"
                 ref="monacoEditRef"
-                v-model:value="data.value"
+                v-model:value="data.sql_request.sql"
                 :options="{minimap: {enabled: false}}"
             />
           </div>
@@ -91,7 +91,7 @@
 </template>
 
 <script lang="ts" setup name="SqlController">
-import {nextTick, onMounted, reactive} from 'vue';
+import {nextTick, onMounted, PropType, reactive} from 'vue';
 import {useEnvApi} from "/@/api/useAutoApi/env";
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import commonFunction from '/@/utils/commonFunction';
@@ -100,7 +100,7 @@ const {copyText} = commonFunction()
 
 const props = defineProps({
   data: {
-    type: Object,
+    type: Object as PropType<TStepDataStat>,
     default: () => {
       return {}
     }
@@ -114,7 +114,7 @@ const state = reactive({
   sourceList: [],
   dataSourceQuery: {
     page: 1,
-    pageSize: 200,
+    pageSize: 1000,
     env_id: 0,
   },
   // environment
@@ -123,16 +123,16 @@ const state = reactive({
     page: 1,
     pageSize: 200
   },
-  // env
-  envId: null
 
 });
 
 // selectEnv
 const selectEnv = (env_id: number) => {
-  state.envId = env_id
-  props.data.source_id = null
-  getDataSourceList()
+  if (env_id) {
+    state.dataSourceQuery.env_id = env_id
+    getDataSourceList()
+  }
+  props.data.sql_request.source_id = null
 }
 
 // 初始化env
@@ -145,7 +145,7 @@ const getEnvList = () => {
 
 // 初始化datasource
 const getDataSourceList = () => {
-  useEnvApi().getDataSourceByEnvId({id: state.envId})
+  useEnvApi().getDataSourceByEnvId(state.dataSourceQuery)
       .then(res => {
         state.sourceList = res.data
       })
@@ -154,8 +154,8 @@ const getDataSourceList = () => {
 onMounted(() => {
   getEnvList()
   nextTick(() => {
-    if (props.data.env_id) {
-      state.dataSourceQuery.env_id = props.data.env_id
+    if (props.data.sql_request?.env_id) {
+      state.dataSourceQuery.env_id = props.data.sql_request.env_id
       getDataSourceList()
     }
   })

@@ -26,6 +26,11 @@ class EnvId(BaseModel):
     id: int = Field(..., description="id")
 
 
+class EnvIdIn(BaseModel):
+    """环境序列化"""
+    env_id: int = Field(..., description="env_id")
+
+
 class EnvIn(BaseModel):
     id: int = Field(None, description="")
     name: str = Field(None, description="")
@@ -43,3 +48,12 @@ class BindingDataSourceIn(BaseModel):
 
 class BindingDataSourceId(BaseModel):
     id: int = Field(..., description="")
+
+
+class BindingFuncIn(BaseModel):
+    env_id: int = Field(..., description="")
+    func_ids: typing.List[int] = Field(..., description="")
+
+
+class BindingFuncId(BaseModel):
+    func_id: int = Field(..., description="")

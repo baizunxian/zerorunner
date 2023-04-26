@@ -12,7 +12,7 @@ declare interface ReportData {
   run_skip_count: number
   run_success_count: number
   start_time: number
-  step_datas: Array<StepData>
+  step_results: Array<StepResult>
   start_time_iso_format: string
   success: boolean
 }
@@ -23,21 +23,22 @@ declare interface InOut {
 }
 
 
-declare interface StepData {
+declare interface StepResult {
   name: string
   case_id: string | number
-  duration: string | number
-  env_variables: object
+  duration: number
   case_variables: object
   export_vars: object
   message: string
   parent_step_id: string
-  post_hook_data: Array<StepData>
-  pre_hook_data: Array<StepData>
+  post_hook_data: Array<StepResult>
+  pre_hook_data: Array<StepResult>
+  setup_hook_results: Array<StepResult>
+  teardown_hook_results: Array<StepResult>
   session_data: SessionData
   start_time: number
   status: string
-  step_data: string
+  step_result: Array<StepResult>
   step_id: string
   step_tag: string
   step_type: string
@@ -48,7 +49,7 @@ declare interface StepData {
 
 declare interface SessionData {
   address: Address
-  req_resps: Array<RequestData, ResponseData>
+  req_resp: ReqResps
   stat: statData
   success: boolean
   validators: ValidateExtractor
@@ -60,6 +61,11 @@ declare interface SessionData {
   step_type: string
   variables: object
 
+}
+
+declare interface ReqResp {
+  request: RequestData,
+  response: ResponseData
 }
 
 

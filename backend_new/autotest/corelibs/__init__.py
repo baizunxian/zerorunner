@@ -2,4 +2,5 @@
 # @author: xiaobai
 
 from .local import g
-from .logger import logger
+
+__all__ = ["g"]

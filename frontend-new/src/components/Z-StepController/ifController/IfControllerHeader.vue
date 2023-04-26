@@ -1,11 +1,11 @@
 <template>
   <el-row @click.stop>
     <el-col :span="6" class="com-padding">
-      <el-input v-model="data.check" placeholder="变量,例如：${var}"/>
+      <el-input v-model="data.if_request.check" placeholder="变量,例如：${var}"/>
     </el-col>
     <el-col :span="6" class="com-padding">
       <el-select size="small"
-                 v-model="data.comparator"
+                 v-model="data.if_request.comparator"
                  placeholder=""
                  filterable
                  class="w100">
@@ -19,20 +19,20 @@
       </el-select>
     </el-col>
     <el-col :span="6" class="com-padding">
-      <el-input v-model="data.expect" placeholder="值"/>
+      <el-input v-model="data.if_request.expect" placeholder="值"/>
     </el-col>
     <el-col :span="6" class="com-padding">
-      <el-input v-model="data.remarks" placeholder="备注"/>
+      <el-input v-model="data.if_request.remarks" placeholder="备注"/>
     </el-col>
   </el-row>
 </template>
 
-<script lang="ts" setup name="IfControllerHeader">
-import {reactive} from 'vue';
+<script lang="ts" setup name="IfStep">
+import {PropType, reactive} from 'vue';
 
 const props = defineProps({
   data: {
-    type: Object,
+    type: Object as PropType<TStepDataStat>,
     default: () => {
       return {}
     }

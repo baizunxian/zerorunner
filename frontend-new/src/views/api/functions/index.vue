@@ -14,12 +14,12 @@
 
         <el-button class="ml10" type="primary" @click="search">查询
         </el-button>
-        <el-button class="ml10" type="warning" @click="onOpenSaveOrUpdate(null)">
-          公共函数
-        </el-button>
-        <!--        函数列表-->
-        <el-button class="ml10" type="success" @click="openFuncList">公共函数列表
-        </el-button>
+<!--        <el-button class="ml10" type="warning" @click="onOpenSaveOrUpdate(null)">-->
+<!--          公共函数-->
+<!--        </el-button>-->
+<!--        &lt;!&ndash;        函数列表&ndash;&gt;-->
+<!--        <el-button class="ml10" type="success" @click="openFuncList">公共函数列表-->
+<!--        </el-button>-->
       </div>
 
       <!--函数列表-->

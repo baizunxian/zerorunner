@@ -41,7 +41,7 @@
 import {useReportApi} from '/@/api/useAutoApi/report';
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus'
-import ReportDetail from "/@/views/api/Report/components/ReportDetail.vue";
+import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue";
 
 
 const reportDetailRef = ref()

@@ -8,10 +8,20 @@ import typing
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scoped_session, async_sessionmaker
-from autotest.config import config
+from autotest.config.config import config
 
 # 创建表引擎
-from autotest.corelibs import logger
+from loguru import logger
+
+# # 操作表会话
+# async_session = async_sessionmaker(
+#     bind=engine,
+#     class_=AsyncSession,
+#     autoflush=False,
+#     autocommit=False,
+#     expire_on_commit=False  # 防止提交后属性过期
+# )
+
 
 engine = create_async_engine(
     url=config.DATABASE_URI,  # 数据库uri
@@ -29,15 +39,6 @@ async_session_factory = async_sessionmaker(
     autocommit=False,
     expire_on_commit=False  # 防止提交后属性过期
 )
-
-# # 操作表会话
-# async_session = async_sessionmaker(
-#     bind=engine,
-#     class_=AsyncSession,
-#     autoflush=False,
-#     autocommit=False,
-#     expire_on_commit=False  # 防止提交后属性过期
-# )
 
 async_session = async_scoped_session(async_session_factory, scopefunc=current_task)
 

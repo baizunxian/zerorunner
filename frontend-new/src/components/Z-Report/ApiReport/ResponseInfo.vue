@@ -93,7 +93,6 @@ const initData = () => {
   if (state.content_type?.indexOf('json') !== -1) {
     state.body = JSON.stringify(state.body, null, 4)
   }
-  console.log(state, 55555555555)
 }
 
 watch(

@@ -3,10 +3,10 @@ import json
 from fastapi import APIRouter
 from loguru import logger
 
-from autotest.corelibs.http import partner_success
-from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiInfoRun, ApiRunSchema
+from autotest.corelibs.http_response import partner_success
+from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
 from autotest.services.api.api_info import ApiInfoService
-from autotest.celery_worker.tasks import async_run_api
+from celery_worker.tasks.test_case import async_run_api
 
 router = APIRouter()
 
@@ -69,7 +69,7 @@ async def run_test(params: ApiRunSchema):
 
 
 @router.post('/debugApi', description="debug接口")
-async def debug_api(params: ApiInfoRun):
+async def debug_api(params: ApiInfoIn):
     data = await ApiInfoService.debug_api(params)
     return partner_success(data)
 

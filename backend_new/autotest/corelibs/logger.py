@@ -2,16 +2,18 @@
 # @author: xiaobai
 import os
 import sys
-import uuid
 import logging
 from loguru import logger
 
-from autotest.config.config import config
-from autotest.corelibs import g
+from autotest.config import config
+from autotest.corelibs.local import g
 from autotest.utils import create_dir
 
 
 # 创建日志文件名
+from autotest.utils.common import get_str_uuid
+
+
 def logger_file() -> str:
     """ 创建日志文件名 """
     log_path = create_dir(config.LOGGER_DIR)
@@ -28,7 +30,7 @@ def logger_file() -> str:
 
 def correlation_id_filter(record):
     if not g.trace_id:
-        g.trace_id = uuid.uuid4().hex
+        g.trace_id = get_str_uuid()
     record['trace_id'] = g.trace_id
     return record
 
@@ -67,10 +69,12 @@ def init_logger():
 
     for logger_name in logger_name_list:
         """获取所有logger"""
-        logging.getLogger(logger_name).setLevel(logging.INFO)
-        logging.getLogger(logger_name).handlers = []
-        if '.' not in logger_name:
-            logging.getLogger(logger_name).addHandler(InterceptHandler())
+        effective_level = logging.getLogger(logger_name).getEffectiveLevel()
+        if effective_level < logging.getLevelName(config.LOGGER_LEVEL.upper()):
+            logging.getLogger(logger_name).setLevel(config.LOGGER_LEVEL.upper())
+            logging.getLogger(logger_name).handlers = []
+            if '.' not in logger_name:
+                logging.getLogger(logger_name).addHandler(InterceptHandler())
 
 
 init_logger()

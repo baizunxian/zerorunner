@@ -4,10 +4,9 @@
 # @create time: 2022/9/9 14:53
 import typing
 from enum import Enum
-from pydantic import BaseModel, Field, root_validator
-from pydantic import HttpUrl
 
-from zerorunner.snowflake import id_center
+from pydantic import BaseModel, Field
+from pydantic import HttpUrl
 
 Name = str
 Url = str
@@ -80,7 +79,7 @@ class ComparatorEnum(str, Enum):
     not_none = "not_none"
 
 
-class TStepDataStatusEnum(str, Enum):
+class TStepResultStatusEnum(str, Enum):
     """步骤数据状态"""
     success = "SUCCESS"
     fail = "FAILURE"
@@ -129,8 +128,7 @@ class TConfig(BaseModel):
 
 
 class TRequest(BaseModel):
-    """requests.Request model"""
-
+    """请求模型"""
     method: MethodEnum
     url: Url
     params: typing.Dict[str, str] = {}
@@ -339,7 +337,7 @@ class SessionData(BaseModel):
     validators: typing.Dict = {}
 
 
-class StepData(BaseModel):
+class StepResult(BaseModel):
     """测试步骤数据"""
 
     name: str = ""  # 步骤名称
@@ -355,20 +353,54 @@ class StepData(BaseModel):
     env_variables: VariablesMapping = {}
     variables: VariablesMapping = {}
     case_variables: VariablesMapping = {}
-    step_data: typing.List['StepData'] = None
+    step_result: typing.List['StepResult'] = None
     session_data: SessionData = None  # 请求信息
-    pre_hook_data: typing.List['StepData'] = []  # 前置
-    post_hook_data: typing.List['StepData'] = []  # 后置
+    pre_hook_data: typing.List['StepResult'] = []  # 前置
+    post_hook_data: typing.List['StepResult'] = []  # 后置
+    setup_hook_data: typing.List['StepResult'] = []  # 前置hook
+    teardown_hook_data: typing.List['StepResult'] = []  # 后置hook
     export_vars: VariablesMapping = {}
     log: str = ""
+    attachment: str = ""
 
     def dict(self, *args, **kwargs):
         """获取报告时去除 请求信息 避免报告数据太大"""
         kwargs["exclude"] = {"request", "response"}
-        return super(StepData, self).dict(*args, **kwargs)
+        return super(StepResult, self).dict(*args, **kwargs)
 
 
-StepData.update_forward_refs()
+StepResult.update_forward_refs()
+
+#
+# class StepResult(BaseModel):
+#     """步骤结果, 对应请求数据或者步骤数据"""
+#
+#     name: str = ""  # teststep name
+#     step_type: str = ""  # teststep type, request or testcase
+#     success: bool = False
+#     data: typing.Union[SessionData, typing.List["StepResult"]] = None
+#     elapsed: float = 0.0  # teststep elapsed time
+#     content_size: float = 0  # response content size
+#     export_vars: VariablesMapping = {}
+#     attachment: str = ""  # teststep attachment
+
+
+StepResult.update_forward_refs()
+
+#
+# class IStep(object):
+#     def name(self) -> str:
+#         raise NotImplementedError
+#
+#     def type(self) -> str:
+#         raise NotImplementedError
+#
+#     def struct(self) -> TStep:
+#         raise NotImplementedError
+#
+#     def run(self, runner) -> StepResult:
+#         # runner: HttpRunner
+#         raise NotImplementedError
 
 
 class TestCaseSummary(BaseModel):
@@ -389,7 +421,7 @@ class TestCaseSummary(BaseModel):
     # message 记录错误信息
     message: str = ""
     log: str = ""
-    step_datas: typing.List[StepData] = []
+    step_results: typing.List[StepResult] = []
 
 
 class PlatformInfo(BaseModel):

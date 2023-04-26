@@ -3,7 +3,7 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter
 
 from autotest.apis.websocket.connection_manager import websocket_manager
-from autotest.corelibs import logger
+from loguru import logger
 
 router = APIRouter()
 

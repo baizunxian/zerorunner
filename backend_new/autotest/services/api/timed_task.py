@@ -3,9 +3,10 @@ import traceback
 import typing
 
 from celery.schedules import crontab as celery_crontab
-from autotest.corelibs import logger, g
+from loguru import logger
+from autotest.corelibs import g
 from autotest.corelibs.codes import CodeEnum
-from autotest.exceptions import ParameterError
+from autotest.exceptions.exceptions import ParameterError
 from autotest.models.celery_beat_models import TimedTask, Crontab, IntervalSchedule, PeriodicTaskChanged
 
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, CrontabSaveSchema, TimedTasksInSchema, TimedTasksId, \
@@ -129,7 +130,7 @@ class TimedTasksService:
                 project_id=params.project_id,
                 run_type=30,
                 run_mode=params.run_mode,
-                env_id=None,
+                env_id=params.case_env_id,
                 ex_user_id=user_info.get("id"),
                 ex_user_name=user_info.get("nickname"),
             )

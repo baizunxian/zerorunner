@@ -46,6 +46,11 @@
             <DatabaseConfig ref="databaseConfigRef"/>
           </el-tab-pane>
 
+          <el-tab-pane name='funcConfig'>
+            <template #label><span>辅助函数配置</span></template>
+            <FuncConfig ref="funcConfigRef"/>
+          </el-tab-pane>
+
         </el-tabs>
       </div>
     </div>
@@ -63,6 +68,7 @@ import EnvInfo from '/@/views/api/environment/components/EnvInfo.vue'
 import HttpConfig from '/@/views/api/environment/components/HttpConfig.vue'
 import CommonConfig from '/@/views/api/environment/components/CommonConfig.vue'
 import DatabaseConfig from '/@/views/api/environment/components/DatabaseConfig.vue'
+import FuncConfig from '/@/views/api/environment/components/FuncConfig.vue'
 
 const props = defineProps({
   env_id: {
@@ -78,6 +84,7 @@ const EnvInfoRef = ref()
 const httpConfigRef = ref()
 const databaseConfigRef = ref()
 const commonConfigRef = ref()
+const funcConfigRef = ref()
 const state = reactive({
   isShowDialog: false,
   activeName: 'httpConfig',
@@ -91,6 +98,7 @@ const saveOrUpdate = () => {
     let msgData = EnvInfoRef.value.getData()
     let httpData = httpConfigRef.value.getData()
     let commonData = commonConfigRef.value.getData()
+    let FuncConfig = funcConfigRef.value.getData()
     // let databaseData = databaseConfigRef.value.getData()
 
     // 组装表单
@@ -123,6 +131,7 @@ const setData = async () => {
   httpConfigRef.value.setData(data)
   commonConfigRef.value.setData(data)
   databaseConfigRef.value.setData(data)
+  funcConfigRef.value.setData(data)
 }
 
 // 返回到列表

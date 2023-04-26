@@ -7,8 +7,8 @@ import traceback
 from pydantic import BaseModel
 import typing
 
-from autotest.corelibs import logger
-from autotest.exceptions import ParameterError
+from loguru import logger
+from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import DataSource
 from autotest.schemas.api.data_source import SourceQuery, SourceIn, SourceId
 from autotest.schemas.base import BaseSchema

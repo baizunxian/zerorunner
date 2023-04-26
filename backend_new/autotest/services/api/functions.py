@@ -4,7 +4,7 @@ import typing
 import uuid
 from types import FunctionType
 
-from autotest.config import config
+from autotest.config.config import config
 from autotest.models.api_models import Functions
 from autotest.schemas.api.functions import FuncQuery, FuncIn, FuncDebug, FuncListQuery, FuncId
 from zerorunner.loader import load_func_content

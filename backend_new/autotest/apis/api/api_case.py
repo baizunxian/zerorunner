@@ -1,8 +1,9 @@
 from fastapi import APIRouter
 
-from autotest.celery_worker.tasks import async_run_testcase
-from autotest.corelibs.http import partner_success
-from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, ApiCaseRun, ApiCaseIdsQuery
+from celery_worker.tasks.test_case import async_run_testcase
+from autotest.corelibs.http_response import partner_success
+from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
+    ApiTestCaseRun
 from autotest.services.api.api_case import ApiCaseService
 
 router = APIRouter()
@@ -27,13 +28,15 @@ async def save_or_update(params: ApiCaseIn):
 
 
 @router.post('/runTestCase', description="运行用例")
-async def run_testcase(params: ApiCaseId):
-    async_run_testcase.delay(params.id)
+async def run_testcase(params: ApiTestCaseRun):
+    if not params.id:
+        raise ValueError("id 不能为空！")
+    async_run_testcase.delay(case_id=params.id, env_id=params.env_id)
     return partner_success(msg="用例异步运行， 请稍后再测试报告列表查看 😊")
 
 
 @router.post('/debugTestCase', description="调试用例")
-async def debug_testcase(params: ApiCaseRun):
+async def debug_testcase(params: TestCaseRun):
     data = await ApiCaseService.debug_case(params)
     return partner_success(data)
 

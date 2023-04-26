@@ -8,7 +8,7 @@ from sqlalchemy.ext.declarative import as_declarative
 from autotest.corelibs import g
 from autotest.corelibs.pagination import parse_pagination
 from autotest.db.session import provide_session
-from autotest.exceptions import AccessTokenFail
+from autotest.exceptions.exceptions import AccessTokenFail
 from autotest.utils.current_user import current_user
 from autotest.utils.serialize import unwrap_scalars
 
@@ -41,7 +41,7 @@ class Base:
     trace_id = Column(String(255), nullable=False, comment="trace_id")
 
     @classmethod
-    async def get(cls, id: typing.Union[int, str], to_dict=False) -> typing.Union["Base", typing.Any]:
+    async def get(cls, id: typing.Union[int, str], to_dict=False) -> typing.Union["Base", typing.Dict]:
         """
         :param id: 查询id
         :param to_dict: 转字典

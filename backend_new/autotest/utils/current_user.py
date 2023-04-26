@@ -3,11 +3,14 @@
 import typing
 from autotest.corelibs import g
 from autotest.corelibs.consts import TEST_USER_INFO
-from autotest.exceptions import AccessTokenFail
+from autotest.db import init_redis_pool
+from autotest.exceptions.exceptions import AccessTokenFail
 
 
 async def current_user(token: str) -> typing.Union[typing.Dict[typing.Text, typing.Any], None]:
     """根据token获取用户信息"""
+    if not g.redis:
+        g.redis = await init_redis_pool()
     user_info = await g.redis.get(TEST_USER_INFO.format(token))
     if not user_info:
         raise AccessTokenFail()

@@ -106,7 +106,7 @@
 </template>
 
 <script lang="ts" setup name="StepNode">
-import {nextTick} from 'vue';
+import {nextTick, PropType} from 'vue';
 import ScriptController from "/@/components/Z-StepController/script/ScriptController.vue";
 import SqlController from "/@/components/Z-StepController/sql/SqlController.vue";
 import ExtractController from "/@/components/Z-StepController/extract/ExtractController.vue";
@@ -121,7 +121,7 @@ const emit = defineEmits(['copy-node', 'deleted-node'])
 
 const props = defineProps({
   data: {
-    type: Object,
+    type: Object as PropType<TStepDataStat>,
   },
   node: {
     type: Object,

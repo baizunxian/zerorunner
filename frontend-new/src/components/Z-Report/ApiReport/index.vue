@@ -2,26 +2,35 @@
   <div class="report-container">
     <el-tabs v-model="state.activeName" class="demo-tabs">
       <template v-if="state.step_type === 'api'">
-        <el-tab-pane label="响应信息" name="ResponseInfo">
+        <el-tab-pane name="ResponseInfo">
+          <template #label>
+            <strong>响应信息</strong>
+          </template>
           <ResponseInfo :data="state.responseInfo" :stat="state.stat" ref="responseInfoRef"></ResponseInfo>
         </el-tab-pane>
 
-        <el-tab-pane label="请求信息" name="RequestInfo">
+        <el-tab-pane name="RequestInfo">
+          <template #label>
+            <strong>请求信息</strong>
+          </template>
           <RequestInfo :data="state.requestInfo"></RequestInfo>
         </el-tab-pane>
 
-        <el-tab-pane label="结果断言" name="ReportValidators">
+        <el-tab-pane name="ReportValidators">
           <template #label>
-            <span>结果断言</span>
-            <el-icon v-show="getValidatorsResult() !== ''">
-              <ele-CircleCheck v-if="getValidatorsResult() === 'pass'" style="color: #0cbb52"/>
+            <strong>结果断言</strong>
+            <el-icon v-show="getValidatorsResultStatus !== null">
+              <ele-CircleCheck v-if="getValidatorsResultStatus" style="color: #0cbb52"/>
               <ele-CircleClose v-else style="color: red"/>
             </el-icon>
           </template>
           <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
         </el-tab-pane>
 
-        <el-tab-pane label="参数提取" name="extracts">
+        <el-tab-pane name="extracts">
+          <template #label>
+            <strong>参数提取</strong>
+          </template>
           <ReportExtracts :data="state.extracts"></ReportExtracts>
         </el-tab-pane>
 
@@ -29,42 +38,41 @@
         <!--        <request-content :data="data.req_resps[0].request"></request-content>-->
         <!--      </el-tab-pane>-->
 
-        <el-tab-pane label="变量追踪" name="ReportVariables">
+        <el-tab-pane name="ReportVariables">
+          <template #label>
+            <strong>变量追踪</strong>
+          </template>
           <ReportVariables :data="state.variables" ref=""></ReportVariables>
         </el-tab-pane>
 
 
-<!--        <el-tab-pane name="preHookData">-->
-<!--          <template #label>-->
-<!--            <span>前置步骤</span>-->
-<!--            <el-icon v-show="state.pre_hook_status !== ''">-->
-<!--              <ele-CircleCheck v-if="state.pre_hook_status === 'success'" style="color: #0cbb52"/>-->
-<!--              <ele-CircleClose v-else style="color: red"/>-->
-<!--            </el-icon>-->
-<!--          </template>-->
-<!--          <ReportStepInfo :data="state.pre_hook_data"></ReportStepInfo>-->
-<!--        </el-tab-pane>-->
-
-<!--        <el-tab-pane name="postHookData">-->
-<!--          <template #label>-->
-<!--            <span>后置步骤</span>-->
-<!--            <el-icon v-show="state.post_hook_status !== ''">-->
-<!--              <ele-CircleCheck v-if="state.post_hook_status ==='success'" style="color: #0cbb52"/>-->
-<!--              <ele-CircleClose v-else style="color: red"/>-->
-<!--            </el-icon>-->
-<!--          </template>-->
-<!--          <ReportStepInfo :data="state.post_hook_data"></ReportStepInfo>-->
-<!--        </el-tab-pane>-->
-
+        <el-tab-pane name="preHookData">
+          <template #label>
+            <strong>Hook</strong>
+            <el-icon v-show="getHookResultStatus !==null">
+              <ele-CircleCheck
+                  v-if="getHookResultStatus"
+                  style="color: #0cbb52"/>
+              <ele-CircleClose v-else style="color: red"/>
+            </el-icon>
+          </template>
+          <ReportHooks
+              :setup-hook-results="state.setup_hook_results"
+              :teardown-hook-results="state.teardown_hook_results">
+          </ReportHooks>
+        </el-tab-pane>
       </template>
 
-      <el-tab-pane label="运行日志" name="ReportLog">
+      <el-tab-pane name="ReportLog">
+        <template #label>
+          <strong>运行日志</strong>
+        </template>
         <ReportLog :data="state.log"></ReportLog>
       </el-tab-pane>
 
       <el-tab-pane label="错误信息" name="message">
         <template #label>
-          <span>错误信息</span>
+          <strong>错误信息</strong>
           <el-icon v-if="state.message !== ''">
             <ele-CircleClose style="color: red"/>
           </el-icon>
@@ -77,14 +85,14 @@
 </template>
 
 <script lang="ts" setup name="ApiReport">
-import {onMounted, PropType, reactive, ref, watch} from 'vue';
+import {computed, onMounted, PropType, reactive, ref, watch} from 'vue';
 import ResponseInfo from "./ResponseInfo.vue";
 import RequestInfo from "./RequestInfo.vue";
 import ReportValidators from "./ReportValidators.vue";
 import ReportExtracts from "./ReportExtracts.vue";
 import ReportLog from "./ReportLog.vue";
 import ReportVariables from "./ReportVariables.vue";
-import ReportStepInfo from "./ReportStepInfo.vue";
+import ReportHooks from './ReportHooks.vue'
 
 
 const props = defineProps({
@@ -121,43 +129,40 @@ const state = reactive({
   // 日志
   log: "",
   // 错误信息
-  //前置步骤
-  post_hook_data: [],
-  post_hook_status: "",
-  //后置步骤
-  pre_hook_data: [],
-  pre_hook_status: "",
+  //setup_hook
+  setup_hook_results: [],
+  //teardown_hook
+  teardown_hook_results: [],
 
 });
 
 const initData = () => {
-  let step_data: StepData
-  if (!props.reportData.step_datas) {
-    step_data = props.reportData
+  let step_result: StepResult
+  if (!props.reportData.step_results) {
+    step_result = props.reportData
   } else {
-    let {step_datas} = props.reportData
-    step_data = step_datas[0]
+    let {step_results} = props.reportData
+    step_result = step_results[0]
   }
 
-  state.success = step_data.success
-  state.step_type = step_data.step_type
-  state.message = step_data.message
+  state.success = step_result.success
+  state.step_type = step_result.step_type
+  state.message = step_result.message
   state.log = props.reportData.log
   if (state.step_type == 'api') {
     state.activeName = "ResponseInfo"
-    state.stat = step_data.session_data.stat
-    state.responseInfo = step_data.session_data.req_resp.response
-    state.requestInfo = step_data.session_data.req_resp.request
-    state.validators = step_data.session_data.validators
-    state.extracts = step_data.export_vars
-    state.post_hook_data = step_data.post_hook_data
-    state.pre_hook_data = step_data.pre_hook_data
-    state.pre_hook_status = getHookStatus(state.pre_hook_data)
-    state.post_hook_status = getHookStatus(state.post_hook_data)
+    state.stat = step_result.session_data.stat
+    state.responseInfo = step_result.session_data.req_resp.response
+    state.requestInfo = step_result.session_data.req_resp.request
+    state.validators = step_result.session_data.validators
+    state.extracts = step_result.export_vars
+    state.setup_hook_results = step_result.setup_hook_results
+    state.teardown_hook_results = step_result.teardown_hook_results
+
     state.variables = {
-      variables: step_data.variables,
-      envVariables: step_data.env_variables,
-      caseVariables: step_data.case_variables,
+      variables: step_result.variables,
+      envVariables: step_result.env_variables,
+      caseVariables: step_result.case_variables,
     }
   } else {
     state.activeName = "ReportLog"
@@ -168,19 +173,32 @@ const initData = () => {
 const getStat = () => {
   return {status_code: state.responseInfo.status_code, ...state.stat}
 }
-const getValidatorsResult = () => {
-  return validatorsRef.value.validatorsResult()
-}
 
-const getHookStatus = (hook: Array<any>) => {
-  if (hook.length === 0) return ""
-  let success_count = 0
-  hook.forEach((h) => {
-    if (h.success) success_count++
+// 获取校验结果状态
+const getValidatorsResultStatus = computed(() => {
+  if (!state.validators?.validate_extractor) {
+    return null
+  }
+  if (state.validators.validate_extractor.length === 0) {
+    return null
+  }
+  let failList = state.validators.validate_extractor.filter((e: any) => {
+    return e.check_result !== 'pass'
   })
-  if (success_count == hook.length) return "success"
-  return "fail"
-}
+  return failList.length === 0
+})
+
+// 获取hook执行结果状态状态
+const getHookResultStatus = computed(() => {
+  if (state.setup_hook_results.length === 0 && state.teardown_hook_results.length === 0) {
+    return null
+  }
+  let newHooks = state.setup_hook_results.concat(state.teardown_hook_results)
+  let failList = newHooks.filter((e: any) => {
+    return !e.success
+  })
+  return failList.length === 0
+})
 
 
 watch(

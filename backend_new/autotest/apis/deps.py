@@ -7,8 +7,9 @@ import typing
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
-from autotest.config import config
-from autotest.db import async_session, MyRedis
+from autotest.config.config import config
+from autotest.db.redis import MyRedis
+from autotest.db.session import async_session
 
 get_token = OAuth2PasswordBearer(tokenUrl=f"{config.API_PREFIX}/login")
 

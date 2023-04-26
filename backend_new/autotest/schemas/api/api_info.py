@@ -3,9 +3,10 @@ import typing
 
 from pydantic import root_validator, BaseModel, Field
 
-from autotest.exceptions import ParameterError
+from autotest.exceptions.exceptions import ParameterError
 from autotest.schemas.base import BaseSchema
-from zerorunner.models import TController, ExtractData, MethodEnum
+from autotest.schemas.step_data import TStepData, TRequestData
+from zerorunner.models import ExtractData, MethodEnum, TRequest
 
 
 class ApiQuery(BaseSchema):
@@ -113,12 +114,6 @@ class ApiValidatorsSchema(BaseModel):
     comparator: str = Field("", description="")
 
 
-class ApiBodySchema(BaseModel):
-    mode: str = Field("", description="")
-    data: str = Field("", description="")
-    language: str = Field("", description="")
-
-
 class ApiHooksSchema(BaseModel):
     name: str = Field(None, description="")
     index: typing.Union[str, int] = ""
@@ -142,30 +137,40 @@ class StepWaitSchema(ApiHooksSchema):
     pass
 
 
-class ApiInfoIn(BaseModel):
+class ApiInfoIn(TStepData):
     """用例保存更新"""
     id: int = Field(None, description="")
-    name: str = Field(..., description="")
-    project_id: int = Field(..., description="")
-    module_id: int = Field(..., description="")
-    case_status: int = Field(None, description="")
+    project_id: int = Field(None, description="")
+    module_id: int = Field(None, description="")
+    status: int = Field(None, description="")
+    env_id: int = Field(None, description="")
     code_id: int = Field(None, description="")
     code: str = Field(None, description="")
     priority: int = Field(None, description="")
-    case_tag: str = Field(None, description="")
     method: str = Field(None, description="")
     url: str = Field(None, description="")
-    request_body: ApiBodySchema = Field({}, description="")
-    pre_steps: typing.List[typing.Annotated[TController, Field(discriminator="step_type")]] = Field([], description="")
-    post_steps: typing.List[typing.Annotated[TController, Field(discriminator="step_type")]] = Field([], description="")
-    setup_hooks: typing.List[typing.Annotated[TController, Field(discriminator="step_type")]] = Field([], description="")
-    teardown_hooks: typing.List[typing.Annotated[TController, Field(discriminator="step_type")]] = Field([], description="")
-    variables: typing.List[ApiBaseSchema] = Field([], description="")
-    headers: typing.List[ApiBaseSchema] = Field([], description="")
-    validators: typing.List[ApiValidatorsSchema] = Field([], description="")
-    extracts: typing.List[ExtractData] = Field([], description="")
     tags: typing.List[str] = Field([], description="")
     remarks: str = Field(None, description="")
+    # validators: typing.List[typing.Any] = []
+    # pre_steps: typing.List[typing.Annotated[TStepData, Field(discriminator="step_type")]] = Field([], description="")
+    # post_steps: typing.List[typing.Annotated[TStepData, Field(discriminator="step_type")]] = Field([], description="")
+    headers: typing.List[ApiBaseSchema] = Field([], description="")
+
+
+class ApiRun(BaseModel):
+    id: int = Field(None, description="")
+    name: str = Field(None, description="")
+    env_id: int = Field(None, description="")
+    project_id: int = Field(None, description="")
+    module_id: int = Field(None, description="")
+    remarks: str = Field(None, description="")
+    code_id: int = Field(None, description="")
+    code: str = Field(None, description="")
+    priority: int = Field(None, description="")
+    status: int = Field(None, description="")
+    tags: typing.List[str] = Field([], description="")
+    step_data: typing.Union[TStepData, typing.List[TStepData]] = Field(None, description="步骤")
+    step_rely: int = Field(None, description="步骤依赖 1依赖，0 不依赖")
 
 
 class ApiInfoRun(BaseModel):
@@ -183,9 +188,10 @@ class ApiInfoRun(BaseModel):
     method: MethodEnum = Field(None, description="")
     url: str = Field(None, description="")
     env_id: int = Field(None, description="")
-    request_body: ApiBodySchema = Field({}, description="")
-    setup_hooks: typing.List[typing.Annotated[TController, Field(discriminator="step_type")]] = Field([], description="")
-    teardown_hooks: typing.List[typing.Annotated[TController, Field(discriminator="step_type")]] = Field([], description="")
+    step_type: int = Field(..., description="")
+    request: TRequestData = Field({}, description="")
+    setup_hooks: typing.Union[TStepData, typing.List[TStepData]] = Field(None, description="步骤")
+    teardown_hooks: typing.Union[TStepData, typing.List[TStepData]] = Field(None, description="步骤")
     variables: typing.List[ApiBaseSchema] = Field([], description="")
     headers: typing.List[ApiBaseSchema] = Field([], description="")
     validators: typing.List[ApiValidatorsSchema] = Field([], description="")

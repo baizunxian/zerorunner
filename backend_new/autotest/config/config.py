@@ -30,7 +30,7 @@ class Configs(BaseSettings):
     REDIS_URI: str = "redis://:@127.0.0.1:6379/4"  # redis
 
     # DATABASE_URI: str = "sqlite+aiosqlite:///./sql_app.db?check_same_thread=False"  # Sqlite(异步)
-    DATABASE_URI: str = "mysql+asyncmy://root:Bai.041916@xiaobaicodes.com:3306/zerorunner?charset=UTF8MB4"  # MySQL(异步)
+    DATABASE_URI: str = "mysql+asyncmy://zerorunner:Bai.123456@xiaobaicodes.com:3306/zerorunner?charset=UTF8MB4"  # MySQL(异步)
     # DATABASE_URI: str = "postgresql+asyncpg://postgres:123456@localhost:5432/postgres"  # PostgreSQL(异步)
     DATABASE_ECHO: bool = False  # 是否打印数据库日志 (可看到创建表、表数据增删改查的信息)
 
@@ -61,8 +61,9 @@ class Configs(BaseSettings):
     broker_pool_limit: int = 10
     # 传递给底层传输的附加选项的字典。设置可见性超时的示例（Redis 和 SQS 传输支持）
     result_backend_transport_options: typing.Dict[str, typing.Any] = {'visibility_timeout': 3600}
-    imports: typing.List[typing.Any] = [
-        'autotest.celery_worker.tasks',
+    include: typing.List[typing.Any] = [
+        'celery_worker.tasks.test_case',
+        'celery_worker.tasks.common',
     ]
     # task_queues = (
     #     Queue("case", )
@@ -72,7 +73,7 @@ class Configs(BaseSettings):
     task_run_pool = 3
 
     # celery beat
-    beat_db_uri = "mysql+pymysql://root:Bai.041916@xiaobaicodes.com:3306/zerorunner?charset=UTF8MB4"
+    beat_db_uri = "mysql+pymysql://zerorunner:Bai.123456@xiaobaicodes.com:3306/zerorunner?charset=UTF8MB4"
 
     class Config:
         case_sensitive = True  # 区分大小写

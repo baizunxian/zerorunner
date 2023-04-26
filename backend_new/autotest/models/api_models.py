@@ -8,7 +8,7 @@ from autotest.models.system_models import User
 from autotest.schemas.api.api_case import ApiCaseQuery
 from autotest.schemas.api.api_info import ApiQuery
 from autotest.schemas.api.data_source import SourceQuery
-from autotest.schemas.api.env import EnvQuery, BindingDataSourceIn
+from autotest.schemas.api.env import EnvQuery, BindingDataSourceIn, BindingFuncIn
 from autotest.schemas.api.functions import FuncQuery
 from autotest.schemas.api.module import ModuleQuery
 from autotest.schemas.api.projectquery import ProjectQuery
@@ -178,24 +178,29 @@ class ApiInfo(Base):
     name = Column(String(255), nullable=False, comment="用例名称", index=True)
     project_id = Column(Integer, nullable=False, comment='所属项目')
     module_id = Column(Integer, nullable=False, comment='所属模块')
-    api_status = Column(Integer, nullable=True, comment='用例状态 10, 生效 ， 20 失效', default=10)
+    status = Column(Integer, nullable=True, comment='用例状态 10, 生效 ， 20 失效', default=10)
     code_id = Column(BigInteger, nullable=True, comment='关联接口id')
     code = Column(String(255), nullable=True, comment='接口code')
     priority = Column(Integer, nullable=False, comment='优先级', default=3)
-    api_tag = Column(String(255), nullable=True, comment='用例标签')
+    tags = Column(JSON, nullable=True, comment='用例标签')
+    url = Column(JSON, nullable=True, comment='请求地址')
     method = Column(String(255), nullable=True, comment='请求方式')
+    remarks = Column(String(255), nullable=True, comment='描述')
+    step_type = Column(String(255), nullable=True, comment='描述')
     pre_steps = Column(JSON, nullable=True, comment='前置步骤')
     post_steps = Column(JSON, nullable=True, comment='后置步骤')
     setup_hooks = Column(JSON, nullable=True, comment='前置操作')
     teardown_hooks = Column(JSON, nullable=True, comment='后置操作')
-    variables = Column(JSON, nullable=True, comment='变量')
-    request_body = Column(JSON, nullable=True, comment='请求参数')
     headers = Column(JSON, nullable=True, comment='请求头')
-    url = Column(JSON, nullable=True, comment='请求地址')
+    variables = Column(JSON, nullable=True, comment='变量')
     validators = Column(JSON, nullable=True, comment='断言规则')
     extracts = Column(JSON, nullable=True, comment='提取')
-    tags = Column(JSON, nullable=True, comment='用例标签')
-    remarks = Column(String(255), nullable=True, comment='描述')
+    export = Column(JSON, nullable=True, comment='输出')
+    request = Column(JSON, nullable=True, comment='请求参数')
+    sql_request = Column(JSON, nullable=True, comment='sql请求参数')
+    loop_data = Column(JSON, nullable=True, comment='sql请求参数')
+    if_data = Column(JSON, nullable=True, comment='sql请求参数')
+    wait_data = Column(JSON, nullable=True, comment='sql请求参数')
 
     @classmethod
     async def get_list(cls, params: ApiQuery):
@@ -253,8 +258,8 @@ class ApiInfo(Base):
                       cls.code_id,
                       cls.code,
                       cls.priority,
-                      cls.api_status,
-                      cls.api_tag,
+                      cls.status,
+                      cls.tags,
                       cls.updated_by,
                       cls.created_by,
                       cls.updation_date,
@@ -293,9 +298,10 @@ class ApiInfo(Base):
         return cls.query.filter(cls.project_id == project_id, cls.enabled_flag == 1)
 
     @classmethod
-    def get_api_by_name(cls, name):
+    async def get_api_by_name(cls, name):
         """获取用例名是否存在"""
-        return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
+        stmt = select(cls.get_table_columns()).where(cls.enabled_flag == 1, cls.name == name)
+        return await cls.get_result(stmt)
 
     @classmethod
     def get_api_by_ids(cls, ids: typing.List[typing.Union[int, str]]):
@@ -348,13 +354,12 @@ class ApiCase(Base):
     name = Column(String(64), nullable=False, comment='名称', index=True)
     project_id = Column(Integer, nullable=False, comment='所属项目')
     remarks = Column(String(255), nullable=False, comment='备注')
-    env_id = Column(Integer, nullable=False, comment='环境id')
     headers = Column(JSON, nullable=False, comment='场景请求头')
     variables = Column(JSON, nullable=False, comment='场景变量')
     step_data = Column(JSON, nullable=False, comment='场景步骤')
     step_rely = Column(Integer, nullable=False, comment='步骤依赖  1依赖， 0 不依赖')
 
-    #todo 目前步骤详情都冗余在单表，后面会拆为独立的表管理
+    # todo 目前步骤详情都冗余在单表，后面会拆为独立的表管理
 
     @classmethod
     async def get_list(cls, params: ApiCaseQuery):
@@ -629,6 +634,8 @@ class ApiTestReportDetail:
                 duration = Column(DECIMAL(), nullable=True, comment='耗时')
                 pre_hook_data = Column(JSON, nullable=True, comment='前置步骤')
                 post_hook_data = Column(JSON, nullable=True, comment='后置步骤')
+                setup_hook_results = Column(JSON, nullable=True, comment='前置hook结果')
+                teardown_hook_results = Column(JSON, nullable=True, comment='后置hook结果')
                 index = Column(Integer, nullable=True, comment='顺序')
                 status_code = Column(Integer, nullable=True, comment='顺序')
                 response_time_ms = Column(DECIMAL(), nullable=True, comment='响应耗时')
@@ -785,6 +792,7 @@ class EnvDataSource(Base):
     async def get_by_env_id(cls, env_id: int):
         q = [cls.enabled_flag == 1, cls.env_id == env_id]
         stmt = select(cls.id,
+                      cls.env_id.label("env_id"),
                       Env.name.label("env_name"),
                       DataSource.name,
                       DataSource.id.label("data_source_id"),
@@ -801,34 +809,48 @@ class EnvDataSource(Base):
             .order_by(cls.id.desc())
         return await cls.get_result(stmt)
 
-    # @classmethod
-    # async def get_list(cls, params: EnvQuery = EnvQuery()):
-    #     q = [cls.enabled_flag == 1]
-    #     if params.name:
-    #         q.append(cls.name.like('%{}%'.format(params.name)))
-    #     if params.created_by_name:
-    #         q.append(User.nickname.like('%{}%'.format(params.created_by_name)))
-    #     u = aliased(User)
-    #     stmt = select(cls.id,
-    #                   cls.name,
-    #                   cls.domain_name,
-    #                   cls.variables,
-    #                   cls.headers,
-    #                   cls.remarks,
-    #                   cls.updated_by,
-    #                   cls.created_by,
-    #                   cls.creation_date,
-    #                   cls.updation_date,
-    #                   User.nickname.label('created_by_name'),
-    #                   u.nickname.label('updated_by_name'), ).where(*q) \
-    #         .join(u, u.id == cls.updated_by) \
-    #         .join(User, User.id == cls.created_by) \
-    #         .order_by(cls.id.desc())
-    #     return await cls.pagination(stmt)
+    @classmethod
+    async def get_env_by_name(cls, name):
+        """根据环境名称获取数据"""
+        stmt = select(cls).where(cls.name == name, cls.enabled_flag == 1)
+        await cls.get_result(stmt, first=True)
+
+
+class EnvFunc(Base):
+    """环境数据源管理表"""
+    __tablename__ = 'env_func'
+
+    env_id = Column(Integer, nullable=True, index=True, comment='环境id')
+    func_id = Column(Integer, nullable=True, index=True, comment='辅助函数id')
+
+    @classmethod
+    async def unbinding_funcs(cls, params: BindingFuncIn):
+        stmt = update(cls).where(cls.enabled_flag == 1,
+                                 cls.env_id == params.env_id,
+                                 cls.func_id.in_(params.func_ids)) \
+            .values(enabled_flag=0)
+        return await cls.execute(stmt)
+
+    @classmethod
+    async def get_by_env_id(cls, env_id: int):
+        q = [cls.enabled_flag == 1, cls.env_id == env_id]
+        stmt = select(cls.get_table_columns(),
+                      cls.env_id.label("env_id"),
+                      Env.name.label("env_name"),
+                      Functions.name.label("name"),
+                      Functions.remarks.label("remarks"),
+                      Functions.content.label("content"),
+                      Functions.id.label("func_id"),
+                      ) \
+            .where(*q) \
+            .outerjoin(Env, Env.id == cls.env_id) \
+            .outerjoin(Functions, Functions.id == cls.func_id) \
+            .order_by(cls.id.desc())
+        return await cls.get_result(stmt)
 
     @classmethod
     async def get_env_by_name(cls, name):
-        """根据环境名称获取环境"""
+        """根据环境名称获取数据"""
         stmt = select(cls).where(cls.name == name, cls.enabled_flag == 1)
         await cls.get_result(stmt, first=True)
 
@@ -840,6 +862,8 @@ class Functions(Base):
     remarks = Column(Integer, nullable=False, comment='备注')
     project_id = Column(Integer, nullable=False, comment='关联项目')
     content = Column(Text, nullable=True, comment='自定义函数内容')
+    func_type = Column(String(255), nullable=False, comment='函数类型')
+    func_tags = Column(String(255), nullable=False, comment='函数标签')
 
     @classmethod
     async def get_list(cls, params: FuncQuery):

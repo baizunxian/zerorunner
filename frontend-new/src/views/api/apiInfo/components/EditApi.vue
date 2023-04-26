@@ -75,8 +75,8 @@
 
                   <el-tab-pane name='Hook' class="h100">
                     <template #label>
-                      <el-badge :hidden="!getDataLength('pre')"
-                                :value="getDataLength('pre')"
+                      <el-badge :hidden="!(getDataLength('setupHook') + getDataLength('teardownHook'))"
+                                :value="(getDataLength('setupHook') + getDataLength('teardownHook'))"
                                 class="badge-item"
                                 type="primary">
                         <strong>Hook</strong>
@@ -87,13 +87,13 @@
                         <el-col :span="12" style="padding: 0 10px">
                           <el-card>
                             <template #header>前置 Hook</template>
-                            <ApiPreSteps ref="ApiPreStepsRef"/>
+                            <ApiHooks ref="APiSetupHooksRef" useType="pre"/>
                           </el-card>
                         </el-col>
                         <el-col :span="12" style="padding: 0 10px">
                           <el-card>
                             <template #header>后置 Hook</template>
-                            <ApiPreSteps ref="ApiPreStepsRef"/>
+                            <ApiHooks ref="APiTeardownHooksRef" useType="post"/>
                           </el-card>
                         </el-col>
                       </el-row>
@@ -203,6 +203,7 @@ import ApiPreSteps from './ApiPreSteps.vue'
 import ApiPostSteps from './ApiPostSteps.vue'
 import ApiValidators from './ApiValidators.vue'
 import ApiExtracts from './ApiExtracts.vue'
+import ApiHooks from "./ApiHooks.vue"
 
 
 const emit = defineEmits(['moduleChange'])
@@ -235,8 +236,8 @@ const ApiValidatorsRef = ref()
 const ApiExtractsRef = ref()
 const ResponseRef = ref()
 const ApiReportRef = ref()
-// const ApiPreStepsRef = ref()
-// const ApiPostStepsRef = ref()
+const APiSetupHooksRef = ref()
+const APiTeardownHooksRef = ref()
 
 const state = reactive({
   isShowDialog: false,
@@ -273,8 +274,8 @@ const saveOrUpdateOrDebug = (type: string) => {
     let variableData = ApiVariablesRef.value.getData()
     let validatorsData = ApiValidatorsRef.value.getData()
     let extractsData = ApiExtractsRef.value.getData()
-    // let preData = ApiPreStepsRef.value.getData()
-    // let postData = ApiPostStepsRef.value.getData()
+    let setupHooksData = APiSetupHooksRef.value.getData()
+    let teardownHooksData = APiTeardownHooksRef.value.getData()
 
     // 组装表单
     let apiCaseData = {
@@ -288,16 +289,21 @@ const saveOrUpdateOrDebug = (type: string) => {
       method: caseInfoData.method,
       url: caseInfoData.url,
       tags: caseInfoData.tags,
+      step_type: "api",
       remarks: caseInfoData.remarks,
       env_id: caseInfoData.env_id,
-      headers: headerData,
-      request_body: bodyData,
+      request: {
+        ...bodyData,
+        headers: headerData,
+        method: caseInfoData.method,
+        url: caseInfoData.url,
+      },
       variables: variableData,
 
       validators: validatorsData,
       extracts: extractsData,
-      // setup_hooks: preData,
-      // teardown_hooks: postData,
+      setup_hooks: setupHooksData,
+      teardown_hooks: teardownHooksData,
     }
 
     // 保存用例
@@ -345,7 +351,6 @@ const saveOrUpdateOrDebug = (type: string) => {
 }
 
 const initApi = () => {
-  console.log("initApi", route)
   let case_id = null
   if (props.case_id) {
     case_id = props.case_id
@@ -361,13 +366,13 @@ const initApi = () => {
         .then(res => {
           let apiCaseData = res.data
           ApiInfoRef.value.setData(apiCaseData)
-          ApiRequestBodyRef.value.setData(apiCaseData.request_body)
+          ApiRequestBodyRef.value.setData(apiCaseData.request)
           ApiRequestHeadersRef.value.setData(apiCaseData.headers)
           ApiVariablesRef.value.setData(apiCaseData.variables)
           ApiExtractsRef.value.setData(apiCaseData.extracts)
           ApiValidatorsRef.value.setData(apiCaseData.validators)
-          // ApiPreStepsRef.value.setData(apiCaseData.pre_steps, state.case_id)
-          // ApiPostStepsRef.value.setData(apiCaseData.post_steps, state.case_id)
+          APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.case_id)
+          APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.case_id)
 
         })
   } else {
@@ -379,8 +384,8 @@ const initApi = () => {
     ApiVariablesRef.value.setData()
     ApiExtractsRef.value.setData()
     ApiValidatorsRef.value.setData()
-    // ApiPreStepsRef.value.setData()
-    // ApiPostStepsRef.value.setData()
+    APiSetupHooksRef.value.setData()
+    APiTeardownHooksRef.value.setData()
   }
 }
 
@@ -395,15 +400,14 @@ const getDataLength = (ref: string) => {
       return ApiRequestHeadersRef?.value.getData().length
     case "variables":
       return ApiVariablesRef.value.getData().length
-
     case "validators":
       return ApiValidatorsRef.value.getData().length
     case "extracts":
       return ApiExtractsRef.value.getData().length
-      // case "pre":
-      //   return ApiPreStepsRef.value.getData().length
-      // case "post":
-      //   return ApiPostStepsRef.value.getData().length
+    case "setupHook":
+      return APiSetupHooksRef.value.getData().length
+    case "teardownHook":
+      return APiTeardownHooksRef.value.getData().length
     default:
       return 0
   }

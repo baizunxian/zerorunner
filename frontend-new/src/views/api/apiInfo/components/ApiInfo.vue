@@ -42,7 +42,7 @@
           <el-button size="default" type="primary" @click="saveOrUpdateOrDebug('save')" class="title-button">保存
           </el-button>
           <el-button size="default" type="success" @click="handleDebug">调试</el-button>
-          <el-button size="default" type="danger" @click="saveOrUpdateOrDebug('debug')">删除</el-button>
+<!--          <el-button size="default" type="danger" @click="saveOrUpdateOrDebug('debug')">删除</el-button>-->
         </div>
       </el-col>
       <!--      </div>-->

@@ -23,7 +23,7 @@ class ZeroRunner(object):
 
     def add_tests(self, testcase: models.TestCase) -> typing.List[unittest.TestSuite]:
 
-        def _add_test(test_runner: runner.Runner, test_step: models.TController):
+        def _add_test(test_runner: runner.SessionRunner, test_step: models.TController):
             """
             test_runner : Runner
             test_step : TController
@@ -45,7 +45,7 @@ class ZeroRunner(object):
         testcase_list = []
 
         for index, step in enumerate(testcase.teststeps):
-            test_runner = runner.Runner()
+            test_runner = runner.SessionRunner()
             test_runner.with_config(testcase.config)
             test_method_name = "test_{:04}".format(index)
             test_method = _add_test(test_runner, step)
@@ -131,7 +131,7 @@ class ZeroRunner(object):
             summary.in_out = testcase_summary.in_out
             summary.log += f"\n{testcase_summary.log}"
             summary.run_count += 1
-            for step in testcase_summary.step_datas:
+            for step in testcase_summary.step_results:
                 summary.actual_run_count += 1
                 step_status = step.status.lower()
                 if step_status == "success":
@@ -145,6 +145,6 @@ class ZeroRunner(object):
                 if step_status != "success" and summary.success:
                     summary.success = False
                 summary.duration += step.duration
-                summary.step_datas.append(step)
+                summary.step_results.append(step)
         summary.start_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime(summary.start_time))
         return summary
