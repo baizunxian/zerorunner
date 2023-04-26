@@ -60,6 +60,6 @@
 ## 2.0.0 (2023-04-26)
 
 **Added**
-- 从后端项目冲flask切换到fastApi
+- 从后端项目从flask切换到fastApi
 - 使用自定义执行引擎，支持多种类型步骤
 - 添加celery对async异步函数的支持
