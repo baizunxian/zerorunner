@@ -1,4 +1,8 @@
-// import {store} from "/@/store";
+import {storeToRefs} from 'pinia';
+import {useLookup} from "/@/stores/lookup";
+
+let useLookupList = useLookup()
+let {lookupList} = storeToRefs(useLookupList)
 
 /**
  * 返回数据字典
@@ -7,8 +11,8 @@
  * @returns return 对应的字符串，否则返回原值
  */
 export function formatLookup(code: string, lookup_code: string): string {
-  // let lookup: any = store.state.lookup.lookup[code]
-  // if (!lookup) return lookup_code;
-  // if (lookup[lookup_code]) return lookup[lookup_code];
+  let lookup = lookupList.value[code]
+  if (!lookup) return lookup_code;
+  if (lookup[lookup_code]) return lookup[lookup_code];
   return lookup_code;
 }

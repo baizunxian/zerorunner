@@ -11,7 +11,7 @@ import os
 import os.path
 import platform
 from multiprocessing import Queue
-from typing import Any, Dict, List
+import typing
 
 from zerorunner import exceptions, __version__
 from loguru import logger
@@ -162,8 +162,8 @@ def get_platform():
     }
 
 
-def sort_dict_by_custom_order(raw_dict: Dict, custom_order: List):
-    def get_index_from_list(lst: List, item: Any):
+def sort_dict_by_custom_order(raw_dict: typing.Dict, custom_order: typing.List):
+    def get_index_from_list(lst: typing.List, item: typing.Any):
         try:
             return lst.index(item)
         except ValueError:
@@ -189,7 +189,7 @@ class ExtendJSONEncoder(json.JSONEncoder):
 def merge_variables(
         variables: VariablesMapping, variables_to_be_overridden: VariablesMapping
 ) -> VariablesMapping:
-    """ 合并map
+    """ variables 合并到 variables_to_be_overridden
     """
     step_new_variables = {}
     for key, value in variables.items():
@@ -214,7 +214,7 @@ def is_support_multiprocessing() -> bool:
         return False
 
 
-def gen_cartesian_product(*args: List[Dict]) -> List[Dict]:
+def gen_cartesian_product(*args: typing.List[typing.Dict]) -> typing.List[typing.Dict]:
     """ generate cartesian product for lists
 
     Args:

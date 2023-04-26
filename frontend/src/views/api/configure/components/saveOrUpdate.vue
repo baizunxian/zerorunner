@@ -53,10 +53,9 @@
 import {defineComponent, onMounted, reactive, ref, toRefs} from 'vue'
 import Messages from '/@/views/api/configure/components/messages.vue'
 import RequestHeaders from '/@/views/api/configure/components/requestHeaders.vue'
-// import ExtractValidate from '/@/views/api/configure/components/extractValidate.vue'
+// import ExtractValidate from '/@/views/api/configure/components/ExtractValidate.vue'
 import VariablesParameters from '/@/views/api/configure/components/variablesParameters.vue'
 import {ElMessage} from "element-plus"
-import {useStore} from "/@/store"
 import {useRoute, useRouter} from "vue-router"
 import {useTestCaseApi} from '/@/api/useAutoApi/testCase'
 
@@ -75,7 +74,6 @@ export default defineComponent({
     },
   },
   setup(props) {
-    const store = useStore();
     const route = useRoute();
     const router = useRouter();
     const userInfo = store.state.userInfos

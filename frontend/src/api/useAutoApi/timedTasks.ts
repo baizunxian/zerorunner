@@ -35,5 +35,12 @@ export function useTimedTasksApi() {
         data,
       });
     },
+    checkCrontab: (data?: object) => {
+      return request({
+        url: '/timedTasks/checkCrontab',
+        method: 'POST',
+        data,
+      });
+    },
   };
 }

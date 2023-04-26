@@ -1,5 +1,5 @@
-import {nextTick, defineAsyncComponent} from 'vue';
 import type {App} from 'vue';
+import {nextTick} from 'vue';
 import * as svg from '@element-plus/icons-vue';
 import router from '/@/router/index';
 import pinia from '/@/stores/index';
@@ -8,23 +8,23 @@ import {useThemeConfig} from '/@/stores/themeConfig';
 import {Local} from '/@/utils/storage';
 import {verifyUrl} from '/@/utils/toolsValidate';
 
-// @ts-ignore
-import {Splitpanes, Pane} from "splitpanes";
-
-const ZeroTable = defineAsyncComponent(() => import("/@/components/Z-Table/index.vue"))
-const StepController = defineAsyncComponent(() => import("/@/components/StepController/index.vue"))
-const ApiReport = defineAsyncComponent(() => import("/@/components/Report/ApiReport/index.vue"))
-const MonacoEditor = defineAsyncComponent(() => import("/@/components/monaco/index.vue"))
-const DetailPageHeader = defineAsyncComponent(() => import("/@/components/detailPageHeader/index.vue"))
-const SvgIcon = defineAsyncComponent(() => import('/@/components/svgIcon/index.vue'));
+// 引入组件
+import {Pane, Splitpanes} from "splitpanes";
+import ZTable from "/@/components/Z-Table/index.vue"
+import ZStepController from "/@/components/Z-StepController/index.vue"
+import ZApiReport from "/@/components/Z-Report/ApiReport/index.vue"
+import ZApiDetail from "/@/views/api/apiInfo/components/EditApi.vue"
+import MonacoEditor from "/@/components/monaco/index.vue"
+import ZDetailPageHeader from "/@/components/Z-DetailPageHeader/index.vue"
+import SvgIcon from "/@/components/svgIcon/index.vue"
 
 
 /**
  * 导出全局注册 zero table
  * @param app vue 实例
  */
-export function zeroTable(app: App) {
-  app.component('z-table', ZeroTable);
+export function ZeroTable(app: App) {
+  app.component('z-table', ZTable);
 }
 
 /**
@@ -32,8 +32,8 @@ export function zeroTable(app: App) {
  * @param app vue 实例
  */
 
-export function stepController(app: App) {
-  app.component('z-step-controller', StepController);
+export function ZeroStepController(app: App) {
+  app.component('z-step-controller', ZStepController);
 
 }
 
@@ -42,8 +42,17 @@ export function stepController(app: App) {
  * @param app vue 实例
  */
 
-export function apiReport(app: App) {
-  app.component('z-api-report', ApiReport);
+export function ZeroApiReport(app: App) {
+  app.component('z-api-report', ZApiReport);
+}
+
+/**
+ * 导出全局注册 ZeroApiDetail
+ * @param app vue 实例
+ */
+
+export function ZeroApiDetail(app: App) {
+  app.component('z-api-detail', ZApiDetail);
 }
 
 /**
@@ -65,15 +74,14 @@ export function monaco(app: App) {
 }
 
 /**
- * 导出全局注册 detailPageHeader
+ * 导出全局注册 Z-DetailPageHeader
  * @param app vue 实例
  */
 
-export function detailPageHeader(app: App) {
-  app.component('z-detail-page-header', DetailPageHeader);
+export function ZeroDetailPageHeader(app: App) {
+  app.component('z-detail-page-header', ZDetailPageHeader);
 }
 
-// 引入组件
 
 /**
  * 导出全局注册 element plus svg 图标
@@ -242,14 +250,13 @@ export function handleOpenLink(val: RouteItem) {
  */
 const other = {
   apiPublicAssembly: (app: App) => {
-    zeroTable(app);
-    stepController(app);
-    monaco(app);
-    apiReport(app);
+    ZeroTable(app);
+    ZeroApiDetail(app);
+    ZeroStepController(app);
+    ZeroApiReport(app);
+    ZeroDetailPageHeader(app);
     splitpanes(app);
-    detailPageHeader(app);
-  },
-  elSvg: (app: App) => {
+    monaco(app);
     elSvg(app);
   },
   useTitle: () => {

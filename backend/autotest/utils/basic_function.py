@@ -2,19 +2,13 @@
 基本函数实现
 提供使用中使用的获取随机数，时间等基本方法
 """
-import os
-import random
-import traceback
-import shutil
-import time
 import datetime
-import arrow as arrow
 import math
+import random
+import time
 import uuid
 
-from autotest.corelibs.bredis import br
-from autotest.corelibs.exc_db import DB
-from autotest.corelibs.exc_hive import PrestoDB, Hive
+import arrow as arrow
 
 
 # -----------------------------------  随机  ----------------------------------------------

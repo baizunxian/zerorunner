@@ -75,7 +75,7 @@ import {defineComponent, onMounted, reactive, toRefs, ref, getCurrentInstance, o
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import mysqlIcon from "/@/icons/mysql_icon.svg";
 import mysqlTableIcon from "/@/icons/mysql_table.svg";
-import saveOrUpdateSource from "/@/views/tools/dataSource/components/saveOrUpdate.vue";
+import saveOrUpdateSource from "/@/views/api/dataSource/EditDataSource.vue";
 
 export default defineComponent({
   name: 'typeTab',

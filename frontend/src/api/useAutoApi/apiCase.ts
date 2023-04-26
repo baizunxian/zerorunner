@@ -15,6 +15,13 @@ export function useApiCaseApi() {
         data,
       });
     },
+    getCaseByIds: (data?: object) => {
+      return request({
+        url: `${BaseApiPath}/getCaseByIds`,
+        method: 'POST',
+        data,
+      });
+    },
     saveOrUpdate(data?: object) {
       return request({
         url: `${BaseApiPath}/saveOrUpdate`,
@@ -43,9 +50,9 @@ export function useApiCaseApi() {
         data,
       });
     },
-    getSuitesInfo: (data?: object) => {
+    getCaseInfo: (data?: object) => {
       return request({
-        url: `${BaseApiPath}/getSuiteInfo`,
+        url: `${BaseApiPath}/getCaseInfo`,
         method: 'POST',
         data,
       });

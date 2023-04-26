@@ -6,7 +6,7 @@
 
 import {handleEmpty} from "/@/utils/other";
 import {reactive} from "vue";
-import VariableController from "/@/components/StepController/variable/VariableController.vue"
+import VariableController from "/@/components/Z-StepController/variable/VariableController.vue"
 
 
 interface baseState {

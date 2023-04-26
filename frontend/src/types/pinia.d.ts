@@ -3,17 +3,24 @@
  */
 
 // 用户信息
-declare interface UserInfosState<T = any> {
+declare interface UserInfoState<T = any> {
   userInfos: {
     id: any;
     authBtnList: string[];
-    photo: string;
+    avatar: string;
     roles: string[];
-    menus: object[];
     time: number;
     username: string;
     nickname: string;
     user_type: any;
+    [key: string]: T;
+  };
+}
+
+// 菜单信息
+declare interface MenuDataState<T = any> {
+  menuData: {
+    [key: string]: T;
   };
 }
 
@@ -39,6 +46,11 @@ declare interface RoutesListState<T = any> {
   routesList: T[];
   isColumnsMenuHover: Boolean;
   isColumnsNavHover: Boolean;
+}
+
+// lookup 数据字典
+declare interface LookupListListState<T = any> {
+  lookupList: T[];
 }
 
 // 布局配置

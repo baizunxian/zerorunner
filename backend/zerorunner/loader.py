@@ -9,12 +9,13 @@ import os
 import sys
 import traceback
 import types
-from typing import Callable, Dict, List, Text
+import typing
+
 from zerorunner import exceptions
 from zerorunner import builtin
 
 
-def load_csv_file(csv_file: Text) -> List[Dict]:
+def load_csv_file(csv_file: str) -> typing.List[typing.Dict]:
     """ 加载csv文件
 
     Args:
@@ -53,7 +54,7 @@ def load_csv_file(csv_file: Text) -> List[Dict]:
     return csv_content_list
 
 
-def load_module_functions(module) -> Dict[Text, Callable]:
+def load_module_functions(module) -> typing.Dict[str, typing.Callable]:
     """ 加载python模块函数
     Args:
         module: python 模块
@@ -75,13 +76,13 @@ def load_module_functions(module) -> Dict[Text, Callable]:
     return module_functions
 
 
-def load_builtin_functions() -> Dict[Text, Callable]:
+def load_builtin_functions() -> typing.Dict[str, typing.Callable]:
     """ 加载内置函数
     """
     return load_module_functions(builtin)
 
 
-def load_func_content(content: Text, module_name: Text) -> Dict[Text, Callable]:
+def load_func_content(content: str, module_name: str) -> typing.Dict[str, typing.Callable]:
     """
     args:
         content: python 脚本Text
@@ -94,10 +95,14 @@ def load_func_content(content: Text, module_name: Text) -> Dict[Text, Callable]:
         imported_module = importlib.import_module(module_name)
     except IndentationError:
         raise IndentationError(f"格式错误，请检查！\n {traceback.format_exc()}")
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(f"模块导入错误！\n {traceback.format_exc()}")
+    except Exception:
+        raise Exception(f"脚本错误！\n {traceback.format_exc()}")
     return load_module_functions(imported_module)
 
 
-def load_script_content(content: Text, module_name: Text) -> types.ModuleType:
+def load_script_content(content: str, module_name: str) -> types.ModuleType:
     mod = sys.modules.setdefault(module_name, types.ModuleType(module_name))
     try:
         code = compile(content, module_name, 'exec')

@@ -44,11 +44,12 @@ For compatibility, you can also write upload test script in old way:
 
 import os
 import sys
-from typing import Text
 
-from zerorunner.models import TCaseController, FunctionsMapping
-from zerorunner.parser import parse_variables_mapping, parse_data
 from loguru import logger
+
+from zerorunner.model.step_model import TStep
+from zerorunner.models import FunctionsMapping
+from zerorunner.parser import parse_variables_mapping, parse_data
 
 try:
     import filetype
@@ -68,14 +69,14 @@ def ensure_upload_ready():
     install with pip:
     $ pip install requests_toolbelt filetype
 
-    or you can install httprunner with optional upload dependencies:
-    $ pip install "httprunner[upload]"
+    or you can install zerorunner with optional upload dependencies:
+    $ pip install "zerorunner[upload]"
     """
     logger.error(msg)
     sys.exit(1)
 
 
-def prepare_upload_step(step: TCaseController, functions: FunctionsMapping):
+def prepare_upload_step(step: TStep, functions: FunctionsMapping):
     """ preprocess for upload test
         replace `upload` info with MultipartEncoder
 
@@ -172,7 +173,7 @@ def multipart_encoder(**kwargs):
     return MultipartEncoder(fields=fields_dict)
 
 
-def multipart_content_type(m_encoder) -> Text:
+def multipart_content_type(m_encoder) -> str:
     """ prepare Content-Type for request headers
 
     Args:

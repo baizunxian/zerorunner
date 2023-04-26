@@ -1,76 +1,57 @@
 
 #### 🌈 介绍
 
-基于 python + flask + httprunner + celery + sqlalchemy + marshmallow + redis
+基于 python + fastApi + celery + sqlalchemy + redis
 
 - 使用软件版本
 - python version 3.9.6
 - mysql version 8.0.23
 - redis version 6.0.9
-- httprunner version 3.1.6
-- node version 14.17.5
+- node version 18.15.0
 
-#### 💒 前端地址
+#### 💒 平台地址地址
 - github 
-https://github.com/baizunxian/zero_autotest_front
+https://github.com/baizunxian/zerorunner
 - gitee
-https://gitee.com/xb_xiaobai/zero_autotest_front
-#### 💒 后端地址
-- github
-  https://github.com/baizunxian/zero_autotest_backend
-- gitee
-  https://gitee.com/xb_xiaobai/zero_autotest_backend
+
 #### ⛱️ 线上预览
 
-- ZERO AUTOTEST 自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
-
-- 首页
- <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/index.png?raw=true" />
- 
-- 报告页面
- <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/report.png?raw=true" />
-  
-- 自定义函数
- <img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/func.png?raw=true" />
-
+- ZERORUNNER 自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
 
 
 #### 🚧 项目启动初始化
 
 ```bash
 # 克隆项目
-git clone https://github.com/baizunxian/zero_autotest_backend
+git clone https://github.com/baizunxian/zerorunner.git
 
-# sql 脚本执行 
-script/zero_autotest.sql
+# 数据库脚本 将内容复制数据库执行 需要新建数据库 zerorunner
+script/zerorunner.sql
+# 初始化数据脚本 将内容复制数据库执行 
+script/init.sql  
 
-# 切换到项目目录
-cd zero_autotest_backend
-
-# 修改配置 config_dev.py
 # 修改对应的数据库地址，redis 地址
-autotest/config_dev.py
+autotest/config.py
 
 # 安装依赖
 pip install -r  requirements
 
-# 运行项目
-python manage.py runserver -p 8012
+# 运行项目 zerorunner/backend 目录下执行
+python main.py
 
 # 异步任务依赖 celery 启动命令
 
-#  windows 启动，只能单线程
-celery -A autotest.corelibs.backend.celery_worker worker --pool=solo -l INFO 
+#  windows 启动，只能单线程 zerorunner/backend 目录下执行
+celery -A celery_worker.worker.celery worker --pool=solo -l INFO 
 
 # linux 启动
-elery -A autotest.corelibs.backend.celery_worker worker --loglevel=INFO -c 10 -P eventlet -n zero_worker
+elery -A celery_worker.worker.celery worker --loglevel=INFO -c 10 -P solo -n zerorunner-celery-worker
 
 # 定时任务启动
-celery -A autotest.corelibs.backend.celery_worker beat -S autotest.corelibs.scheduler.schedulers:DatabaseScheduler -l INFO
+celery -A celery_worker.worker.celery beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
 # 定时任务心跳启动
-celery -A autotest.corelibs.backend.celery_worker beat  -l INFO 
-
+celery -A celery_worker.worker.celery beat  -l INFO 
 
 ```
 

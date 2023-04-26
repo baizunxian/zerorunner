@@ -1,11 +1,7 @@
 <template>
   <el-form size="large" class="login-content-form">
     <el-form-item class="login-animation1">
-      <el-input type="primary"
-                link
-                placeholder="用户名 admin 或不输均为 common"
-                v-model="state.ruleForm.userName"
-                clearable
+      <el-input text placeholder="用户名 admin 或不输均为 common" v-model="state.ruleForm.userName" clearable
                 autocomplete="off">
         <template #prefix>
           <el-icon class="el-input__icon">
@@ -15,11 +11,8 @@
       </el-input>
     </el-form-item>
     <el-form-item class="login-animation2">
-      <el-input :type="state.isShowPassword ? 'text' : 'password'"
-                placeholder="密码：123456"
-                v-model="state.ruleForm.password"
-                @keyup.enter.native="onSignIn"
-                autocomplete="off">
+      <el-input :type="state.isShowPassword ? 'text' : 'password'" placeholder="密码：123456"
+                v-model="state.ruleForm.password" autocomplete="off">
         <template #prefix>
           <el-icon class="el-input__icon">
             <ele-Unlock/>
@@ -35,23 +28,24 @@
         </template>
       </el-input>
     </el-form-item>
-    <!--    <el-form-item class="login-animation3">-->
-    <!--      <el-col :span="15">-->
-    <!--        <el-input type="primary" link maxlength="4" placeholder="请输入验证码" v-model="ruleForm.code" clearable autocomplete="off">-->
-    <!--          <template #prefix>-->
-    <!--            <el-icon class="el-input__icon">-->
-    <!--              <ele-Position/>-->
-    <!--            </el-icon>-->
-    <!--          </template>-->
-    <!--        </el-input>-->
-    <!--      </el-col>-->
-    <!--      <el-col :span="1"></el-col>-->
-    <!--      <el-col :span="8">-->
-    <!--        <el-button class="login-content-code">1234</el-button>-->
-    <!--      </el-col>-->
-    <!--    </el-form-item>-->
+    <el-form-item class="login-animation3">
+      <el-col :span="15">
+        <el-input text maxlength="4" placeholder="请输入验证码" v-model="state.ruleForm.code" clearable
+                  autocomplete="off">
+          <template #prefix>
+            <el-icon class="el-input__icon">
+              <ele-Position/>
+            </el-icon>
+          </template>
+        </el-input>
+      </el-col>
+      <el-col :span="1"></el-col>
+      <el-col :span="8">
+        <el-button class="login-content-code" v-waves>1234</el-button>
+      </el-col>
+    </el-form-item>
     <el-form-item class="login-animation4">
-      <el-button type="primary" class="login-content-submit" @keyup.enter.native="onSignIn" round @click="onSignIn"
+      <el-button type="primary" class="login-content-submit" round v-waves @click="onSignIn"
                  :loading="state.loading.signIn">
         <span>登 录</span>
       </el-button>
@@ -60,17 +54,23 @@
 </template>
 
 <script setup lang="ts" name="loginAccount">
-import {computed, reactive} from 'vue';
+import {reactive, computed} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {ElMessage} from 'element-plus';
+import Cookies from 'js-cookie';
+import {storeToRefs} from 'pinia';
+import {useThemeConfig} from '/@/stores/themeConfig';
+import {initFrontEndControlRoutes} from '/@/router/frontEnd';
 import {initBackEndControlRoutes} from '/@/router/backEnd';
-import {useUserInfo} from '/@/stores/userInfo';
 import {Session} from '/@/utils/storage';
 import {formatAxis} from '/@/utils/formatTime';
-import {useUserApi} from '/@/api/useSystemApi/user';
-
+import {NextLoading} from '/@/utils/loading';
+import {useUserApi} from "/@/api/useSystemApi/user";
+import {useUserInfo} from "/@/stores/userInfo";
 
 // 定义变量内容
+const storesThemeConfig = useThemeConfig();
+const {themeConfig} = storeToRefs(storesThemeConfig);
 const route = useRoute();
 const router = useRouter();
 const state = reactive({
@@ -89,59 +89,64 @@ const state = reactive({
 const currentTime = computed(() => {
   return formatAxis(new Date());
 });
-
-
+// 登录
 const onSignIn = async () => {
-  // 模拟数据
   state.loading.signIn = true;
-  // let defaultRoles: Array<string> = [];
-  // let defaultAuthBtnList: Array<string> = [];
-  // // admin 页面权限标识，对应路由 meta.roles，用于控制路由的显示/隐藏
-  // let adminRoles: Array<string> = ['admin'];
-  // // admin 按钮权限标识
-  // let adminAuthBtnList: Array<string> = ['btn.add', 'btn.del', 'btn.edit', 'btn.link'];
-  // // test 页面权限标识，对应路由 meta.roles，用于控制路由的显示/隐藏
-  // let testRoles: Array<string> = ['common'];
-  // // test 按钮权限标识
-  // let testAuthBtnList: Array<string> = ['btn.add', 'btn.link'];
-  // 不同用户模拟不同的用户权限
   useUserApi().signIn({username: state.ruleForm.userName, password: state.ruleForm.password})
       .then(async res => {
         Session.set('token', res.data.token);
-        Session.set('userInfo', res.data);
-        await useUserInfo().setUserInfos(res.data);
-        await initBackEndControlRoutes();
-        signInSuccess();
+        // Session.set('userInfo', res.data);
+        await useUserInfo().setUserInfos();
+        // await initBackEndControlRoutes();
+        await initFrontEndControlRoutes();
+        signInSuccess(false);
       })
       .catch((e: any) => {
         console.log('错误信息： ', e)
         state.loading.signIn = false;
       })
-
+  // // 存储 token 到浏览器缓存
+  // Session.set('token', Math.random().toString(36).substr(0));
+  // // 模拟数据，对接接口时，记得删除多余代码及对应依赖的引入。用于 `/src/stores/userInfo.ts` 中不同用户登录判断（模拟数据）
+  // Cookies.set('userName', state.ruleForm.userName);
+  // if (!themeConfig.value.isRequestRoutes) {
+  //   // 前端控制路由，2、请注意执行顺序
+  //   const isNoPower = await initFrontEndControlRoutes();
+  //   signInSuccess(isNoPower);
+  // } else {
+  //   // 模拟后端控制路由，isRequestRoutes 为 true，则开启后端控制路由
+  //   // 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
+  //   const isNoPower = await initBackEndControlRoutes();
+  //   // 执行完 initBackEndControlRoutes，再执行 signInSuccess
+  //   signInSuccess(isNoPower);
+  // }
 };
-
 // 登录成功后的跳转
-const signInSuccess = () => {
-  // 初始化登录成功时间问候语
-  let currentTimeInfo = currentTime.value;
-  // 登录成功，跳到转首页
-  // 添加完动态路由，再进行 router 跳转，否则可能报错 No match found for location with path "/"
-  // 如果是复制粘贴的路径，非首页/登录页，那么登录成功后重定向到对应的路径中
-  if (route.query?.redirect) {
-    router.push({
-      path: <string>route.query?.redirect,
-      query: Object.keys(<string>route.query?.params).length > 0 ? JSON.parse(<string>route.query?.params) : '',
-    });
+const signInSuccess = (isNoPower: boolean | undefined) => {
+  if (isNoPower) {
+    ElMessage.warning('抱歉，您没有登录权限');
+    Session.clear();
   } else {
-    router.push('/');
+    // 初始化登录成功时间问候语
+    let currentTimeInfo = currentTime.value;
+    // 登录成功，跳到转首页
+    // 如果是复制粘贴的路径，非首页/登录页，那么登录成功后重定向到对应的路径中
+    if (route.query?.redirect) {
+      router.push({
+        path: <string>route.query?.redirect,
+        query: Object.keys(<string>route.query?.params).length > 0 ? JSON.parse(<string>route.query?.params) : '',
+      });
+    } else {
+      router.push('/home');
+    }
+    // 登录成功提示
+    const signInText = '欢迎回来！';
+    ElMessage.success(`${currentTimeInfo}，${signInText}`);
+    // 添加 loading，防止第一次进入界面时出现短暂空白
+    NextLoading.start();
   }
-  // 登录成功提示
-  // 关闭 loading
-  state.loading.signIn = true;
-  const signInText = '欢迎回来！';
-  ElMessage.success(`${currentTimeInfo}，${signInText}`);
+  state.loading.signIn = false;
 };
-
 </script>
 
 <style scoped lang="scss">

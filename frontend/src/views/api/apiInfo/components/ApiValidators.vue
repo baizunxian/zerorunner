@@ -5,7 +5,7 @@
 <script lang="ts" setup name="ApiValidators">
 import {defineAsyncComponent, reactive} from "vue";
 import {handleEmpty} from "/@/utils/other";
-import ValidatorsController from "/@/components/StepController/validators/ValidatorsController.vue"
+import ValidatorsController from "/@/components/Z-StepController/validators/ValidatorsController.vue"
 
 
 interface baseState {

@@ -2,7 +2,6 @@ import { defineStore } from 'pinia';
 
 /**
  * 布局配置
- * 修复：https://gitee.com/lyt-top/vue-next-admin/issues/I567R1，感谢@lanbao123
  * 2020.05.28 by lyt 优化。开发时配置不生效问题
  * 修改配置时：
  * 1、需要每次都清理 `window.localStorage` 浏览器永久缓存
@@ -36,7 +35,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 			 * 菜单设置
 			 */
 			// 默认菜单导航背景颜色
-			menuBar: '#545c64',
+			menuBar: '#2b2f3a',
 			// 默认菜单导航字体颜色
 			menuBarColor: '#eaeaea',
 			// 默认菜单高亮背景色
@@ -48,7 +47,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 			 * 分栏设置
 			 */
 			// 默认分栏菜单背景颜色
-			columnsMenuBar: '#545c64',
+			columnsMenuBar: '#2b2f3a',
 			// 默认分栏菜单字体颜色
 			columnsMenuBarColor: '#e6e6e6',
 			// 是否开启分栏菜单背景颜色渐变
@@ -64,7 +63,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 			// 是否开启菜单手风琴效果
 			isUniqueOpened: true,
 			// 是否开启固定 Header
-			isFixedHeader: false,
+			isFixedHeader: true,
 			// 初始化变量，用于更新菜单 el-scrollbar 的高度，请勿删除
 			isFixedHeaderChange: false,
 			// 是否开启经典布局分割菜单（仅经典布局生效）
@@ -72,13 +71,13 @@ export const useThemeConfig = defineStore('themeConfig', {
 			// 是否开启自动锁屏
 			isLockScreen: false,
 			// 开启自动锁屏倒计时(s/秒)
-			lockScreenTime: 30,
+			lockScreenTime: 2,
 
 			/**
 			 * 界面显示
 			 */
 			// 是否开启侧边栏 Logo
-			isShowLogo: false,
+			isShowLogo: true,
 			// 初始化变量，用于 el-scrollbar 的高度更新，请勿删除
 			isShowLogoChange: false,
 			// 是否开启 Breadcrumb，强制经典、横向布局不显示
@@ -102,9 +101,9 @@ export const useThemeConfig = defineStore('themeConfig', {
 			// 是否开启色弱模式
 			isInvert: false,
 			// 是否开启水印
-			isWartermark: true,
+			isWartermark: false,
 			// 水印文案
-			wartermarkText: 'vue-next-admin',
+			wartermarkText: 'admin',
 
 			/**
 			 * 其它设置
@@ -121,7 +120,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 
 			/**
 			 * 布局切换
-			 * 注意：为了演示，切换布局时，颜色会被还原成默认，代码位置：/@/layout/navBars/breadcrumb/settings.vue
+			 * 注意：为了演示，切换布局时，颜色会被还原成默认，代码位置：/@/layout/navBars/breadcrumb/setings.vue
 			 * 中的 `initSetLayoutChange(设置布局切换，重置主题样式)` 方法
 			 */
 			// 布局切换：可选值"<defaults|classic|transverse|columns>"，默认 defaults
@@ -137,15 +136,15 @@ export const useThemeConfig = defineStore('themeConfig', {
 			 * 全局网站标题 / 副标题
 			 */
 			// 网站主标题（菜单导航、浏览器当前网页标题）
-			globalTitle: 'vue-next-admin',
+			globalTitle: 'zerorunner',
 			// 网站副标题（登录页顶部文字）
-			globalViceTitle: 'vueNextAdmin',
+			globalViceTitle: 'zerorunner',
 			// 网站副标题（登录页顶部文字）
-			globalViceTitleMsg: '专注、免费、开源、维护、解疑',
+			globalViceTitleMsg: '',
 			// 默认初始语言，可选值"<zh-cn|en|zh-tw>"，默认 zh-cn
 			globalI18n: 'zh-cn',
 			// 默认全局组件大小，可选值"<large|'default'|small>"，默认 'large'
-			globalComponentSize: 'large',
+			globalComponentSize: 'small',
 		},
 	}),
 	actions: {

@@ -1,9 +1,9 @@
 from sqlalchemy import Column, String, Integer, Text
-from .Base import Base, TimestampMixin
-from .sys_models import User
+
+from autotest.models.base import Base
 
 
-class Page(Base, TimestampMixin):
+class Page(Base):
     """页面表"""
     __tablename__ = 'ui_page'
 
@@ -13,19 +13,8 @@ class Page(Base, TimestampMixin):
     module_id = Column(String(255), nullable=True, comment='模块id', index=True)
     remark = Column(String(255), nullable=True, comment='备注', index=True)
 
-    @classmethod
-    def get_list(cls, page_name=None):
-        q = []
-        if page_name:
-            q.append(cls.page_name.like('%{}%'.format(page_name)))
-        return cls.query.filter(*q, cls.enabled_flag == 1).order_by(cls.creation_date.desc())
 
-    @classmethod
-    def get_page_by_url(cls, page_url):
-        return cls.query.filter(cls.page_name == page_url, cls.enabled_flag == 1).first()
-
-
-class Element(Base, TimestampMixin):
+class Element(Base):
     """元素表"""
     __tablename__ = 'ui_element'
 
@@ -35,30 +24,8 @@ class Element(Base, TimestampMixin):
     page_id = Column(Integer, nullable=False, comment='定位元素值')
     remark = Column(String(255), nullable=True, comment='备注')
 
-    @classmethod
-    def get_list(cls, page_id, element_name=None):
-        q = []
-        if page_id:
-            q.append(cls.page_id == page_id)
-        if element_name:
-            q.append(cls.element_name.like('%{}%'.format(element_name)))
-        return cls.query.filter(*q, cls.enabled_flag == 1).order_by(cls.creation_date.desc())
 
-    @classmethod
-    def get_el_by_page_id(cls, page_id):
-        return cls.query.filter(cls.enabled_flag == 1, cls.page_id == page_id)
-
-    @classmethod
-    def get_el_by_page_id_list(cls, page_id):
-        return cls.query.filter(cls.enabled_flag == 1, cls.page_id == page_id) \
-            .with_entities(cls.element_name.label('name'),
-                           cls.by_type,
-                           cls.by_value,
-                           cls.element_name,
-                           cls.id).all()
-
-
-class UiCase(Base, TimestampMixin):
+class UiCase(Base):
     """ui 用例表"""
     __tablename__ = 'ui_case'
 
@@ -69,28 +36,8 @@ class UiCase(Base, TimestampMixin):
     steps = Column(Text, nullable=True, comment='运行步骤')
     remark = Column(String(255), nullable=True, comment='备注')
 
-    @classmethod
-    def get_list(cls, name=None):
-        q = []
-        if name:
-            q.append(cls.name.like('%{}%'.format(name)))
-        return cls.query.filter(*q, cls.enabled_flag == 1) \
-            .outerjoin(User, User.id == cls.created_by) \
-            .with_entities(cls.id,
-                           cls.name,
-                           cls.condition,
-                           cls.created_by,
-                           cls.flag,
-                           cls.result,
-                           cls.steps,
-                           cls.remark,
-                           cls.creation_date,
-                           cls.updation_date,
-                           User.nickname.label('created_by_name'))\
-            .order_by(cls.creation_date.desc())
 
-
-class Steps(Base, TimestampMixin):
+class Steps(Base):
     """步骤表"""
     __tablename__ = 'ui_steps'
 
@@ -104,7 +51,7 @@ class Steps(Base, TimestampMixin):
     ui_case_id = Column(Integer, nullable=True, comment='关联ui测试用例')
 
 
-class UiReports(Base, TimestampMixin):
+class UiReports(Base):
     """报告表"""
     __tablename__ = 'ui_reports'
 
@@ -117,10 +64,3 @@ class UiReports(Base, TimestampMixin):
     summary_duration = Column(String(255), nullable=True, comment='执行时间', index=True)
     c_id = Column(Integer(), nullable=True, comment='用例id', index=True)
     remark = Column(String(255), nullable=True, comment='备注', index=True)
-
-    @classmethod
-    def get_list(cls, report_name=None):
-        q = []
-        if report_name:
-            q.append(cls.report_name.like('%{}%'.format(report_name)))
-        return cls.query.filter(*q, cls.enabled_flag == 1).order_by(cls.creation_date.desc())

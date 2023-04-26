@@ -17,13 +17,16 @@ declare type PersonalState = {
 	newsInfoList: NewInfo[];
 	recommendList: Recommend[];
 	personalForm: {
-		name: string;
+		username: string;
+		nickname: string;
+		avatar: string;
+		remarks: string;
 		email: string;
-		autograph: string;
-		occupation: string;
-		phone: string;
-		sex: string;
+		tags: string;
 	};
+	editTag: boolean;
+	tagValue: string;
+	showEditPage: boolean;
 };
 
 /**

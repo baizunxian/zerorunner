@@ -52,7 +52,7 @@ export function useApiInfoApi() {
     },
     getApiInfo: (data?: object) => {
       return request({
-        url: `${BaseApiPath}/getTestCaseInfo`,
+        url: `${BaseApiPath}/getApiInfo`,
         method: 'POST',
         data,
       });

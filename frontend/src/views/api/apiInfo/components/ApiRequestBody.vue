@@ -165,7 +165,7 @@
               <div class="file-input">
                 <input type="file"
                        :id="'selectFile' + index"
-                       @change="fileChange($event, data)"
+                       @change="fileChange($event, data, index)"
                        class="file-input__native">
                 <el-button v-if="!data.value.name"
                            type="info"
@@ -221,7 +221,7 @@ import {handleEmpty} from "/@/utils/other";
 
 const emit = defineEmits(["updateHeader"])
 
-export interface StateData {
+interface StateData {
   mode: string,
   language: string,
   languageList: Array<string>,
@@ -303,7 +303,7 @@ const getData = () => {
   }
 
   if (state.mode === 'form_data') {
-    requestData.data = state.formData
+    requestData.data = state.formData.filter((e: any) => e.key !== "" || e.value !== "")
   }
   return requestData
 }
@@ -403,15 +403,20 @@ const formDataBlur = () => {
 }
 
 // 选择文件时触发，上传文件，回写地址
-const fileChange = (e: any, row: any) => {
+const fileChange = (e: any, row: any, index: number) => {
   state.fileData = e.target.files[0]
   let file: any = e.target.files[0]
   let formData = new FormData
-  formData.append('name', file.name)
+  // formData.append('name', file.name)
   formData.append('file', file)
   useFileApi().upload(formData)
       .then((res: any) => {
-        row.value = {abspath: res.data.abspath, name: res.data.name}
+        row.value = res.data
+      })
+      .catch(() => {
+        let fileRef: any = document.getElementById('selectFile' + index)
+        if (fileRef) fileRef.value = ''
+        row.value = ""
       })
 
 }

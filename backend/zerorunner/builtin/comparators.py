@@ -8,52 +8,52 @@ Built-in validate comparators.
 """
 
 import re
-from typing import Text, Any, Union
+import typing
 
 
-def equal(check_value: Any, expect_value: Any, message: Text = ""):
+def equal(check_value: typing.Any, expect_value: typing.Any, message: str = ""):
     assert check_value == expect_value, message
 
 
 def greater_than(
-    check_value: Union[int, float], expect_value: Union[int, float], message: Text = ""
+    check_value: typing.Union[int, float], expect_value: typing.Union[int, float], message: str = ""
 ):
     assert check_value > expect_value, message
 
 
 def less_than(
-    check_value: Union[int, float], expect_value: Union[int, float], message: Text = ""
+    check_value: typing.Union[int, float], expect_value: typing.Union[int, float], message: str = ""
 ):
     assert check_value < expect_value, message
 
 
 def greater_or_equals(
-    check_value: Union[int, float], expect_value: Union[int, float], message: Text = ""
+    check_value: typing.Union[int, float], expect_value: typing.Union[int, float], message: str = ""
 ):
     assert check_value >= expect_value, message
 
 
 def less_or_equals(
-    check_value: Union[int, float], expect_value: Union[int, float], message: Text = ""
+    check_value: typing.Union[int, float], expect_value: typing.Union[int, float], message: str = ""
 ):
     assert check_value <= expect_value, message
 
 
-def not_equal(check_value: Any, expect_value: Any, message: Text = ""):
+def not_equal(check_value: typing.Any, expect_value: typing.Any, message: str = ""):
     assert check_value != expect_value, message
 
 
-def string_equals(check_value: Text, expect_value: Any, message: Text = ""):
+def string_equals(check_value: str, expect_value: typing.Any, message: str = ""):
     assert str(check_value) == str(expect_value), message
 
 
-def length_equal(check_value: Text, expect_value: int, message: Text = ""):
+def length_equal(check_value: str, expect_value: int, message: str = ""):
     assert isinstance(expect_value, int), "expect_value should be int type"
     assert len(check_value) == expect_value, message
 
 
 def length_greater_than(
-    check_value: Text, expect_value: Union[int, float], message: Text = ""
+    check_value: str, expect_value: typing.Union[int, float], message: str = ""
 ):
     assert isinstance(
         expect_value, (int, float)
@@ -62,7 +62,7 @@ def length_greater_than(
 
 
 def length_greater_or_equals(
-    check_value: Text, expect_value: Union[int, float], message: Text = ""
+    check_value: str, expect_value: typing.Union[int, float], message: str = ""
 ):
     assert isinstance(
         expect_value, (int, float)
@@ -71,7 +71,7 @@ def length_greater_or_equals(
 
 
 def length_less_than(
-    check_value: Text, expect_value: Union[int, float], message: Text = ""
+    check_value: str, expect_value: typing.Union[int, float], message: str = ""
 ):
     assert isinstance(
         expect_value, (int, float)
@@ -80,7 +80,7 @@ def length_less_than(
 
 
 def length_less_or_equals(
-    check_value: Text, expect_value: Union[int, float], message: Text = ""
+    check_value: str, expect_value: typing.Union[int, float], message: str = ""
 ):
     assert isinstance(
         expect_value, (int, float)
@@ -88,21 +88,21 @@ def length_less_or_equals(
     assert len(check_value) <= expect_value, message
 
 
-def contains(check_value: Any, expect_value: Any, message: Text = ""):
+def contains(check_value: typing.Any, expect_value: typing.Any, message: str = ""):
     assert isinstance(
         check_value, (list, tuple, dict, str, bytes)
     ), "expect_value should be list/tuple/dict/str/bytes type"
     assert expect_value in check_value, message
 
 
-def contained_by(check_value: Any, expect_value: Any, message: Text = ""):
+def contained_by(check_value: typing.Any, expect_value: typing.Any, message: str = ""):
     assert isinstance(
         expect_value, (list, tuple, dict, str, bytes)
     ), "expect_value should be list/tuple/dict/str/bytes type"
     assert check_value in expect_value, message
 
 
-def type_match(check_value: Any, expect_value: Any, message: Text = ""):
+def type_match(check_value: typing.Any, expect_value: typing.Any, message: str = ""):
     def get_type(name):
         if isinstance(name, type):
             return name
@@ -120,15 +120,15 @@ def type_match(check_value: Any, expect_value: Any, message: Text = ""):
         assert type(check_value) == get_type(expect_value), message
 
 
-def regex_match(check_value: Text, expect_value: Any, message: Text = ""):
+def regex_match(check_value: str, expect_value: typing.Any, message: str = ""):
     assert isinstance(expect_value, str), "expect_value should be Text type"
     assert isinstance(check_value, str), "check_value should be Text type"
     assert re.match(expect_value, check_value), message
 
 
-def startswith(check_value: Any, expect_value: Any, message: Text = ""):
+def startswith(check_value: typing.Any, expect_value: typing.Any, message: str = ""):
     assert str(check_value).startswith(str(expect_value)), message
 
 
-def endswith(check_value: Text, expect_value: Any, message: Text = ""):
+def endswith(check_value: str, expect_value: typing.Any, message: str = ""):
     assert str(check_value).endswith(str(expect_value)), message

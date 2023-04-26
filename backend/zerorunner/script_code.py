@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
+import typing
 
-class Headers:
+
+class ZHeaders:
     """头信息处理"""
 
-    def __init__(self):
-        self.headers = {}
+    def __init__(self, headers: typing.Dict):
+        self.headers = headers
 
     def set(self, key, value):
         self.headers[key] = value
@@ -19,11 +21,11 @@ class Headers:
         return self.headers
 
 
-class Variables:
+class ZVariables:
     """头信息处理"""
 
-    def __init__(self):
-        self.variables = {}
+    def __init__(self, variables: typing.Dict):
+        self.variables = variables
 
     def set(self, key, value):
         self.variables[key] = value
@@ -40,8 +42,8 @@ class Variables:
 class Environment:
     """环境变量处理"""
 
-    def __init__(self):
-        self.environment = {}
+    def __init__(self, environment: typing.Dict):
+        self.environment = environment
 
     def set(self, key, value):
         self.environment[key] = value
@@ -56,10 +58,19 @@ class Environment:
 
 
 class Zero:
-    def __init__(self):
-        self.headers = Headers()
-        self.environment = Environment()
-        self.variables = Variables()
+    def __init__(self, request_dict: typing.Dict, environment: typing.Dict, variables: typing.Dict):
+        self._headers = ZHeaders(request_dict.get("headers", {}))
+        self._environment = Environment(environment)
+        self._variables = ZVariables(variables)
 
+    @property
+    def headers(self):
+        return self._headers
 
-zero = Zero()
+    @property
+    def environment(self):
+        return self._environment
+
+    @property
+    def variables(self):
+        return self._variables

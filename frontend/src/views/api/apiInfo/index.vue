@@ -1,25 +1,28 @@
 <template>
+  <div>
 
-  <CaseList></CaseList>
+    <ApiList></ApiList>
 
-  <!--  <el-card>-->
-  <!--    <el-tabs v-model="activeName" class="apiInfo-tabs h100">-->
-  <!--      <el-tab-pane label="接口列表" name="case_list">-->
-  <!--        <apiInfo-list></apiInfo-list>-->
-  <!--      </el-tab-pane>-->
-  <!--      <el-tab-pane label="接口树" name="case_tree">-->
-  <!--        <apiInfo-tree></apiInfo-tree>-->
-  <!--      </el-tab-pane>-->
-  <!--    </el-tabs>-->
-  <!--  </el-card>-->
+    <!--  <el-card>-->
+    <!--    <el-tabs v-model="activeName" class="apiInfo-tabs h100">-->
+    <!--      <el-tab-pane label="接口列表" name="case_list">-->
+    <!--        <apiInfo-list></apiInfo-list>-->
+    <!--      </el-tab-pane>-->
+    <!--      <el-tab-pane label="接口树" name="case_tree">-->
+    <!--        <apiInfo-tree></apiInfo-tree>-->
+    <!--      </el-tab-pane>-->
+    <!--    </el-tabs>-->
+    <!--  </el-card>-->
+  </div>
 </template>
 
 <script setup lang="ts" name="apiInfo">
-import {defineAsyncComponent, reactive} from 'vue';
+import {reactive} from 'vue';
+import ApiList from "./components/ApiList.vue"
 
 // 引入组件
-const CaseList = defineAsyncComponent(() => import("./components/ApiList.vue"))
-const caseTree = defineAsyncComponent(() => import("./components/ApiTree.vue"))
+// const CaseList = defineAsyncComponent(() => import("./components/ApiList.vue"))
+// const caseTree = defineAsyncComponent(() => import("./components/ApiTree.vue"))
 
 const state = reactive({
   activeName: "case_list",

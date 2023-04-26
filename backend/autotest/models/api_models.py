@@ -1,14 +1,21 @@
-from typing import List
-
+import typing
 from sqlalchemy import Column, Integer, String, Text, DateTime, BigInteger, func, \
-    distinct, text, and_, JSON, DECIMAL, case as func_case
+    distinct, text, and_, JSON, DECIMAL, select, update
 from sqlalchemy.orm import aliased
 
-from autotest.models.Base import Base, TimestampMixin
-from autotest.models.sys_models import User
+from autotest.models.base import Base
+from autotest.models.system_models import User
+from autotest.schemas.api.api_case import ApiCaseQuery
+from autotest.schemas.api.api_info import ApiQuery
+from autotest.schemas.api.data_source import SourceQuery
+from autotest.schemas.api.env import EnvQuery, BindingDataSourceIn, BindingFuncIn
+from autotest.schemas.api.functions import FuncQuery
+from autotest.schemas.api.module import ModuleQuery
+from autotest.schemas.api.projectquery import ProjectQuery
+from autotest.schemas.api.test_report import TestReportQuery, TestReportDetailQuery
 
 
-class ProjectInfo(Base, TimestampMixin):
+class ProjectInfo(Base):
     """项目表"""
     __tablename__ = 'project_info'
 
@@ -23,36 +30,30 @@ class ProjectInfo(Base, TimestampMixin):
     product_id = Column(Integer, nullable=True, comment='产品线id')
 
     @classmethod
-    def get_project_list(cls, id=None, name=None, created_by_name=None, ids=None):
-        q = list()
-        if name:
-            q.append(cls.name.like('%{}%'.format(name)))
-        if created_by_name:
-            q.append(User.nickname.like('%{}%'.format(created_by_name)))
-        if id:
-            q.append(cls.id == id)
-        if ids:
-            q.append(cls.id.in_(ids))
+    async def get_list(cls, params: ProjectQuery):
+        q = [cls.enabled_flag == 1]
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.created_by_name:
+            q.append(User.nickname.like('%{}%'.format(params.created_by_name)))
+        if params.id:
+            q.append(cls.id == params.id)
+        if params.ids:
+            q.append(cls.id.in_(params.ids))
         u = aliased(User)
-        return cls.query.outerjoin(User, User.id == cls.created_by) \
-            .outerjoin(u, u.id == cls.updated_by) \
-            .filter(*q, cls.enabled_flag == 1) \
-            .with_entities(cls.id,
-                           cls.name,
-                           cls.responsible_name,
-                           cls.config_id,
-                           cls.test_user,
-                           cls.dev_user,
-                           cls.simple_desc,
-                           cls.remarks,
-                           cls.publish_app,
-                           cls.updated_by,
-                           cls.created_by,
-                           cls.updation_date,
-                           cls.creation_date,
-                           u.nickname.label('updated_by_name'),
-                           User.nickname.label('created_by_name')) \
-            .order_by(cls.creation_date.desc())
+        stmt = select(cls.get_table_columns(),
+                      u.nickname.label('updated_by_name'),
+                      User.nickname.label('created_by_name')) \
+            .where(*q) \
+            .join(u, u.id == cls.updated_by) \
+            .join(User, User.id == cls.created_by) \
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
+
+    @classmethod
+    async def get_project_by_id(cls, id: int):
+        stmt = select(cls.get_table_columns()).where(cls.id == id, cls.enabled_flag == 1)
+        return await cls.get_result(stmt)
 
     @classmethod
     def get_project_id_list(cls):
@@ -65,8 +66,9 @@ class ProjectInfo(Base, TimestampMixin):
             .all()
 
     @classmethod
-    def get_project_by_name(cls, name):
-        return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
+    async def get_project_by_name(cls, name):
+        stmt = select(cls.id).where(cls.name == name, cls.enabled_flag == 1)
+        return await cls.get_result(stmt, True)
 
     @classmethod
     def get_all_count(cls):
@@ -81,7 +83,7 @@ class ProjectInfo(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1, cls.product_id == product_id).with_entities(cls.id).all()
 
 
-class ModuleInfo(Base, TimestampMixin):
+class ModuleInfo(Base):
     """模块表"""
     __tablename__ = 'module_info'
 
@@ -100,71 +102,57 @@ class ModuleInfo(Base, TimestampMixin):
     # packages_id = Column(Integer, nullable=False, comment='包id')
 
     @classmethod
-    def get_list(cls, name=None, project_name=None, project_id=None, order_field=None, sort_type=None,
-                 user_ids=None, project_ids=None, ids=None):
-        q = list()
-        if name:
-            q.append(cls.name.like('%{}%'.format(name)))
-        if project_id:
-            q.append(cls.project_id == project_id)
-        if project_name:
-            q.append(ProjectInfo.project_name.like('%{}%'.format(project_name)))
-        if user_ids:
-            q.append(cls.created_by.in_(user_ids))
-        if project_ids:
-            q.append(cls.project_id.in_(project_ids))
-        if ids:
-            q.append(cls.id.in_(ids))
+    async def get_list(cls, params: ModuleQuery):
+        q = [cls.enabled_flag == 1]
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.project_id:
+            q.append(cls.project_id == params.project_id)
+        if params.project_name:
+            q.append(ProjectInfo.project_name.like('%{}%'.format(params.project_name)))
+        if params.user_ids:
+            q.append(cls.created_by.in_(params.user_ids))
+        if params.project_ids:
+            q.append(cls.project_id.in_(params.project_ids))
+        if params.ids:
+            q.append(cls.id.in_(params.ids))
         # if packages_id:
         #     q.append(cls.packages_id == packages_id)
-        if sort_type == 0:
+        if params.sort_type == 0:
             sort_type = 'asc'
         else:
             sort_type = 'desc'
-        if not order_field or order_field == 'creation_date':
-            order_field = 'module_info.creation_date'
-        if order_field == 'project_name':
-            order_field = 'project_info.name'
-        if order_field == 'test_user':
-            order_field = 'user.nickname'
-        order_by = '{} {} {} {}'.format(order_field, sort_type, ',module_info.id', sort_type)
+        if not params.order_field or params.order_field == 'creation_date':
+            params.order_field = 'module_info.creation_date'
+        if params.order_field == 'project_name':
+            params.order_field = 'project_info.name'
+        if params.order_field == 'test_user':
+            params.order_field = 'user.nickname'
+        order_by = '{} {} {} {}'.format(params.order_field, sort_type, ',module_info.id', sort_type)
         u = aliased(User)
-        return cls.query \
-            .outerjoin(ProjectInfo, and_(cls.project_id == ProjectInfo.id, ProjectInfo.enabled_flag == 1)) \
-            .outerjoin(User, User.id == cls.created_by) \
-            .outerjoin(u, u.id == cls.updated_by) \
-            .outerjoin(ApiInfo,
-                       and_(cls.id == ApiInfo.module_id, ApiInfo.enabled_flag == 1)) \
-            .with_entities(func.count(distinct(ApiInfo.id)).label('case_count'),
-                           cls.id,
-                           cls.name,
-                           cls.project_id,
-                           cls.config_id,
-                           cls.test_user,
-                           cls.simple_desc,
-                           cls.remarks,
-                           cls.leader_user,
-                           cls.priority,
-                           cls.module_packages,
-                           cls.updated_by,
-                           cls.created_by,
-                           cls.updation_date,
-                           cls.creation_date,
-                           User.nickname.label('created_by_name'),
-                           u.nickname.label('updated_by_name'),
-                           ProjectInfo.name.label('project_name')) \
-            .filter(*q, cls.enabled_flag == 1) \
-            .group_by(cls.id) \
-            .order_by(text(order_by))
+
+        stmt = select(cls.get_table_columns(),
+                      func.count(distinct(ApiInfo.id)).label('case_count'),
+                      User.nickname.label('created_by_name'),
+                      u.nickname.label('updated_by_name'),
+                      ProjectInfo.name.label('project_name')).where(*q) \
+            .join(ProjectInfo, and_(cls.project_id == ProjectInfo.id, ProjectInfo.enabled_flag == 1)) \
+            .join(User, User.id == cls.created_by) \
+            .join(u, u.id == cls.updated_by) \
+            .outerjoin(ApiInfo, and_(cls.id == ApiInfo.module_id, ApiInfo.enabled_flag == 1)) \
+            .group_by(cls.id).order_by(text(order_by))
+        return await cls.pagination(stmt)
 
     @classmethod
-    def get_module_by_project_id(cls, project_id):
+    async def get_module_by_project_id(cls, project_id: int):
         """查询项目是否有关联模块"""
-        return cls.query.filter(cls.project_id == project_id, cls.enabled_flag == 1).all()
+        stmt = select(cls.id).where(cls.project_id == project_id, cls.enabled_flag == 1)
+        return await cls.get_result(stmt)
 
     @classmethod
-    def get_module_by_name(cls, name):
-        return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
+    async def get_module_by_name(cls, name: str):
+        stmt = select(cls.id).where(cls.name == name, cls.enabled_flag == 1)
+        return await cls.get_result(stmt)
 
     @classmethod
     def get_module_by_id(cls, id):
@@ -183,133 +171,126 @@ class ModuleInfo(Base, TimestampMixin):
         return cls.query.filter(cls.packages_id == packages_id, cls.enabled_flag == 1).first()
 
 
-class ApiInfo(Base, TimestampMixin):
+class ApiInfo(Base):
     """接口用例"""
     __tablename__ = 'api_info'
 
     name = Column(String(255), nullable=False, comment="用例名称", index=True)
     project_id = Column(Integer, nullable=False, comment='所属项目')
     module_id = Column(Integer, nullable=False, comment='所属模块')
-    case_status = Column(Integer, nullable=True, comment='用例状态 10, 生效 ， 20 失效', default=10)
+    status = Column(Integer, nullable=True, comment='用例状态 10, 生效 ， 20 失效', default=10)
     code_id = Column(BigInteger, nullable=True, comment='关联接口id')
     code = Column(String(255), nullable=True, comment='接口code')
     priority = Column(Integer, nullable=False, comment='优先级', default=3)
-    case_tag = Column(String(255), nullable=True, comment='用例标签')
+    tags = Column(JSON, nullable=True, comment='用例标签')
+    url = Column(JSON, nullable=True, comment='请求地址')
     method = Column(String(255), nullable=True, comment='请求方式')
+    remarks = Column(String(255), nullable=True, comment='描述')
+    step_type = Column(String(255), nullable=True, comment='描述')
     pre_steps = Column(JSON, nullable=True, comment='前置步骤')
     post_steps = Column(JSON, nullable=True, comment='后置步骤')
     setup_hooks = Column(JSON, nullable=True, comment='前置操作')
     teardown_hooks = Column(JSON, nullable=True, comment='后置操作')
-    variables = Column(JSON, nullable=True, comment='变量')
-    request_body = Column(JSON, nullable=True, comment='请求参数')
     headers = Column(JSON, nullable=True, comment='请求头')
-    url = Column(JSON, nullable=True, comment='请求地址')
+    variables = Column(JSON, nullable=True, comment='变量')
     validators = Column(JSON, nullable=True, comment='断言规则')
     extracts = Column(JSON, nullable=True, comment='提取')
-    tags = Column(JSON, nullable=True, comment='用例标签')
-    remarks = Column(String(255), nullable=True, comment='描述')
+    export = Column(JSON, nullable=True, comment='输出')
+    request = Column(JSON, nullable=True, comment='请求参数')
+    sql_request = Column(JSON, nullable=True, comment='sql请求参数')
+    loop_data = Column(JSON, nullable=True, comment='sql请求参数')
+    if_data = Column(JSON, nullable=True, comment='sql请求参数')
+    wait_data = Column(JSON, nullable=True, comment='sql请求参数')
 
     @classmethod
-    def get_list(cls, **kwargs):
-        q = []
-        id = kwargs.get("id", None)
-        name = kwargs.get("name", None)
-        project_id = kwargs.get("project_id", None)
-        module_id = kwargs.get("module_id", None)
-        code = kwargs.get("code", None)
-        module_ids = kwargs.get("module_ids", None)
-        project_ids = kwargs.get("project_ids", None)
-        created_by = kwargs.get("created_by", None)
-        created_by_name = kwargs.get("created_by_name", None)
-        priority = kwargs.get("priority", None)
-        ids = kwargs.get("ids", None)
-        case_status = kwargs.get("case_status", None)
-        sort_type = kwargs.get("sort_type", 1)
-        order_field = kwargs.get("order_field", None)
-        if id:
-            q.append(cls.id == id)
-        if name:
-            q.append(cls.name.like('%{}%'.format(name)))
-        if project_id:
-            q.append(cls.project_id == project_id)
-        if module_id:
-            q.append(cls.module_id == module_id)
-        if code:
-            q.append(cls.code.like('%{}%'.format(code)))
-        if module_ids:
-            q.append(cls.module_id.in_(module_ids))
-        if project_ids:
-            q.append(cls.project_id.in_(project_ids))
-        if created_by:
-            q.append(cls.created_by == created_by)
-        if created_by_name:
-            q.append(User.nickname.like('%{}%'.format(created_by_name)))
-        if priority:
-            q.append(cls.priority.in_(priority))
-        if ids:
-            q.append(cls.id.in_(ids))
-        if case_status:
-            q.append(cls.case_status == case_status)
+    async def get_list(cls, params: ApiQuery):
+        q = [cls.enabled_flag == 1]
+        if params.id:
+            q.append(cls.id == params.id)
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.project_id:
+            q.append(cls.project_id == params.project_id)
+        if params.module_id:
+            q.append(cls.module_id == params.module_id)
+        if params.code:
+            q.append(cls.code.like('%{}%'.format(params.code)))
+        if params.module_ids:
+            q.append(cls.module_id.in_(params.module_ids))
+        if params.project_ids:
+            q.append(cls.project_id.in_(params.project_ids))
+        if params.created_by:
+            q.append(cls.created_by == params.created_by)
+        if params.created_by_name:
+            q.append(User.nickname.like('%{}%'.format(params.created_by_name)))
+        if params.priority:
+            q.append(cls.priority.in_(params.priority))
+        if params.ids:
+            q.append(cls.id.in_(params.ids))
+        if params.api_status:
+            q.append(cls.api_status == params.api_status)
         u = aliased(User)
 
-        sort_type = 'asc' if sort_type == 0 else 'desc'
+        sort_type = 'asc' if params.sort_type == 0 else 'desc'
 
-        if not order_field or order_field == 'creation_date':
+        if not params.order_field or params.order_field == 'creation_date':
             order_field = 'api_info.creation_date'
-        if order_field == 'updation_date':
+        elif params.order_field == 'updation_date':
             order_field = 'api_info.updation_date'
-        if order_field == 'name':
+        elif params.order_field == 'name':
             order_field = 'api_info.name'
-        if order_field == 'project_name':
+        elif params.order_field == 'project_name':
             order_field = 'project_info.name'
-        if order_field == 'module_name':
+        elif params.order_field == 'module_name':
             order_field = 'module_info.name'
-        if order_field == 'created_by_name' or order_field == 'updated_by_name':
+        elif params.order_field == 'created_by_name' or params.order_field == 'updated_by_name':
             order_field = 'user.nickname'
-        order_by = f'{order_field} {sort_type} {",api_info.id"} {sort_type}'
+        else:
+            order_field = 'api_info.id'
+        order_by = f'{order_field} {sort_type}'
 
-        return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
+        stmt = select(cls.id,
+                      cls.name,
+                      cls.url,
+                      cls.method,
+                      cls.project_id,
+                      cls.module_id,
+                      cls.code_id,
+                      cls.code,
+                      cls.priority,
+                      cls.status,
+                      cls.tags,
+                      cls.updated_by,
+                      cls.created_by,
+                      cls.updation_date,
+                      cls.creation_date,
+                      cls.enabled_flag,
+                      ProjectInfo.name.label('project_name'),
+                      ModuleInfo.name.label('module_name'),
+                      User.nickname.label('created_by_name'),
+                      u.nickname.label('updated_by_name')).where(*q) \
+            .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
-            .with_entities(
-            cls.id,
-            cls.name,
-            cls.url,
-            cls.method,
-            cls.project_id,
-            cls.module_id,
-            cls.code_id,
-            cls.code,
-            cls.priority,
-            cls.case_status,
-            cls.case_tag,
-            cls.updated_by,
-            cls.created_by,
-            cls.updation_date,
-            cls.creation_date,
-            cls.enabled_flag,
-            ProjectInfo.name.label('project_name'),
-            ModuleInfo.name.label('module_name'),
-            User.nickname.label('created_by_name'),
-            u.nickname.label('updated_by_name')
-        ) \
-            .filter(*q, cls.enabled_flag == 1) \
             .order_by(text(order_by))
+
+        return await cls.pagination(stmt)
 
     @classmethod
     def get_all(cls):
         return cls.query.filter(cls.enabled_flag == 1, cls.type == 1).all()
 
     @classmethod
-    def get_api_by_module_id(cls, module_id=None, module_ids=None):
+    async def get_api_by_module_id(cls, module_id=None, module_ids=None):
         """查询模块是否有case关联"""
-        q = list()
+        q = [cls.enabled_flag == 1]
         if module_id:
             q.append(cls.module_id == module_id)
         if module_ids:
             q.append(cls.module_id.in_(module_ids))
-        return cls.query.filter(*q, cls.enabled_flag == 1)
+        stmt = select(cls.get_table_columns()).where(*q)
+        return await cls.get_result(stmt)
 
     @classmethod
     def get_api_by_project_id(cls, project_id):
@@ -317,52 +298,26 @@ class ApiInfo(Base, TimestampMixin):
         return cls.query.filter(cls.project_id == project_id, cls.enabled_flag == 1)
 
     @classmethod
-    def get_api_by_name(cls, name):
+    async def get_api_by_name(cls, name):
         """获取用例名是否存在"""
-        return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
+        stmt = select(cls.get_table_columns()).where(cls.enabled_flag == 1, cls.name == name)
+        return await cls.get_result(stmt)
 
     @classmethod
-    def get_api_by_ids(cls, ids: List):
+    def get_api_by_ids(cls, ids: typing.List[typing.Union[int, str]]):
         q = []
         return cls.query.filter(cls.id.in_(ids), *q, cls.enabled_flag == 1)
 
     @classmethod
-    def get_api_by_id(cls, id: int):
+    async def get_api_by_id(cls, id: int):
         u = aliased(User)
-        return cls.query.filter(cls.id == id, cls.enabled_flag == 1) \
+        stmt = select(cls.get_table_columns(),
+                      User.nickname.label('created_by_name'),
+                      u.nickname.label('updated_by_name')) \
+            .where(cls.id == id, cls.enabled_flag == 1) \
             .outerjoin(User, User.id == cls.created_by) \
-            .outerjoin(u, u.id == cls.updated_by) \
-            .with_entities(
-            cls.id,
-            cls.name,
-            cls.url,
-            cls.method,
-            cls.project_id,
-            cls.module_id,
-            cls.code_id,
-            cls.code,
-            cls.priority,
-            cls.case_status,
-            cls.case_tag,
-            cls.request_body,
-            cls.pre_steps,
-            cls.post_steps,
-            cls.teardown_hooks,
-            cls.setup_hooks,
-            cls.extracts,
-            cls.request_body,
-            cls.headers,
-            cls.validators,
-            cls.remarks,
-            cls.tags,
-            cls.updated_by,
-            cls.created_by,
-            cls.updation_date,
-            cls.creation_date,
-            cls.enabled_flag,
-            User.nickname.label('created_by_name'),
-            u.nickname.label('updated_by_name')
-        ).first()
+            .outerjoin(u, u.id == cls.updated_by)
+        return await cls.get_result(stmt, True)
 
     @classmethod
     def get_api_by_time(cls, start_time, end_time):
@@ -392,67 +347,73 @@ class ApiInfo(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
 
-class ApiCase(Base, TimestampMixin):
-    """测试套件，集合"""
+class ApiCase(Base):
+    """测试用例，集合"""
     __tablename__ = 'api_case'
 
     name = Column(String(64), nullable=False, comment='名称', index=True)
     project_id = Column(Integer, nullable=False, comment='所属项目')
     remarks = Column(String(255), nullable=False, comment='备注')
-    env_id = Column(Integer, nullable=False, comment='环境id')
     headers = Column(JSON, nullable=False, comment='场景请求头')
     variables = Column(JSON, nullable=False, comment='场景变量')
     step_data = Column(JSON, nullable=False, comment='场景步骤')
+    step_rely = Column(Integer, nullable=False, comment='步骤依赖  1依赖， 0 不依赖')
+
+    # todo 目前步骤详情都冗余在单表，后面会拆为独立的表管理
 
     @classmethod
-    def get_list(cls, name=None, user_ids=None, project_id=None, created_by=None, suite_type=None,
-                 created_by_name=None, project_ids=None, ids=None):
-        q = list()
-        if name:
-            q.append(cls.name.like(f'%{name}%'))
-        if suite_type:
-            q.append(cls.suite_type == suite_type)
-        if project_id:
-            q.append(cls.project_id == project_id)
-        if created_by:
-            q.append(User.nickname.like(f'%{created_by}%'))
-        if user_ids:
-            q.append(cls.created_by.in_(user_ids))
-        if project_ids:
-            q.append(cls.project_id.in_(project_ids))
-        if created_by_name:
-            q.append(User.nickname.like(f'%{created_by_name}%'))
-        if ids:
-            q.append(cls.id.in_(ids))
+    async def get_list(cls, params: ApiCaseQuery):
+        q = [cls.enabled_flag == 1]
+        if params.name:
+            q.append(cls.name.like(f'%{params.name}%'))
+        if params.project_id:
+            q.append(cls.project_id == params.project_id)
+        if params.created_by:
+            q.append(User.nickname.like(f'%{params.created_by}%'))
+        if params.user_ids:
+            q.append(cls.created_by.in_(params.user_ids))
+        if params.project_ids:
+            q.append(cls.project_id.in_(params.project_ids))
+        if params.created_by_name:
+            q.append(User.nickname.like(f'%{params.created_by_name}%'))
+        if params.ids:
+            q.append(cls.id.in_(params.ids))
         u = aliased(User)
-        return cls.query.filter(*q, cls.enabled_flag == 1) \
+
+        stmt = select(cls.id,
+                      cls.name,
+                      cls.project_id,
+                      cls.remarks,
+                      cls.created_by,
+                      cls.creation_date,
+                      cls.updated_by,
+                      cls.updation_date,
+                      cls.enabled_flag,
+                      User.nickname.label('created_by_name'),
+                      u.nickname.label('updated_by_name'),
+                      ProjectInfo.name.label('project_name')).where(*q) \
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
-            .with_entities(cls.id,
-                           cls.name,
-                           cls.project_id,
-                           cls.headers,
-                           cls.variables,
-                           cls.created_by,
-                           cls.creation_date,
-                           cls.updated_by,
-                           cls.updation_date,
-                           cls.enabled_flag,
-                           User.nickname.label('created_by_name'),
-                           u.nickname.label('updated_by_name'),
-                           ProjectInfo.name.label('project_name')) \
-            .order_by(cls.creation_date.desc())
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
 
     @classmethod
     def get_case_by_id(cls, id):
-        """根据套件id查询套件"""
+        """根据套件id查询用例"""
         return cls.query.filter(cls.id == id, cls.enabled_flag == 1).first()
 
     @classmethod
-    def get_case_by_name(cls, suite_name):
-        """根据套件名称查询套件"""
-        return cls.query.filter(cls.suite_name == suite_name, cls.enabled_flag == 1).all()
+    async def get_case_by_ids(cls, ids: typing.List[int]):
+        """根据套件ids查询用例"""
+        stmt = select(cls.get_table_columns()).where(cls.id.in_(ids), cls.enabled_flag == 1)
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_case_by_name(cls, name: str):
+        """根据套件名称查询用例"""
+        stmt = select(cls.get_table_columns()).where(cls.name == name, cls.enabled_flag == 1)
+        return await cls.get_result(stmt, first=True)
 
     @classmethod
     def statistic_project_case_number(cls):
@@ -470,7 +431,7 @@ class ApiCase(Base, TimestampMixin):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
 
-class ApiCaseStep(Base, TimestampMixin):
+class ApiCaseStep(Base):
     """用例步骤"""
     __tablename__ = 'api_case_step'
 
@@ -525,7 +486,7 @@ class ApiCaseStep(Base, TimestampMixin):
             .order_by(cls.creation_date.desc())
 
 
-class ApiTestReport(Base, TimestampMixin):
+class ApiTestReport(Base):
     """报告表"""
     __tablename__ = 'api_test_report'
 
@@ -548,56 +509,36 @@ class ApiTestReport(Base, TimestampMixin):
     env_id = Column(Integer, nullable=True, comment='运行环境')
 
     @classmethod
-    def get_list(cls, id=None, name=None, project_id=None, module_id=None, run_user_name=None, min_and_max=None,
-                 user_ids=None, project_ids=None, ids=None, status=None, execute_source=None, created_by=None,
-                 execute_user_name=None):
-        q = []
-        if id:
-            q.append(cls.id == id)
-        if name:
-            q.append(cls.name.like('%{}%'.format(name)))
-        if project_id:
-            q.append(cls.project_id == project_id)
-        if module_id:
-            q.append(cls.module_id == module_id)
-        if status:
-            q.append(cls.status == status)
-        if execute_source:
-            q.append(cls.execute_source == execute_source)
-        if run_user_name:
-            q.append(User.created_by.like('%{}%'.format(run_user_name)))
-        if ids:
-            q.append(cls.id.in_(ids))
-        if user_ids:
-            q.append(cls.execute_user_id.in_(user_ids))
-        if created_by:
-            q.append(cls.created_by == created_by)
-        if project_ids:
-            q.append(cls.project_id.in_(project_ids))
-        if min_and_max:
-            q.append(cls.creation_date.between(*min_and_max))
-        if execute_user_name:
-            q.append(User.nickname.like('%{}%'.format(execute_user_name)))
-
-        return cls.query.filter(*q, cls.enabled_flag == 1) \
+    async def get_list(cls, params: TestReportQuery):
+        q = [cls.enabled_flag == 1]
+        if params.id:
+            q.append(cls.id == params.id)
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.project_id:
+            q.append(cls.project_id == params.project_id)
+        if params.module_id:
+            q.append(cls.module_id == params.module_id)
+        if params.run_user_name:
+            q.append(User.created_by.like('%{}%'.format(params.run_user_name)))
+        if params.ids:
+            q.append(cls.id.in_(params.ids))
+        if params.user_ids:
+            q.append(cls.execute_user_id.in_(params.user_ids))
+        if params.created_by:
+            q.append(cls.created_by == params.created_by)
+        if params.project_ids:
+            q.append(cls.project_id.in_(params.project_ids))
+        if params.min_and_max:
+            q.append(cls.creation_date.between(*params.min_and_max))
+        if params.execute_user_name:
+            q.append(User.nickname.like('%{}%'.format(params.execute_user_name)))
+        stmt = select(cls.get_table_columns(),
+                      User.nickname.label('run_user_name')) \
+            .where(*q) \
             .outerjoin(User, User.id == cls.created_by) \
-            .with_entities(cls.id,
-                           cls.name,
-                           cls.start_time,
-                           cls.duration,
-                           cls.case_id,
-                           cls.run_mode,
-                           cls.run_type,
-                           cls.success,
-                           cls.run_count,
-                           cls.actual_run_count,
-                           cls.run_success_count,
-                           cls.run_log,
-                           cls.project_id,
-                           cls.module_id,
-                           cls.creation_date,
-                           User.nickname.label('run_user_name')) \
-            .order_by(cls.creation_date.desc())
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
 
     @classmethod
     def get_project_by_name(cls, project_name):
@@ -667,7 +608,7 @@ class ApiTestReportDetail:
 
         mode_class = ApiTestReportDetail._mapper.get(class_name, None)
         if mode_class is None:
-            class ModelClass(Base, TimestampMixin):
+            class ModelClass(Base):
                 __module__ = __name__
                 __name__ = class_name,
                 __tablename__ = 'api_test_report_detail_%d' % table_index
@@ -682,68 +623,63 @@ class ApiTestReportDetail:
                 step_tag = Column(String(255), nullable=True, comment='步骤标签 pre 前置，post 后置，controller 控制器')
                 message = Column(Text, nullable=True, comment='步骤信息')
                 variables = Column(JSON, nullable=True, comment='步骤变量')
+                env_variables = Column(JSON, nullable=True, comment='环境变量')
+                case_variables = Column(JSON, nullable=True, comment='会话变量')
                 session_data = Column(JSON, nullable=True, comment='请求会话数据')
                 export_vars = Column(JSON, nullable=True, comment='导出变量')
                 report_id = Column(Integer, nullable=True, comment='报告id', index=True)
+                url = Column(String(255), nullable=True, comment='请求地址')
+                method = Column(String(255), nullable=True, comment='请求方法')
                 start_time = Column(DateTime, nullable=True, comment='开始时间')
                 duration = Column(DECIMAL(), nullable=True, comment='耗时')
                 pre_hook_data = Column(JSON, nullable=True, comment='前置步骤')
                 post_hook_data = Column(JSON, nullable=True, comment='后置步骤')
+                setup_hook_results = Column(JSON, nullable=True, comment='前置hook结果')
+                teardown_hook_results = Column(JSON, nullable=True, comment='后置hook结果')
                 index = Column(Integer, nullable=True, comment='顺序')
                 status_code = Column(Integer, nullable=True, comment='顺序')
                 response_time_ms = Column(DECIMAL(), nullable=True, comment='响应耗时')
                 elapsed_ms = Column(DECIMAL(), nullable=True, comment='请求耗时')
+                log = Column(Text, nullable=True, comment='运行日志')
 
                 @classmethod
-                def get_list(cls, report_id, parent_step_id=None):
-                    q = list()
-                    q.append(cls.report_id == report_id)
-                    if parent_step_id:
-                        q.append(cls.parent_step_id == parent_step_id)
+                async def get_list(cls, params: TestReportDetailQuery):
+                    q = [cls.enabled_flag == 1]
+                    q.append(cls.report_id == params.id)
+                    if params.name:
+                        q.append(cls.name.like(f"%{params.name}%"))
+                    if params.url:
+                        q.append(cls.url.like(f"%{params.url}%"))
+                    if params.api_name:
+                        q.append(ApiInfo.name.like(f"%{params.api_name}%"))
+                    if params.step_type:
+                        q.append(cls.step_type == params.step_type)
+                    if params.status_list:
+                        q.append(cls.status.in_(params.status_list))
+                    if params.parent_step_id:
+                        q.append(cls.parent_step_id == params.parent_step_id)
                     else:
                         q.append(cls.parent_step_id == None)
 
-                    return cls.query.filter(*q, cls.enabled_flag == 1) \
+                    stmt = select(cls.get_table_columns(),
+                                  ApiInfo.name.label("case_name"),
+                                  ApiInfo.created_by.label('case_created_by'),
+                                  User.nickname.label('case_created_by_name'), ).where(*q) \
                         .outerjoin(ApiInfo, ApiInfo.id == cls.case_id) \
                         .outerjoin(User, User.id == ApiInfo.created_by) \
-                        .with_entities(cls.id,
-                                       cls.name,
-                                       cls.case_id,
-                                       cls.success,
-                                       cls.status,
-                                       cls.step_id,
-                                       cls.parent_step_id,
-                                       cls.step_type,
-                                       cls.message,
-                                       cls.variables,
-                                       cls.session_data,
-                                       cls.export_vars,
-                                       cls.step_tag,
-                                       cls.report_id,
-                                       cls.pre_hook_data,
-                                       cls.post_hook_data,
-                                       cls.response_time_ms,
-                                       cls.status_code,
-                                       cls.elapsed_ms,
-                                       ApiInfo.name.label("case_name"),
-                                       ApiInfo.method.label("method"),
-                                       ApiInfo.url.label("url"),
-                                       ApiInfo.created_by.label('case_created_by'),
-                                       User.nickname.label('case_created_by_name'),
-                                       ) \
                         .order_by(cls.index)
+                    return await cls.pagination(stmt)
 
                 @classmethod
-                def statistics(cls, report_id, parent_step_id=None):
-                    q = list()
-                    q.append(cls.report_id == report_id)
-                    if parent_step_id:
-                        q.append(cls.parent_step_id == parent_step_id)
+                async def statistics(cls, params: TestReportDetailQuery):
+                    q = [cls.enabled_flag == 1]
+                    q.append(cls.report_id == params.id)
+                    if params.parent_step_id:
+                        q.append(cls.parent_step_id == params.parent_step_id)
                     else:
                         q.append(cls.parent_step_id == None)
 
-                    return cls.query.filter(*q, cls.enabled_flag == 1) \
-                        .with_entities(
+                    stmt = select(
                         # 总步骤数
                         func.count('1').label("count_step"),
                         # 成功步骤数
@@ -761,29 +697,30 @@ class ApiTestReportDetail:
                         # 总执行时长
                         func.sum(cls.duration).label("count_request_time"),
                         # 用例数
-                        func.sum(func.if_(cls.step_type == 'case', func.if_(cls.status != "SKIP", 1, 0), 0)).label(
+                        func.sum(func.if_(cls.step_type == 'api', func.if_(cls.status != "SKIP", 1, 0), 0)).label(
                             "count_case"),
                         # 成功用例数
                         func.sum(
-                            func.if_(cls.step_type == 'case', func.if_(cls.status == "SUCCESS", 1, 0), 0)).label(
+                            func.if_(cls.step_type == 'api', func.if_(cls.status == "SUCCESS", 1, 0), 0)).label(
                             "count_case_success"),
                         # 失败用例数
                         func.sum(
-                            func.if_(cls.step_type == 'case', func.if_(cls.status == "FAILURE", 1, 0), 0)).label(
+                            func.if_(cls.step_type == 'api', func.if_(cls.status == "FAILURE", 1, 0), 0)).label(
                             "count_case_fail"),
                         # 测试用例通过率
                         func.round(
                             func.sum(
-                                func.if_(cls.step_type == 'case',
+                                func.if_(cls.step_type == 'api',
                                          func.if_(cls.status == "SUCCESS", func.if_(cls.status != "SKIP", 1, 0), 0),
                                          0)) / func.sum(
-                                func.if_(cls.step_type == 'case', func.if_(cls.status != "SKIP", 1, 0), 0)) * 100,
+                                func.if_(cls.step_type == 'api', func.if_(cls.status != "SKIP", 1, 0), 0)) * 100,
                             2).label("case_pass_rate"),
                         # 测试步骤通过率
                         func.round(
                             func.sum(func.if_(cls.status == "SUCCESS", 1, 0)) / func.count('1') * 100, 2).label(
-                            "step_pass_rate"),
-                    ).first()
+                            "step_pass_rate")).where(*q)
+
+                    return await cls.get_result(stmt, first=True)
 
             mode_class = ModelClass
             ApiTestReportDetail._mapper[class_name] = ModelClass
@@ -793,7 +730,7 @@ class ApiTestReportDetail:
         return cls
 
 
-class Env(Base, TimestampMixin):
+class Env(Base):
     """环境表"""
     __tablename__ = 'env'
 
@@ -805,198 +742,193 @@ class Env(Base, TimestampMixin):
     data_sources = Column(JSON(), nullable=False, comment='数据源')
 
     @classmethod
-    def get_list(cls, name=None, created_by_name=None):
-        q = []
-        if name:
-            q.append(cls.name.like('%{}%'.format(name)))
-        if created_by_name:
-            q.append(User.nickname.like('%{}%'.format(created_by_name)))
+    async def get_list(cls, params: EnvQuery = EnvQuery()):
+        q = [cls.enabled_flag == 1]
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.created_by_name:
+            q.append(User.nickname.like('%{}%'.format(params.created_by_name)))
         u = aliased(User)
-        return cls.query.outerjoin(User, User.id == cls.created_by) \
-            .outerjoin(u, u.id == cls.updated_by) \
-            .filter(*q, cls.enabled_flag == 1) \
-            .with_entities(cls.id,
-                           cls.name,
-                           cls.domain_name,
-                           cls.variables,
-                           cls.headers,
-                           cls.remarks,
-                           cls.updated_by,
-                           cls.created_by,
-                           cls.creation_date,
-                           cls.updation_date,
-                           User.nickname.label('created_by_name'),
-                           u.nickname.label('updated_by_name'),
-                           ) \
-            .order_by(cls.creation_date.desc())
+        stmt = select(cls.id,
+                      cls.name,
+                      cls.domain_name,
+                      cls.variables,
+                      cls.headers,
+                      cls.remarks,
+                      cls.updated_by,
+                      cls.created_by,
+                      cls.creation_date,
+                      cls.updation_date,
+                      User.nickname.label('created_by_name'),
+                      u.nickname.label('updated_by_name'), ).where(*q) \
+            .join(u, u.id == cls.updated_by) \
+            .join(User, User.id == cls.created_by) \
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
 
     @classmethod
-    def get_env_by_name(cls, name):
+    async def get_env_by_name(cls, name):
         """根据环境名称获取环境"""
-        return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
+        stmt = select(cls).where(cls.name == name, cls.enabled_flag == 1)
+        await cls.get_result(stmt, first=True)
 
 
-class TimedTask(Base, TimestampMixin):
-    """定时任务表"""
-    __tablename__ = 'celery_periodic_task'
+class EnvDataSource(Base):
+    """环境数据源管理表"""
+    __tablename__ = 'env_data_source'
 
-    name = Column(String(255), nullable=True, comment='定时任务名', index=True)
-    task = Column(String(255), comment='任务路径')
-    args = Column(String(255), comment='参数')
-    kwargs = Column(String(255), comment='关键字参数')
-    queue = Column(String(255), comment='队列')
-    exchange = Column(String(255), comment='交换')
-    routing_key = Column(String(255), comment='路由密钥')
-    expires = Column(DateTime, comment='到期时间')
-    enabled = Column(String(255), comment='是否启用, 1启动，0停用', default=0)
-    last_run_at = Column(String(255), comment='上次运行时间')
-    total_run_count = Column(String(255), comment='运行总次数', default=0)
-    date_changed = Column(DateTime, comment='更改日期')
-    description = Column(String(255), comment='备注')
-    crontab_id = Column(Integer, comment='定时器id')
-    interval_id = Column(Integer, comment='参数')
-    run_mode = Column(String(255), nullable=False, comment='作业类型, case, module, suite')
-    run_type = Column(Integer, nullable=False, comment='30 定时任务')
-    project_id = Column(Integer, nullable=True, comment='项目id')
-    module_id = Column(Integer, nullable=True, comment='模块id')
-    suite_id = Column(Integer, nullable=True, comment='套件id')
-    case_ids = Column(String(255), nullable=False, comment='用例集合')
+    env_id = Column(Integer, nullable=True, index=True, comment='环境id')
+    data_source_id = Column(Integer, nullable=True, index=True, comment='数据源id')
 
     @classmethod
-    def get_list(cls, id=None, name=None, user_ids=None, created_by_name=None, created_by=None, project_ids=None):
-        q = list()
-        u = aliased(User)
-        if id:
-            q.append(cls.id == id)
-        if name:
-            q.append(cls.name.like('%{}%'.format(name)))
-        if created_by_name:
-            q.append(u.nickname.like('%{}%'.format(created_by_name)))
-        if user_ids:
-            q.append(cls.created_by.in_(user_ids))
-        if created_by:
-            q.append(cls.created_by == created_by)
-        if project_ids:
-            q.append(cls.project_id.in_(project_ids))
-        return cls.query.filter(*q, cls.enabled_flag == 1) \
-            .outerjoin(u, u.id == cls.created_by) \
-            .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
-            .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
-            .outerjoin(User, User.id == cls.updated_by) \
-            .with_entities(cls,
-                           cls.id,
-                           cls.name,
-                           cls.task,
-                           cls.args,
-                           cls.kwargs,
-                           cls.queue,
-                           cls.exchange,
-                           cls.routing_key,
-                           cls.expires,
-                           cls.enabled,
-                           cls.last_run_at,
-                           cls.total_run_count,
-                           cls.date_changed,
-                           cls.description,
-                           cls.crontab_id,
-                           cls.interval_id,
-                           cls.run_type,
-                           cls.project_id,
-                           cls.module_id,
-                           cls.suite_id,
-                           cls.case_ids,
-                           cls.updated_by,
-                           cls.created_by,
-                           cls.updation_date,
-                           cls.creation_date,
-                           u.nickname.label('created_by_name'),
-                           User.nickname.label('updated_by_name'),
-                           ProjectInfo.name.label('project_name'),
-                           ModuleInfo.name.label('module_name')) \
-            .order_by(cls.creation_date.desc())
+    async def unbinding_data_source(cls, params: BindingDataSourceIn):
+        stmt = update(cls).where(cls.enabled_flag == 1,
+                                 cls.env_id == params.env_id,
+                                 cls.data_source_id.in_(params.data_source_ids)) \
+            .values(enabled_flag=0)
+        return await cls.execute(stmt)
 
     @classmethod
-    def get_task_by_name(cls, name):
-        """获取任务名存在的个数"""
-        return cls.query.filter(cls.name == name, cls.enabled_flag == 1).first()
-
-
-class Crontab(Base, TimestampMixin):
-    """crontab 表"""
-    __tablename__ = 'celery_crontab_schedule'
-
-    minute = Column(String(255), comment='分钟')
-    hour = Column(String(255), comment='小时')
-    day_of_week = Column(String(255), comment='日期')
-    day_of_month = Column(String(255), comment='月份')
-    month_of_year = Column(String(255), comment='年')
-    timezone = Column(String(255), comment='时区', default='Asia/Shanghai')
-
-    @classmethod
-    def get_crontab_by_parameter(cls, minute, hour, day_of_week, day_of_month, month_of_year):
-        return cls.query.filter(cls.minute == minute, cls.hour == hour, cls.day_of_week == day_of_week,
-                                cls.day_of_month == day_of_month, cls.month_of_year == month_of_year).first()
-
-
-class PeriodicTaskChanged(Base):
-    """定时任务更新表"""
-    __tablename__ = 'celery_periodic_task_changed'
-
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
-    last_update = Column(DateTime, comment='到期时间')
+    async def get_by_env_id(cls, env_id: int):
+        q = [cls.enabled_flag == 1, cls.env_id == env_id]
+        stmt = select(cls.id,
+                      cls.env_id.label("env_id"),
+                      Env.name.label("env_name"),
+                      DataSource.name,
+                      DataSource.id.label("data_source_id"),
+                      DataSource.host,
+                      DataSource.port,
+                      DataSource.type,
+                      DataSource.user,
+                      DataSource.updation_date,
+                      DataSource.creation_date,
+                      ) \
+            .where(*q) \
+            .outerjoin(Env, Env.id == cls.env_id) \
+            .outerjoin(DataSource, DataSource.id == cls.data_source_id) \
+            .order_by(cls.id.desc())
+        return await cls.get_result(stmt)
 
     @classmethod
-    def get_data(cls):
-        return cls.query.first()
+    async def get_env_by_name(cls, name):
+        """根据环境名称获取数据"""
+        stmt = select(cls).where(cls.name == name, cls.enabled_flag == 1)
+        await cls.get_result(stmt, first=True)
 
 
-class Functions(Base, TimestampMixin):
+class EnvFunc(Base):
+    """环境数据源管理表"""
+    __tablename__ = 'env_func'
+
+    env_id = Column(Integer, nullable=True, index=True, comment='环境id')
+    func_id = Column(Integer, nullable=True, index=True, comment='辅助函数id')
+
+    @classmethod
+    async def unbinding_funcs(cls, params: BindingFuncIn):
+        stmt = update(cls).where(cls.enabled_flag == 1,
+                                 cls.env_id == params.env_id,
+                                 cls.func_id.in_(params.func_ids)) \
+            .values(enabled_flag=0)
+        return await cls.execute(stmt)
+
+    @classmethod
+    async def get_by_env_id(cls, env_id: int):
+        q = [cls.enabled_flag == 1, cls.env_id == env_id]
+        stmt = select(cls.get_table_columns(),
+                      cls.env_id.label("env_id"),
+                      Env.name.label("env_name"),
+                      Functions.name.label("name"),
+                      Functions.remarks.label("remarks"),
+                      Functions.content.label("content"),
+                      Functions.id.label("func_id"),
+                      ) \
+            .where(*q) \
+            .outerjoin(Env, Env.id == cls.env_id) \
+            .outerjoin(Functions, Functions.id == cls.func_id) \
+            .order_by(cls.id.desc())
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_env_by_name(cls, name):
+        """根据环境名称获取数据"""
+        stmt = select(cls).where(cls.name == name, cls.enabled_flag == 1)
+        await cls.get_result(stmt, first=True)
+
+
+class Functions(Base):
     __tablename__ = 'functions'
 
     name = Column(Integer, nullable=False, comment='name')
     remarks = Column(Integer, nullable=False, comment='备注')
     project_id = Column(Integer, nullable=False, comment='关联项目')
     content = Column(Text, nullable=True, comment='自定义函数内容')
+    func_type = Column(String(255), nullable=False, comment='函数类型')
+    func_tags = Column(String(255), nullable=False, comment='函数标签')
 
     @classmethod
-    def get_list(cls, project_name=None, name=None):
-        q = []
-        if project_name:
-            q.append(ProjectInfo.name.like(f'%{project_name}%'))
-        if name:
-            q.append(cls.name.like(f'%{name}%'))
+    async def get_list(cls, params: FuncQuery):
+        q = [cls.enabled_flag == 1]
+        if params.project_name:
+            q.append(ProjectInfo.name.like(f'%{params.project_name}%'))
+        if params.name:
+            q.append(cls.name.like(f'%{params.name}%'))
         u = aliased(User)
-        return cls.query.filter(*q, cls.enabled_flag == 1) \
+
+        stmt = select(cls.get_table_columns(),
+                      ProjectInfo.name.label('project_name'),
+                      User.nickname.label('updated_by_name'),
+                      u.nickname.label('created_by_name'), ).where(*q) \
             .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
             .outerjoin(User, User.id == cls.updated_by) \
             .outerjoin(u, u.id == cls.created_by) \
-            .with_entities(cls.id,
-                           cls.project_id,
-                           cls.name,
-                           cls.remarks,
-                           cls.content,
-                           cls.creation_date,
-                           cls.updation_date,
-                           ProjectInfo.name.label('project_name'),
-                           User.nickname.label('updated_by_name'),
-                           u.nickname.label('created_by_name'),
-                           ) \
-            .order_by(cls.creation_date.desc())
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
 
     @classmethod
-    def get_by_id(cls, id):
-        return cls.query.filter(cls.enabled_flag == 1, cls.id == id) \
-            .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
-            .with_entities(cls.id,
-                           cls.project_id,
-                           cls.content,
-                           cls.name,
-                           cls.remarks,
-                           cls.creation_date,
-                           cls.updation_date,
-                           ProjectInfo.name.label('project_name')) \
-            .first()
+    async def get_by_id(cls, id: int):
+        stmt = select(cls.get_table_columns(),
+                      ProjectInfo.name.label('project_name')).where(cls.enabled_flag == 1, cls.id == id) \
+            .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id)
+
+        return await cls.get_result(stmt, first=True)
 
     @classmethod
     def get_by_project_id(cls, project_id):
         return cls.query.filter(cls.project_id == project_id).first()
+
+
+class DataSource(Base):
+    """数据源"""
+    __tablename__ = 'data_source'
+
+    type = Column(String(255), nullable=False, comment='数据源类型', index=True)
+    name = Column(String(255), nullable=False, comment='数据源名称', index=True)
+    host = Column(String(255), nullable=False, comment='ip')
+    port = Column(String(255), nullable=True, comment='端口')
+    user = Column(String(255), nullable=False, comment='用户名')
+    password = Column(String(255), nullable=False, comment='密码')
+
+    @classmethod
+    async def get_list(cls, params: SourceQuery):
+        q = [cls.enabled_flag == 1]
+        if params.id:
+            q.append(cls.id == params.id)
+        if params.source_type:
+            q.append(cls.type == params.source_type)
+        if params.name:
+            q.append(cls.name.like(f"%{params.name}%"))
+        if params.source_ids and isinstance(params.source_ids, list):
+            q.append(cls.id.in_(params.source_ids))
+        u = aliased(User)
+        stmt = select(cls.get_table_columns(),
+                      u.nickname.label('created_by_name'),
+                      User.nickname.label('updated_by_name'),
+                      ).where(*q) \
+            .outerjoin(User, cls.updated_by == User.id) \
+            .outerjoin(u, cls.created_by == u.id) \
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
+
+    @classmethod
+    def get_user_by_name(cls, username):
+        return cls.query.filter(cls.username == username, cls.enabled_flag == 1).first()

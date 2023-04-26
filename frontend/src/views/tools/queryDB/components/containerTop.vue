@@ -17,7 +17,7 @@
           v-model:value="executeForm.sql"
           v-model:long="long"
           :onInputTableAlia="onInputTableAlia"
-      ></monaco-editor>
+      ></z-monaco-editor>
     </div>
   </div>
 </template>

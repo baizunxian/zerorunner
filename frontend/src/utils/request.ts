@@ -1,7 +1,7 @@
 import axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
 import {ElMessage, ElMessageBox} from 'element-plus';
 import {Session} from '/@/utils/storage';
-import {BaseUrl} from '/@/config/config';
+import config from "../config/config"
 import qs from 'qs';
 
 const cancelToken = axios.CancelToken
@@ -9,8 +9,8 @@ const source = cancelToken.source()
 
 // 配置新建一个 axios 实例
 const service: AxiosInstance = axios.create({
-  baseURL: BaseUrl,
-  timeout: 500000,
+  baseURL: config.BaseUrl,
+  timeout: 50000,
   headers: {'Content-Type': 'application/json'},
   paramsSerializer: {
     serialize(params) {
@@ -25,12 +25,8 @@ service.interceptors.request.use(
     // 在发送请求之前做些什么 token
     if (Session.get('token')) {
       config.headers!['token'] = `${Session.get('token')}`;
-      return config
-    } else {
-      config.cancelToken = source.token;
-      return config;
     }
-
+    return config;
   },
   (error) => {
     // 对请求错误做些什么
@@ -45,16 +41,22 @@ service.interceptors.response.use(
     const res = response.data;
     if (res.code && res.code !== 0) {
       // `token` 过期或者账号已在别处登录
-      if (res.code === 10201) {
+      if (res.code === 11000) {
         Session.clear(); // 清除浏览器全部临时缓存
-        source.cancel('Token Timeout'); // 取消其他正在进行的请求
-        window.location.href = '/'; // 去登录页
-        ElMessageBox.alert('登录信息已失效，请重新登录', '提示', {})
+        source.cancel('Token Timeout');
+        ElMessageBox.confirm('登录信息已失效，是否重新登录？', '提示', {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning',
+        })
           .then(() => {
             window.location.href = '/'; // 去登录页
           })
           .catch(() => {
+
           });
+      } else {
+        ElMessage.error(res.msg || '接口错误！');
       }
       return Promise.reject(service.interceptors.response);
     } else {
@@ -67,14 +69,8 @@ service.interceptors.response.use(
       ElMessage.error('网络超时');
     } else if (error.message == 'Network Error') {
       ElMessage.error('网络连接错误');
-    } else if (error.message == 'Token Timeout') {
-      ElMessageBox.alert('登录信息已失效，请重新登录', {})
-        .then(() => {
-          window.location.href = '/'; // 去登录页
-        })
-        .catch(() => {
-        });
     } else {
+
       if (error.response.data) ElMessage.error(error.response.statusText);
       else ElMessage.error('接口路径找不到');
     }

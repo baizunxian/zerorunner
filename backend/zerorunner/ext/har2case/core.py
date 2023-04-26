@@ -8,7 +8,6 @@ import json
 import os
 import sys
 import urllib.parse as urlparse
-from typing import Text
 
 from compat import ensure_path_sep
 from loguru import logger
@@ -24,7 +23,7 @@ except ImportError:
     JSONDecodeError = ValueError
 
 
-def ensure_file_path(path: Text) -> Text:
+def ensure_file_path(path: str) -> str:
 
     if not path or not path.endswith(".har"):
         logger.error("HAR file not specified.")

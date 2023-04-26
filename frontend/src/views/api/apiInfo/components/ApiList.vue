@@ -10,14 +10,16 @@
           </el-button>
         </div>
       </div>
-      <div class="mb8">
-        <el-button type="primary" link class="" @click="openImportPage">
-          <el-icon>
-            <ele-FolderAdd/>
-          </el-icon>
-          导入
-        </el-button>
-      </div>
+
+<!--      <div class="mb8">-->
+<!--        <el-button type="primary" link class="" @click="openImportPage">-->
+<!--          <el-icon>-->
+<!--            <ele-FolderAdd/>-->
+<!--          </el-icon>-->
+<!--          导入-->
+<!--        </el-button>-->
+<!--      </div>-->
+<!--      -->
       <z-table
           :columns="state.columns"
           :data="state.listData"
@@ -44,7 +46,7 @@
           label-width="70px"
 
       >
-        <el-form-item label="运行模式" prop="run_mode">
+        <el-form-item label="运行模式" prop="run_type">
           <el-select v-model="state.runForm.run_type" placeholder="选择运行模式" filterable style="width:100%">
             <el-option :value="10" label="同步运行(同步执行,等待执行结果)"></el-option>
             <el-option :value="20" label="异步运行(异步执行用例,后台运行,执行结束后报告列表查看)"></el-option>
@@ -52,14 +54,14 @@
         </el-form-item>
 
         <el-form-item label="运行环境" prop="base_url">
-          <el-select v-model="state.runForm.base_url" placeholder="选择环境" filterable style="width:100%">
-            <el-option value="" label="自带环境">自带环境</el-option>
+          <el-select v-model="state.runForm.env_id" placeholder="选择环境" filterable style="width:100%">
+            <el-option :value="0" label="自带环境">自带环境</el-option>
             <el-option
                 v-for="item in state.envList"
                 :key="item.id"
-                :label="item.name"
-                :value="item.domain_name">
-              <span style="float: left">{{ item.name }}</span>
+                :label="`${item.name}(${item.domain_name})`"
+                :value="item.id">
+              <span style="float: left">{{ `${item.name}(${item.domain_name})` }}</span>
             </el-option>
           </el-select>
         </el-form-item>
@@ -125,17 +127,18 @@
         <el-form-item label="上传文件">
           <div class="file-input-container">
             <div class="file-input">
-              <input size="small" type="file" id="selectFile" @change="fileChange($event)"
+              <input size="small" type="file" id="selectFile" @change="state.fileChange($event)"
                      class="file-input__native">
 
-              <el-button v-if="!state.importForm.file_info.raw" type="info" size="small" @click="selectFile()">选择文件
+              <el-button v-if="!state.importForm.file_info.raw" type="info" size="small" @click="state.selectFile()">
+                选择文件
               </el-button>
               <div v-else class="file-input__name">
                 <div class="file-input__name__title" :title="state.importForm.file_info.name">
                   {{ state.importForm.file_info.name }}
                 </div>
                 <el-button class="file-input__name__delete-icon" size="small" type="primary" link
-                           @click="deletedFile">
+                           @click="state.deletedFile">
                   <el-icon>
                     <ele-Close/>
                   </el-icon>
@@ -149,7 +152,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="state.showImportPage = false">取消</el-button>
-          <el-button type="primary" @click="submitUpload" :loading="state.importButtonStart">导入</el-button>
+          <el-button type="primary" @click="state.submitUpload" :loading="state.importButtonStart">导入</el-button>
         </span>
       </template>
     </el-dialog>
@@ -166,17 +169,15 @@ import {useModuleApi} from "/@/api/useAutoApi/module";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {getMethodColor} from "/@/utils/case";
 
-const ReportDetail = defineAsyncComponent(() => import("/@/views/api/Report/components/reportDetail.vue"))
+const ReportDetail = defineAsyncComponent(() => import("/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"))
 
 const reportDetailRef = ref();
 const importFormRef = ref();
 const uploadRef = ref();
-const moduleListRef = ref();
 const router = useRouter();
 
 const state = reactive({
   columns: [
-    // {label: '序号', columnType: 'selection', width: 'auto', show: true},
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
     {
@@ -246,7 +247,7 @@ const state = reactive({
   envList: [],
   runForm: {
     id: null,
-    base_url: '',
+    env_id: 0,
     run_type: 10,
     run_mode: "case",
   },
@@ -310,7 +311,7 @@ const onOpenSaveOrUpdate = (editType: string, row: any | null) => {
   let query: any = {}
   query.editType = editType
   if (row) query.id = row.id
-  router.push({name: 'ApiSaveOrUpdate', query: query})
+  router.push({name: 'EditApiInfo', query: query})
 
 };
 
@@ -350,7 +351,7 @@ const runTestCase = () => {
   state.runCaseLoading = !state.runCaseLoading;
   useApiInfoApi().run(state.runForm)
       .then((res: any) => {
-        if (state.runForm.run_mode === 1) {
+        if (state.runForm.run_type === 10) {
           ElMessage.success('运行成功');
           state.reportInfo = res.data
           state.runCaseLoading = !state.runCaseLoading;
@@ -403,62 +404,6 @@ const getModuleList = () => {
       })
 }
 
-// 文件上传
-const submitUpload = () => {
-  state.importButtonStart = true
-  importFormRef.value.validate(async (vai: any) => {
-    if (vai) {
-      if (!state.importForm.file_info.raw) {
-        ElMessage.info('请选择上传文件！')
-        state.importButtonStart = false
-        return
-      }
-      try {
-        let formData = new FormData()
-        formData.append('file', state.importForm.file_info.raw)
-        formData.append('project_id', state.importForm.project_id)
-        formData.append('module_id', state.importForm.module_id)
-        let res: any = await useApiInfoApi().postman2case(formData)
-        ElMessage.success(`成功导入${res.data}条用例！`)
-        state.importButtonStart = false
-        state.showImportPage = false
-        getList()
-
-        // useTestCaseApi().postman2case(formData)
-        //     .then((res: any) => {
-        //       ElMessage.success(`成功导入${res.data}条用例！`)
-        //       state.importButtonStart = false
-        //       state.showImportPage = false
-        //       getList()
-        //     })
-      } catch (e) {
-        state.importButtonStart = false
-      }
-    } else {
-      state.importButtonStart = false
-    }
-  })
-}
-
-// 选择文件时触发，上传文件，回写地址
-const fileChange = (e: any) => {
-  let file: any = e.target.files[0]
-  state.importForm.file_info.raw = file
-  state.importForm.file_info.name = file.name
-}
-// 删除文件处理
-const deletedFile = () => {
-  let fileRef: any = document.getElementById('selectFile')
-  if (fileRef) fileRef.value = ''
-  state.importForm.file_info.raw = ''
-  state.importForm.file_info.name = ''
-}
-
-// 选择文件
-const selectFile = () => {
-  let fileRef = document.getElementById('selectFile')
-  if (fileRef) fileRef.click()
-}
 
 // 页面加载时
 onMounted(() => {
@@ -500,7 +445,7 @@ onMounted(() => {
 
       &:hover {
         color: #212121;
-        background-color: #E6E6E;
+        background-color: #E6E6EE;
       }
     }
 

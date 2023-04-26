@@ -14,7 +14,7 @@ export const initConfig = () => {
   if (env === 'prd') {
     url = 'https://xiaobaicodes.com:8888'
   } else {
-    url = 'http://127.0.0.1:8011'
+    url = 'http://localhost:8101'
   }
 }
 

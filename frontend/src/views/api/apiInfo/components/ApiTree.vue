@@ -256,8 +256,8 @@ import {useModuleApi} from "/@/api/useAutoApi/module";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {ElTag} from "element-plus"
 import {getMethodColor} from "/@/utils/case";
-import reportDetail from "/@/views/api/Report/components/reportDetail.vue";
-import saveOrUpdate from "/@/views/api/apiInfo/components/saveOrUpdate.vue";
+import reportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue";
+import saveOrUpdate from "/@/views/api/apiInfo/components/EditApi.vue";
 
 
 export default defineComponent({

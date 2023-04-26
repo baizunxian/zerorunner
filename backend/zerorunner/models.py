@@ -2,30 +2,29 @@
 # @project: zerorunner
 # @author: xiaobai
 # @create time: 2022/9/9 14:53
+import typing
 from enum import Enum
-from typing import Dict, Text, List, Union, Callable, Optional, Annotated, Any, Literal
-from pydantic import BaseModel, Field, root_validator
+
+from pydantic import BaseModel, Field
 from pydantic import HttpUrl
 
-from zerorunner.snowflake import id_center
-
-Name = Text
-Url = Text
-BaseUrl = Union[HttpUrl, Text]
-VariablesMapping = Dict[Text, Any]
-ParametersMapping = Dict[Text, Any]
-FunctionsMapping = Dict[Text, Callable]
-Headers = Dict[Text, Text]
-Cookies = Dict[Text, Text]
+Name = str
+Url = str
+BaseUrl = typing.Union[HttpUrl, str]
+VariablesMapping = typing.Dict[str, typing.Any]
+ParametersMapping = typing.Dict[str, typing.Any]
+FunctionsMapping = typing.Dict[str, typing.Callable]
+Headers = typing.Dict[str, str]
+Cookies = typing.Dict[str, str]
 Verify = bool
-# Hooks = List[Union[Text, Dict[Text, Text]]]
-Hooks = List[Any]
-Export = List[Text]
-Validators = List[Dict]
-Env = Dict[Text, Any]
+# Hooks = typing.List[Union[Text, Dict[Text, Text]]]
+Hooks = typing.List[typing.Any]
+Export = typing.List[str]
+Validators = typing.List[typing.Dict]
+Env = typing.Dict[str, typing.Any]
 
 
-class MethodEnum(Text, Enum):
+class MethodEnum(str, Enum):
     """请求方法枚举"""
     GET = "GET"
     POST = "POST"
@@ -34,10 +33,12 @@ class MethodEnum(Text, Enum):
     HEAD = "HEAD"
     OPTIONS = "OPTIONS"
     PATCH = "PATCH"
+    NA = "N/A"
 
 
-class TStepControllerEnum(Text, Enum):
+class TStepControllerEnum(str, Enum):
     """步骤类型枚举"""
+    api = "api"
     case = "case"
     wait = "wait"
     script = "script"
@@ -48,6 +49,7 @@ class TStepControllerEnum(Text, Enum):
 
 
 TStepControllerDict = {
+    "api": "接口",
     "case": "用例",
     "wait": "等待控制器",
     "script": "脚本控制器",
@@ -58,14 +60,14 @@ TStepControllerDict = {
 }
 
 
-class LoopTypeEnum(Text, Enum):
+class LoopTypeEnum(str, Enum):
     """循环类型枚举"""
     For = "for"
     Count = "count"
     While = "while"
 
 
-class ComparatorEnum(Text, Enum):
+class ComparatorEnum(str, Enum):
     """比较方法枚举， 条件控制器， 循环控制 使用"""
     equals = "equals"
     not_equals = "not_equals"
@@ -77,7 +79,7 @@ class ComparatorEnum(Text, Enum):
     not_none = "not_none"
 
 
-class TStepDataStatusEnum(Text, Enum):
+class TStepResultStatusEnum(str, Enum):
     """步骤数据状态"""
     success = "SUCCESS"
     fail = "FAILURE"
@@ -85,7 +87,7 @@ class TStepDataStatusEnum(Text, Enum):
     err = "ERROR"
 
 
-class TStepLogType(Text, Enum):
+class TStepLogType(str, Enum):
     start = "开始"
     end = "结束"
     success = "成功"
@@ -97,78 +99,79 @@ class TStepLogType(Text, Enum):
     condition = "条件"
 
 
-class TStepTagEnum(Text, Enum):
+class TStepTagEnum(str, Enum):
     pre = "pre"  # 前置
     post = "post"  # 后置
     controller = "controller"  # 控制器
 
 
 class TConfig(BaseModel):
-    # case_id: Union[Text, int] = ""
+    case_id: typing.Union[str, int, None] = None
     name: Name
     verify: Verify = False
     base_url: BaseUrl = ""
     # 脚本函数
     functions: FunctionsMapping = {}  # TestCase 脚本函数
     # 环境变量
-    env_variables: Union[VariablesMapping, Text] = {}
+    env_variables: typing.Union[VariablesMapping, str] = {}
     # 请求头
     headers: VariablesMapping = {}
     # 配置变量
-    variables: Union[VariablesMapping, Text] = {}
+    variables: typing.Union[VariablesMapping, str] = {}
     # 参数
-    parameters: Union[VariablesMapping, Text] = {}
+    parameters: typing.Union[VariablesMapping, str] = {}
     # setup_hooks: Hooks = []
     # teardown_hooks: Hooks = []
     export: Export = []
-    # path: Text = None
+    # path: str = None
     weight: int = 1
 
 
 class TRequest(BaseModel):
-    """requests.Request model"""
-
+    """请求模型"""
     method: MethodEnum
     url: Url
-    params: Dict[Text, Text] = {}
+    params: typing.Dict[str, str] = {}
     headers: Headers = {}
-    req_json: Union[Dict, List, Text] = Field(None, alias="json")
-    data: Union[Text, Dict[Text, Any]] = None
+    req_json: typing.Union[typing.Dict, typing.List, str] = Field(None, alias="json")
+    data: typing.Union[str, typing.Dict[str, typing.Any]] = None
     cookies: Cookies = {}
     timeout: float = 120
     allow_redirects: bool = True
     verify: Verify = False
-    upload: Dict = {}  # used for upload files
+    upload: typing.Dict = {}  # used for upload files
 
 
 class TBaseController(BaseModel):
     name: Name = ""
-    value: Any = ""
+    value: typing.Any = ""
     enable: bool = True  # 是否有效
     index: int = 0  # 顺序
-    step_id: Text = None  # 唯一步骤id
-    parent_step_id: Text = None  # 父级id  step_id
+    step_id: str = None  # 唯一步骤id
+    parent_step_id: str = None  # 父级id  step_id
 
 
 class ExtractData(BaseModel):
-    name: Text = ""
-    path: Text = ""
-    extract_type: Text = ""  # 提取类型  jmespath
+    name: str = ""
+    path: str = ""
+    continue_extract = False
+    continue_index: int = 0
+    extract_type: str = ""  # 提取类型  jmespath
 
 
-class TCaseController(TBaseController):
-    case_id: Union[Text, int] = ''
-    step_type: Literal['case']
-    request: Union[TRequest, None] = None
-    testcase: Union[Text, Callable, None] = None
+class TApiController(TBaseController):
+    case_id: typing.Union[str, int] = ''
+    step_type: typing.Literal['api'] = "api"
+    request: typing.Union[TRequest, None] = None
+    testcase: typing.Union[str, typing.Callable, None] = None
     variables: VariablesMapping = {}
     # parameters 加入步骤 参数
     parameters: ParametersMapping = {}
     setup_hooks: Hooks = []
     teardown_hooks: Hooks = []
-    message: Text = ''
+    message: str = ''
     # used to extract request's response field
-    extracts: List[ExtractData] = []
+    extracts: typing.List[ExtractData] = []
     # used to export session variables from referenced testcase
     export: Export = []
     validators: Validators = Field([], alias="validate")
@@ -176,113 +179,117 @@ class TCaseController(TBaseController):
 
 class TScriptController(TBaseController):
     """脚本控制"""
-    value: Optional[Text] = None
-    step_type: Literal["script"]
+    value: typing.Optional[str] = None
+    step_type: typing.Literal["script"]
 
 
 class TWaitController(TBaseController):
     """等待控制器"""
-    step_type: Literal["wait"]
-    value: Optional[int] = None
+    step_type: typing.Literal["wait"]
+    value: typing.Optional[int] = None
 
 
 class TIFController(TBaseController):
-    step_type: Literal["if"]
-    check: Text = ""  # 校验变量
-    comparator: Text = ""  # 对比规则
-    expect: Text = ""  # 对比值
-    remarks: Text = ""  # 备注
-    teststeps: List["TController"] = []
+    step_type: typing.Literal["if"]
+    check: str = ""  # 校验变量
+    comparator: str = ""  # 对比规则
+    expect: str = ""  # 对比值
+    remarks: str = ""  # 备注
+    teststeps: typing.List["TController"] = []
 
 
 class TLoopController(TBaseController):
     """循环控制器"""
-    step_type: Literal["loop"]
-    teststeps: List["TController"] = []
-    loop_type: Literal["count", "for", "while"]
+    step_type: typing.Literal["loop"]
+    teststeps: typing.List["TController"] = []
+    loop_type: typing.Literal["count", "for", "while"]
     # loop_type == "count"
     count_number: int = 0  # 循环次数
     count_sleep_time: int = 0  # 休眠时间
 
     # loop_type == "for"
-    for_variable_name: Text = ""  # 循环变量名
-    for_variable: Text = ""  # 循环变量
+    for_variable_name: str = ""  # 循环变量名
+    for_variable: str = ""  # 循环变量
     for_sleep_time: int = 0  # 休眠时间
 
     # loop_type == "while"
-    while_comparator: Text = ""  # 比对条件
-    while_variable: Text = ""  # 循环变量
-    while_value: Text = ""  # 循环值
+    while_comparator: str = ""  # 比对条件
+    while_variable: str = ""  # 循环变量
+    while_value: str = ""  # 循环值
     while_sleep_time: int = 0
     while_timeout: int = 0  # 超时时间
 
 
 class TSqlController(TBaseController):
     """sql控制器"""
-    value: Text = ""
-    step_type: Literal["sql"]
-    env_id: Optional[int] = None
-    source_id: Optional[int] = None
-    host: Optional[Text] = None
-    user: Optional[Text] = None
-    password: Optional[Text] = None
-    port: Optional[int] = None
-    timeout: Optional[int] = None  # 超时时间
-    variable_name: Optional[Text] = None  # 变量赋值名称
+    value: str = ""
+    step_type: typing.Literal["sql"]
+    env_id: typing.Optional[int] = None
+    source_id: typing.Optional[int] = None
+    host: typing.Optional[str] = None
+    user: typing.Optional[str] = None
+    password: typing.Optional[str] = None
+    port: typing.Optional[int] = None
+    timeout: typing.Optional[int] = None  # 超时时间
+    variable_name: typing.Optional[str] = None  # 变量赋值名称
 
 
-TController = Union[TCaseController,
-                    TScriptController,
-                    TSqlController,
-                    TWaitController,
-                    TLoopController,
-                    TIFController]
-
-TIFController.update_forward_refs()
-TLoopController.update_forward_refs()
-
-
-def init_step_id(teststeps: List[TController], parent_step_id=None):
-    """ 初始化步骤id --- 保证步骤唯一性，已经对应的层级
-        step_id: 步骤id
-        parent_id: 父级步骤的id
-    """
-    for step in teststeps:
-        if not step.step_id:
-            step.step_id = str(id_center.get_id())
-        if parent_step_id:
-            step.parent_step_id = parent_step_id
-
-        if hasattr(step, "teststeps"):
-            init_step_id(step.teststeps, step.step_id)
-
-        if hasattr(step, "setup_hooks"):
-            init_step_id(step.setup_hooks, step.step_id)
-
-        if hasattr(step, "teardown_hooks"):
-            init_step_id(step.teardown_hooks, step.step_id)
+# def init_step_id(teststeps: typing.List["TController"], parent_step_id=None):
+#     """ 初始化步骤id --- 保证步骤唯一性，已经对应的层级
+#         step_id: 步骤id
+#         parent_id: 父级步骤的id
+#     """
+#     for step in teststeps:
+#         if not step.step_id:
+#             step.step_id = str(id_center.get_id())
+#         if parent_step_id:
+#             step.parent_step_id = parent_step_id
+#
+#         if hasattr(step, "teststeps"):
+#             init_step_id(step.teststeps, step.step_id)
+#
+#         if hasattr(step, "setup_hooks"):
+#             init_step_id(step.setup_hooks, step.step_id)
+#
+#         if hasattr(step, "teardown_hooks"):
+#             init_step_id(step.teardown_hooks, step.step_id)
 
 
 class TestCase(BaseModel):
     """测试用例"""
     config: TConfig
-    teststeps: List[Annotated[TController, Field(discriminator="step_type")]] = []
+    step_type: typing.Literal["case"] = 'case'
+    teststeps: typing.List[typing.Annotated[typing.Union[TApiController,
+                                                         TScriptController,
+                                                         TSqlController,
+                                                         TWaitController,
+                                                         TLoopController,
+                                                         TIFController,
+                                                         "TestCase"], Field(discriminator="step_type")]] = []
 
-    @root_validator(pre=True)
-    def root_validator_step(cls, obj):
-        init_step_id(obj.get('teststeps', []))
-        return obj
+
+TController = typing.Union[TApiController,
+                           TScriptController,
+                           TSqlController,
+                           TWaitController,
+                           TLoopController,
+                           TIFController,
+                           TestCase]
+
+TestCase.update_forward_refs()
+TIFController.update_forward_refs()
+TLoopController.update_forward_refs()
 
 
 class TestCaseTime(BaseModel):
     start_at: float = 0
     duration: float = 0
-    start_at_iso_format: Text = ""
+    start_at_iso_format: str = ""
 
 
 class TestCaseInOut(BaseModel):
     config_vars: VariablesMapping = {}
-    export_vars: Dict = {}
+    export_vars: typing.Dict = {}
 
 
 class RequestStat(BaseModel):
@@ -292,27 +299,27 @@ class RequestStat(BaseModel):
 
 
 class AddressData(BaseModel):
-    client_ip: Text = "N/A"
+    client_ip: str = "N/A"
     client_port: int = 0
-    server_ip: Text = "N/A"
+    server_ip: str = "N/A"
     server_port: int = 0
 
 
 class RequestData(BaseModel):
-    method: MethodEnum = MethodEnum.GET
+    method: typing.Optional[MethodEnum] = MethodEnum.GET
     url: Url
     headers: Headers = {}
     cookies: Cookies = {}
-    body: Union[Text, bytes, List, Dict, None] = {}
+    body: typing.Union[str, bytes, typing.List, typing.Dict, None] = {}
 
 
 class ResponseData(BaseModel):
     status_code: int
-    headers: Dict
-    cookies: Cookies
-    encoding: Union[Text, None] = None
-    content_type: Text
-    body: Union[Text, bytes, List, Dict, None]
+    headers: typing.Dict
+    cookies: typing.Optional[Cookies]
+    encoding: typing.Union[str, None] = None
+    content_type: str
+    body: typing.Union[str, bytes, typing.List, typing.Dict, None]
 
 
 class ReqRespData(BaseModel):
@@ -327,47 +334,81 @@ class SessionData(BaseModel):
     req_resp: ReqRespData = {}
     stat: RequestStat = RequestStat()
     address: AddressData = AddressData()
-    validators: Dict = {}
+    validators: typing.Dict = {}
 
 
-class StepData(BaseModel):
+class StepResult(BaseModel):
     """测试步骤数据"""
 
-    name: Text = ""  # 步骤名称
-    case_id: Text = ""  # case_id
+    name: str = ""  # 步骤名称
+    case_id: str = ""  # case_id
     index: int = 0  # case_id
     start_time: float = 0  # case_id
     duration: float = 0  # duration
     success: bool = False
-    status: Text = ""  # 步骤状态  success 成功  fail 失败  skip 跳过  err 错误
-    step_type: Text = ""
-    step_tag: Union[Text, None] = None  # 标签
-    message: Text = ""  # err or message
+    status: str = ""  # 步骤状态  success 成功  fail 失败  skip 跳过  err 错误
+    step_type: str = ""
+    step_tag: typing.Union[str, None] = None  # 标签
+    message: str = ""  # err or message
     env_variables: VariablesMapping = {}
     variables: VariablesMapping = {}
-    step_data: List['StepData'] = None
+    case_variables: VariablesMapping = {}
+    step_result: typing.List['StepResult'] = None
     session_data: SessionData = None  # 请求信息
-    pre_hook_data: List['StepData'] = []  # 前置
-    post_hook_data: List['StepData'] = []  # 后置
+    pre_hook_data: typing.List['StepResult'] = []  # 前置
+    post_hook_data: typing.List['StepResult'] = []  # 后置
+    setup_hook_data: typing.List['StepResult'] = []  # 前置hook
+    teardown_hook_data: typing.List['StepResult'] = []  # 后置hook
     export_vars: VariablesMapping = {}
+    log: str = ""
+    attachment: str = ""
 
     def dict(self, *args, **kwargs):
         """获取报告时去除 请求信息 避免报告数据太大"""
-        if "request" in self.variables:
-            self.variables.pop("request", None)
-        if "response" in self.variables:
-            self.variables.pop("response", None)
-        return super(StepData, self).dict(*args, **kwargs)
+        kwargs["exclude"] = {"request", "response"}
+        return super(StepResult, self).dict(*args, **kwargs)
 
 
-StepData.update_forward_refs()
+StepResult.update_forward_refs()
+
+#
+# class StepResult(BaseModel):
+#     """步骤结果, 对应请求数据或者步骤数据"""
+#
+#     name: str = ""  # teststep name
+#     step_type: str = ""  # teststep type, request or testcase
+#     success: bool = False
+#     data: typing.Union[SessionData, typing.List["StepResult"]] = None
+#     elapsed: float = 0.0  # teststep elapsed time
+#     content_size: float = 0  # response content size
+#     export_vars: VariablesMapping = {}
+#     attachment: str = ""  # teststep attachment
+
+
+StepResult.update_forward_refs()
+
+#
+# class IStep(object):
+#     def name(self) -> str:
+#         raise NotImplementedError
+#
+#     def type(self) -> str:
+#         raise NotImplementedError
+#
+#     def struct(self) -> TStep:
+#         raise NotImplementedError
+#
+#     def run(self, runner) -> StepResult:
+#         # runner: HttpRunner
+#         raise NotImplementedError
 
 
 class TestCaseSummary(BaseModel):
-    name: Text
+    name: str
     success: bool
-    case_id: Text
-    start_time: float = 0
+    case_id: typing.Optional[typing.Union[str, int]]
+    start_time: typing.Union[float, str] = 0
+    response_time: float = 0
     duration: float = 0
     run_count: int = 0
     actual_run_count: int = 0
@@ -375,23 +416,23 @@ class TestCaseSummary(BaseModel):
     run_fail_count: int = 0
     run_skip_count: int = 0
     run_err_count: int = 0
-    start_time_iso_format: Text = ""
+    start_time_iso_format: str = ""
     in_out: TestCaseInOut = {}
     # message 记录错误信息
-    message: Text = ""
-    log: Text = ""
-    step_datas: List[StepData] = []
+    message: str = ""
+    log: str = ""
+    step_results: typing.List[StepResult] = []
 
 
 class PlatformInfo(BaseModel):
-    zerorunner_version: Text
-    python_version: Text
-    platform: Text
+    zerorunner_version: str
+    python_version: str
+    platform: str
 
 
 class TestSuite(BaseModel):
     config: TConfig
-    testcases: List[TestCase]
+    testcases: typing.List[TestCase]
 
 
 class Stat(BaseModel):
@@ -405,4 +446,4 @@ class TestSuiteSummary(BaseModel):
     stat: Stat = Stat()
     time: TestCaseTime = TestCaseTime()
     platform: PlatformInfo
-    testcases: List[TestCaseSummary]
+    testcases: typing.List[TestCaseSummary]

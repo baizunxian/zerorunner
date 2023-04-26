@@ -19,17 +19,12 @@
 		"nprogress": "^0.2.0",
 		"pinia": "^2.0.28",
 		"qrcodejs2-fixes": "^0.0.2",
+		"qs": "^6.11.0",
 		"screenfull": "^6.0.2",
 		"sortablejs": "^1.15.0",
 		"vue": "^3.2.45",
 		"vue-clipboard3": "^2.0.0",
-		"qs": "^6.11.0",
-		"vue-router": "^4.1.6",
-		"-": "^0.0.1",
-		"D": "^1.0.0",
-		"json-editor-vue": "^0.3.6",
-		"svelte-jsoneditor": "^0.3.25",
-		"vuex": "^4.0.2"
+		"vue-router": "^4.1.6"
 	},
 	"devDependencies": {
 		"@types/node": "^18.11.13",
@@ -38,40 +33,29 @@
 		"@typescript-eslint/parser": "^5.46.0",
 		"@vitejs/plugin-vue": "^4.0.0",
 		"@vue/compiler-sfc": "^3.2.45",
+		"cropperjs": "^1.5.13",
 		"eslint": "^8.29.0",
 		"eslint-plugin-vue": "^9.8.0",
+		"monaco-editor": "^0.34.1",
 		"prettier": "^2.8.1",
 		"sass": "^1.56.2",
+		"splitpanes": "^3.1.5",
 		"typescript": "^4.9.4",
 		"vite": "^4.0.0",
+		"vite-plugin-monaco-editor": "1.0.5",
 		"vite-plugin-vue-setup-extend": "^0.4.0",
 		"vue-eslint-parser": "^9.1.0",
-		"@types/axios": "^0.14.0",
-		"@types/clipboard": "^2.0.1",
-		"clipboard": "^2.0.10",
-		"countup": "^1.8.2",
-		"dotenv": "^16.0.0",
-		"driver.js": "^0.9.8",
-		"js-cookie": "^3.0.1",
-		"json-editor-vue3": "^1.0.6",
-		"monaco-editor": "^0.34.1",
-		"pinia": "^2.0.28",
-		"qs": "^6.11.0",
-		"resize-observer-polyfill": "^1.5.1",
-		"sass-loader": "^12.6.0",
-		"splitpanes": "^3.1.5",
-		"svg-sprite-loader": "^6.0.11",
-		"vanta": "^0.5.22",
-		"vite-plugin-monaco-editor": "1.0.5",
-		"vite-plugin-monaco-editor-nls": "2.0.2",
-		"vue3-click-away": "^1.2.4",
-		"vuedraggable": "^4.1.0"
+		"xterm": "^5.1.0",
+		"xterm-addon-fit": "^0.7.0"
 	},
 	"browserslist": [
 		"> 1%",
 		"last 2 versions",
 		"not dead"
 	],
+	"bugs": {
+		"url": "https://github.com/baizunxian/zerorunner/issues"
+	},
 	"engines": {
 		"node": ">=16.0.0",
 		"npm": ">= 7.0.0"
@@ -79,6 +63,15 @@
 	"keywords": [
 		"vue",
 		"vue3",
-		"element-plus"
-	]
+		"vuejs/vue-next",
+		"vuejs/vue-next-template",
+		"element-ui",
+		"element-plus",
+		"vue-next-admin",
+		"next-admin"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/baizunxian/zerorunner.git"
+	}
 }

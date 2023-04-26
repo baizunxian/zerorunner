@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="app-container">
     <el-card>
       <div class="mb15">
         <el-input v-model="state.listQuery.name" placeholder="请输入模块名称" style="max-width: 180px"></el-input>
@@ -18,7 +18,7 @@
       >
       </z-table>
     </el-card>
-    <saveOrUpdate ref="saveOrUpdateRef" @getList="getList"/>
+    <Edit ref="EditRef" @getList="getList"/>
   </div>
 </template>
 
@@ -27,9 +27,9 @@ import {defineAsyncComponent, h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useModuleApi} from "/@/api/useAutoApi/module";
 
-const saveOrUpdate = defineAsyncComponent(() => import("./components/saveOrUpdate.vue"))
+const Edit = defineAsyncComponent(() => import("./EditModule.vue"))
 // 定义数据
-const saveOrUpdateRef = ref();
+const EditRef = ref();
 const state = reactive({
   columns: [
     {label: '序号', columnType: 'index', width: 'auto', show: true},
@@ -101,7 +101,7 @@ const search = () => {
 
 // 新增或修改角色
 const onOpenSaveOrUpdate = (editType: string, row: any) => {
-  saveOrUpdateRef.value.openDialog(editType, row);
+  EditRef.value.openDialog(editType, row);
 };
 
 // 删除角色

@@ -5,12 +5,13 @@
 
 import ast
 import builtins
+import json
 import re
-from typing import Any, Set, Text, Callable, List, Dict
+import typing
+
 from loguru import logger
-from sentry_sdk import capture_exception
 from zerorunner import loader, utils, exceptions
-from zerorunner.models import VariablesMapping, FunctionsMapping
+from zerorunner.model.base import VariablesMapping, FunctionsMapping
 
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 
@@ -23,7 +24,7 @@ variable_regex_compile = re.compile(r"\$\{([a-zA-Z_]\w*)\}|\$([a-zA-Z_]\w*)")
 function_regex_compile = re.compile(r"\$\{([a-zA-Z_]\w*)\(([\$\w\.\-/\s=,]*)\)\}")
 
 
-def parse_string_value(str_value: Text) -> Any:
+def parse_string_value(str_value: str) -> typing.Any:
     """ 解析字符串值
     e.g. "123" => 123
          "12.2" => 12.3
@@ -46,10 +47,10 @@ def build_url(base_url, path):
     elif base_url:
         return "{}/{}".format(base_url.rstrip("/"), path.lstrip("/"))
     else:
-        raise exceptions.ParamsError("base url missed!")
+        raise exceptions.ParamsError("缺少基本的url 请检查url是否正确！")
 
 
-def regex_findall_variables(raw_string: Text) -> List[Text]:
+def regex_findall_variables(raw_string: str) -> typing.List[str]:
     """ 正则提交变量 $variable or ${variable}
 
     Args:
@@ -108,7 +109,7 @@ def regex_findall_variables(raw_string: Text) -> List[Text]:
     return vars_list
 
 
-def regex_findall_functions(content: Text) -> List[Text]:
+def regex_findall_functions(content: str) -> typing.List[str]:
     """ 正则表达式提取函数  ${fun()}
 
     Args:
@@ -137,11 +138,11 @@ def regex_findall_functions(content: Text) -> List[Text]:
     try:
         return function_regex_compile.findall(content)
     except TypeError as ex:
-        capture_exception(ex)
+        logger.error(ex)
         return []
 
 
-def extract_variables(content: Any) -> Set:
+def extract_variables(content: typing.Any) -> typing.Set:
     """ 提取变量
     """
     if isinstance(content, (list, set, tuple)):
@@ -162,7 +163,7 @@ def extract_variables(content: Any) -> Set:
     return set()
 
 
-def parse_function_params(params: Text) -> Dict:
+def parse_function_params(params: str) -> typing.Dict:
     """ 解析函数参数
 
     Args:
@@ -212,8 +213,8 @@ def parse_function_params(params: Text) -> Dict:
 
 
 def get_mapping_variable(
-        variable_name: Text, variables_mapping: VariablesMapping
-) -> Any:
+        variable_name: str, variables_mapping: VariablesMapping
+) -> typing.Any:
     """ 从变量字典中获取对应变量值
 
     Args:
@@ -231,13 +232,13 @@ def get_mapping_variable(
         return variables_mapping[variable_name]
     except KeyError:
         raise exceptions.VariableNotFound(
-            f"{variable_name} not found in {variables_mapping}"
+            f"变量 {variable_name} 不在变量池中\n{json.dumps(variables_mapping, indent=4, ensure_ascii=False)}"
         )
 
 
 def get_mapping_function(
-        function_name: Text, functions_mapping: FunctionsMapping
-) -> Callable:
+        function_name: str, functions_mapping: FunctionsMapping
+) -> typing.Callable:
     """ 根据函数名从map中获取函数
 
     Args:
@@ -279,14 +280,14 @@ def get_mapping_function(
     except AttributeError:
         pass
 
-    raise exceptions.FunctionNotFound(f"{function_name} is not found.")
+    raise exceptions.FunctionNotFound(f"函数 {function_name} 没有找到 💔")
 
 
 def parse_string(
-        raw_string: Text,
+        raw_string: str,
         variables_mapping: VariablesMapping,
         functions_mapping: FunctionsMapping,
-) -> Any:
+) -> typing.Any:
     """ 用变量和函数解析字符串
 
     Args:
@@ -390,10 +391,10 @@ def parse_string(
 
 
 def parse_data(
-        raw_data: Any,
+        raw_data: typing.Any,
         variables_mapping: VariablesMapping = None,
         functions_mapping: FunctionsMapping = None,
-) -> Any:
+) -> typing.Any:
     """ parse raw data with evaluated variables mapping.
         Notice: variables_mapping should not contain any variable or function.
     """
@@ -466,7 +467,7 @@ def parse_variables_mapping(
     return parsed_variables
 
 
-def parse_parameters(parameters: Dict, functions_mapping: Dict = None) -> List[Dict]:
+def parse_parameters(parameters: typing.Dict, functions_mapping: typing.Dict = None) -> typing.List[typing.Dict]:
     """ 解析参数，生成笛卡尔积
 
     Args:
@@ -488,20 +489,20 @@ def parse_parameters(parameters: Dict, functions_mapping: Dict = None) -> List[D
         >>> parse_parameters(parameters)
 
     """
-    parsed_parameters_list: List[List[Dict]] = []
+    parsed_parameters_list: typing.List[typing.List[typing.Dict]] = []
 
     functions_mapping = functions_mapping if functions_mapping else {}
 
     for parameter_name, parameter_content in parameters.items():
         parameter_name_list = parameter_name.split("-")
 
-        if isinstance(parameter_content, List):
+        if isinstance(parameter_content, typing.List):
             # (1) data list
             # e.g. {"app_version": ["2.8.5", "2.8.6"]}
             #       => [{"app_version": "2.8.5", "app_version": "2.8.6"}]
             # e.g. {"username-password": [["user1", "111111"], ["test2", "222222"]}
             #       => [{"username": "user1", "password": "111111"}, {"username": "user2", "password": "222222"}]
-            parameter_content_list: List[Dict] = []
+            parameter_content_list: typing.List[typing.Dict] = []
             for parameter_item in parameter_content:
                 if not isinstance(parameter_item, (list, tuple)):
                     # "2.8.5" => ["2.8.5"]
@@ -512,19 +513,19 @@ def parse_parameters(parameters: Dict, functions_mapping: Dict = None) -> List[D
                 parameter_content_dict = dict(zip(parameter_name_list, parameter_item))
                 parameter_content_list.append(parameter_content_dict)
 
-        elif isinstance(parameter_content, Text):
+        elif isinstance(parameter_content, str):
             # (2) & (3)
-            parsed_parameter_content: List = parse_data(
+            parsed_parameter_content: typing.List = parse_data(
                 parameter_content, {}, functions_mapping
             )
-            if not isinstance(parsed_parameter_content, List):
+            if not isinstance(parsed_parameter_content, typing.List):
                 raise exceptions.ParamsError(
                     f"parameters content should be in List type, got {parsed_parameter_content} for {parameter_content}"
                 )
 
-            parameter_content_list: List[Dict] = []
+            parameter_content_list: typing.List[typing.Dict] = []
             for parameter_item in parsed_parameter_content:
-                if isinstance(parameter_item, Dict):
+                if isinstance(parameter_item, typing.Dict):
                     # get subset by parameter name
                     # {"app_version": "${gen_app_version()}"}
                     # gen_app_version() => [{'app_version': '2.8.5'}, {'app_version': '2.8.6'}]
@@ -533,10 +534,10 @@ def parse_parameters(parameters: Dict, functions_mapping: Dict = None) -> List[D
                     #       {"username": "user1", "password": "111111"},
                     #       {"username": "user2", "password": "222222"}
                     # ]
-                    parameter_dict: Dict = {
+                    parameter_dict: typing.Dict = {
                         key: parameter_item[key] for key in parameter_name_list
                     }
-                elif isinstance(parameter_item, (List, tuple)):
+                elif isinstance(parameter_item, (typing.List, tuple)):
                     if len(parameter_name_list) == len(parameter_item):
                         # {"username-password": "${get_account()}"}
                         # get_account() => [("user1", "111111"), ("user2", "222222")]
@@ -569,3 +570,24 @@ def parse_parameters(parameters: Dict, functions_mapping: Dict = None) -> List[D
         parsed_parameters_list.append(parameter_content_list)
 
     return utils.gen_cartesian_product(*parsed_parameters_list)
+
+
+class Parser(object):
+    def __init__(self, functions_mapping: FunctionsMapping = None) -> None:
+        self.functions_mapping = functions_mapping
+
+    def parse_string(
+            self, raw_string: str, variables_mapping: VariablesMapping
+    ) -> typing.Any:
+        return parse_string(raw_string, variables_mapping, self.functions_mapping)
+
+    def parse_variables(self, variables_mapping: VariablesMapping) -> VariablesMapping:
+        return parse_variables_mapping(variables_mapping, self.functions_mapping)
+
+    def parse_data(
+            self, raw_data: typing.Any, variables_mapping: VariablesMapping = None
+    ) -> typing.Any:
+        return parse_data(raw_data, variables_mapping, self.functions_mapping)
+
+    def get_mapping_function(self, func_name: str) -> typing.Callable:
+        return get_mapping_function(func_name, self.functions_mapping)

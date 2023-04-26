@@ -5,7 +5,7 @@
 <script lang="ts" setup name="apiRequestHeaders">
 import {reactive} from "vue";
 import {handleEmpty} from "/@/utils/other";
-import HeadersController from "/@/components/StepController/headers/HeadersController.vue";
+import HeadersController from "/@/components/Z-StepController/headers/HeadersController.vue";
 
 
 interface baseState {

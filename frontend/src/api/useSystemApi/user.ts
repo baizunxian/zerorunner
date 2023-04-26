@@ -42,6 +42,20 @@ export function useUserApi() {
         method: 'POST',
         data
       })
+    },
+    getMenuByToken() {
+      return request({
+        url: '/user/getMenuByToken',
+        method: 'POST',
+        data: {}
+      })
+    },
+    getUserInfoByToken() {
+      return request({
+        url: '/user/getUserInfoByToken',
+        method: 'POST',
+        data: {}
+      })
     }
   };
 }

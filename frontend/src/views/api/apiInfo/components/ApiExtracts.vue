@@ -6,7 +6,7 @@
 import {defineAsyncComponent, reactive} from 'vue';
 import {handleEmpty} from "/@/utils/other";
 
-const ExtractController = defineAsyncComponent(() => import("/@/components/StepController/extract/ExtractController.vue"))
+const ExtractController = defineAsyncComponent(() => import("/@/components/Z-StepController/extract/ExtractController.vue"))
 
 const state = reactive({
   extracts: []
@@ -15,8 +15,6 @@ const state = reactive({
 // 初始化数据
 const setData = (data: any) => {
   state.extracts = data ? data : []
-  console.log("extracts----->", state.extracts)
-  console.log("extracts-----data", data)
 }
 
 // 获取表单数据

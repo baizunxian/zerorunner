@@ -16,9 +16,9 @@
             </z-pane>
             <z-pane :size="50">
               <container-bottom ref="containerBottomRef"></container-bottom>
-            </pane>
+            </z-pane>
           </z-splitpanes>
-        </pane>
+        </z-pane>
       </z-splitpanes>
     </el-card>
   </div>

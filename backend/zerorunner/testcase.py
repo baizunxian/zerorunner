@@ -1,27 +1,29 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-import copy
+import time
+import typing
 import unittest
-from typing import List
 
 from loguru import logger
-
 from zerorunner import models, exceptions
-from zerorunner.report import HtmlTestResult
+from zerorunner.models import TestCaseSummary
+from zerorunner.reports import HtmlTestResult
 from zerorunner import runner
+from zerorunner.report.stringify import stringify_summary
 
 
 class ZeroRunner(object):
     def __init__(self, failfast: bool = False):
-        self.exception_stage = "initialize HttpRunner()"
+        self.exception_stage = "initialize ZeroRunner()"
         kwargs = {"failfast": failfast, "resultclass": HtmlTestResult}
         self.unittest_runner = unittest.TextTestRunner(**kwargs)
         self.test_loader = unittest.TestLoader()
         self._summary = None
+        self.report_id = None
 
-    def add_tests(self, testcase: models.TestCase) -> "unittest.TestSuite":
+    def add_tests(self, testcase: models.TestCase) -> typing.List[unittest.TestSuite]:
 
-        def _add_test(test_runner: runner.Runner, test_step: models.TController):
+        def _add_test(test_runner: runner.SessionRunner, test_step: models.TController):
             """
             test_runner : Runner
             test_step : TController
@@ -39,10 +41,11 @@ class ZeroRunner(object):
 
             return test
 
-        test_suite = unittest.TestSuite()
+        # test_suite = unittest.TestSuite()
+        testcase_list = []
 
         for index, step in enumerate(testcase.teststeps):
-            test_runner = runner.Runner()
+            test_runner = runner.SessionRunner()
             test_runner.with_config(testcase.config)
             test_method_name = "test_{:04}".format(index)
             test_method = _add_test(test_runner, step)
@@ -56,11 +59,17 @@ class ZeroRunner(object):
             setattr(loaded_testcase, "config", testcase.config)
             setattr(loaded_testcase, "teststeps", testcase.teststeps)
             setattr(loaded_testcase, "runner", test_runner)
-            test_suite.addTest(loaded_testcase)
+            testcase_list.append(loaded_testcase)
+            # test_suite.addTest(loaded_testcase)
 
+        return testcase_list
+
+    def add_suite(self, testcase_list: typing.List[unittest.TestSuite]) -> "unittest.TestSuite":
+        test_suite = unittest.TestSuite()
+        test_suite.addTests(testcase_list)
         return test_suite
 
-    def _run_suite(self, test_suite: unittest.TestSuite) -> List:
+    def _run_suite(self, test_suite: unittest.TestSuite) -> typing.List:
         """run tests in test_suite
 
         Args:
@@ -77,37 +86,26 @@ class ZeroRunner(object):
             logger.info(f"开始运行测试用例: {testcase_name}")
 
             result = self.unittest_runner.run(testcase)
-            if result.wasSuccessful():
-                tests_results.append((testcase, result))
-            else:
-                tests_results.insert(0, (testcase, result))
+            # if result.wasSuccessful():
+            tests_results.append((testcase, result))
+            # else:
+            #     tests_results.insert(0, (testcase, result))
 
         return tests_results
 
     def run_tests(self, testcase: models.TestCase):
         """run testcase/testsuite data"""
 
-        # add tests to test suite
         self.exception_stage = "添加用例到套件"
-        test_suite = self.add_tests(testcase)
+        testcase_list = self.add_tests(testcase)
+        test_suite = self.add_suite(testcase_list)
 
-        # run test suite
         self.exception_stage = "运行测试套件"
         results = self._run_suite(test_suite)
 
-        # aggregate results
         self.exception_stage = "汇总结果"
-        # self._summary = self._aggregate(results)
-        #
-        # # generate html report
-        # self.exception_stage = "generate html report"
-        # report.stringify_summary(self._summary)
-        #
-        # if self.save_tests:
-        #     utils.dump_logs(self._summary, project_mapping, "summary")
-        #     # save variables and export data
-        #     vars_out = self.get_vars_out()
-        #     utils.dump_logs(vars_out, project_mapping, "io")
+        self._summary = self._aggregate(results)
+        stringify_summary(self._summary)
 
         return self._summary
 
@@ -118,34 +116,35 @@ class ZeroRunner(object):
             tests_results (list): list of (testcase, result)
 
         """
-        summary = {
-            "success": True,
-            "stat": {
-                "testcases": {"total": len(tests_results), "success": 0, "fail": 0},
-                "teststeps": {},
-            },
-            "time": {},
-            "details": [],
-        }
 
-        for tests_result in tests_results:
+        summary = TestCaseSummary(name="", success=True, case_id=0)
+
+        for index, tests_result in enumerate(tests_results):
+
             testcase, result = tests_result
-            testcase_summary = report.get_summary(result)
-
-            if testcase_summary["success"]:
-                summary["stat"]["testcases"]["success"] += 1
-            else:
-                summary["stat"]["testcases"]["fail"] += 1
-
-            summary["success"] &= testcase_summary["success"]
-            testcase_summary["name"] = testcase.config.get("name")
-            testcase_summary["in_out"] = utils.get_testcase_io(testcase)
-
-            report.aggregate_stat(
-                summary["stat"]["teststeps"], testcase_summary["stat"]
-            )
-            report.aggregate_stat(summary["time"], testcase_summary["time"])
-
-            summary["details"].append(testcase_summary)
-
+            testcase_summary: TestCaseSummary = result.summary
+            if index == 0:
+                summary.start_time = testcase_summary.start_time
+                summary.start_time_iso_format = testcase_summary.start_time_iso_format
+            summary.name = testcase_summary.name
+            summary.case_id = testcase_summary.case_id
+            summary.in_out = testcase_summary.in_out
+            summary.log += f"\n{testcase_summary.log}"
+            summary.run_count += 1
+            for step in testcase_summary.step_results:
+                summary.actual_run_count += 1
+                step_status = step.status.lower()
+                if step_status == "success":
+                    summary.run_success_count += 1
+                elif step_status == "fail":
+                    summary.run_fail_count += 1
+                elif step_status == "error":
+                    summary.run_err_count += 1
+                elif step_status == "skip":
+                    summary.run_skip_count += 1
+                if step_status != "success" and summary.success:
+                    summary.success = False
+                summary.duration += step.duration
+                summary.step_results.append(step)
+        summary.start_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime(summary.start_time))
         return summary

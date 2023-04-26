@@ -124,6 +124,18 @@ class HttpSession(requests.Session):
     def __init__(self):
         super(HttpSession, self).__init__()
         self.data = SessionData()
+        self.__init_req_resp()
+
+    def __init_req_resp(self):
+        request = RequestData(**{"url": "N/A", "method": "N/A", "headers": {}})
+        response = ResponseData(**{
+            "status_code": 0,
+            "headers": {},
+            "encoding": None,
+            "content_type": "",
+        })
+        res_resp = ReqRespData(**{"request": request, "response": response})
+        self.data.req_resp = res_resp
 
     def update_last_req_resp_record(self, resp_obj):
         """

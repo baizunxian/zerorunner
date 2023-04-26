@@ -28,7 +28,7 @@
 				<div v-show="state.isShowLoockLogin" class="layout-lock-screen-login">
 					<div class="layout-lock-screen-login-box">
 						<div class="layout-lock-screen-login-box-img">
-							<img src="https://img2.baidu.com/it/u=1978192862,2048448374&fm=253&fmt=auto&app=138&f=JPEG?w=504&h=500" />
+							<img src="" />
 						</div>
 						<div class="layout-lock-screen-login-box-name">Administrator</div>
 						<div class="layout-lock-screen-login-box-value">
@@ -213,7 +213,7 @@ onUnmounted(() => {
 }
 .layout-lock-screen-img {
 	@extend .layout-lock-screen-fixed;
-	background-image: url('https://img-blog.csdnimg.cn/afa9c317667f47d5bea34b85af45979e.png#pic_center');
+	background-image: url('/@/assets/bakgrounImage/bakgrounImage.jpg');
 	background-size: 100% 100%;
 	z-index: 9999991;
 }
