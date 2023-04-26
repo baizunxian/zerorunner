@@ -73,7 +73,7 @@ class Configs(BaseSettings):
     task_run_pool = 3
 
     # celery beat
-    beat_db_uri = "mysql+pymysql://zerorunner:Bai.123456@xiaobaicodes.com:3306/zerorunner?charset=UTF8MB4"
+    beat_db_uri = "mysql+pymysql://zerorunner:Bai.xxxx@xiaobaicodes.com:3306/zerorunner?charset=UTF8MB4"
 
     class Config:
         case_sensitive = True  # 区分大小写
