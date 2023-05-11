@@ -23,6 +23,7 @@
 - github 
 https://github.com/baizunxian/zerorunner
 - gitee
+https://gitee.com/xb_xiaobai/zerorunner
 
 #### ⛱️ 线上预览
 
