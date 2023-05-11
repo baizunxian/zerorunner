@@ -34,15 +34,7 @@
         title="关联辅助函数"
         v-model="state.showBindPage"
         width="60%">
-      <z-table
-          :columns="state.columns"
-          :data="state.funcList"
-          v-model:page-size="state.funcQuery.pageSize"
-          v-model:page="state.funcQuery.page"
-          :total="state.funcTotal"
-          @selection-change="selectionBindChange"
-          @pagination-change="getFuncsList"
-      />
+      <FuncInfo @selection-change="selectionBindChange"></FuncInfo>
       <template #footer>
       <span class="dialog-footer">
         <el-button type="primary"
@@ -61,6 +53,7 @@ import {useEnvApi} from "/@/api/useAutoApi/env";
 import {ElButton, ElMessage} from "element-plus";
 import {useFunctionsApi} from "/@/api/useAutoApi/functions";
 import {useRouter} from "vue-router";
+import FuncInfo from "/@/views/api/functions/index.vue"
 
 const router = useRouter()
 const formRef = ref()

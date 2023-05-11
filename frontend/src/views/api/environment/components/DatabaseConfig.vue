@@ -34,20 +34,14 @@
         title="关联数据源"
         v-model="state.showBindPage"
         width="60%">
-      <z-table
-          :columns="state.columns"
-          :data="state.dataSourceList"
-          v-model:page-size="state.dataSourceQuery.pageSize"
-          v-model:page="state.dataSourceQuery.page"
-          :total="state.dataSourceTotal"
-          @selection-change="selectionBindChange"
-          @pagination-change="getDataSourceList"
-      />
+      <DataSource @selectionChange="selectionSourceChange"></DataSource>
       <template #footer>
       <span class="dialog-footer">
         <el-button type="primary"
                    :disabled="state.selectionBindChangeList.length === 0"
-                   @click="bindDataSource">关联</el-button>
+                   @click="bindDataSource">
+          关联
+        </el-button>
       </span>
       </template>
     </el-dialog>
@@ -60,6 +54,7 @@ import {onMounted, reactive, ref} from "vue";
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import {useEnvApi} from "/@/api/useAutoApi/env";
 import {ElMessage} from "element-plus";
+import DataSource from "/@/views/api/dataSource/index.vue"
 
 
 const formRef = ref()
@@ -125,7 +120,7 @@ const selectionChange = (val: any) => {
   state.selectionChangeList = val
 }
 
-const selectionBindChange = (val: any) => {
+const selectionSourceChange = (val: any) => {
   state.selectionBindChangeList = val
 }
 

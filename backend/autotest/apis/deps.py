@@ -7,7 +7,7 @@ import typing
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
-from autotest.config.config import config
+from config import config
 from autotest.db.redis import MyRedis
 from autotest.db.session import async_session
 

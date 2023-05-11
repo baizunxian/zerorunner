@@ -11,6 +11,7 @@ from jsonpath import jsonpath
 from loguru import logger
 
 from zerorunner.exceptions import ValidationFailure, ParamsError
+from zerorunner.model.base import CheckModeEnum
 from zerorunner.models import VariablesMapping, Validators, FunctionsMapping, ExtractData
 from zerorunner.parser import parse_data, parse_string_value, Parser
 
@@ -65,8 +66,8 @@ def uniform_validator(validator):
                 {"check": "status_code", "comparator": "eq", "expect": 201}
                 {"check": "$resp_body_success", "comparator": "eq", "expect": True}
             format2: recommended new version, {assert: [check_item, expected_value]}
-                {'eq': ['status_code', 201]}
-                {'eq': ['$resp_body_success', True]}
+                {'eq': ['status_code', 201, 'mode']}
+                {'eq': ['$resp_body_success', True, 'mode']}
 
     Returns
         dict: validator info
@@ -83,26 +84,29 @@ def uniform_validator(validator):
 
     if "check" in validator and "expect" in validator:
         # format1
+        check_mode = validator["mode"]
         check_item = validator["check"]
         expect_value = validator["expect"]
         message = validator.get("message", "")
+        continue_extract = validator.get("continue_extract", False)
+        continue_index = validator.get("continue_index", 0)
         comparator = validator.get("comparator", "eq")
 
-    elif len(validator) == 1:
-        # format2
-        comparator = list(validator.keys())[0]
-        compare_values = validator[comparator]
-
-        if not isinstance(compare_values, list) or len(compare_values) not in [2, 3]:
-            raise ParamsError(f"invalid validator: {validator}")
-
-        check_item = compare_values[0]
-        expect_value = compare_values[1]
-        if len(compare_values) == 3:
-            message = compare_values[2]
-        else:
-            # len(compare_values) == 2
-            message = ""
+    # elif len(validator) == 1:
+    #     # format2
+    #     comparator = list(validator.keys())[0]
+    #     compare_values = validator[comparator]
+    #
+    #     if not isinstance(compare_values, list) or len(compare_values) not in [2, 3]:
+    #         raise ParamsError(f"invalid validator: {validator}")
+    #
+    #     check_item = compare_values[0]
+    #     expect_value = compare_values[1]
+    #     if len(compare_values) == 3:
+    #         message = compare_values[2]
+    #     else:
+    #         # len(compare_values) == 2
+    #         message = ""
 
     else:
         raise ParamsError(f"invalid validator: {validator}")
@@ -111,10 +115,13 @@ def uniform_validator(validator):
     assert_method = get_uniform_comparator(comparator)
 
     return {
+        "mode": check_mode,
         "check": check_item,
         "expect": expect_value,
         "assert": assert_method,
         "message": message,
+        "continue_extract": continue_extract,
+        "continue_index": continue_index,
     }
 
 
@@ -218,17 +225,21 @@ class ResponseObjectBase(object):
                 self.validation_results["validate_extractor"] = []
 
             u_validator = uniform_validator(v)
-
+            check_mode = u_validator["mode"]
             # check item
             check_item = u_validator["check"]
             check_name = copy.copy(u_validator["check"])
-            if "$" in check_item:
+            if check_mode == CheckModeEnum.jmespath.value:
+                check_value = self._search_jmespath(check_item)
+            elif check_mode == CheckModeEnum.JsonPath.value:
+                expr = ExtractData(**u_validator)
+                expr.path = check_item
+                check_value = self._search_jsonpath(expr)
+            elif check_mode == CheckModeEnum.variable_or_func.value:
                 # check_item is variable or function
                 check_item = self.parser.parse_data(check_item, variables_mapping)
                 check_item = parse_string_value(check_item)
-
-            if check_item and isinstance(check_item, str):
-                check_value = self._search_jmespath(check_item)
+                check_value = check_item
             else:
                 # variable or function evaluation result is "" or not text
                 check_value = check_item

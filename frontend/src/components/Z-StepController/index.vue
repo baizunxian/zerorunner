@@ -1,31 +1,30 @@
 <template>
   <div class="h100" id="stepController" style="overflow-y: auto">
     <el-backtop :right="200" :bottom="200" :visibility-height="10" target="#stepController"/>
-
-    <FabButton v-if="use_type==='suite'" :value="state.suiteOpt"></FabButton>
-    <el-row :span="24" style="padding-left: 25px" v-else>
-      <el-col :span="12">
-        <div style="display:flex; justify-content: space-between">
-          <el-select size="small"
-                     v-model="state.optType"
-                     style="padding-right: 10px"
-                     placeholder=""
-                     filterable
-                     class="w100">
-            <el-option
-                v-for="(value, key) in state.optTypes"
-                :key="key"
-                :label="value"
-                :value="key">
-              <!--            <el-tag size="small">{{ value }}</el-tag>-->
-            </el-option>
-          </el-select>
-          <el-button @click="handleAddData(state.optType)" type="primary">添加</el-button>
-        </div>
-      </el-col>
-    </el-row>
-
     <div class="h100" style="overflow-y: auto;">
+<!--      <el-dropdown style="padding-left: 33px">-->
+<!--        <el-button type="primary">-->
+<!--          {{ `添加${use_type === 'case' ? '步骤' : 'Hook'}` }}-->
+<!--          <el-icon class="el-icon&#45;&#45;right">-->
+<!--            <arrowDown/>-->
+<!--          </el-icon>-->
+<!--        </el-button>-->
+<!--        <template #dropdown>-->
+<!--          <el-dropdown-menu>-->
+<!--            <el-dropdown-item v-for="(value, key)  in state.optTypes"-->
+<!--                              :key="key"-->
+<!--                              style="margin: 5px 0"-->
+<!--                              :style="{ color: getStepTypeInfo(key,'color')}"-->
+<!--                              @click="handleAddData(key)">-->
+<!--              <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"-->
+<!--                 :style="{color:getStepTypeInfo(key,'color')}"></i>-->
+<!--              {{ value }}-->
+<!--            </el-dropdown-item>-->
+
+<!--          </el-dropdown-menu>-->
+<!--        </template>-->
+<!--      </el-dropdown>-->
+
       <el-tree
           ref="stepTreeRef"
           draggable
@@ -63,19 +62,22 @@
       </template>
     </el-dialog>
 
+    <ApiInfoController ref="ApiInfoControllerRef"></ApiInfoController>
+
   </div>
 </template>
 
 <script lang="ts" setup name="stepController">
 import type {PropType} from 'vue'
-import {nextTick, onMounted, reactive, ref, watch, Directive, DirectiveBinding} from 'vue';
+import {nextTick, onMounted, reactive, ref, watch} from 'vue';
 import {useRoute, useRouter} from "vue-router"
 import StepNode from "/@/components/Z-StepController/StepNode.vue";
 import SelectCase from "/@/components/Z-StepController/apiInfo/SelectApi.vue";
-import FabButton from "/@/components/fabButton/index.vue";
 import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
-// import {ClickOutside as vClickOutside} from "element-plus";
+import {ArrowDown} from '@element-plus/icons-vue'
+import ApiInfoController from "./apiInfo/ApiInfoController.vue"
 
+const ApiInfoControllerRef = ref()
 
 const emit = defineEmits([])
 
@@ -83,7 +85,7 @@ const props = defineProps({
   use_type: {
     type: String,
     default: () => {
-      return 'pre'   // pre 前置  post 候置  suite 套件
+      return 'pre'   // pre 前置  post 候置  case 用例
     }
   },
   data: {
@@ -109,35 +111,12 @@ const state = reactive({
   optTypes: {},
   // caseInfo
   showApioInfo: false,
-  // suite opt
-  suiteOpt: [],
-  id: 1000,
 
 });
 
 
 const initFabMenu = (stepType: string | null) => {
   state.optTypes = getStepTypesByUse(props.use_type)
-  let noMenuTypes = ["wait", "script", "api", "case"]
-  if (props.use_type == 'suite' && (stepType === null || noMenuTypes.indexOf(stepType) === -1)) {
-    let suiteOptList: any = []
-    for (let optTypesKey in state.optTypes) {
-      let color: string = getStepTypeInfo(optTypesKey, "color")
-      let icon: string = getStepTypeInfo(optTypesKey, "icon")
-      let suiteOptData: any = {
-        title: state.optTypes[optTypesKey],
-        func: handleAddData,
-        param: optTypesKey,
-        color: color,
-        icon: icon,
-      }
-      suiteOptList.push(suiteOptData)
-    }
-    state.suiteOpt = suiteOptList
-  } else {
-    state.suiteOpt = []
-  }
-
 }
 
 // 拖动处理
@@ -157,22 +136,23 @@ const handleDrop = (node: any, event: any) => {
 }
 
 const nodeClick = (data: any, node: any) => {
-  console.log("node----->", node)
-  data.showDetail = !data.showDetail
-  initFabMenu(data.step_type)
+  if (data.step_type == "api") {
+    ApiInfoControllerRef.value.onOpenApiInfoPage(data)
+  } else {
+    data.showDetail = !data.showDetail
+  }
 }
 
 // 计算index，保持拖动后顺序
 const computeDataIndex = (data: any) => {
-  data.forEach((data: any, index: number) => {
-    data.index = index + 1
-    // if (!data.id) {
-    //   data.id = state.id++
-    // }
-    if (data.teststeps) {
-      computeDataIndex(data.teststeps)
-    }
-  })
+  if (data) {
+    data.forEach((data: any, index: number) => {
+      data.index = index + 1
+      if (data.sub_steps) {
+        computeDataIndex(data.sub_steps)
+      }
+    })
+  }
 }
 // handleAddData
 const handleAddData = async (optType: string) => {
@@ -187,9 +167,9 @@ const handleAddData = async (optType: string) => {
 // 添加tree data
 const appendTreeDate = (data: any) => {
   let parentNode = stepTreeRef.value?.getCurrentNode()
-  if (parentNode && props.use_type === "suite") {
-    if (!parentNode.teststeps) {
-      parentNode.teststeps = []
+  if (parentNode && props.use_type === "case") {
+    if (!parentNode.sub_steps) {
+      parentNode.sub_steps = []
     }
     // parentNode.teststeps.push(data)
     // emit("update:data", [...props.data])
@@ -229,7 +209,6 @@ const getStepData = () => {
 // 获取步骤
 const getAddData = (optType: string) => {
   let data = getStepData()
-  data.id = state.id++
   data.name = `${optType}_${getRandomStr()}`
   data.step_type = optType
   if (optType === "script") {
@@ -303,10 +282,10 @@ const addApiStep = () => {
       let stepData = getStepData()
       stepData.step_type = "api"
       stepData.name = apiInfo.name
-      stepData.case_id = apiInfo.id
       stepData.request = {
         name: apiInfo.name,
         api_id: apiInfo.id,
+        method: apiInfo.method
       }
       appendTreeDate(stepData)
       // }
@@ -331,32 +310,12 @@ const clickBlank = () => {
   stepTreeRef.value?.setCurrentKey(null)
 }
 
-const onClickOutside = () => {
-  console.log("1111")
-  clickBlank()
-  initFabMenu(null)
-}
-
-watch(
-    () => props.data,
-    (value) => {
-      computeDataIndex(value)
-    },
-    {
-      deep: true
-    }
-)
-
 onMounted(() => {
   initFabMenu(null)
-  nextTick(() => {
-    // setStyle()
-  })
 })
 
 defineExpose({
-  clickBlank,
-  initFabMenu,
+  handleAddData,
 })
 
 </script>
@@ -373,10 +332,6 @@ defineExpose({
   align-items: center;
 }
 
-//:deep(.el-card__body) {
-//  padding: 5px 10px;
-//}
-
 :deep(.el-tree-node__label) {
   width: 100%;
 }
@@ -388,7 +343,6 @@ defineExpose({
 
 
 <style lang="scss" scoped>
-// el-tree 展开图标修改
 
 .el-tree {
   padding: 10px;

@@ -1,11 +1,11 @@
 <template>
   <div class="layout-parent">
     <router-view v-slot="{ Component }">
-      <transition :name="setTransitionName" mode="out-in">
+<!--      <transition :name="setTransitionName" mode="out-in">-->
         <keep-alive :include="getKeepAliveNames">
           <component :is="Component" :key="state.refreshRouterViewKey" class="w100" v-show="!isIframePage"/>
         </keep-alive>
-      </transition>
+<!--      </transition>-->
     </router-view>
     <transition :name="setTransitionName" mode="out-in">
       <Iframes class="w100" v-show="isIframePage" :refreshKey="state.iframeRefreshKey" :name="setTransitionName"

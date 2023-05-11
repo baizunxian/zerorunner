@@ -17,14 +17,31 @@ const setData = (data: any) => {
   state.extracts = data ? data : []
 }
 
+const getDataLength = () => {
+  return state.extracts.length
+}
+
 // 获取表单数据
 const getData = () => {
-  return handleEmpty(state.extracts)
+  let extractData = handleEmpty(state.extracts)
+  extractData.forEach((e: any, index: number) => {
+    if (e.extract_type === "") {
+      throw new Error(`提取: 第${index + 1}行 提取类型不能为空~🤣`)
+    }
+    if (e.name === "") {
+      throw new Error(`提取: 第${index + 1}行 变量名不能为空~🤣`)
+    }
+    if (e.path === "") {
+      throw new Error(`提取: 第${index + 1}行 提取表达式不能为空~🤣`)
+    }
+  })
+  return extractData
 }
 
 defineExpose({
   setData,
   getData,
+  getDataLength,
 })
 </script>
 

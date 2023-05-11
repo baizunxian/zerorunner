@@ -24,6 +24,10 @@
   @include default-font-family;
 }
 
+.el-input-group__prepend {
+  background-color: var(--el-fill-color-blank);
+}
+
 // 菜单搜索
 .el-autocomplete-suggestion__wrap {
   max-height: 280px !important;
@@ -372,3 +376,5 @@
     overflow: auto;
   }
 }
+
+

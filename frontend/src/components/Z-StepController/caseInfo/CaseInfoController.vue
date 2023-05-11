@@ -2,7 +2,7 @@
   <el-collapse-transition>
     <div v-if="data.showDetail" @click.stop class="controller-content">
       <el-divider style="margin: 10px 0 5px 0;"/>
-      <ApiInfo isViews :case_id="data.case_id"></ApiInfo>
+      <ApiInfo isViews :api_id="data.case_id"></ApiInfo>
     </div>
   </el-collapse-transition>
 </template>

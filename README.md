@@ -43,12 +43,12 @@ https://github.com/baizunxian/zerorunner
 git clone https://github.com/baizunxian/zerorunner.git
 
 # 数据库脚本 将内容复制数据库执行 需要新建数据库 zerorunner
-backend/script/zerorunner.sql
-# 初始化数据脚本 将内容复制数据库执行 
-backend/script/init.sql  
+backend/script/db_init.sql  
 
 # 修改对应的数据库地址，redis 地址
-backend/autotest/config/config.py
+backend/config.py
+# 或者
+backend/.env # 环境文件中的地址修改
 
 # 安装依赖
 pip install -r  requirements
@@ -113,5 +113,5 @@ yarn build
 
 #### 💌 支持作者
 
-如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/baizunxian/zero_autotest_backend">
+如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/baizunxian/zerorunner">
 Github</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持, 平台会持续迭代更新。

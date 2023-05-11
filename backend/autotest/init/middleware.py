@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-import copy
-import traceback
-import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
-
-from autotest.config.config import config
+from config import config
 from autotest.corelibs import g
 from autotest.corelibs.consts import TEST_USER_INFO, CACHE_DAY
 from autotest.corelibs.http_response import partner_success
@@ -68,7 +64,8 @@ def init_middleware(app: FastAPI):
         token = request.headers.get("token", None)
         g.redis = app.state.redis
         g.token = token
-        logger.info(f"访问记录:IP:{request.client.host}-method:{request.method}-url:{request.url}")
+        remote_addr = request.headers.get("X-Real-IP", request.client.host)
+        logger.info(f"访问记录:IP:{remote_addr}-method:{request.method}-url:{request.url}")
         # 登录校验
         try:
             await login_verification(request)

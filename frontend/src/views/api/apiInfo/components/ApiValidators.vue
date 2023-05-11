@@ -3,19 +3,13 @@
 </template>
 
 <script lang="ts" setup name="ApiValidators">
-import {defineAsyncComponent, reactive} from "vue";
+import {reactive} from "vue";
 import {handleEmpty} from "/@/utils/other";
 import ValidatorsController from "/@/components/Z-StepController/validators/ValidatorsController.vue"
 
 
-interface baseState {
-  key: string,
-  value: string,
-  remarks: string
-}
-
 interface headersState {
-  validators: Array<baseState>,
+  validators: Array<ValidatorData>,
 }
 
 const state = reactive<headersState>({
@@ -30,12 +24,31 @@ const setData = (data: any) => {
 
 // 获取表单数据
 const getData = () => {
+  state.validators.forEach((e: ValidatorData, index: number) => {
+    if (e.mode === "") {
+      throw new Error(`断言: 第${index + 1}行 断言类型不能为空~🤣`)
+    }
+    if (e.check === "") {
+      throw new Error(`断言: 第${index + 1}行 提取表达式不能为空~🤣`)
+    }
+    if (e.expect === "") {
+      throw new Error(`断言: 第${index + 1}行 期望值不能为空~🤣`)
+    }
+    if (e.continue_extract && !e.continue_index) {
+      throw new Error(`断言: 第${index + 1}行 请填写继续提取下标~🤣`)
+    }
+  })
   return handleEmpty(state.validators)
+}
+
+const getDataLength = () => {
+  return state.validators.length
 }
 
 defineExpose({
   setData,
   getData,
+  getDataLength,
 })
 
 

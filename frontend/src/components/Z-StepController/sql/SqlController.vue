@@ -6,10 +6,7 @@
       <div style="border: 1px solid #E6E6E6; padding: 8px">
 
         <el-form ref="formRef"
-                 :model="data"
-                 label-width="auto"
-                 label-position="left"
-        >
+                 :model="data">
 
           <el-row :gutter="24">
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">

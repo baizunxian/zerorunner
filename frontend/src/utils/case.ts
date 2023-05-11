@@ -11,7 +11,7 @@ export function getMethodColor(method: string) {
     color = "#f93e3d"
   } else if (method == "PUT") {
     color = "#fca130"
-  }else if (method == "N/A") {
+  } else if (method == "N/A") {
     color = "#f56c6c"
   }
   return color
@@ -23,26 +23,77 @@ export function getStepTypeInfo(stepType: string, type: string) {
   let obj: any = {
     script: {color: "#7B4D12FF", background: "#F1EEE9FF", icon: 'iconfont icon-code'},
     wait: {color: "#67C23AFF", background: "#F2F9EEFF", icon: 'iconfont icon-time'},
-    api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-apiInfo-o'},
-    case: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-apiInfo-o'},
+    api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-c158API'},
+    case: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-a-case-o1'},
     loop: {color: "#02A7F0FF", background: "#F4F4F5FF", icon: 'iconfont icon-loop'},
     extract: {color: "#015478FF", background: "#E6EEF2FF", icon: ''},
-    sql: {color: "#783887FF", background: "#F2ECF3FF", icon: ''},
-    if: {color: "#E6A23C", background: "#FCF6EE", icon: 'iconfont icon-fenzhi'},
+    sql: {color: "#783887FF", background: "#F2ECF3FF", icon: 'iconfont icon-suffix-sql'},
+    if: {color: "#E6A23C", background: "#FCF6EE", icon: 'iconfont icon-fenzhijiedian'},
   }
   return obj[stepType][type]
 }
 
+export const baseModeType = [
+  {key: "jmespath", value: "jmespath"},
+  {key: "JsonPath", value: "JsonPath"},
+]
+
+export function getModeTypeObj(modeType: string) {
+  if (modeType === 'extract') {
+    //  提取的
+    return baseModeType
+  }
+  if (modeType === 'validator') {
+    //  断言
+    let validModeTypes = [
+      {key: "变量&函数", value: "variable_or_func"},
+    ]
+    return [...baseModeType, ...validModeTypes]
+  }
+  return []
+}
+
+export function getComparators(useType: string) {
+  return {
+    equals: "等于",
+    not_equals: "不等",
+    length_equals: "长度等于",
+    contains: "包含",
+    startswith: "以...开始",
+    endswith: "以...结束",
+    // regex_match: "正则",
+    // type_match: "类型等于",
+    less_than: "小于",
+    less_than_or_equals: "小于或者等于",
+    greater_than: "大于或等于",
+    greater_than_or_equals: "大于或等于",
+  }
+}
+
+
+export const getPlaceholder = (modeType: string) => {
+  if (modeType === 'jmespath') {
+    return "jmespath表达式 例如：body.code"
+  }
+  if (modeType === 'JsonPath') {
+    return "JsonPath表达式  列如：$.data.rows[0].id"
+  }
+  if (modeType === 'variable_or_func') {
+    return "变量或者函数 例如${test} ${函数名()}"
+  }
+  return ""
+}
+
 /*步骤类型*/
 export const stepTypes: object = {
-  extract: "参数提取",
-  script: "自定义脚本",
+  api: "引用接口",
   if: "条件控制器",
   loop: "循环控制器",
+  extract: "参数提取",
+  script: "自定义脚本",
   sql: "SQL控制器",
   wait: "等待控制器",
   scene: "场景断言",
-  api: "引用接口",
   case: "引用用例",
 }
 
@@ -57,16 +108,12 @@ export function getStepTypesByUse(use_type: String) {
   let stepTypeMapping: object
   let stepContain: Array<string>
   switch (use_type) {
-    case "pre":
-      stepContain = ["script", "sql", "wait"]
+    case "hook":
+      stepContain = ["sql", "wait"]
       stepTypeMapping = objectFilter(stepTypes, stepContain)
       break
-    case "post":
-      stepContain = ["script", "sql", "wait"]
-      stepTypeMapping = objectFilter(stepTypes, stepContain)
-      break
-    case "suite":
-      stepContain = ["script", "if", "loop", "wait", "api"]
+    case "case":
+      stepContain = ["api", "if", "loop", "wait"]
       stepTypeMapping = objectFilter(stepTypes, stepContain)
       break
     default:

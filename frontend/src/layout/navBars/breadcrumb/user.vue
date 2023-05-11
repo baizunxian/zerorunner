@@ -2,12 +2,12 @@
   <div class="layout-navbars-breadcrumb-user pr15" :style="{ flex: layoutUserFlexNum }">
 
     <div class="layout-navbars-breadcrumb-user-icon" title="git仓库" @click="onWareHouse">
-      <svgIcon name="fa fa-github"></svgIcon>
+      <svgIcon name="iconfont icon-github"></svgIcon>
     </div>
 
     <el-dropdown :show-timeout="70" :hide-timeout="50" trigger="click" @command="onComponentSizeChange">
       <div class="layout-navbars-breadcrumb-user-icon">
-        <i class="iconfont icon-ziti" title="组件大小"></i>
+        <i class="iconfont icon-fuhao-ziti" title="组件大小"></i>
       </div>
       <template #dropdown>
         <el-dropdown-menu>
@@ -23,7 +23,7 @@
       </el-icon>
     </div>
     <div class="layout-navbars-breadcrumb-user-icon" @click="onLayoutSetingClick">
-      <i class="icon-skin iconfont" title="布局配置"></i>
+      <i class="iconfont icon-zhuti" title="布局配置"></i>
     </div>
     <div class="layout-navbars-breadcrumb-user-icon">
       <el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300" :persistent="false">
@@ -43,7 +43,7 @@
       <i
           class="iconfont"
           :title="state.isScreenfull ? '关全屏' : '开全屏'"
-          :class="!state.isScreenfull ? 'icon-fullscreen' : 'icon-tuichuquanping'"
+          :class="!state.isScreenfull ? 'icon-quanping' : 'icon-tuichuquanping'"
       ></i>
     </div>
     <el-dropdown :show-timeout="70" :hide-timeout="50" @command="onHandleCommandClick">

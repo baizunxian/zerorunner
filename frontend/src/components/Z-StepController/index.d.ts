@@ -36,6 +36,8 @@ declare interface ValidatorData {
   check: string
   comparator: string
   expect: string
+  continue_extract: boolean
+  continue_index: number | any
 }
 
 declare interface ApiBodyFileDataSchema {
@@ -112,3 +114,5 @@ declare interface TStepWaitData {
 declare interface TStepScriptData {
   script_content: string
 }
+
+

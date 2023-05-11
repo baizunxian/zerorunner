@@ -2,10 +2,11 @@
 # @author: xiaobai
 import os
 import typing
-from pydantic import BaseSettings, AnyHttpUrl
+
+from pydantic import BaseSettings, AnyHttpUrl, Field
 
 project_desc = """
-    🎉 管理员接口汇总 🎉
+    🎉 zerorunner 管理员接口汇总 🎉
     ✨ 账号: admin ✨
     ✨ 密码: 123456 ✨
     ✨ 权限(scopes): admin ✨
@@ -27,10 +28,10 @@ class Configs(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 1  # token过期时间: 60 minutes * 24 hours * 1 days = 1 days
 
     # redis
-    REDIS_URI: str = "redis://:@127.0.0.1:6379/4"  # redis
+    REDIS_URI: str = Field(..., env="REDIS_URI")  # redis
 
     # DATABASE_URI: str = "sqlite+aiosqlite:///./sql_app.db?check_same_thread=False"  # Sqlite(异步)
-    DATABASE_URI: str = "mysql+asyncmy://zerorunner:Bai.123456@xiaobaicodes.com:3306/zerorunner?charset=UTF8MB4"  # MySQL(异步)
+    DATABASE_URI: str = Field(..., env="MYSQL_DATABASE_URI")  # MySQL(异步)
     # DATABASE_URI: str = "postgresql+asyncpg://postgres:123456@localhost:5432/postgres"  # PostgreSQL(异步)
     DATABASE_ECHO: bool = False  # 是否打印数据库日志 (可看到创建表、表数据增删改查的信息)
 
@@ -45,8 +46,8 @@ class Configs(BaseSettings):
     BASEDIR: str = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
     # celery
-    broker_url: str = "redis://:@127.0.0.1:6379/5"
-    result_backend: str = "redis://:@127.0.0.1:6379/5"
+    broker_url: str = Field(..., env="CELERY_BROKER_URL")
+    result_backend: str = Field(..., env="CELERY_RESULT_BACKEND")
     accept_content: typing.List[str] = ["json"]
     result_serializer: str = "json"
     timezone: str = "Asia/Shanghai"
@@ -70,13 +71,14 @@ class Configs(BaseSettings):
     # )
     TEST_FILES_DIR: str = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'files')
 
-    task_run_pool = 3
+    task_run_pool: int = 3
 
     # celery beat
-    beat_db_uri = "mysql+pymysql://zerorunner:xxx@xiaobaicodes.com:3306/zerorunner?charset=UTF8MB4"
+    beat_db_uri: str = Field(..., env="CELERY_BEAT_DB_URL")
 
     class Config:
         case_sensitive = True  # 区分大小写
+        env_file = ".env"
 
 
 config = Configs()

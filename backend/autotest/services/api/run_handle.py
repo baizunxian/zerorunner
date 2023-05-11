@@ -5,7 +5,7 @@ import os
 import traceback
 import typing
 
-from autotest.config.config import config
+from config import config
 from loguru import logger
 from autotest.models.api_models import ApiInfo, Env, DataSource
 from autotest.models.system_models import FileInfo
@@ -62,7 +62,7 @@ class HandleData(object):
         wait : WaitController  等待控制器
         case : TStep    用例
         extract : ExtractController  提取控制器
-        script : ScriptController   脚本控制器
+        db_script : ScriptController   脚本控制器
 
         """
         steps = []

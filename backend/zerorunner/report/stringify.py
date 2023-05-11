@@ -1,8 +1,8 @@
 import json
+import typing
 from base64 import b64encode
 from collections import Iterable
 from json import JSONDecodeError
-
 from jinja2 import escape
 from requests.cookies import RequestsCookieJar
 
@@ -74,7 +74,8 @@ def __stringify_request(request_data: RequestData):
                 value = escape(value)
             except UnicodeDecodeError:
                 pass
-
+        elif value is None:
+            pass
         elif not isinstance(value, (str, bytes, int, float, Iterable)):
             # class instance, e.g. MultipartEncoder()
             value = repr(value)
@@ -83,6 +84,24 @@ def __stringify_request(request_data: RequestData):
             value = value.get_dict()
 
         setattr(request_data, key, value)
+
+
+def __default_serialize(obj: typing.Any):
+    if isinstance(obj, list):
+        return [__default_serialize(o) for o in obj]
+    if isinstance(obj, dict):
+        return {key: __default_serialize(value) for key, value in obj.items()}
+
+    elif isinstance(obj, bytes):
+        return repr(obj)
+
+    elif isinstance(obj, RequestsCookieJar):
+        return obj.get_dict()
+    elif not isinstance(obj, (str, bytes, int, float, Iterable,)):
+        # class instance, e.g. MultipartEncoder()
+        return repr(obj)
+
+    return obj
 
 
 def __stringify_response(response_data: ResponseData):
@@ -133,7 +152,7 @@ def __stringify_response(response_data: ResponseData):
             except UnicodeDecodeError:
                 pass
 
-        elif not isinstance(value, (str, bytes, int, float, Iterable, )):
+        elif not isinstance(value, (str, bytes, int, float, Iterable,)):
             # class instance, e.g. MultipartEncoder()
             if value is not None:
                 value = repr(value)
@@ -159,3 +178,7 @@ def stringify_summary(summary: TestCaseSummary):
         if "response" in step_data.variables:
             step_data.variables["response"] = repr(step_data.variables["response"])
         __stringify_step_data(step_data)
+        step_data.variables = __default_serialize(step_data.variables)
+        step_data.case_variables = __default_serialize(step_data.case_variables)
+        step_data.env_variables = __default_serialize(step_data.env_variables)
+        step_data.export_vars = __default_serialize(step_data.export_vars)

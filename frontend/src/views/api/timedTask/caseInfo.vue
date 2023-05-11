@@ -104,7 +104,7 @@ const initData = () => {
   state.env_id = props.envId
   useApiCaseApi().getCaseByIds({ids: props.caseIds})
       .then(res => {
-        state.caseList = res.data
+          state.caseList = res.data.length? res.data : []
       })
 }
 
@@ -123,9 +123,11 @@ const addCase = () => {
   let selectCaseData = selectCaseRef.value.getSelectionData()
   if (selectCaseData) {
     selectCaseData.forEach((caseInfo: any) => {
-      let existCaseInfo = state.caseList.find((e: any) => e.id == caseInfo.id)
-      if (!existCaseInfo) {
-        state.caseList.push(caseInfo)
+      if (state.caseList) {
+        let existCaseInfo = state.caseList.find((e: any) => e.id == caseInfo.id)
+        if (!existCaseInfo) {
+          state.caseList.push(caseInfo)
+        }
       }
     })
   }

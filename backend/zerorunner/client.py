@@ -190,8 +190,8 @@ class HttpSession(requests.Session):
 
         # set stream to True, in order to get client/server IP/Port
         kwargs["stream"] = True
-        if kwargs["data"]:
-            kwargs["data"] = kwargs["data"].encode("utf-8")
+        # if kwargs["data"]:
+        #     kwargs["data"] = kwargs["data"].encode("utf-8")
 
         start_timestamp = time.time()
         response = self._send_request_safe_mode(method, url, **kwargs)

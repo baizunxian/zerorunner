@@ -1,6 +1,6 @@
 <template>
   <div class="h100 app-container" style="position: absolute">
-    <el-card class="h100">
+    <el-card class="h100" :body-style="{height:'calc(100% - 67.5px)'}">
       <template #header>
         <z-detail-page-header
             @back="goBack"
@@ -140,12 +140,10 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-:deep(.el-card__body) {
-  height: 100%;
-}
 
 :deep(.el-dialog ) {
   height: calc(100% - 114px);
+
   .el-dialog__body {
     height: 100%;
   }
@@ -157,11 +155,13 @@ onMounted(() => {
 
 .diff-box {
   height: 100%;
+
   .diff-box__title {
     height: 25px;
   }
+
   .monaco-editor {
-     height: calc(100% - 25px);
+    height: calc(100% - 25px);
   }
 }
 </style>

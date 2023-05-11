@@ -16,7 +16,7 @@
         <ApiInfo ref="ApiInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug"/>
 
         <el-collapse-transition>
-          <div v-show="state.showRequestBody" style="margin-bottom: 20px">
+          <div v-show="state.showRequestBody">
             <el-card>
               <template #header>
                 <strong>Request</strong>
@@ -73,31 +73,28 @@
                     </div>
                   </el-tab-pane>
 
+                  <el-tab-pane name='Code' class="h100">
+                    <template #label>
+                      <!--                      <el-badge :hidden="!getDataLength('hook')"-->
+                      <!--                                :value="getDataLength('hook')"-->
+                      <!--                                class="badge-item"-->
+                      <!--                                type="primary">-->
+                      <strong>Code</strong>
+                      <!--                      </el-badge>-->
+                    </template>
+                    <ApiCode ref="ApiCodeRef"/>
+                  </el-tab-pane>
+
                   <el-tab-pane name='Hook' class="h100">
                     <template #label>
-                      <el-badge :hidden="!(getDataLength('setupHook') + getDataLength('teardownHook'))"
-                                :value="(getDataLength('setupHook') + getDataLength('teardownHook'))"
+                      <el-badge :hidden="!getDataLength('hook')"
+                                :value="getDataLength('hook')"
                                 class="badge-item"
                                 type="primary">
                         <strong>Hook</strong>
                       </el-badge>
                     </template>
-                    <div class="case-tabs" style="padding: 10px">
-                      <el-row>
-                        <el-col :span="12" style="padding: 0 10px">
-                          <el-card>
-                            <template #header>前置 Hook</template>
-                            <ApiHooks ref="APiSetupHooksRef" useType="pre"/>
-                          </el-card>
-                        </el-col>
-                        <el-col :span="12" style="padding: 0 10px">
-                          <el-card>
-                            <template #header>后置 Hook</template>
-                            <ApiHooks ref="APiTeardownHooksRef" useType="post"/>
-                          </el-card>
-                        </el-col>
-                      </el-row>
-                    </div>
+                    <ApiHooks ref="ApiHookRef"/>
                   </el-tab-pane>
 
                   <!--                  <el-tab-pane name='preOperation' class="h100">-->
@@ -150,7 +147,7 @@
         </el-collapse-transition>
 
 
-        <el-card id="Response" ref="ResponseRef" v-show="state.reportData">
+        <el-card id="Response" ref="ResponseRef" v-show="state.reportData" style="margin-top: 20px">
           <template #header>
             <div style="display: flex; justify-content: space-between">
               <div>
@@ -163,16 +160,16 @@
                 <ele-CircleClose v-else style="color: red"/>
               </el-icon>
               </span>
-                <span style="padding-left: 10px">
+                <span class="pl10">
               Status:
               <span :style="{color: state.apiReportStat.status_code === 200 ? '#67c23a': 'red'}">
                 {{ state.apiReportStat.status_code === 200 ? '200 OK' : state.apiReportStat.status_code }}
                 </span>
             </span>
-                <span style="padding-left: 10px">Time:
+                <span class="pl10">Time:
             <span style="color:#67c23a;">{{ state.apiReportStat.response_time_ms }} ms</span>
               </span>
-                <span style="padding-left: 10px">
+                <span class="pl10">
               Size:
             <span style="color:#67c23a;">{{ formatSizeUnits(state.apiReportStat.content_size) }}</span>
               </span>
@@ -199,10 +196,9 @@ import ApiInfo from './ApiInfo.vue'
 import ApiRequestBody from './ApiRequestBody.vue'
 import ApiRequestHeaders from './ApiRequestHeaders.vue'
 import ApiVariables from './ApiVariables.vue'
-import ApiPreSteps from './ApiPreSteps.vue'
-import ApiPostSteps from './ApiPostSteps.vue'
 import ApiValidators from './ApiValidators.vue'
 import ApiExtracts from './ApiExtracts.vue'
+import ApiCode from "./ApiCode.vue"
 import ApiHooks from "./ApiHooks.vue"
 
 
@@ -211,7 +207,7 @@ const emit = defineEmits(['moduleChange'])
 
 // 定义父组件传过来的值
 const props = defineProps({
-  case_id: {
+  api_id: {
     type: [String, Number],
     default: () => {
       return null;
@@ -236,8 +232,10 @@ const ApiValidatorsRef = ref()
 const ApiExtractsRef = ref()
 const ResponseRef = ref()
 const ApiReportRef = ref()
-const APiSetupHooksRef = ref()
-const APiTeardownHooksRef = ref()
+// const APiSetupHooksRef = ref()
+// const APiTeardownHooksRef = ref()
+const ApiCodeRef = ref()
+const ApiHookRef = ref()
 
 const state = reactive({
   isShowDialog: false,
@@ -248,7 +246,7 @@ const state = reactive({
   showTestReportDialog: false,
   reportContent: [],
 
-  case_id: null,
+  api_id: null,
 
   // show
   showRequestBody: true,
@@ -268,18 +266,19 @@ const saveOrUpdateOrDebug = (type: string) => {
   //   return
   // }
   try {
+
     let caseInfoData = ApiInfoRef.value.getData()
     let bodyData = ApiRequestBodyRef.value.getData()
     let headerData = ApiRequestHeadersRef.value.getData()
     let variableData = ApiVariablesRef.value.getData()
     let validatorsData = ApiValidatorsRef.value.getData()
     let extractsData = ApiExtractsRef.value.getData()
-    let setupHooksData = APiSetupHooksRef.value.getData()
-    let teardownHooksData = APiTeardownHooksRef.value.getData()
+    let hookData = ApiHookRef.value.getData()
+    let codeData = ApiCodeRef.value.getData()
 
     // 组装表单
     let apiCaseData = {
-      id: state.case_id,
+      id: state.api_id,
       name: caseInfoData.name,
       project_id: caseInfoData.project_id,
       module_id: caseInfoData.module_id,
@@ -299,11 +298,12 @@ const saveOrUpdateOrDebug = (type: string) => {
         url: caseInfoData.url,
       },
       variables: variableData,
-
+      setup_code: codeData.setup_code,
+      teardown_code: codeData.teardown_code,
       validators: validatorsData,
       extracts: extractsData,
-      setup_hooks: setupHooksData,
-      teardown_hooks: teardownHooksData,
+      setup_hooks: hookData.setup_hooks,
+      teardown_hooks: hookData.teardown_hooks,
     }
 
     // 保存用例
@@ -311,7 +311,7 @@ const saveOrUpdateOrDebug = (type: string) => {
       useApiInfoApi().saveOrUpdate(apiCaseData)
           .then(res => {
             ElMessage.success('保存成功！')
-            state.case_id = res.data.id
+            state.api_id = res.data.id
             emit("moduleChange", caseInfoData.module_id)
           })
     } else {
@@ -345,24 +345,24 @@ const saveOrUpdateOrDebug = (type: string) => {
     }
   } catch (err: any) {
     console.log(err)
-    ElMessage.info(err || '信息表单填写不完整')
+    ElMessage.warning(err.message || '信息表单填写不完整')
 
   }
 }
 
 const initApi = () => {
-  let case_id = null
-  if (props.case_id) {
-    case_id = props.case_id
+  let api_id: any
+  if (props.api_id) {
+    api_id = props.api_id
     state.reportData = null
     state.showReport = false
   } else {
-    case_id = route.query.id
+    api_id = route.query.id
   }
-  console.log("case_id------>", case_id)
-  if (case_id) {
-    state.case_id = case_id
-    useApiInfoApi().getApiInfo({id: state.case_id})
+  console.log("api_id------>", api_id)
+  if (api_id) {
+    state.api_id = api_id
+    useApiInfoApi().getApiInfo({id: state.api_id})
         .then(res => {
           let apiCaseData = res.data
           ApiInfoRef.value.setData(apiCaseData)
@@ -371,12 +371,14 @@ const initApi = () => {
           ApiVariablesRef.value.setData(apiCaseData.variables)
           ApiExtractsRef.value.setData(apiCaseData.extracts)
           ApiValidatorsRef.value.setData(apiCaseData.validators)
-          APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.case_id)
-          APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.case_id)
+          ApiCodeRef.value.setData(apiCaseData.setup_code, apiCaseData.teardown_code)
+          // APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.api_id)
+          // APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.api_id)
+          ApiHookRef.value.setData(apiCaseData.setup_hooks, apiCaseData.teardown_hooks, state.api_id)
 
         })
   } else {
-    state.case_id = null
+    state.api_id = null
     state.reportData = null
     ApiInfoRef.value.setData()
     ApiRequestBodyRef.value.setData()
@@ -384,8 +386,10 @@ const initApi = () => {
     ApiVariablesRef.value.setData()
     ApiExtractsRef.value.setData()
     ApiValidatorsRef.value.setData()
-    APiSetupHooksRef.value.setData()
-    APiTeardownHooksRef.value.setData()
+    ApiCodeRef.value.setData()
+    ApiHookRef.value.setData()
+    // APiSetupHooksRef.value.setData()
+    // APiTeardownHooksRef.value.setData()
   }
 }
 
@@ -397,17 +401,15 @@ const goBack = () => {
 const getDataLength = (ref: string) => {
   switch (ref) {
     case "header":
-      return ApiRequestHeadersRef?.value.getData().length
+      return ApiRequestHeadersRef?.value.getDataLength()
     case "variables":
-      return ApiVariablesRef.value.getData().length
+      return ApiVariablesRef.value.getDataLength()
     case "validators":
-      return ApiValidatorsRef.value.getData().length
+      return ApiValidatorsRef.value.getDataLength()
     case "extracts":
-      return ApiExtractsRef.value.getData().length
-    case "setupHook":
-      return APiSetupHooksRef.value.getData().length
-    case "teardownHook":
-      return APiTeardownHooksRef.value.getData().length
+      return ApiExtractsRef.value.getDataLength()
+    case "hook":
+      return ApiHookRef.value.getDataLength()
     default:
       return 0
   }
@@ -432,11 +434,10 @@ const toResponse = () => {
 }
 
 watch(
-    () => props.case_id,
+    () => props.api_id,
     () => {
       initApi()
     },
-    {deep: true}
 )
 
 onMounted(() => {

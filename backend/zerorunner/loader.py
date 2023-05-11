@@ -102,11 +102,13 @@ def load_func_content(content: str, module_name: str) -> typing.Dict[str, typing
     return load_module_functions(imported_module)
 
 
-def load_script_content(content: str, module_name: str) -> types.ModuleType:
+def load_script_content(content: str, module_name: str, params: dict = None) -> types.ModuleType:
     mod = sys.modules.setdefault(module_name, types.ModuleType(module_name))
+    if params:
+        mod.__dict__.update(params)
     try:
         code = compile(content, module_name, 'exec')
         exec(code, mod.__dict__)
         return mod
     except IndentationError:
-        raise IndentationError(f"格式错误，请检查！\n {traceback.format_exc()}")
+        raise IndentationError(f"脚本格式错误，请检查！\n {traceback.format_exc()}")

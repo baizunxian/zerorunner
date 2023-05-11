@@ -1,4 +1,5 @@
 import typing
+import uuid
 
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiInfo
@@ -7,6 +8,8 @@ from autotest.schemas.api.test_report import TestReportSaveSchema
 from autotest.services.api.run_handle_new import HandleStepData, HandelRunApiStep
 from autotest.services.api.test_report import ReportService
 from autotest.utils.serialize import default_serialize
+from zerorunner.loader import load_script_content
+from zerorunner.script_code import Zero
 from zerorunner.testcase_new import ZeroRunner
 
 
@@ -32,6 +35,15 @@ class ApiInfoService:
             raise ParameterError("用例名不能为空!")
         # 判断用例名是否重复
         existing_data = await ApiInfo.get_api_by_name(name=params.name)
+        mod = None
+        zero = Zero()
+        if params.setup_code:
+            mod = load_script_content(params.setup_code, str(uuid.uuid4()), params={"zero": zero})
+        if params.teardown_code:
+            mod = load_script_content(params.teardown_code, str(uuid.uuid4()), params={"zero": zero})
+        if mod:
+            del mod
+
         if params.id:
             api_info = await ApiInfo.get(params.id)
             if not api_info:

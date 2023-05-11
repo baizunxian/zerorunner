@@ -133,11 +133,6 @@ class PeriodicTaskChanged(Base):
 
     @classmethod
     async def update_changed(cls):
-        """
-        :param mapper: the Mapper which is the target of this event
-        :param connection: the Connection being used
-        :param target: the mapped instance being persisted
-        """
         stmt = select(cls).where(cls.id == 1).limit(1)
         s = cls.get_result(stmt, first=True)
         if s:

@@ -111,7 +111,7 @@
           <!--          </z-table>-->
           <!--        </el-card>-->
           <div style="padding: 10px">
-            <save-or-update :case_id="activeCaseId" @moduleChange="moduleChange"></save-or-update>
+            <save-or-update :api_id="activeCaseId" @moduleChange="moduleChange"></save-or-update>
           </div>
 
 

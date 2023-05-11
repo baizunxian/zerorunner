@@ -16,7 +16,6 @@
               v-model="state.form.url"
               placeholder="请输入请求路径"
               class="input-with-select"
-              style="min-width:400px"
           >
             <template #prepend>
               <el-select v-model="state.form.method"
@@ -56,18 +55,18 @@
                :rules="state.rules">
         <el-row :gutter="24">
           <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="用例名称" prop="name" style="width: 100%">
-              <el-input size=""
-                        v-model.trim="state.form.name"
+            <el-form-item label="接口名称" prop="name">
+              <el-input v-model.trim="state.form.name"
                         style="width: 100%;"
-                        placeholder="请输入用例名称"></el-input>
+                        clearable
+                        placeholder="请输入接口名称"></el-input>
             </el-form-item>
 
           </el-col>
 
           <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
 
-            <el-form-item label="项目/模块" prop="project_id" style="width: 100%">
+            <el-form-item label="项目/模块" prop="project_id">
               <el-cascader v-model="state.form.project_module"
                            :props="{label:'name', value:'id'}"
                            :options="state.projectTree"
@@ -80,7 +79,7 @@
 
           <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 
-            <el-form-item label="用例标签" prop="tag">
+            <el-form-item label="接口标签" prop="tag">
               <el-tag
                   v-for="tag in state.form.tags"
                   :key="tag"
@@ -111,7 +110,7 @@
           </el-col>
 
           <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-            <el-form-item label="描述" prop="" style="width: 100%;">
+            <el-form-item label="描述" prop="">
               <el-input size="default"
                         type="textarea"
                         v-model.trim="state.form.remarks"
@@ -125,13 +124,13 @@
           </el-col>
 
           <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="创建用户" prop="" style="width: 100%;">
+            <el-form-item label="创建用户" prop="">
               <strong>{{ state.form.created_by_name }}</strong>
             </el-form-item>
           </el-col>
 
           <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="创建时间" prop="" style="width: 100%;">
+            <el-form-item label="创建时间" prop="">
               <strong>{{ state.form.creation_date }}</strong>
             </el-form-item>
           </el-col>
@@ -257,7 +256,7 @@ const state = reactive({
 const setData = (formData: any) => {
   state.form = createForm()
   if (formData) {
-    state.form = {...createForm(), ...formData}
+    state.form = {...state.form, ...formData}
     state.form.project_module = [state.form.project_id, state.form.module_id]
     if (!state.form.tags) state.form.tags = []
     if (formData.project_id) {

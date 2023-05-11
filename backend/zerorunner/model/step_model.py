@@ -10,7 +10,7 @@ from zerorunner.model.base import Name
 
 
 class TStepBase(BaseModel):
-    case_id: typing.Union[str, int] = Field("", description="用例id")
+    case_id: typing.Union[str, int] = Field(None, description="用例id")
     step_type: str = Field("", description="步骤类型 api if loop sql wait 等")
     name: Name = Field("", description="步骤名称")
     index: int = Field(0, description="排序")
@@ -35,6 +35,8 @@ class ValidatorData(BaseModel):
     check: typing.Any = Field("", description="校验值")
     comparator: str = Field("", description="比较器")
     expect: typing.Any = Field("", description="预期值")
+    continue_extract: bool = Field(False, description="预期值")
+    continue_index: int = Field(0, description="预期值")
 
 
 class TRequest(BaseModel):
@@ -115,8 +117,8 @@ class TStep(TStepBase):
     parameters: ParametersMapping = Field({}, description="步骤参数")
     setup_hooks: typing.List[typing.Union[str, dict, object]] = Field([], description="前置钩子")
     teardown_hooks: typing.List[typing.Union[str, dict, object]] = Field([], description="后置钩子")
-    setup_code: str = Field("", description="前置code")
-    teardown_codes: str = Field("", description="后置code")
+    setup_code: str = Field(None, description="前置code")
+    teardown_code: str = Field(None, description="后置code")
     # used to extract request's response field
     extracts: typing.List[ExtractData] = Field([], description="提取")
     # used to export session variables from referenced testcase

@@ -1,27 +1,37 @@
 <template>
-  <el-collapse-transition>
-    <div v-if="data.showDetail" @click.stop class="controller-content">
-      <el-divider style="margin: 10px 0 5px 0;"/>
-      <ApiInfo :isView="true" :case_id="data.request.api_id"></ApiInfo>
-    </div>
-  </el-collapse-transition>
+  <el-drawer
+      v-model="state.openApiInfoPage"
+      size="70%"
+      append-to-body
+      direction="rtl"
+      destroy-on-close
+      :with-header="true">
+    <template #header>
+      <strong>步骤详情</strong>
+    </template>
+    <ApiInfo :isView="true" :api_id="state.data.request.api_id"></ApiInfo>
+  </el-drawer>
+
 </template>
 
 <script lang="ts" setup name="apiInfoController">
-import {defineAsyncComponent, PropType} from 'vue';
+import {defineAsyncComponent, PropType, reactive} from 'vue';
 
-const ApiInfo = defineAsyncComponent(()=> import("/@/views/api/apiInfo/components/EditApi.vue"))
+const ApiInfo = defineAsyncComponent(() => import("/@/views/api/apiInfo/components/EditApi.vue"))
 
-const props = defineProps({
-  data: {
-    type: Object as PropType<TStepDataStat>,
-    default: () => {
-        return {}
-      }
-  },
-  offsetWidth: Number
+const state = reactive({
+  openApiInfoPage: false,
+  data: null
 })
 
+const onOpenApiInfoPage = (data: any) => {
+  state.data = data
+  state.openApiInfoPage = !state.openApiInfoPage
+}
+
+defineExpose({
+  onOpenApiInfoPage,
+})
 </script>
 
 <style lang="scss" scoped>
@@ -29,9 +39,4 @@ const props = defineProps({
 .controller-content {
   padding: 5px 10px;
 }
-
-:deep(.el-card__body) {
-  padding: 20px !important;
-}
-
 </style>

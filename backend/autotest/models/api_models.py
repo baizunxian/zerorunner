@@ -189,6 +189,8 @@ class ApiInfo(Base):
     step_type = Column(String(255), nullable=True, comment='描述')
     pre_steps = Column(JSON, nullable=True, comment='前置步骤')
     post_steps = Column(JSON, nullable=True, comment='后置步骤')
+    setup_code = Column(JSON, nullable=True, comment='前置code')
+    teardown_code = Column(JSON, nullable=True, comment='后置code')
     setup_hooks = Column(JSON, nullable=True, comment='前置操作')
     teardown_hooks = Column(JSON, nullable=True, comment='后置操作')
     headers = Column(JSON, nullable=True, comment='请求头')
