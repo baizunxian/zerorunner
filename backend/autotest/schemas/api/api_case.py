@@ -4,7 +4,6 @@ from pydantic import root_validator, BaseModel, Field
 from autotest.schemas.api.api_info import ApiBaseSchema
 from autotest.schemas.base import BaseSchema
 from autotest.schemas.step_data import TStepData
-from zerorunner.model.step_model import TIFRequest, TLoopRequest
 
 
 class ApiCaseQuery(BaseSchema):
@@ -46,8 +45,9 @@ class ApiCaseListSchema(BaseSchema):
 
 
 class TCaseRequestData(BaseModel):
-    api_id: typing.Union[str, int] = Field(..., description="api id")
+    api_id: typing.Union[str, int] = Field(None, description="api id")
     name: str = Field(None, description="用例名称")
+    method: str = Field(None, description="请求方法")
 
 
 class TCaseStepData(TStepData):
@@ -75,7 +75,7 @@ class ApiCaseIn(BaseModel):
 class TestCaseRun(BaseModel):
     id: int = Field(None, description="")
     name: str = Field(None, description="")
-    env_id: int = Field(None, description="")
+    env_id: typing.Union[int, str] = Field(None, description="")
     project_id: int = Field(None, description="")
     module_id: int = Field(None, description="")
     remarks: str = Field(None, description="")

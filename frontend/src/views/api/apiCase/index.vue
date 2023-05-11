@@ -6,14 +6,17 @@
         <el-button type="primary" class="ml10" @click="search">查询</el-button>
         <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增</el-button>
       </div>
-      <z-table
-          :columns="state.columns"
-          :data="state.listData"
-          v-model:page-size="state.listQuery.pageSize"
-          v-model:page="state.listQuery.page"
-          :total="state.total"
-          @pagination-change="getList"
-      />
+
+      <div>
+        <z-table
+            :columns="state.columns"
+            :data="state.listData"
+            v-model:page-size="state.listQuery.pageSize"
+            v-model:page="state.listQuery.page"
+            :total="state.total"
+            @pagination-change="getList"
+        />
+      </div>
     </el-card>
 
     <!--    运行-->

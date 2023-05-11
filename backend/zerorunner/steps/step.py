@@ -26,25 +26,13 @@ class Step(object):
                 StepRequestValidation,
                 StepRequestExtraction,
                 RequestWithOptionalArgs,
-
             ],
-            # StepRefCase,
-            # RunSqlRequest,
-            # StepSqlRequestValidation,
-            # StepSqlRequestExtraction,
-            # RunThriftRequest,
-            # StepThriftRequestValidation,
-            # StepThriftRequestExtraction,
     ):
         self.__step = step
 
     @property
     def request(self) -> TRequest:
         return self.__step.struct().request
-
-    # @property
-    # def testcase(self) -> TestCase:
-    #     return self.__step.struct().testcase
 
     @property
     def retry_times(self) -> int:

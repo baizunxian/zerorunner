@@ -4,7 +4,7 @@ import uuid
 from fastapi import UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
 from loguru import logger
-from autotest.config.config import config
+from config import config
 from autotest.models.system_models import FileInfo
 from autotest.schemas.system.file import FileIn, FileId
 import aiofiles

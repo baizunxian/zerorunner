@@ -1,64 +1,142 @@
 <template>
-  <div class="step-details">
-    <z-step-controller :use_type="useType" :data="state.data" :case_id="state.case_id"></z-step-controller>
+  <div class="case-tabs" style="padding: 10px">
+    <el-row>
+      <el-col :span="12" style="padding: 0 10px">
+        <el-card>
+          <template #header>
+            <div style="display: flex; justify-content: space-between">
+              <span>前置 Hook</span>
+              <el-dropdown style="padding-left: 33px">
+                <el-button type="success" plain round >
+                  添加Hook
+                  <el-icon class="el-icon--right">
+                    <arrowDown/>
+                  </el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item v-for="(value, key)  in state.optTypes"
+                                      :key="key"
+                                      style="margin: 5px 0"
+                                      :style="{ color: getStepTypeInfo(key,'color')}"
+                                      @click="handleAddData('setup', key)">
+                      <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"
+                         :style="{color:getStepTypeInfo(key,'color')}"></i>
+                      {{ value }}
+                    </el-dropdown-item>
+
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+
+          </template>
+          <div class="step-details">
+            <z-step-controller ref="setupHooksRef"
+                               use_type="pre"
+                               :data="state.setup_hooks"
+                               :case_id="state.case_id">
+            </z-step-controller>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="12" style="padding: 0 10px">
+        <el-card>
+          <template #header>
+            <div style="display: flex; justify-content: space-between">
+              <span>后置 Hook</span>
+              <el-dropdown style="padding-left: 33px">
+                <el-button type="success" plain round >
+                  添加Hook
+                  <el-icon class="el-icon--right">
+                    <arrowDown/>
+                  </el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item v-for="(value, key)  in state.optTypes"
+                                      :key="key"
+                                      style="margin: 5px 0"
+                                      :style="{ color: getStepTypeInfo(key,'color')}"
+                                      @click="handleAddData('teardown', key)">
+                      <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"
+                         :style="{color:getStepTypeInfo(key,'color')}"></i>
+                      {{ value }}
+                    </el-dropdown-item>
+
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </template>
+          <div class="step-details">
+            <z-step-controller ref="teardownHookRef"
+                               use_type="post"
+                               :data="state.teardown_hooks"
+                               :case_id="state.case_id">
+            </z-step-controller>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script lang="ts" setup name="preOperation">
-import {reactive} from 'vue';
+import {reactive, ref} from 'vue';
 import {handleEmpty} from "/@/utils/other";
+import {ArrowDown} from "@element-plus/icons-vue";
+import {getStepTypesByUse, getStepTypeInfo} from "/@/utils/case";
 
-const props = defineProps({
-  useType: {
-    type: String,
-    required: true
-  }
-})
+const setupHooksRef = ref()
+const teardownHookRef = ref()
 
 const state = reactive({
-  data: [],
+  setup_hooks: [],
+  teardown_hooks: [],
   case_id: 0,
+  optTypes: getStepTypesByUse("hook"),
 });
 
-// init suite
-const setData = (data: any, case_id: number) => {
-  state.data = []
-  state.case_id = 0
-  if (data) state.data = data
-  if (case_id) state.case_id = case_id
+// init hook
+const setData = (setup_hooks: any, teardown_hooks: any, case_id: number) => {
+  state.setup_hooks = setup_hooks ? setup_hooks : []
+  state.teardown_hooks = teardown_hooks ? teardown_hooks : []
+  state.case_id = case_id ? case_id : 0
+}
+
+const getDataLength = () => {
+  return state.setup_hooks.length + state.teardown_hooks.length
 }
 
 // 获取表单数据
 const getData = () => {
-  return handleEmpty(state.data)
+  return {
+    setup_hooks: handleEmpty(state.setup_hooks),
+    teardown_hooks: handleEmpty(state.teardown_hooks)
+  }
 }
 
+const handleAddData = (hook_type: string, optType: string) => {
+  if (hook_type === "setup") {
+    setupHooksRef.value.handleAddData(optType)
+  } else if (hook_type === "teardown") {
+    teardownHookRef.value.handleAddData(optType)
+  }
+}
 
 defineExpose({
   setData,
   getData,
+  getDataLength,
 })
 
 </script>
 
 <style lang="scss" scoped>
 
-.block-title {
-  position: relative;
-  padding-left: 11px;
-  font-size: 14px;
-  font-weight: 600;
-  height: 20px;
-  line-height: 20px;
-  background: #f7f7fc;
-  color: #333333;
-  border-left: 2px solid #409eff;
-  margin-bottom: 5px;
-  display: flex;
-  justify-content: space-between;
+:deep(.el-card__body) {
+  padding: 8px 0 !important;
 }
 
-:deep(.el-card__body) {
-  padding: 5px 10px;
-}
 </style>

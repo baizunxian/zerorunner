@@ -38,7 +38,7 @@ class TStepTypeEnum(str, Enum):
     api = "api"
     case = "case"
     wait = "wait"
-    script = "script"
+    script = "db_script"
     sql = "sql"
     extract = "extract"
     loop = "loop"
@@ -49,7 +49,7 @@ TStepControllerDict = {
     "api": "接口",
     "case": "用例",
     "wait": "等待控制器",
-    "script": "脚本控制器",
+    "db_script": "脚本控制器",
     "sql": "sql控制器",
     "extract": "提取控制器",
     "loop": "循环控制器",
@@ -94,3 +94,9 @@ class TStepLogType(str, Enum):
     wait = "等待"
     loop = "循环"
     condition = "条件"
+
+
+class CheckModeEnum(str, Enum):
+    JsonPath = "JsonPath"
+    jmespath = "jmespath"
+    variable_or_func = "variable_or_func"

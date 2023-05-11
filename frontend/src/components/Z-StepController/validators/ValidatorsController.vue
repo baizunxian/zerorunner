@@ -1,59 +1,106 @@
 <template>
   <div>
-    <el-select size="small"
-               v-model="state.assertMode"
-               placeholder="提取方式"
-               filterable
-               clearable
-               style="width: 200px">
-      <el-option
-          v-for="(value, index) in state.assertModes"
-          :key="index"
-          :label="value"
-          :value="value">
-      </el-option>
-    </el-select>
-
-    <el-button type="primary"
-               style="margin-left: 5px"
-               :disabled="!state.assertMode"
-               @click="add">添加
+    <el-button type="primary" @click="add">
+      添加断言
     </el-button>
   </div>
 
-  <div class="extract-item-editing json" v-show="data?.length>0">
-    <div>jmespath</div>
+  <div class="extract-item-editing JsonPath" v-show="data">
     <div class="regex-item" v-for="(jsonPath, index) in data" :key="index">
       <el-row justify="space-between"
               align="middle"
-              class="el-row--flex"
+              type="flex"
               style="margin: 0 -5px">
         <el-col :span="12">
-          <el-input type="primary" link maxlength="60"
-                    placeholder="jmespath表达式 例如：body.code, 或者可以使用变量${test}" v-model="jsonPath.check">
-          </el-input>
+          <div class="flex w100">
+            <el-input type="primary"
+                      link
+                      style="width: 100%"
+                      class="input-with-select"
+                      maxlength="60"
+                      :placeholder="getPlaceholder(jsonPath.mode)"
+                      v-model="jsonPath.check">
+              <template #prepend>
+                <el-select size="small"
+                           v-model="jsonPath.mode"
+                           placeholder="提取方式"
+                           @change="selectMode(jsonPath)"
+                           filterable
+                >
+                  <el-option
+                      v-for="item in state.modeTypes"
+                      :key="item.key"
+                      :label="item.key"
+                      :value="item.value">
+                  </el-option>
+                </el-select>
+              </template>
+            </el-input>
+
+            <div v-if="jsonPath.mode === 'JsonPath'"
+                 class="flex pl10"
+                 style="align-items: center;
+                 width: 50%">
+              <el-tag type="">继续提取</el-tag>
+              <el-popover
+                  placement="top"
+                  trigger="hover"
+                  content="提取结果是数组时可以开启此项，提取数组中的某一个值"
+              >
+                <template #reference>
+                  <el-icon>
+                    <ele-InfoFilled/>
+                  </el-icon>
+                </template>
+              </el-popover>
+              <el-switch v-model="jsonPath.continue_extract">
+              </el-switch>
+              <div>
+                <el-input-number :disabled="!jsonPath.continue_extract"
+                                 controls-position="right"
+                                 style="padding-left: 5px"
+                                 v-model="jsonPath.continue_index">
+                </el-input-number>
+              </div>
+
+              <el-popover
+                  placement="top"
+                  :width="200"
+                  trigger="hover"
+                  content="0 表示第1项，1表示第2项，-1表示倒数第1项，-2表示倒数第2项，以此类推"
+              >
+                <template #reference>
+                  <el-icon>
+                    <ele-InfoFilled/>
+                  </el-icon>
+                </template>
+              </el-popover>
+            </div>
+          </div>
         </el-col>
 
-        <el-col :span="5">
-          <el-select size="small"
-                     v-model="jsonPath.comparator"
-                     placeholder="提取方式"
-                     filterable
-                     clearable
-                     style="width: 100%"
-          >
-            <el-option
-                v-for="(value, key) in state.comparators[jsonPath.mode]"
-                :key="key"
-                :label="value"
-                :value="key">
-            </el-option>
-          </el-select>
-        </el-col>
-
-        <el-col :span="5" style="margin: 0 5px">
-          <el-input type="primary" link placeholder="期望值" v-model="jsonPath.expect">
+        <el-col :span="10">
+          <el-input type=""
+                    link
+                    class="input-with-select"
+                    placeholder="期望值"
+                    clearable
+                    v-model="jsonPath.expect">
+            <template #prepend>
+              <el-select size="small"
+                         v-model="jsonPath.comparator"
+                         placeholder="断言方式"
+                         filterable>
+                <el-option
+                    v-for="(value, key) in state.comparators"
+                    :key="key"
+                    :label="value"
+                    :value="key">
+                </el-option>
+              </el-select>
+            </template>
           </el-input>
+
         </el-col>
 
         <el-col :span="1">
@@ -67,51 +114,48 @@
       </el-row>
     </div>
   </div>
+
 </template>
 
 <script lang="ts" setup name="ValidatorsController">
-import {reactive} from 'vue';
+import {PropType, reactive} from 'vue';
+import {getComparators, getModeTypeObj, getPlaceholder} from "/@/utils/case";
 
 const props = defineProps({
   data: {
-    type: Array,
+    type: Array  as PropType<Array<ValidatorData>>,
     default: () => []
   },
 })
 
 const state = reactive({
-  assertModes: ["jmespath", "JsonPath"],  // ["jmespath", "JsonPath"]
-  comparators: {
-    jmespath: {
-      equals: "等于",
-      not_equals: "不等",
-      length_equals: "长度等于",
-      contains: "包含",
-      startswith: "以...开始",
-      endswith: "以...结束",
-      // regex_match: "正则",
-      // type_match: "类型等于",
-      less_than: "小于",
-      less_than_or_equals: "小于或者等于",
-      greater_than: "大于或等于",
-      greater_than_or_equals: "大于或等于",
-    }
-  },
+  modeTypes: getModeTypeObj("validator"),
+  comparators: getComparators("validator"),
   assertMode: "jmespath",
 })
 
-// add JsonPathList
+// add
 const add = () => {
-  if (state.assertMode == "jmespath") {
-    props.data.push({mode: "jmespath", check: "", comparator: "", expect: ""})
-  } else if (state.assertType == 20) {
-    props.data.push({name: "", json_path: ""})
-  }
+  props.data.push({
+    mode: "jmespath",
+    check: "",
+    comparator: "equals",
+    expect: "",
+    continue_extract: false,
+    continue_index: 0
+  })
 }
 
 const deleted = (index: number) => {
   props.data.splice(index, 1)
 }
+
+const selectMode = (data: ValidatorData) => {
+  if (data.mode === 'JsonPath' && !data.continue_index) {
+    data.continue_index = 0
+  }
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -131,4 +175,11 @@ const deleted = (index: number) => {
   border-left: 2px solid #44b3d2;
 }
 
+.extract-item-editing.JsonPath {
+  border-left: 2px solid #fca130;
+}
+
+:deep(.input-with-select .el-input-group__prepend) {
+  background-color: var(--el-fill-color-blank);
+}
 </style>

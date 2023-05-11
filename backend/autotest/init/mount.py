@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from autotest.config.config import config
+from config import config
 
 
 def init_mount(app: FastAPI):

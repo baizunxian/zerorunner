@@ -2,53 +2,130 @@
   <el-form inline ref="request-form" label-width="50px" size="small" label-position="right">
     <!-- data -->
     <div style="border-bottom: 1px solid #E6E6E6; display: flex; justify-content: space-between">
-      <div>
+      <div class="request-mode">
         <el-radio-group
             size="small"
             v-model="state.mode"
             class="radio-group"
             @change="radioChange"
         >
-          <!--      <el-radio label="data">data</el-radio>-->
+          <el-radio label="none">none</el-radio>
           <el-radio label="form_data">form-data</el-radio>
           <el-radio label="raw">raw</el-radio>
 
-          <el-popover
-              v-if="state.mode === 'raw'"
-              :hide-after="0"
-              placement="bottom"
-              trigger="click"
-              popper-class="popover-class"
-              ref="rawPopoverRef">
-            <template #reference>
-              <el-button size="small" type="primary" link @click="showPopover">
+          <el-dropdown @command="handleLanguage"
+                       trigger="click"
+                       v-if="state.mode === 'raw'"
+                       placement="bottom-start">
+              <span class="el-button--text">
                 {{ state.language }}
-                <el-icon v-if="state.popoverOpen">
-                  <ele-ArrowUp></ele-ArrowUp>
+                <el-icon class="el-icon--right">
+                  <arrowDown/>
                 </el-icon>
-                <el-icon v-else>
-                  <ele-ArrowDown></ele-ArrowDown>
-                </el-icon>
-              </el-button>
+              </span>
+            <template #dropdown>
+              <el-dropdown-menu style="width: 150px">
+                <el-dropdown-item v-for="language in state.languageList" :key="language" :command="language">
+                  {{ language }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
             </template>
-            <div class="dropdown-menu">
-              <div
-                  v-for="language in state.languageList"
-                  :key="language"
-                  @click="handleLanguage(language)"
-                  class="dropdown-menu-item">
+          </el-dropdown>
 
-                  <span>
-                    {{ state.language }}
-                  </span>
-              </div>
-            </div>
-
-          </el-popover>
         </el-radio-group>
       </div>
     </div>
+    <div v-if="state.mode === 'none'" style="text-align: center; padding-top: 10px">
+      <span style="color: darkgray">当前请求没有请求体</span>
+    </div>
+    <!---------------------------form_data------------------------------------>
+    <div v-if="state.mode === 'form_data'">
+      <div>
+        <el-row justify="space-between"
+                v-for="(data, index) in state.formData"
+                :key="index"
+                align="middle"
+                style="padding: 5px 0;"
+        >
+          <!--            参数名-->
+          <el-col :span="8">
+            <div class="mt-4">
+              <el-input
+                  v-model="data.key"
+                  placeholder="Key"
+                  class="input-with-select"
+              >
+                <template #append>
+                  <el-select v-model="data.type"
+                             placeholder="请选择">
+                    <el-option
+                        v-for="item in state.formDatatypeOptions"
+                        :key="item"
+                        :label="item"
+                        :value="item">
+                    </el-option>
+                  </el-select>
+                </template>
 
+              </el-input>
+            </div>
+          </el-col>
+
+          <!--参数值-->
+          <el-col :span="8">
+            <div class="file-input-container" v-if="data.type === 'file'">
+              <div class="file-input">
+                <input type="file"
+                       :id="'selectFile' + index"
+                       @change="fileChange($event, data, index)"
+                       class="file-input__native">
+                <el-button v-if="!data.value.name"
+                           type="info"
+                           size="small"
+                           @click="selectFile(index)">选择文件
+                </el-button>
+
+                <div v-else class="file-input__name">
+                  <div class="file-input__name__title" :title="data.value.name">{{ data.value.name }}</div>
+                  <el-button class="file-input__name__delete-icon"
+                             size="small"
+                             type="primary"
+                             link
+                             @click="deletedFile(data, index)">
+                    <el-icon>
+                      <ele-Close/>
+                    </el-icon>
+                  </el-button>
+                </div>
+              </div>
+            </div>
+            <el-input size="small"
+                      v-else
+                      placeholder="Value"
+                      v-model="data.value"></el-input>
+          </el-col>
+
+          <el-col :span="5">
+            <el-input type="primary"
+                      size="small"
+                      maxlength="200"
+                      placeholder="备注"
+                      v-model="data.remarks">
+            </el-input>
+          </el-col>
+
+          <el-col :span="1">
+            <el-button type="danger" circle @click="deleteFormData(index)"
+                       :disabled="state.formData.length === index  + 1 ">
+              <el-icon>
+                <ele-Delete/>
+              </el-icon>
+            </el-button>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
+    <!---------------------------raw------------------------------------>
     <div v-if="state.mode === 'raw'" style="padding-top: 8px;">
       <div style="border: 1px solid #E6E6E6">
         <z-monaco-editor
@@ -122,94 +199,7 @@
         </el-table>
       </div>
     </div>
-    <!--    form-data-->
-    <div v-if="state.mode === 'form_data'">
-      <div>
-        <el-row justify="space-between"
-                v-for="(data, index) in state.formData"
-                :key="index"
-                align="middle"
-                class="el-row--flex"
-                style="padding: 5px 0"
-        >
-          <!--            参数名-->
-          <el-col :span="8">
-            <el-input type="primary"
-                      size="small"
-                      maxlength="200"
-                      placeholder="Key"
-                      v-model="data.key">
-              <template #suffix>
-                {{ data.key.length }}/200
-              </template>
-              <template #append>
-                <el-select size="small"
-                           style="background-color: #ffffff; width: 60px"
-                           v-model="data.type"
-                           placeholder="请选择">
-                  <el-option
-                      v-for="item in state.formDatatypeOptions"
-                      :key="item"
-                      :label="item"
-                      :value="item">
-                  </el-option>
-                </el-select>
-              </template>
 
-            </el-input>
-          </el-col>
-
-          <!--参数值-->
-          <el-col :span="8">
-            <div class="file-input-container" v-if="data.type === 'file'">
-              <div class="file-input">
-                <input type="file"
-                       :id="'selectFile' + index"
-                       @change="fileChange($event, data, index)"
-                       class="file-input__native">
-                <el-button v-if="!data.value.name"
-                           type="info"
-                           size="small"
-                           @click="selectFile(index)">选择文件
-                </el-button>
-
-                <div v-else class="file-input__name">
-                  <div class="file-input__name__title" :title="data.value.name">{{ data.value.name }}</div>
-                  <el-button class="file-input__name__delete-icon" size="small" type="primary" link
-                             @click="deletedFile(data, index)">
-                    <el-icon>
-                      <ele-Close/>
-                    </el-icon>
-                  </el-button>
-                </div>
-              </div>
-            </div>
-            <el-input size="small"
-                      v-else
-                      placeholder="Value"
-                      v-model="data.value"></el-input>
-          </el-col>
-
-          <el-col :span="5">
-            <el-input type="primary"
-                      size="small"
-                      maxlength="200"
-                      placeholder="备注"
-                      v-model="data.remarks">
-            </el-input>
-          </el-col>
-
-          <el-col :span="1">
-            <el-button type="danger" circle @click="deleteFormData(index)"
-                       :disabled="state.formData.length === index  + 1 ">
-              <el-icon>
-                <ele-Delete/>
-              </el-icon>
-            </el-button>
-          </el-col>
-        </el-row>
-      </div>
-    </div>
   </el-form>
 </template>
 
@@ -218,6 +208,7 @@ import {reactive, ref, watch} from "vue";
 import {useFileApi} from '/@/api/useSystemApi/file'
 import {ElMessage} from "element-plus";
 import {handleEmpty} from "/@/utils/other";
+import {ArrowDown} from '@element-plus/icons-vue'
 
 const emit = defineEmits(["updateHeader"])
 
@@ -237,7 +228,6 @@ interface StateData {
 }
 
 const formDataRef = ref()
-const rawPopoverRef = ref()
 const monacoEditRef = ref()
 
 const state = reactive<StateData>({
@@ -259,25 +249,28 @@ const state = reactive<StateData>({
   long: 'json',
 });
 
+// 初始化数据
+const initData = () => {
+  state.mode = "raw"
+  state.language = "JSON"
+  state.rawData = ""
+  state.formData = []
+  state.fileData = {}
+}
 // 初始化表单
 const setData = (data: any) => {
-  if (data) {
-    let mode = data.mode
+  initData()
+  if (!data) {
+    return
+  }
 
-    if (mode === 'form_data') {
-      state.formData = data.data ? data.form_data : []
-    }
-
-    if (mode === 'raw') {
-      state.rawData = data.data.replace('/\\n/g', "\n")
-      state.language = data.language
-    }
-  } else {
-    state.mode = "raw"
-    state.language = "JSON"
-    state.rawData = ""
-    state.formData = []
-    state.fileData = {}
+  let mode = data.mode
+  state.mode = mode
+  if (mode === 'form_data') {
+    state.formData = data.data ? data.form_data : []
+  } else if (mode === 'raw') {
+    state.rawData = data.data.replace('/\\n/g', "\n")
+    state.language = data.language
   }
 
 }
@@ -300,10 +293,10 @@ const getData = () => {
   if (state.mode === 'raw') {
     requestData.data = state.rawData
     requestData.language = state.language
-  }
-
-  if (state.mode === 'form_data') {
+  } else if (state.mode === 'form_data') {
     requestData.data = state.formData.filter((e: any) => e.key !== "" || e.value !== "")
+  } else if (state.mode === 'none') {
+    requestData.data = null
   }
   return requestData
 }
@@ -318,7 +311,7 @@ const radioChange = (value: any) => {
 // 处理raw 语言
 const handleLanguage = (language: any) => {
   state.popoverOpen = !state.popoverOpen
-  rawPopoverRef.value.hide()
+  // rawPopoverRef.value.hide()
   state.language = language
   handleHeader()
 }
@@ -474,86 +467,16 @@ defineExpose({
   getData,
 })
 
-
 </script>
-
 <style lang="scss" scoped>
-
-.employee_body {
-  margin: 10px 20px 0;
-  overflow: hidden;
-}
-
-.app-container {
-  padding: 0;
-}
-
-.inputclass {
-  width: 300px;
-}
-
-.el-dialog {
-  height: 50%;
-}
-
-table {
-  width: 50%;
-  border-collapse: collapse;
-
-  tr, td {
-    border: 1px solid #d2d2d6;
-    padding: 5px;
-  }
-}
-
-.radio-group {
-  margin-bottom: 15px;
-}
-
-.title-wrap {
-  font-size: 14px;
-  color: #8b60f0;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-  margin-top: 12px;
-
-  .title {
-    padding: 0 16px;
-  }
-
-  .line {
-    width: 100px;
-    height: 2px;
-    border-bottom: 2px dashed #e1e1f5;
-  }
-
-  .add-line {
-    width: 800px;
-    overflow: hidden;
-  }
-}
-
-.filter-item {
-  color: #fff;
-  background-color: #5bc0de;
-  border-color: #ffffff;
+.request-mode {
   margin-bottom: 10px;
 
-  &:hover {
-    color: #fff;
-    background-color: #31b0d5;
-    border-color: #ffffff;
+  :deep(.el-radio__label) {
+    font-size: 13px;
   }
 }
 
-:deep(.radio-group) {
-  margin-bottom: 4px;
-}
-</style>
-
-<style lang="scss">
 
 .file-input-container {
   display: inline-block;
@@ -572,28 +495,11 @@ table {
       pointer-events: none;
     }
 
-    .file-input__fake {
-      position: relative;
-      height: 20px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      cursor: pointer;
-      background-color: #F2F2F2;
-      min-width: 100px;
-      color: #6B6B6B;
-      font-weight: 600;
 
-      &:hover {
-        color: #212121;
-        background-color: #E6E6EE;
-      }
-    }
-
-    .btn {
-      box-sizing: border-box;
-      border-radius: 4px;
-    }
+    //.btn {
+    //  box-sizing: border-box;
+    //  border-radius: 4px;
+    //}
 
     .file-input__name {
       box-sizing: border-box;
@@ -627,44 +533,8 @@ table {
   }
 }
 
-.dropdown-menu {
-  padding: 4px 0;
-  box-sizing: border-box;
-  background-color: #F9F9F9;
-  border-radius: 4px;
-  border: 1px solid #EDEDED;
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.2);
-
-  .dropdown-menu-item {
-    position: relative;
-    box-sizing: border-box;
-    height: 32px;
-    color: #212121;
-    font-size: 12px;
-    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica, Arial, sans-serif;;
-    display: flex;
-    align-items: center;
-    cursor: default;
-    -webkit-user-select: none;
-    user-select: none;
-    padding: 0 16px;
-
-    span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    &:hover {
-      background-color: #EDEDED;
-    }
-  }
+:deep(.input-with-select .el-input-group__append) {
+  background-color: var(--el-fill-color-blank) !important;
 }
 
-
-</style>
-<style>
-.popover-class {
-  padding: 0 !important;
-}
 </style>

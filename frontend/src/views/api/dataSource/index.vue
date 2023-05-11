@@ -20,6 +20,7 @@
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
           :total="state.total"
+          @selection-change="selectionChange"
           @pagination-change="getList"
       />
     </el-card>
@@ -34,10 +35,12 @@ import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import EditDataSource from "./EditDataSource.vue";
 
+const emit = defineEmits(["selectionChange"])
 
 const EditDataSourceRef = ref();
 const state = reactive({
   columns: [
+    {label: '', columnType: 'selection', width: 'auto', show: true},
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {
       key: 'name', label: '数据源名称', width: 'auto', align: 'center', show: true, render: (row: any) =>
@@ -87,6 +90,9 @@ const state = reactive({
     name: '',
   },
 
+//  selectionChange
+  selectChangeList: []
+
 });
 // 初始化表格数据
 const getList = () => {
@@ -127,6 +133,17 @@ const deleted = (row: any) => {
       .catch(() => {
       });
 };
+const selectionChange = (val: any) => {
+  state.selectChangeList = val
+  emit("selectionChange", val)
+}
+const getSelectList = () => {
+  return state.selectChangeList
+}
+
+defineExpose({
+  getSelectList,
+})
 
 // 页面加载时
 onMounted(() => {

@@ -26,9 +26,9 @@ https://github.com/baizunxian/zerorunner
 git clone https://github.com/baizunxian/zerorunner.git
 
 # 数据库脚本 将内容复制数据库执行 需要新建数据库 zerorunner
-script/zerorunner.sql
+db_script/db_init.sql
 # 初始化数据脚本 将内容复制数据库执行 
-script/init.sql  
+db_script/init.sql  
 
 # 修改对应的数据库地址，redis 地址
 autotest/config.py
@@ -55,11 +55,6 @@ celery -A celery_worker.worker.celery beat  -l INFO
 
 ```
 
-#### 💯 学习交流加 微信 群
-
-- 微信群
-<img src="https://github.com/baizunxian/zero_autotest_backend/blob/master/static/img/weixin.jpg?raw=true" width="220" height="220" alt="zero autotest 交流群" title="zero autotest 交流群"/>
-  
 #### 💌 支持作者
 
-如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/baizunxian/zero_autotest_backend">Github</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持, 平台会持续迭代更新。
+如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/baizunxian/zerorunner">Github</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持, 平台会持续迭代更新。

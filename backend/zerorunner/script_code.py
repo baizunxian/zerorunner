@@ -3,65 +3,11 @@
 import typing
 
 
-class ZHeaders:
-    """头信息处理"""
-
-    def __init__(self, headers: typing.Dict):
-        self.headers = headers
-
-    def set(self, key, value):
-        self.headers[key] = value
-
-    def get(self, key):
-        if hasattr(self.headers, key):
-            return self.headers[key]
-        return None
-
-    def get_headers(self):
-        return self.headers
-
-
-class ZVariables:
-    """头信息处理"""
-
-    def __init__(self, variables: typing.Dict):
-        self.variables = variables
-
-    def set(self, key, value):
-        self.variables[key] = value
-
-    def get(self, key):
-        if hasattr(self.variables, key):
-            return self.variables[key]
-        return None
-
-    def get_headers(self):
-        return self.variables
-
-
-class Environment:
-    """环境变量处理"""
-
-    def __init__(self, environment: typing.Dict):
-        self.environment = environment
-
-    def set(self, key, value):
-        self.environment[key] = value
-
-    def get(self, key):
-        if hasattr(self.environment, key):
-            return self.environment[key]
-        return None
-
-    def get_environment(self):
-        return self.environment
-
-
 class Zero:
-    def __init__(self, request_dict: typing.Dict, environment: typing.Dict, variables: typing.Dict):
-        self._headers = ZHeaders(request_dict.get("headers", {}))
-        self._environment = Environment(environment)
-        self._variables = ZVariables(variables)
+    def __init__(self, headers: dict = None, environment: dict = None, variables: dict = None):
+        self._headers = self.Headers(headers)
+        self._environment = self.Environment(environment)
+        self._variables = self.Variables(variables)
 
     @property
     def headers(self):
@@ -74,3 +20,46 @@ class Zero:
     @property
     def variables(self):
         return self._variables
+
+    class Headers:
+        def __init__(self, headers: dict = None):
+            self.headers = headers if headers else {}
+
+        def set(self, key, value):
+            self.headers[key] = value
+
+        def get(self, key):
+            return self.headers.get(key, None)
+
+        def get_headers(self):
+            return self.headers
+
+    class Environment:
+        """环境变量处理"""
+
+        def __init__(self, environment: dict = None):
+            self.environment = environment if environment else {}
+
+        def set(self, key, value):
+            self.environment[key] = value
+
+        def get(self, key):
+            return self.environment.get(key, None)
+
+        def get_environment(self):
+            return self.environment
+
+    class Variables:
+        """头信息处理"""
+
+        def __init__(self, variables: dict = None):
+            self.variables = variables if variables else {}
+
+        def set(self, key, value):
+            self.variables[key] = value
+
+        def get(self, key):
+            return self.variables.get(key, None)
+
+        def get_variables(self):
+            return self.variables

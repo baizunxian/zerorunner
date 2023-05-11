@@ -1,6 +1,6 @@
 {
 	"name": "zerorunner",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "一个自动化测试平台",
 	"author": "xiaobai",
 	"license": "MIT",
@@ -34,7 +34,7 @@
 		"@vitejs/plugin-vue": "^4.0.0",
 		"@vue/compiler-sfc": "^3.2.45",
 		"cropperjs": "^1.5.13",
-		"eslint": "^8.29.0",
+		"eslint": "8.22.0",
 		"eslint-plugin-vue": "^9.8.0",
 		"monaco-editor": "^0.34.1",
 		"prettier": "^2.8.1",
@@ -45,6 +45,7 @@
 		"vite-plugin-monaco-editor": "1.0.5",
 		"vite-plugin-vue-setup-extend": "^0.4.0",
 		"vue-eslint-parser": "^9.1.0",
+		"vuedraggable": "^4.1.0",
 		"xterm": "^5.1.0",
 		"xterm-addon-fit": "^0.7.0"
 	},

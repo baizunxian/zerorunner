@@ -27,7 +27,7 @@ async def get_case_info(params: ApiId):
     return partner_success(case_info)
 
 
-@router.post('/saveOrUpdate', description="更新保存测试接口")
+@router.post('/saveOrUpdate', description="更新保存接口")
 async def save_or_update(params: ApiInfoIn):
     case_info = await ApiInfoService.save_or_update(params)
     return partner_success(case_info)

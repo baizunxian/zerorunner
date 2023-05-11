@@ -263,7 +263,7 @@ def get_mapping_function(
 
     elif function_name in ["multipart_encoder", "multipart_content_type"]:
         # extension for upload test
-        from ext import uploader
+        from zerorunner.ext import uploader
 
         return getattr(uploader, function_name)
 

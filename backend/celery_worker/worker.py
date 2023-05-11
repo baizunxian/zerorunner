@@ -69,11 +69,11 @@ class TaskRequest(Request):
 #     """
 
 
-@after_setup_logger.connect
-def setup_loggers(logger, *args, **kwargs):
-    """logger 初始化统一处理日志格式"""
-    logger.handlers = []
-    logger.addHandler(InterceptHandler())
+# @after_setup_logger.connect
+# def setup_loggers(logger, *args, **kwargs):
+#     """logger 初始化统一处理日志格式"""
+#     logger.handlers = []
+#     logger.addHandler(InterceptHandler())
 
 
 def create_celery():

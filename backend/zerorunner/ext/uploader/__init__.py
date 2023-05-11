@@ -5,7 +5,7 @@ If you want to use this extension, you should install the following dependencies
 - requests_toolbelt
 - filetype
 
-Then you can write upload test script as below:
+Then you can write upload test db_script as below:
 
     - test:
         name: upload file
@@ -21,7 +21,7 @@ Then you can write upload test script as below:
         validate:
             - eq: ["status_code", 200]
 
-For compatibility, you can also write upload test script in old way:
+For compatibility, you can also write upload test db_script in old way:
 
     - test:
         name: upload file
@@ -109,12 +109,13 @@ def prepare_upload_step(step: TStep, functions: FunctionsMapping):
 
     ensure_upload_ready()
     params_list = []
+    upload_variables = {}
     for key, value in step.request.upload.items():
-        step.variables[key] = value
+        upload_variables[key] = value
         params_list.append(f"{key}=${key}")
 
     params_str = ", ".join(params_list)
-    step.variables["m_encoder"] = "${multipart_encoder(" + params_str + ")}"
+    upload_variables["m_encoder"] = "${multipart_encoder(" + params_str + ")}"
 
     # parse variables
     step.variables = parse_variables_mapping(step.variables, functions)
@@ -122,6 +123,7 @@ def prepare_upload_step(step: TStep, functions: FunctionsMapping):
     step.request.headers["Content-Type"] = "${multipart_content_type($m_encoder)}"
 
     step.request.data = "$m_encoder"
+    return upload_variables
 
 
 def multipart_encoder(**kwargs):

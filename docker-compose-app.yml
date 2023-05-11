@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  app:
+    image: zerorunner:latest
+    container_name: zerorunner_app
+    hostname: zerorunner-container
+    build:
+      context: .
+      dockerfile: zero-docker-file/Dockerfile-backend-build
+    entrypoint: /app/start.sh
+    command: "app"
+    depends_on:
+      - db
+      - redis
+    restart: always
+    networks:
+      - zero_network
+
+
+  frontend-and-nginx:
+    # 前端打包 + 代理
+    container_name: frontend_and_nginx
+    build:
+      context: .
+      dockerfile: zero-docker-file/Dockerfile-frontend-build
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8888:8888"
+    depends_on:
+      - app
+    networks:
+      - zero_network
+
+  celery-worker:
+    container_name: zerorunner_celery_worker
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    entrypoint: /app/start.sh
+    command: "celery-worker"
+    restart: always
+
+  celery-beat:
+    container_name: zerorunner_celery_beat
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    entrypoint: /app/start.sh
+    command: "celery-beat"
+    restart: always
+
+
+# 先执行 - -
+# docker network create  zero_network
+networks:
+  zero_network:
+    external: true

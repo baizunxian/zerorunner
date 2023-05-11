@@ -22,8 +22,8 @@
         </ReportStatistics>
       </el-card>
       <el-card>
-
-        <div v-show="!isDebug" class="mb15">
+        <!--        search      -->
+        <div v-show="!isDebug">
           <el-input
               clearable
               v-model="state.listQuery.name"
@@ -48,27 +48,33 @@
             查询
           </el-button>
 
-          <el-checkbox class="ml10" v-model="state.viewErrOrFailApiStatus" @change="viewErrOrFailApi">
-            只看错误/失败接口
-          </el-checkbox>
 
         </div>
 
+        <!--       tool      -->
+        <div class="mb8 mt8">
+          <el-checkbox class="ml10" v-model="state.viewErrOrFailApiStatus" @change="viewErrOrFailApi">
+            只看错误/失败接口
+          </el-checkbox>
+        </div>
 
-        <z-table
-            :columns="state.columns"
-            :data="state.listData"
-            row-key="id"
-            :lazy="true"
-            :showPlaceholder="true"
-            :loading="state.tableLoading"
-            :load="getChildrenData"
-            v-model:page-size="state.listQuery.pageSize"
-            v-model:page="state.listQuery.page"
-            :total="state.total"
-            :tree-props="{ children: 'children', hasChildren: 'has_step_data' }"
-            @pagination-change="getList"
-        ></z-table>
+        <!--        search      -->
+        <div>
+          <z-table
+              :columns="state.columns"
+              :data="state.listData"
+              row-key="id"
+              :lazy="true"
+              :showPlaceholder="true"
+              :loading="state.tableLoading"
+              :load="getChildrenData"
+              v-model:page-size="state.listQuery.pageSize"
+              v-model:page="state.listQuery.page"
+              :total="state.total"
+              :tree-props="{ children: 'children', hasChildren: 'has_step_data' }"
+              @pagination-change="getList"
+          ></z-table>
+        </div>
       </el-card>
 
       <div>
@@ -105,7 +111,7 @@
 </template>
 
 <script lang="ts" setup name="ReportDetail">
-import {h, reactive, onMounted, nextTick} from "vue";
+import {h, reactive, nextTick} from "vue";
 import {ElButton, ElTag} from "element-plus";
 import {useRouter} from "vue-router"
 import {useReportApi} from "/@/api/useAutoApi/report";
@@ -116,7 +122,9 @@ import {Promotion} from "@element-plus/icons-vue"
 const props = defineProps({
   reportInfo: {
     type: Object,
-    required: true
+    default: () => {
+      return {}
+    }
   },
   isDebug: {
     type: Boolean,

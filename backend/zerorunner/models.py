@@ -41,7 +41,7 @@ class TStepControllerEnum(str, Enum):
     api = "api"
     case = "case"
     wait = "wait"
-    script = "script"
+    script = "db_script"
     sql = "sql"
     extract = "extract"
     loop = "loop"
@@ -52,7 +52,7 @@ TStepControllerDict = {
     "api": "接口",
     "case": "用例",
     "wait": "等待控制器",
-    "script": "脚本控制器",
+    "db_script": "脚本控制器",
     "sql": "sql控制器",
     "extract": "提取控制器",
     "loop": "循环控制器",
@@ -180,7 +180,7 @@ class TApiController(TBaseController):
 class TScriptController(TBaseController):
     """脚本控制"""
     value: typing.Optional[str] = None
-    step_type: typing.Literal["script"]
+    step_type: typing.Literal["db_script"]
 
 
 class TWaitController(TBaseController):

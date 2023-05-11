@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from autotest.config.config import config
+from config import config
 
 
 def init_cors(app: FastAPI):

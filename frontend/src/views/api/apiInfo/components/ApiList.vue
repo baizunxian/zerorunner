@@ -1,6 +1,6 @@
 <template>
-  <div class="" style="padding: 10px">
-    <el-card style="padding: 10px">
+  <div class="app-container">
+    <el-card>
       <div class="mb8">
         <div>
           <el-input v-model="state.listQuery.name" placeholder="请输入用例名称" style="max-width: 180px"></el-input>
@@ -11,28 +11,35 @@
         </div>
       </div>
 
-<!--      <div class="mb8">-->
-<!--        <el-button type="primary" link class="" @click="openImportPage">-->
-<!--          <el-icon>-->
-<!--            <ele-FolderAdd/>-->
-<!--          </el-icon>-->
-<!--          导入-->
-<!--        </el-button>-->
-<!--      </div>-->
-<!--      -->
-      <z-table
-          :columns="state.columns"
-          :data="state.listData"
-          v-model:page-size="state.listQuery.pageSize"
-          v-model:page="state.listQuery.page"
-          :total="state.total"
-          @pagination-change="getList"
-          @selection-change="selectionChange"
-      >
-      </z-table>
+      <!--      <div class="mb8">-->
+      <!--        <el-button type="primary" link class="" @click="openImportPage">-->
+      <!--          <el-icon>-->
+      <!--            <ele-FolderAdd/>-->
+      <!--          </el-icon>-->
+      <!--          导入-->
+      <!--        </el-button>-->
+      <!--      </div>-->
+      <!--      -->
+      <!--       tool      -->
+      <div class="mb8 mt8">
+        <el-checkbox v-model="state.oneSelf" @change="oneSelfChange">
+          只看自己创建
+        </el-checkbox>
+      </div>
+      <!--      list    -->
+      <div>
+        <z-table
+            :columns="state.columns"
+            :data="state.listData"
+            v-model:page-size="state.listQuery.pageSize"
+            v-model:page="state.listQuery.page"
+            :total="state.total"
+            @pagination-change="getList"
+            @selection-change="selectionChange"
+        >
+        </z-table>
+      </div>
     </el-card>
-
-
     <!--    运行用例-->
     <el-dialog
         draggable
@@ -75,7 +82,6 @@
     </el-dialog>
 
     <!--    测试报告-->
-
     <ReportDetail :report-info="state.reportInfo" ref="reportDetailRef"/>
 
     <!--    postman 导入 import-->
@@ -168,6 +174,9 @@ import {useEnvApi} from "/@/api/useAutoApi/env";
 import {useModuleApi} from "/@/api/useAutoApi/module";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {getMethodColor} from "/@/utils/case";
+import {useUserInfo} from '/@/stores/userInfo';
+
+const userInfoStore = useUserInfo()
 
 const ReportDetail = defineAsyncComponent(() => import("/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"))
 
@@ -178,6 +187,7 @@ const router = useRouter();
 
 const state = reactive({
   columns: [
+    {label: '', columnType: 'selection', width: 'auto', show: true},
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
     {
@@ -239,6 +249,7 @@ const state = reactive({
     page: 1,
     pageSize: 20,
     name: '',
+    created_by: null,
   },
   selectionData: [],
   // run test apiInfo
@@ -284,6 +295,8 @@ const state = reactive({
     project_id: [{required: true, message: '请选择项目', trigger: 'blur'}],
     module_id: [{required: true, message: '请选择模块', trigger: 'blur'}],
   },
+  // oneSelf
+  oneSelf: false,
 });
 
 
@@ -402,6 +415,12 @@ const getModuleList = () => {
       .then(res => {
         state.moduleList = res.data.rows
       })
+}
+
+// 只看自己
+const oneSelfChange = (val: boolean) => {
+  state.listQuery.created_by = val ? userInfoStore.userInfos.id : null
+  getList()
 }
 
 

@@ -7,7 +7,7 @@ import typing
 from aioredis import Redis, DataError
 from redis.typing import KeyT, FieldT, EncodableT, AnyFieldT
 
-from autotest.config.config import config
+from config import config
 
 
 class MyRedis(Redis):
@@ -76,8 +76,6 @@ class MyRedis(Redis):
                 items.extend(pair)
 
         return self.execute_command("HSET", name, *items)
-
-
 
     async def get_list_by_index(self, key: str, id: int) -> object:
         """

@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-import copy
 import json
 import os
 import traceback
 import typing
 import uuid
 
-from autotest.config.config import config
+from config import config
 from loguru import logger
 from autotest.models.api_models import Env, DataSource, ApiInfo, EnvFunc
 from autotest.models.system_models import FileInfo
@@ -147,8 +146,8 @@ class HandleStepData(object):
 
     async def __init_api_step(self) -> Step:
         self.step.request = TRequest(method=self.api_info.request.method, url=self.api_info.request.url)
-
-        if self.api_info.request.mode.lower() == 'raw':
+        request_mode = self.api_info.request.mode.lower()
+        if request_mode == 'raw':
             if self.api_info.request.language.lower() == "json":
                 try:
                     self.step.request.req_json = json.loads(self.api_info.request.data)
@@ -157,7 +156,7 @@ class HandleStepData(object):
                     self.step.request.data = self.api_info.request.data
             else:
                 self.step.request.data = self.api_info.request.data
-        elif self.api_info.request.mode.lower() == 'form_data':
+        elif request_mode == 'form_data':
             from_data_list = self.api_info.request.data
             upload_dict = {}
             for data in from_data_list:
@@ -175,6 +174,9 @@ class HandleStepData(object):
                 else:
                     upload_dict[data.key] = data.value
             self.step.request.upload = upload_dict
+
+        elif request_mode == 'none':
+            self.step.request.data = None
         return Step(RunRequestStep(self.step))
 
     async def __init_sql_step(self) -> Step:
@@ -186,7 +188,7 @@ class HandleStepData(object):
             self.step.sql_request.password = source_info.password
             self.step.sql_request.port = source_info.port
         else:
-            raise "sql 环境信息为空"
+            raise ValueError(f"{self.step.name} sql环境信息为空")
         return Step(RunSqlStep(self.step))
 
     async def __init_wait_step(self) -> Step:

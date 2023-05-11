@@ -32,10 +32,14 @@ const getData = () => {
   return handleEmpty(state.variables)
 }
 
+const getDataLength = () => {
+  return handleEmpty(state.variables).length
+}
 
 defineExpose({
   setData,
   getData,
+  getDataLength,
 })
 
 

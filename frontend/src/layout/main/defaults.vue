@@ -16,11 +16,15 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
 import { NextLoading } from '/@/utils/loading';
+import LayoutAside from '/@/layout/component/aside.vue'
+import LayoutHeader from '/@/layout/component/header.vue'
+import LayoutMain from '/@/layout/component/main.vue'
+
 
 // 引入组件
-const LayoutAside = defineAsyncComponent(() => import('/@/layout/component/aside.vue'));
-const LayoutHeader = defineAsyncComponent(() => import('/@/layout/component/header.vue'));
-const LayoutMain = defineAsyncComponent(() => import('/@/layout/component/main.vue'));
+// const LayoutAside = defineAsyncComponent(() => import('/@/layout/component/aside.vue'));
+// const LayoutHeader = defineAsyncComponent(() => import('/@/layout/component/header.vue'));
+// const LayoutMain = defineAsyncComponent(() => import('/@/layout/component/main.vue'));
 
 // 定义变量内容
 const layoutScrollbarRef = ref<RefType>('');
@@ -49,7 +53,7 @@ const initScrollBarHeight = () => {
 // 页面加载时
 onMounted(() => {
 	initScrollBarHeight();
-	NextLoading.done(600);
+	NextLoading.done(0);
 });
 // 监听路由的变化，切换界面时，滚动条置顶
 watch(

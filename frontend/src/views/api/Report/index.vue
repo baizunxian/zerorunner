@@ -7,7 +7,7 @@
             v-model="state.listQuery.name"
             placeholder="输入报告名查询"
             style="width: 200px;"
-            class="ml10"
+            class=""
             @keyup.enter.native="search"/>
         <el-input
             clearable

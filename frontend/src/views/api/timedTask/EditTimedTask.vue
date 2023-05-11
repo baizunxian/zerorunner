@@ -17,8 +17,7 @@
                     <el-select
                         v-model="state.form.project_id"
                         placeholder="选择项目"
-                        filterable style="width: 100%;"
-                        @change="selectProject">
+                        filterable style="width: 100%;">
                       <el-option
                           v-for="project in state.projectList"
                           :key="project.id + project.name"
@@ -84,16 +83,6 @@
                     </el-input-number>
                   </el-form-item>
                 </el-col>
-
-
-                <!--                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">-->
-                <!--                  <el-form-item label="执行时间" prop="crontab">-->
-                <!--                    <el-input v-model="state.form.crontab" auto-complete="off"-->
-                <!--                              placeholder="crontab表达式 例如： 11 * * * *">-->
-                <!--                    </el-input>-->
-                <!--                  </el-form-item>-->
-                <!--                </el-col>-->
-
                 <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
                   <el-tabs v-model="state.form.task_type" @tab-change="changeScheduleMode">
                     <el-tab-pane label="Crontab" name="crontab">
@@ -104,15 +93,8 @@
                                     style="width: 80%; padding-right: 5px"
                                     placeholder="crontab表达式 例如： 11 * * * *">
                           </el-input>
-                          <!--                          <el-button type="primary" @click="checkCrontab">验证</el-button>-->
                         </div>
                       </el-form-item>
-                      <!--                      <div>-->
-                      <!--                        <span>最新5次运行时间</span>-->
-                      <!--                        <ul>-->
-                      <!--                          <li v-for="item in state.crontabRunDate">{{ item }}</li>-->
-                      <!--                        </ul>-->
-                      <!--                      </div>-->
                     </el-tab-pane>
 
                     <el-tab-pane label="Interval" name="interval">
@@ -126,106 +108,11 @@
                                            controls-position="right">
                           </el-input-number>
                         </el-tab-pane>
-                        <!--                        <el-tab-pane label="days(天)" name="days">-->
-                        <!--                          <el-input-number v-model="state.intervalData.days"-->
-                        <!--                                           :min="1"-->
-                        <!--                                           controls-position="right">-->
-                        <!--                          </el-input-number>-->
-                        <!--                        </el-tab-pane>-->
-                        <!--                        <el-tab-pane label="hours(时)" name="hours">-->
-                        <!--                          <el-input-number v-model="state.intervalData.hours"-->
-                        <!--                                           :min="1"-->
-                        <!--                                           controls-position="right">-->
-                        <!--                          </el-input-number>-->
-                        <!--                        </el-tab-pane>-->
-                        <!--                        <el-tab-pane label="minutes(分)" name="minutes">-->
-                        <!--                          <el-input-number v-model="state.intervalData.minutes"-->
-                        <!--                                           :min="1"-->
-                        <!--                                           controls-position="right">-->
-                        <!--                          </el-input-number>-->
-                        <!--                        </el-tab-pane>-->
-                        <!--                        <el-tab-pane label="seconds(秒)" name="seconds">-->
-                        <!--                          <el-input-number v-model="state.intervalData.seconds"-->
-                        <!--                                           :min="1"-->
-                        <!--                                           controls-position="right">-->
-                        <!--                          </el-input-number>-->
-                        <!--                        </el-tab-pane>-->
-
                       </el-tabs>
-
-                      <!--                        <div style="display: flex; width: 100%">-->
-                      <!--                          <el-date-picker-->
-                      <!--                              v-model="value2"-->
-                      <!--                              :default-time="['00:00:00', '23:59:59']"-->
-                      <!--                              type="datetimerange"-->
-                      <!--                              :shortcuts="shortcuts"-->
-                      <!--                              range-separator="To"-->
-                      <!--                              start-placeholder="Start date"-->
-                      <!--                              end-placeholder="End date"-->
-                      <!--                          />-->
-                      <!--                        </div>-->
                     </el-tab-pane>
 
                   </el-tabs>
                 </el-col>
-
-
-                <!--                <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">-->
-                <!--                  <el-form-item label="套件类型" prop="run_type">-->
-                <!--                    <el-radio-group v-model="state.form.run_type" size="small" @change="radioChange">-->
-                <!--                      &lt;!&ndash; <el-radio :label="1" border>项目</el-radio> &ndash;&gt;-->
-                <!--                      <el-radio label="module" border>模块</el-radio>-->
-                <!--                      <el-radio label="suite" border>套件</el-radio>-->
-                <!--                    </el-radio-group>-->
-                <!--                  </el-form-item>-->
-                <!--                </el-col>-->
-
-
-                <!--          项目-->
-                <!--                <template v-if="state.form.run_type === 'module'">-->
-                <!--                  <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">-->
-                <!--                    <el-form-item label="关联模块" prop="case_ids">-->
-                <!--                      <el-select-->
-                <!--                          multiple-->
-                <!--                          collapse-tags-->
-                <!--                          v-model="state.form.case_ids"-->
-                <!--                          placeholder="选择模块"-->
-                <!--                          filterable style="width: 100%;">-->
-                <!--                        <el-option-->
-                <!--                            v-for="module in state.moduleList"-->
-                <!--                            :key="module.id + module.name"-->
-                <!--                            :label="module.name"-->
-                <!--                            :value="module.id">-->
-                <!--                          <span style="float: left">{{ module.name }}</span>-->
-                <!--                        </el-option>-->
-                <!--                      </el-select>-->
-                <!--                    </el-form-item>-->
-                <!--                  </el-col>-->
-                <!--                </template>-->
-
-                <!--          套件-->
-                <!--                <template v-if="state.form.run_type === 'suite'">-->
-                <!--                  <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">-->
-                <!--                    <el-form-item label="关联套件" prop="module_ids">-->
-                <!--                      <el-select-->
-                <!--                          multiple-->
-                <!--                          collapse-tags-->
-                <!--                          v-model="state.form.case_ids"-->
-                <!--                          placeholder="选择套件"-->
-                <!--                          filterable style="width: 100%;"-->
-                <!--                      >-->
-                <!--                        <el-option-->
-                <!--                            v-for="suite in state.suiteList"-->
-                <!--                            :key="suite.id + suite.name"-->
-                <!--                            :label="suite.name"-->
-                <!--                            :value="suite.id">-->
-                <!--                          <span style="float: left">{{ suite.name }}</span>-->
-                <!--                        </el-option>-->
-                <!--                      </el-select>-->
-                <!--                    </el-form-item>-->
-                <!--                  </el-col>-->
-                <!--                </template>-->
-
               </el-row>
             </el-form>
           </el-card>
@@ -363,41 +250,6 @@ const getProjectList = () => {
       })
 };
 
-// 获取套件
-const getSuitesList = () => {
-  useTestSuiteApi().getList(state.suiteListQuery)
-      .then(res => {
-        state.suiteList = res.data.rows
-      })
-};
-
-// 选择项目
-const selectProject = (project_id: any) => {
-  state.form.case_ids = []
-  if (state.form.run_type === 'module') {
-    state.moduleListQuery.project_id = project_id
-    getModuleList()
-  } else if (state.form.run_type === 'suite') {
-    state.suiteListQuery.project_id = project_id
-    getSuitesList()
-  }
-
-}
-
-// 模块 module
-const getModuleList = () => {
-  useModuleApi().getList(state.moduleListQuery)
-      .then(res => {
-        state.moduleList = res.data.rows
-      })
-};
-// 获取套件列表
-// const getProjectList = () => {
-//   useProjectApi().getList(state.projectListQuery)
-//       .then(res => {
-//         state.projectList = res.data.rows
-//       })
-// };
 
 // 切换运行类型时清空
 const radioChange = () => {

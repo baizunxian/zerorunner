@@ -1,34 +1,19 @@
 <template>
   <div class="step-node">
     <el-card class="step-card w100 h100"
-             :style="{
-          borderColor: (node.isCurrent? getStepTypeInfo(data.step_type, 'color'):''),
-        }"
+             :class="[`${data.step_type}-border-color`]"
+             :style="{borderColor: (node.isCurrent? getStepTypeInfo(data.step_type, 'color'):'')}"
     >
       <div class="step-header">
-        <!--步骤-->
-        <div class="step-header__index el-step__icon is-text el-tag--small"
-             :style="{
-          color: getStepTypeInfo(data.step_type, 'color'),
-          backgroundColor: getStepTypeInfo(data.step_type, 'background')
-        }"
-        >
-          <div class="el-step__icon-inner">{{ data.index }}</div>
-        </div>
 
-        <!--        <svg-icon v-else name="ele-ArrowDown" style="height: 20px; width: 20px"></svg-icon>-->
         <div class="step-header__tag">
-          <el-tag style="margin: 0 5px" size="small"
-                  :style="{
-          color: getStepTypeInfo(data.step_type, 'color'),
-          backgroundColor: getStepTypeInfo(data.step_type, 'background')
-        }"
-          >
-            {{ optType[data.step_type] }}
-          </el-tag>
+          <i :class="getStepTypeInfo(data.step_type, 'icon')"
+             style="padding: 0 5px 0 5px; font-size: 18px"
+             :style="{color: getStepTypeInfo(data.step_type, 'color')}"
+          ></i>
         </div>
         <!--是否展开图标-->
-        <div class="step-header__edit">
+        <div class="step-header__edit" v-if="data.step_type === 'loop'">
           <svg-icon v-show="shouDetailIcon(data.step_type)"
                     :name="data.showDetail ? 'ele-ArrowDown' : 'ele-ArrowRight'"
                     style="height: 20px; width: 20px">
@@ -36,7 +21,11 @@
         </div>
         <!--脚本名称-->
         <div class="step-header__content">
-          <template v-if="data.step_type === 'wait'">
+          <template v-if="data.step_type === 'api'">
+            <ApiHeader :data="data"/>
+          </template>
+
+          <template v-else-if="data.step_type === 'wait'">
             <WaitHeader :data="data"/>
           </template>
 
@@ -49,21 +38,7 @@
           </template>
 
           <template v-else>
-          <span v-if="!data.edit">
-            <svgIcon name="ele-EditPen" @click.stop="editeName(data)" style="margin-right: 5px; top:2px"></svgIcon>
-            <!--            <i class="ele-EditPen"-->
-            <!--               @click.stop="editeName(data)"-->
-            <!--               style="margin-right: 5px">-->
-            <!--            </i>-->
             <span>{{ data.name }}</span>
-          </span>
-            <el-input v-else
-                      :id="`editeName_${data.index}`"
-                      v-model="data.name"
-                      style="width: 200px;"
-                      @click.stop.native=""
-                      @blur="nameEditBlur(data)">
-            </el-input>
           </template>
         </div>
 
@@ -96,7 +71,7 @@
         <ScriptController v-if="data.step_type === 'script'" :data="data"/>
         <SqlController v-if="data.step_type === 'sql'" :data="data"/>
         <ExtractController v-if="data.step_type === 'extract'" :data="data"/>
-        <ApiInfoController v-if="data.step_type === 'api'" :data="data"/>
+        <!--        <ApiInfoController v-if="data.step_type === 'api'" :data="data"/>-->
         <LoopController v-if="data.step_type === 'loop'" :data="data"/>
       </div>
 
@@ -110,12 +85,12 @@ import {nextTick, PropType} from 'vue';
 import ScriptController from "/@/components/Z-StepController/script/ScriptController.vue";
 import SqlController from "/@/components/Z-StepController/sql/SqlController.vue";
 import ExtractController from "/@/components/Z-StepController/extract/ExtractController.vue";
-import ApiInfoController from "/@/components/Z-StepController/apiInfo/ApiInfoController.vue";
 import WaitHeader from "/@/components/Z-StepController/wait/WaitHeader.vue";
 import IfControllerHeader from "/@/components/Z-StepController/ifController/IfControllerHeader.vue";
 import LoopHeader from "/@/components/Z-StepController/loop/LoopHeader.vue";
 import LoopController from "/@/components/Z-StepController/loop/LoopController.vue";
 import {getStepTypeInfo} from "/@/utils/case";
+import ApiHeader from "/@/components/Z-StepController/apiInfo/ApiHeader.vue";
 
 const emit = defineEmits(['copy-node', 'deleted-node'])
 
@@ -161,24 +136,61 @@ const shouDetailIcon = (step_type: string) => {
 </script>
 
 <style lang="scss" scoped>
+.script-border-color:hover {
+  border-color: #7B4D12FF
+}
+
+.wait-border-color:hover {
+  border-color: #67C23AFF
+}
+
+.api-border-color:hover {
+  border-color: #61649f
+}
+
+.case-border-color:hover {
+  border-color: #61649f
+}
+
+.loop-border-color:hover {
+  border-color: #02A7F0FF
+}
+
+.extract-border-color:hover {
+  border-color: #015478FF
+}
+
+.sql-border-color:hover {
+  border-color: #783887FF
+}
+
+.if-border-color:hover {
+  border-color: #E6A23C
+}
+
+
 .step-node {
   margin: 0 0 0 0;
   width: 100%;
+  //height: 48px;
+
   :deep(.el-card__body) {
     height: 100%;
   }
 }
 
 .step-card {
+  //padding: 8px !important;
   min-height: 36px;
 
   :deep(.el-card__body) {
-    padding: 8px 0;
+    padding: 8px 0 !important;
   }
 
   .step-header {
     display: flex;
-    min-height: 26px;
+    height: 30px;
+    line-height: 30px;
     padding: 0 10px;
 
     .el-tag--small {
@@ -219,5 +231,9 @@ const shouDetailIcon = (step_type: string) => {
 
 :deep(.el-tag) {
   border-color: #e4d7e7;
+}
+
+:deep(.el-card) {
+  border-radius: 6px;
 }
 </style>

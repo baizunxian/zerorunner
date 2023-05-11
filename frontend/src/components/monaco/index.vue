@@ -123,14 +123,14 @@ const initEditor = () => {
             case "sql":
               return await state.sqlSnippets.provideCompletionItems(model, position)
             default:
-              language = pythonLanguage
-              language.keywords.forEach((item: any) => {
-                suggestions.push({
-                  label: item,
-                  kind: monaco.languages.CompletionItemKind.Keyword,
-                  insertText: item
-                });
-              })
+              // language = pythonLanguage
+              // language.keywords.forEach((item: any) => {
+              //   suggestions.push({
+              //     label: item,
+              //     kind: monaco.languages.CompletionItemKind.Keyword,
+              //     insertText: item
+              //   });
+              // })
               return {
                 // suggestions: cloneDeep(vCompletion),//自定义代码补全
                 suggestions: suggestions

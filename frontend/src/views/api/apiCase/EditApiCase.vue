@@ -1,6 +1,6 @@
 <template>
   <div class="app-container h100">
-    <el-card class="step-content" style="height: 100%;">
+    <el-card class="step-content" style="height: 100%;" :body-style="{height: 'calc(100% - 66.5px)'}">
       <template #header>
         <z-detail-page-header
             class="page-header"
@@ -12,6 +12,29 @@
           </template>
 
           <template #extra>
+            <el-dropdown class="pr12">
+              <el-button type="warning">
+                添加步骤
+                <el-icon class="el-icon--right">
+                  <arrowDown/>
+                </el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-for="(value, key)  in state.optTypes"
+                                    :key="key"
+                                    style="margin: 5px 0"
+                                    :style="{ color: getStepTypeInfo(key,'color')}"
+                                    @click="handleAddData(key)">
+                    <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"
+                       :style="{color:getStepTypeInfo(key,'color')}"></i>
+                    {{ value }}
+                  </el-dropdown-item>
+
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+
             <el-button type="success" @click="openRunPage">调试</el-button>
             <el-button type="primary" @click="saveOrUpdate" class="title-button">保存</el-button>
           </template>
@@ -30,10 +53,9 @@
                 label-position="right"
                 label-width="auto"
                 size="small"
-                status-icon
             >
               <el-form-item label="用例名称：" prop="name">
-                <el-input v-model="state.form.name" placeholder="用例名称"></el-input>
+                <el-input v-model="state.form.name" placeholder="用例名称" clearable></el-input>
               </el-form-item>
 
               <el-form-item label="所属项目：" prop="project_id">
@@ -100,11 +122,13 @@
         </z-pane>
         <z-pane :size="80" :min-size="50">
           <!--          <apiInfo-step></apiInfo-step>-->
+          <!--          <nestedDraggable v-if="state.step_data" :List="state.step_data"></nestedDraggable>-->
           <z-step-controller
               ref="stepControllerRef"
-              use_type="suite"
+              use_type="case"
               style="margin-bottom: 10px"
-              v-model:data="state.form.step_data"></z-step-controller>
+              v-model:data="state.form.step_data">
+          </z-step-controller>
         </z-pane>
       </z-splitpanes>
 
@@ -189,6 +213,9 @@ import {useProjectApi} from "/@/api/useAutoApi/project";
 import 'splitpanes/dist/splitpanes.css';
 import {handleEmpty} from "/@/utils/other";
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
+// import nestedDraggable from "/@/components/Z-Step/nestedDraggable.vue"
+import {getStepTypesByUse, getStepTypeInfo} from "/@/utils/case";
+import {ArrowDown} from "@element-plus/icons-vue";
 
 const createForm = () => {
   return {
@@ -226,7 +253,8 @@ const state = reactive({
 //  report
   reportInfo: null,
 //  showRunPage
-  showRunPage: false
+  showRunPage: false,
+  optTypes: getStepTypesByUse("case")
 });
 
 // init suite
@@ -235,6 +263,16 @@ const initData = async () => {
     let {data} = await useApiCaseApi().getCaseInfo({id: route.query.id})
     state.form = data
   }
+}
+
+const handleStepData = (step_data: Array<any>) => {
+  step_data.forEach((e: any) => {
+    if (e.sub_steps) {
+      handleStepData(e.sub_steps)
+    } else {
+      e.sub_steps = []
+    }
+  })
 }
 
 // environment
@@ -325,12 +363,12 @@ const getDataLength = (dataType: string) => {
   }
 }
 
+//handleAddData
+const handleAddData = (optType: string) => {
+  stepControllerRef.value.handleAddData(optType)
 
-// 全局点击事件，取消step 选中
-window.onclick = () => {
-  stepControllerRef.value?.clickBlank()
-  stepControllerRef.value?.initFabMenu(null)
 }
+
 // goBack
 const goBack = () => {
   router.push({name: 'apiCase'})
@@ -363,4 +401,7 @@ onMounted(() => {
   right: calc(-7px + var(--el-badge-size) / 2);
 }
 
+:deep(.el-dropdown) {
+  vertical-align: middle;
+}
 </style>

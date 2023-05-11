@@ -72,9 +72,9 @@ def init_logger():
         effective_level = logging.getLogger(logger_name).getEffectiveLevel()
         if effective_level < logging.getLevelName(config.LOGGER_LEVEL.upper()):
             logging.getLogger(logger_name).setLevel(config.LOGGER_LEVEL.upper())
-            logging.getLogger(logger_name).handlers = []
-            if '.' not in logger_name:
-                logging.getLogger(logger_name).addHandler(InterceptHandler())
+        logging.getLogger(logger_name).handlers = []
+        if '.' not in logger_name:
+            logging.getLogger(logger_name).addHandler(InterceptHandler())
 
 
 init_logger()

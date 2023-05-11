@@ -1,0 +1,46 @@
+version: '3.8'
+
+x-env: &env
+  # db
+  MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  MYSQL_DATABASE: ${MYSQL_DATABASE}
+  MYSQL_USER: ${MYSQL_USER}
+  MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+
+services:
+  db:
+    image: mysql:8.0.21
+    container_name: docker_db
+    environment:
+      # 设置默认数据库和root默认密码,如果宿主机中/var/lib/mysql已经存在,这两个设置都不会生效
+      <<: *env
+    volumes:
+      # - "/var/lib/mysql:/var/lib/mysql" # 挂载宿主机的mysql数据到docker中
+      - ./backend/db_script/my.cnf:/etc/my.cnf  # 配置文件挂载
+      - /usr/local/mysql/data:/var/lib/mysql  # 数据目录挂载
+      - /usr/local/mysql/logs:/logs  # 日志数据目录挂载
+    ports:
+      # 端口映射,格式 宿主机端口:容器端口
+      - "${MYSQL_PORT_OUT}:3306"
+    restart: always
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+
+  redis:
+    image: redis:6.2.5
+    container_name: docker_redis
+    privileged: true
+    environment:
+      # 设置默认数据库和root默认密码,如果宿主机中/var/lib/mysql已经存在,这两个设置都不会生效
+      <<: *env
+      TZ: Asia/Shanghai
+    volumes:
+      - ./backend/db_script/redis.conf:/etc/redis/redis.conf # 配置文件挂载
+      - /usr/local/redis/data:/data  # 数据目录挂载
+      - /usr/local/redis/log:/logs
+    ports:
+      # 端口映射,格式 宿主机端口:容器端口
+      - "${REDIS_PORT}:6379"
+    restart: always
+    command: [ "redis-server","/etc/redis/redis.conf" ]

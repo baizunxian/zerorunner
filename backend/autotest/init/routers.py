@@ -4,7 +4,7 @@
 from fastapi import FastAPI
 
 from autotest.apis import app_router
-from autotest.config.config import config
+from config import config
 
 
 def init_router(app: FastAPI):

@@ -2,10 +2,12 @@
 # @author: xiaobai
 import traceback
 import typing
-
+import uuid
+import requests
 from loguru import logger
 from zerorunner import exceptions, utils
 from zerorunner.ext.uploader import prepare_upload_step
+from zerorunner.loader import load_script_content
 from zerorunner.model.step_model import VariablesMapping, TRequest, MethodEnum
 from zerorunner.model.step_model import TStep
 from zerorunner.model.base import TStepLogType, TStepResultStatusEnum, Hooks
@@ -13,6 +15,7 @@ from zerorunner.model.result_model import StepResult
 from zerorunner.parser import parse_variables_mapping, build_url, Parser
 from zerorunner.response import ResponseObject
 from zerorunner.runner_new import SessionRunner
+from zerorunner.script_code import Zero
 from zerorunner.steps.base import IStep
 import time
 
@@ -85,7 +88,7 @@ def run_api_request(runner: SessionRunner,
     step_result = runner.get_step_result(step, step_tag=step_tag)
     runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
     # parse
-    prepare_upload_step(step, runner.config.functions)
+    upload_variables = prepare_upload_step(step, runner.config.functions)
     request_dict = step.request.dict()
     request_dict.pop("upload", None)
     session_success = False
@@ -99,7 +102,7 @@ def run_api_request(runner: SessionRunner,
 
         # parse variables
         merge_variable = parse_variables_mapping(
-            merge_variable, runner.config.functions
+            merge_variable, runner.parser.functions_mapping
         )
         # setup hooks
         if step.setup_hooks:
@@ -110,8 +113,33 @@ def run_api_request(runner: SessionRunner,
                        hook_msg="setup_hooks",
                        parent_step_result=step_result)
             runner.set_run_log(f"{step_result.name} setup hooks end~~~")
+        # setup code
+        if step.setup_code:
+            zero = Zero(headers=request_dict['headers'],
+                        environment=runner.config.env_variables,
+                        variables=step.variables)
+            load_script_content(step.setup_code, str(uuid.uuid4()), params={"zero": zero, "requests": requests})
+            parsed_zero_headers = runner.parser.parse_data(
+                zero.headers.get_headers(), merge_variable
+            )
+            request_dict["headers"].update(parsed_zero_headers)
+            parsed_zero_environment = runner.parser.parse_data(
+                zero.environment.get_environment(), merge_variable
+            )
+            runner.config.env_variables.update(parsed_zero_environment)
+            parsed_zero_variables = runner.parser.parse_data(
+                zero.variables.get_variables(), merge_variable
+            )
+            step.variables.update(parsed_zero_variables)
+
         # 前置步骤后再执行下合并 避免前置步骤中复制变量获取不到
         merge_variable = runner.get_merge_variable(step)
+        if upload_variables:
+            merge_variable.update(upload_variables)
+        # parse variables
+        merge_variable = parse_variables_mapping(
+            merge_variable, runner.parser.functions_mapping
+        )
 
         parsed_request_dict = runner.parser.parse_data(
             request_dict, merge_variable
@@ -141,6 +169,23 @@ def run_api_request(runner: SessionRunner,
         resp = runner.session.request(method, url, **parsed_request_dict)
         resp_obj = ResponseObject(resp, parser=Parser(functions_mapping=runner.config.functions))
         step.variables["response"] = resp_obj
+
+        # teardown code
+        if step.teardown_code:
+            zero = Zero(parsed_request_dict['headers'])
+            load_script_content(step.setup_code, str(uuid.uuid4()), params={"zero": zero, "requests": requests})
+            parsed_zero_headers = runner.parser.parse_data(
+                zero.headers.get_headers(), merge_variable
+            )
+            parsed_request_dict['headers'].update(parsed_zero_headers)
+            parsed_zero_environment = runner.parser.parse_data(
+                zero.environment.get_environment(), merge_variable
+            )
+            runner.config.env_variables.update(parsed_zero_environment)
+            parsed_zero_variables = runner.parser.parse_data(
+                zero.variables.get_variables(), merge_variable
+            )
+            step.variables.update(parsed_zero_variables)
 
         # teardown hooks
         if step.teardown_hooks:
