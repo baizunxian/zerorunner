@@ -3,11 +3,17 @@ version: '3.8'
 services:
   frontend-and-nginx:
     # 前端打包 + 代理
+    container_name: frontend_and_nginx
     build:
-      # 工程目录 zerorunner
       context: .
       dockerfile: zero-docker-file/Dockerfile-frontend-build
     ports:
       - "80:80"
       - "443:443"
       - "8888:8888"
+    networks:
+      - zero_network
+
+networks:
+  zero_network:
+    external: true
