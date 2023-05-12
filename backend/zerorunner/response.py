@@ -190,9 +190,11 @@ class ResponseObjectBase(object):
         try:
             check_value = jsonpath(self.body, expr.path)
             if not check_value:
-                raise ValueError(f"{expr.path} 没有提取到数据！")
+                raise ValueError(f"💔{expr.path} 没有提取到数据！")
             if expr.continue_extract:
                 check_value = check_value[expr.continue_index]
+        except IndexError:
+            raise ValueError(f"💔提取表达式: {expr.path} 提取下标:{expr.continue_index} 超出列表索引超出范围")
         except Exception as ex:
             logger.error(
                 f"failed to search with JsonPath\n"

@@ -1,12 +1,5 @@
 version: '3.8'
 
-# docker-compose
-# up  启动
-#  -f 自定配置文件
-#  -d 后台运行
-# build  打包
-# rmi  删除打包文件
-
 x-env: &env
   # db
   MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -34,8 +27,8 @@ services:
   celery-worker:
     container_name: zerorunner_celery_worker
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: zero-docker-file/Dockerfile-backend-build
     entrypoint: /app/start.sh
     command: "celery-worker"
     restart: always
@@ -46,8 +39,8 @@ services:
   celery-beat:
     container_name: zerorunner_celery_beat
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: zero-docker-file/Dockerfile-backend-build
     entrypoint: /app/start.sh
     command: "celery-beat"
     restart: always

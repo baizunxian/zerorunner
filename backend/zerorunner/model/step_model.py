@@ -35,8 +35,8 @@ class ValidatorData(BaseModel):
     check: typing.Any = Field("", description="校验值")
     comparator: str = Field("", description="比较器")
     expect: typing.Any = Field("", description="预期值")
-    continue_extract: bool = Field(False, description="预期值")
-    continue_index: int = Field(0, description="预期值")
+    continue_extract: bool = Field(False, description="继续提取 针对 mode = JsonPath 才有效")
+    continue_index: int = Field(0, description="提取index")
 
 
 class TRequest(BaseModel):

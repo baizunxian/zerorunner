@@ -55,6 +55,10 @@ def handle_headers_or_validators(param: typing.List[ApiBaseSchema]) -> typing.Di
     return data
 
 
+def parse_validators_string_value(validators: typing.Dict):
+    return {key: parse_string_value(value) for key, value in validators.items()}
+
+
 class HandleConfig(object):
     config: TConfig
 
@@ -83,7 +87,8 @@ class HandleConfig(object):
 
             # 环境变量
             if env_info.variables:
-                self.config.variables = handle_headers_or_validators(env_variables)
+                new_variables = handle_headers_or_validators(env_variables)
+                self.config.variables = parse_validators_string_value(new_variables)
         config_funcs = await EnvFunc.get_by_env_id(env_id)
         if config_funcs:
             for func in config_funcs:
@@ -95,8 +100,9 @@ class HandleConfig(object):
     async def init_headers(self, headers: typing.List[ApiBaseSchema]):
         self.config.headers = handle_headers_or_validators(headers)
 
-    async def init_variables(self, headers: typing.List[ApiBaseSchema]):
-        self.config.variables = handle_headers_or_validators(headers)
+    async def init_variables(self, variables: typing.List[ApiBaseSchema]):
+        new_variables = handle_headers_or_validators(variables)
+        self.config.variables = parse_validators_string_value(new_variables)
 
     async def init_functions(self):
         from autotest.utils import basic_function
@@ -224,12 +230,9 @@ class HandleStepData(object):
     async def init_variables(self):
         """
         初始化变量
-        args ->
-         variables : 变量
-         var_type : 变量类型
         """
-        step_variables = handle_headers_or_validators(self.api_info.variables)
-        self.step.variables = {key: parse_string_value(value) for key, value in step_variables.items()}
+        new_variables = handle_headers_or_validators(self.api_info.variables)
+        self.step.variables = parse_validators_string_value(new_variables)
 
     async def init_setup_hooks(self):
         for step in self.api_info.setup_hooks:
@@ -250,6 +253,7 @@ class HandleStepData(object):
     async def init_validators(self):
         if self.api_info.validators and isinstance(self.api_info.validators, typing.List):
             for vail in self.api_info.validators:
+                # 解析字符串value
                 vail.expect = parse_string_value(vail.expect)
                 self.step.validators.append(vail.dict())
 
@@ -347,10 +351,11 @@ class HandelTestCase(object):
 
     async def __init_variables(self):
         if self.api_case.variables:
-            self.config.variables = handle_headers_or_validators(self.api_case.variables)
+            new_validators = handle_headers_or_validators(self.api_case.variables)
+            self.config.variables = parse_validators_string_value(new_validators)
 
     async def __init_headers(self):
-        if self.api_case.variables:
+        if self.api_case.headers:
             self.config.headers = handle_headers_or_validators(self.api_case.headers)
 
     def get_config(self) -> TConfig:

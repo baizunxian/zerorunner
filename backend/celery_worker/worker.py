@@ -4,14 +4,14 @@
 import asyncio
 import uuid
 from abc import ABC
+
 from celery import Celery, Task
 from celery._state import _task_stack
-from celery.signals import after_setup_logger
 from celery.worker.request import Request
 from loguru import logger
+
 from autotest.config import config
 from autotest.corelibs.local import g
-from autotest.corelibs.logger import InterceptHandler
 from autotest.db.redis import init_redis_pool
 from autotest.utils.async_converter import AsyncIOPool
 
