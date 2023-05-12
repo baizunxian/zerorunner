@@ -25,6 +25,8 @@ services:
       - "${MYSQL_PORT_OUT}:3306"
     restart: always
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - zero_network
 
 
   redis:
@@ -44,3 +46,10 @@ services:
       - "${REDIS_PORT}:6379"
     restart: always
     command: [ "redis-server","/etc/redis/redis.conf" ]
+    networks:
+      - zero_network
+
+
+networks:
+  zero_network:
+    external: true
