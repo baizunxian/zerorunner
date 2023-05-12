@@ -34,6 +34,9 @@ const getData = () => {
     if (e.path === "") {
       throw new Error(`提取: 第${index + 1}行 提取表达式不能为空~🤣`)
     }
+    if (e.continue_extract && (e.continue_index === "" || e.continue_index === null)) {
+      throw new Error(`提取 第${index + 1}行 请填写提取下标~🤣`)
+    }
   })
   return extractData
 }

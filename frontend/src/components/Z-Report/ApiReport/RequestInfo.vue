@@ -10,7 +10,9 @@
         <template #title>
           <strong>Body</strong>
         </template>
-        <JsonViews v-if="getBodyType() === 'object' && state.request.body !== null" v-model:data="state.request.body"></JsonViews>
+        <JsonViews v-if="getBodyType() === 'object' && state.request.body !== null"
+                   v-model:data="state.request.body">
+        </JsonViews>
         <pre v-else>{{ state.request.body }}</pre>
       </el-collapse-item>
 
@@ -32,25 +34,31 @@
 <script lang="ts" setup name="RequestInfo">
 import {nextTick, onMounted, reactive, watch, PropType} from 'vue';
 import JsonViews from "/@/components/Z-JsonViews/index.vue"
-import {type} from "os";
-
 
 const props = defineProps({
-  data: Object as PropType<RequestData>,
+  data: {
+    type: Object as PropType<RequestData>,
+    required: true,
+  }
 })
 
-const state = reactive({
+interface stateData {
+  accordionName: Array<string>,
+  request: RequestData,
+}
+
+const state = reactive<stateData>({
   // 请求信息
   accordionName: ['body', 'header'],
   request: props.data
 });
 
 watch(
-    () => props.data,
-    () => {
-      state.request = props.data
-    },
-    {deep: true}
+  () => props.data,
+  () => {
+    state.request = props.data
+  },
+  {deep: true}
 )
 
 const getBodyType = () => {

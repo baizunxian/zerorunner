@@ -8,16 +8,18 @@ import traceback
 import typing
 import uuid
 from datetime import datetime
+
 from loguru import logger
+
 from zerorunner import exceptions
 from zerorunner.client import HttpSession
 from zerorunner.exceptions import ValidationFailure
-from zerorunner.model.step_model import TStep, TConfig
 from zerorunner.model.base import TStepResultStatusEnum, VariablesMapping, FunctionsMapping, TStepControllerDict, \
     TStepLogType
 from zerorunner.model.result_model import StepResult, TestCaseSummary, TestCaseInOut
+from zerorunner.model.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
-    parse_string_value, Parser
+    Parser
 from zerorunner.response import uniform_validator
 from zerorunner.utils import merge_variables
 
@@ -37,7 +39,6 @@ class SessionRunner(object):
     __export: typing.List[str] = []
     __step_results: typing.List[StepResult] = []
     __session_variables: VariablesMapping = {}
-    # __session_headers: Headers = {}
     # time
     __start_time: float = 0
     __duration: float = 0
@@ -54,19 +55,6 @@ class SessionRunner(object):
         self.__step_results = self.__step_results or []
         self.session = self.session or HttpSession()
         self.parser = self.parser or Parser(self.config.functions)
-
-    # def __init_tests__(self):
-    #     # 参数初始化
-    #     self.__teststeps = []
-    #     self.message = ""
-    #     self.__start_time = time.time()
-    #     self.__duration = 0
-    #     # self.__session = self.__session or HttpSession()
-    #     self.__session = HttpSession()
-    #     self.__session_variables = {}
-    #     self.__step_results: typing.List[StepResult] = []
-    #     self.__log__ = ""
-    #     # self.extracted_variables: VariablesMapping = {}
 
     def with_config(self, config: TConfig) -> "SessionRunner":
         self.config = config
@@ -195,32 +183,6 @@ class SessionRunner(object):
             step_result.case_id = step.case_id
         return step_result
 
-    # def run_step(self, step: TController, step_tag=None, parent_step_result: StepResult = None):
-    #     """运行步骤，可能是用例，可能是步骤控制器"""
-    #     logger.info(f"run step begin: {step.name} >>>>>>")
-    #     self.set_run_log(f"执行步骤->{step.name} >>>>>>")
-    #
-    #     if isinstance(step, TApiController):
-    #         self.__run_step_request(step, step_tag=step_tag, parent_step_result=parent_step_result)
-    #     elif isinstance(step, TWaitController):
-    #         self.__run_step_wait(step, step_tag=step_tag, parent_step_result=parent_step_result)
-    #     elif isinstance(step, TSqlController):
-    #         self.__run_step_sql(step, step_tag=step_tag, parent_step_result=parent_step_result)
-    #     elif isinstance(step, TScriptController):
-    #         self.__run_step_script(step, step_tag=step_tag, parent_step_result=parent_step_result)
-    #     elif isinstance(step, TIFController):
-    #         self.__run_step_if(step, step_tag=step_tag, parent_step_result=parent_step_result)
-    #     elif isinstance(step, TLoopController):
-    #         self.__run_step_loop(step, step_tag=step_tag, parent_step_result=parent_step_result)
-    #     else:
-    #         raise exceptions.ParamsError(
-    #             f"不是正确的步骤 😅: {step.dict()}"
-    #         )
-    #     # step_result = self.__run_step_controller(step, parent_step_result, "controller")
-    #     # self.__run_count += 1
-    #     logger.info(f"run step end: {step.name} <<<<<<\n")
-    #     self.set_run_log(f"步骤执行完成->{step.name} <<<<<<")
-
     def comparators(self, check: str, expect: str, comparator: str) -> typing.Dict[str, typing.Any]:
         """
         结果比较
@@ -229,9 +191,6 @@ class SessionRunner(object):
 
         check_value = parse_data(check, merge_variable, self.config.functions)
         expect_value = parse_data(expect, merge_variable, self.config.functions)
-        expect_value = parse_string_value(expect_value)
-        # check_value = parse_string_value(check_value)
-        # expect_value = parse_string_value(expect_value)
         u_validator = uniform_validator({"check": check_value, "expect": expect_value, "comparator": comparator})
         assert_method = u_validator["assert"]
         assert_func = get_mapping_function(assert_method, self.config.functions)

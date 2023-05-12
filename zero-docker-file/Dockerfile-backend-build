@@ -1,12 +1,15 @@
 FROM python:3.9
 
 WORKDIR /app
+
 COPY ./backend /app
+
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN pip install -r requirements -i https://mirrors.aliyun.com/pypi/simple/
-EXPOSE 8101
 
 RUN chmod +x /app/start.sh
+
+EXPOSE 8101
 
 ENTRYPOINT ["/app/start.sh"]
 
