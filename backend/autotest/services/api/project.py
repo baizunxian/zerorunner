@@ -18,6 +18,15 @@ class ProjectService:
         return data
 
     @staticmethod
+    async def get_all() -> typing.Dict:
+        """
+        获取项目列表
+        :return:
+        """
+        data = await ProjectInfo.get_all()
+        return data
+
+    @staticmethod
     async def save_or_update(params: ProjectIn) -> typing.Dict:
         """
         更新保存项目

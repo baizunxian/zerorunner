@@ -13,6 +13,12 @@ async def env_list(params: EnvQuery):
     return partner_success(data)
 
 
+@router.post('/getAllEnv', description="获取所有环境")
+async def get_all_env():
+    data = await EnvService.get_all()
+    return partner_success(data)
+
+
 @router.post('/getEnvById', description="获取列表")
 async def get_env_by_id(params: EnvQuery):
     data = await EnvService.get_env_by_id(params)

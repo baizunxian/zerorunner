@@ -1,13 +1,6 @@
 <template>
   <div class="api-case el-card">
     <el-row>
-      <!--      <div class="api-case__ssl">-->
-      <!--        <strong :style="{color: form.ssl ? '#409eff' : '', paddingRight: '5px'}">SSL</strong>-->
-      <!--        <el-switch-->
-      <!--            v-model="form.ssl"-->
-      <!--            size="default"-->
-      <!--        />-->
-      <!--      </div>-->
 
       <el-col :xs="15" :sm="15" :md="15" :lg="15" :xl="15" class="mb20">
         <div class="api-case__method" style="padding-left: 5px">
@@ -29,7 +22,7 @@
                     :key="item"
                     :label="item"
                     :value="item">
-                  <span :style="{color: getMethodColor(item)}">{{ item }}</span>
+                  <span :class="[`method-color-${item.toLowerCase()}`]">{{ item }}</span>
                 </el-option>
               </el-select>
             </template>
@@ -41,7 +34,7 @@
           <el-button size="default" type="primary" @click="saveOrUpdateOrDebug('save')" class="title-button">保存
           </el-button>
           <el-button size="default" type="success" @click="handleDebug">调试</el-button>
-<!--          <el-button size="default" type="danger" @click="saveOrUpdateOrDebug('debug')">删除</el-button>-->
+          <!--          <el-button size="default" type="danger" @click="saveOrUpdateOrDebug('debug')">删除</el-button>-->
         </div>
       </el-col>
       <!--      </div>-->
@@ -200,7 +193,7 @@ const createForm = () => {
   return {
     env_id: null,
     id: null,
-    method: '',
+    method: 'POST',
     name: '',
     url: '',
     ssl: false,
@@ -263,8 +256,8 @@ const setData = (formData: any) => {
       state.moduleQuery.project_id = formData.project_id
       getModuleList()
     }
-    methodChange(state.form.method)
   }
+  methodChange(state.form.method)
 }
 
 // 获取表单数据
@@ -275,9 +268,9 @@ const getData = () => {
 // 获取项目列表
 const getProjectTree = () => {
   useProjectApi().getTree({})
-      .then(res => {
-        state.projectTree = res.data
-      })
+    .then(res => {
+      state.projectTree = res.data
+    })
 }
 // 选择项目
 const selectProject = (project_id: any) => {
@@ -291,17 +284,17 @@ const selectProject = (project_id: any) => {
 // 获取模块列表
 const getModuleList = () => {
   useModuleApi().getList(state.moduleQuery)
-      .then(res => {
-        state.moduleList = res.data.rows
-      })
+    .then(res => {
+      state.moduleList = res.data.rows
+    })
 }
 
 // 初始化env
 const getEnvList = () => {
   useEnvApi().getList({page: 1, pageSize: 1000})
-      .then(res => {
-        state.envList = res.data.rows
-      })
+    .then(res => {
+      state.envList = res.data.rows
+    })
 };
 
 // methodChange
@@ -344,6 +337,14 @@ const handleDebug = () => {
 
 // 保存，或调试用例
 const saveOrUpdateOrDebug = (handleType: string = 'save') => {
+  if (!state.form.url) {
+    ElMessage.warning('请填写请求地址信息!');
+    return
+  }
+  if (!state.form.method) {
+    ElMessage.warning('请选择请求方式！');
+    return
+  }
   formRef.value.validate((valid: any) => {
     if (valid) {
       if (handleType === 'save') {
@@ -390,5 +391,25 @@ defineExpose({
   :deep(.input-with-select .el-input-group__prepend) {
     background-color: var(--el-fill-color-blank);
   }
+}
+
+.method-color-get {
+  color: #61affe
+}
+
+.method-color-post {
+  color: #49cc90
+}
+
+.method-color-delete {
+  color: #f93e3d
+}
+
+.method-color-put {
+  color: #fca130
+}
+
+.method-color-na {
+  color: #f56c6c
 }
 </style>

@@ -17,6 +17,15 @@ class EnvService:
         return data
 
     @staticmethod
+    async def get_all() -> typing.Dict:
+        """
+        获取环境列表
+        :return:
+        """
+        data = await Env.get_all()
+        return data
+
+    @staticmethod
     async def get_env_by_id(params: EnvQuery) -> Env:
         """
         获取环境列表

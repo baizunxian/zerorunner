@@ -202,9 +202,6 @@ import ApiCode from "./ApiCode.vue"
 import ApiHooks from "./ApiHooks.vue"
 
 
-const emit = defineEmits(['moduleChange'])
-
-
 // 定义父组件传过来的值
 const props = defineProps({
   api_id: {
@@ -309,11 +306,10 @@ const saveOrUpdateOrDebug = (type: string) => {
     // 保存用例
     if (type === 'save') {
       useApiInfoApi().saveOrUpdate(apiCaseData)
-          .then(res => {
-            ElMessage.success('保存成功！')
-            state.api_id = res.data.id
-            emit("moduleChange", caseInfoData.module_id)
-          })
+        .then(res => {
+          ElMessage.success('保存成功！')
+          state.api_id = res.data.id
+        })
     } else {
       // testCaseData.type = type
       // testCaseData.base_url = urlForm.base_url
@@ -325,23 +321,23 @@ const saveOrUpdateOrDebug = (type: string) => {
         customClass: 'loading-class'
       })
       useApiInfoApi().debugApi(apiCaseData)
-          .then(res => {
-            state.reportData = null
+        .then(res => {
+          state.reportData = null
 
-            if (type === 'debug') {
-              state.reportData = res.data
-              console.log('-----------------debug---------------')
-              state.showReport = true
-              toResponse()
-              loading.close()
-            } else {
-              // this.drawer = true
-              loading.close()
-            }
-          })
-          .catch(() => {
+          if (type === 'debug') {
+            console.log('-----------------debug---------------')
+            state.reportData = res.data
+            state.showReport = true
+            toResponse()
             loading.close()
-          })
+          } else {
+            // this.drawer = true
+            loading.close()
+          }
+        })
+        .catch(() => {
+          loading.close()
+        })
     }
   } catch (err: any) {
     console.log(err)
@@ -363,20 +359,20 @@ const initApi = () => {
   if (api_id) {
     state.api_id = api_id
     useApiInfoApi().getApiInfo({id: state.api_id})
-        .then(res => {
-          let apiCaseData = res.data
-          ApiInfoRef.value.setData(apiCaseData)
-          ApiRequestBodyRef.value.setData(apiCaseData.request)
-          ApiRequestHeadersRef.value.setData(apiCaseData.headers)
-          ApiVariablesRef.value.setData(apiCaseData.variables)
-          ApiExtractsRef.value.setData(apiCaseData.extracts)
-          ApiValidatorsRef.value.setData(apiCaseData.validators)
-          ApiCodeRef.value.setData(apiCaseData.setup_code, apiCaseData.teardown_code)
-          // APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.api_id)
-          // APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.api_id)
-          ApiHookRef.value.setData(apiCaseData.setup_hooks, apiCaseData.teardown_hooks, state.api_id)
+      .then(res => {
+        let apiCaseData = res.data
+        ApiInfoRef.value.setData(apiCaseData)
+        ApiRequestBodyRef.value.setData(apiCaseData.request)
+        ApiRequestHeadersRef.value.setData(apiCaseData.headers)
+        ApiVariablesRef.value.setData(apiCaseData.variables)
+        ApiExtractsRef.value.setData(apiCaseData.extracts)
+        ApiValidatorsRef.value.setData(apiCaseData.validators)
+        ApiCodeRef.value.setData(apiCaseData.setup_code, apiCaseData.teardown_code)
+        // APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.api_id)
+        // APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.api_id)
+        ApiHookRef.value.setData(apiCaseData.setup_hooks, apiCaseData.teardown_hooks, state.api_id)
 
-        })
+      })
   } else {
     state.api_id = null
     state.reportData = null
@@ -434,10 +430,10 @@ const toResponse = () => {
 }
 
 watch(
-    () => props.api_id,
-    () => {
-      initApi()
-    },
+  () => props.api_id,
+  () => {
+    initApi()
+  },
 )
 
 onMounted(() => {

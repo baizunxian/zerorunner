@@ -13,7 +13,6 @@ import {Pane, Splitpanes} from "splitpanes";
 import ZTable from "/@/components/Z-Table/index.vue"
 import ZStepController from "/@/components/Z-StepController/index.vue"
 import ZApiReport from "/@/components/Z-Report/ApiReport/index.vue"
-// import ZApiDetail from "/@/views/api/apiInfo/components/EditApi.vue"
 import MonacoEditor from "/@/components/monaco/index.vue"
 import ZDetailPageHeader from "/@/components/Z-DetailPageHeader/index.vue"
 import SvgIcon from "/@/components/svgIcon/index.vue"
@@ -50,10 +49,6 @@ export function ZeroApiReport(app: App) {
  * 导出全局注册 ZeroApiDetail
  * @param app vue 实例
  */
-
-// export function ZeroApiDetail(app: App) {
-//   app.component('z-api-detail', ZApiDetail);
-// }
 
 /**
  * 导出全局注册 splitpanes.scss

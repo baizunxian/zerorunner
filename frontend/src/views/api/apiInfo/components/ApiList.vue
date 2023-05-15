@@ -76,7 +76,7 @@
       <template #footer>
             <span class="dialog-footer">
               <el-button @click="state.showRunPage = !state.showRunPage">取消</el-button>
-              <el-button type="primary" :loading="state.runCaseLoading" @click="runTestCase">运行</el-button>
+              <el-button type="primary" :loading="state.runApiLoading" @click="runApi">运行</el-button>
             </span>
       </template>
     </el-dialog>
@@ -254,7 +254,7 @@ const state = reactive({
   selectionData: [],
   // run test apiInfo
   showRunPage: false,
-  runCaseLoading: false,
+  runApiLoading: false,
   envList: [],
   runForm: {
     id: null,
@@ -304,11 +304,11 @@ const state = reactive({
 const getList = () => {
   state.tableLoading = true
   useApiInfoApi().getList(state.listQuery)
-      .then(res => {
-        state.listData = res.data.rows
-        state.total = res.data.rowTotal
-        state.tableLoading = false
-      })
+    .then(res => {
+      state.listData = res.data.rows
+      state.total = res.data.rowTotal
+      state.tableLoading = false
+    })
 };
 
 // 选择用例
@@ -335,15 +335,15 @@ const deleted = (row: any) => {
     cancelButtonText: '取消',
     type: 'warning',
   })
-      .then(() => {
-        useApiInfoApi().deleted({id: row.id})
-            .then(() => {
-              ElMessage.success('删除成功');
-              getList()
-            })
-      })
-      .catch(() => {
-      });
+    .then(() => {
+      useApiInfoApi().deleted({id: row.id})
+        .then(() => {
+          ElMessage.success('删除成功');
+          getList()
+        })
+    })
+    .catch(() => {
+    });
 };
 
 // 打开运行页面
@@ -355,30 +355,29 @@ const onOpenRunPage = (row: any) => {
 // 获取环境信息
 const getEnvList = () => {
   useEnvApi().getList({page: 1, pageSize: 1000})  // 请求数据写死，后面优化
-      .then(res => {
-        state.envList = res.data.rows
-      })
+    .then(res => {
+      state.envList = res.data.rows
+    })
 }
 // 运行测试用例
-const runTestCase = () => {
-  state.runCaseLoading = !state.runCaseLoading;
+const runApi = () => {
+  state.runApiLoading = !state.runApiLoading;
   useApiInfoApi().run(state.runForm)
-      .then((res: any) => {
-        if (state.runForm.run_type === 10) {
-          ElMessage.success('运行成功');
-          state.reportInfo = res.data
-          state.runCaseLoading = !state.runCaseLoading;
-          reportDetailRef.value.showReport()
-        } else {
-          ElMessage.success(res.msg);
-          state.runCaseLoading = !state.runCaseLoading;
-        }
-
-      })
-      .catch((err: any) => {
-        ElMessage.error(err.message);
-        state.runCaseLoading = !state.runCaseLoading;
-      })
+    .then((res: any) => {
+      if (state.runForm.run_type === 10) {
+        ElMessage.success('运行成功');
+        state.reportInfo = res.data
+        reportDetailRef.value.showReport()
+        state.showRunPage = !state.showRunPage;
+      } else {
+        ElMessage.error(res.msg);
+      }
+      state.runApiLoading = !state.runApiLoading;
+    })
+    .catch((err: any) => {
+      ElMessage.error(err.message);
+      state.runApiLoading = !state.runApiLoading;
+    })
 }
 
 // import
@@ -396,9 +395,9 @@ const openImportPage = () => {
 // 获取项目列表
 const getProjectList = () => {
   useProjectApi().getList(state.projectQuery) // 请求数据写死，后面优化
-      .then(res => {
-        state.projectList = res.data.rows
-      })
+    .then(res => {
+      state.projectList = res.data.rows
+    })
 }
 // 选择项目
 const selectProject = (project_id: any) => {
@@ -412,9 +411,9 @@ const selectProject = (project_id: any) => {
 // 获取模块列表
 const getModuleList = () => {
   useModuleApi().getList(state.moduleQuery) // 请求数据写死，后面优化
-      .then(res => {
-        state.moduleList = res.data.rows
-      })
+    .then(res => {
+      state.moduleList = res.data.rows
+    })
 }
 
 // 只看自己
