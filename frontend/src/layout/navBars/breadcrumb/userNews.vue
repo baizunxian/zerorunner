@@ -11,10 +11,10 @@
           <div class="content-box-msg">
             {{ v.value }}
           </div>
-          <div class="content-box-img">
-            <img :src="WeixinImg" alt="">
-          </div>
           <div class="content-box-time">{{ v.time }}</div>
+          <div class="content-box-img">
+            <img :src="v.img" alt="">
+          </div>
         </div>
       </template>
       <el-empty description="暂无通知" v-else></el-empty>
@@ -31,15 +31,11 @@ import WeixinImg from '/@/assets/weixin.png'
 const state = reactive({
   newsList: [
     {
-      label: '关于版本发布的通知',
+      label: '加我微信进交流群（请备注下谢谢^_^）',
       value: '',
+      img: WeixinImg,
       time: '2022-12-08',
-    },
-    {
-      label: '关于学习交流的通知',
-      value: '',
-      time: '2022-12-08',
-    },
+    }
   ],
 });
 
@@ -95,8 +91,11 @@ const onGoToGitHubClick = () => {
       .content-box-time {
         color: var(--el-text-color-secondary);
       }
+
       .content-box-img {
-        width: 200px;
+        img {
+          width: 280px;
+        }
       }
     }
   }

@@ -35,6 +35,8 @@ services:
     depends_on:
       - db
       - redis
+    networks:
+      - zero_network
 
   celery-beat:
     container_name: zerorunner_celery_beat
@@ -47,6 +49,9 @@ services:
     depends_on:
       - redis
       - db
+    networks:
+      - zero_network
+
 
   frontend-and-nginx:
     # 前端打包 + 代理
@@ -79,6 +84,8 @@ services:
       - "${MYSQL_PORT_OUT}:3306"
     restart: always
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - zero_network
 
 
   redis:
@@ -98,6 +105,8 @@ services:
       - "${REDIS_PORT}:6379"
     restart: always
     command: [ "redis-server","/etc/redis/redis.conf" ]
+    networks:
+      - zero_network
 
 
 # 先执行 - -

@@ -124,7 +124,7 @@ class SessionRunner(object):
             elif log_type == TStepLogType.loop:
                 msg = f"🔄 {content}"
             elif log_type == TStepLogType.condition:
-                msg = f" {content}"
+                msg = f"{content}"
             elif log_type == TStepLogType.err:
                 msg = f"❗ {content} -> {message}"
             else:

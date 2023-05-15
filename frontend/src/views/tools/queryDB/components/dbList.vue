@@ -14,14 +14,14 @@
       <!--        >-->
       <!--        </el-option>-->
       <!--      </el-select>-->
-      <el-select v-model="sourceForm.id"
+      <el-select v-model="state.sourceForm.id"
                  clearable
                  placeholder="请选择数据源"
                  style="width: 200px; margin-left: -1px"
                  @change="sourceChange"
       >
         <el-option
-            v-for="item in sourceList"
+            v-for="item in state.sourceList"
             :key="item.id"
             :label="item.name"
             :value="item.id"
@@ -30,7 +30,7 @@
       </el-select>
 
 
-      <el-button link type="primary"  class="ml10" @click="handelCreatePage">
+      <el-button link type="primary" class="ml10" @click="handelCreatePage">
         <el-icon>
           <ele-CirclePlusFilled/>
         </el-icon>
@@ -38,12 +38,12 @@
       </el-button>
     </div>
     <div class="tree-current-node">
-      <span style="color: #2c2f37;font-weight: 600; font-size: 12px">当前库：</span>{{ currentDB }}
+      <span style="color: #2c2f37;font-weight: 600; font-size: 12px">当前库：</span>{{ state.currentDB }}
     </div>
 
     <div style="height: 100%; overflow-y: auto">
       <el-table
-          :data="dbList"
+          :data="state.dbList"
           style="width: 100%"
           row-key="name"
           lazy
@@ -54,9 +54,16 @@
       >
         <el-table-column prop="name" label="name" width="auto" :show-overflow-tooltip="true">
           <template #default="{row}">
-            <svg-icon v-if="row.type === 'database'" :size="18" :name="mysqlIcon" align="absmiddle"
+            <svg-icon v-if="row.type === 'database'"
+                      :size="18"
+                      :name="mysqlIcon"
+                      align="absmiddle"
                       style="vertical-align: text-bottom;"/>
-            <svg-icon v-else :size="18" :name="mysqlTableIcon" align="absmiddle" style="vertical-align: text-bottom;"/>
+            <svg-icon v-else
+                      :size="18"
+                      :name="mysqlTableIcon"
+                      align="absmiddle"
+                      style="vertical-align: text-bottom;"/>
             <span style="margin-left: 4px; color: #1f1f1f; font-size: 14px">{{ row.name }}</span>
           </template>
         </el-table-column>
@@ -64,182 +71,158 @@
 
     </div>
 
-    <save-or-update-source ref="saveOrUpdateRef" @getList="getSourceList"/>
+    <SaveOrUpdateSource ref="saveOrUpdateRef" @getList="getSourceList"/>
 
   </div>
 
 </template>
 
-<script lang="ts">
-import {defineComponent, onMounted, reactive, toRefs, ref, getCurrentInstance, onUnmounted} from 'vue';
+<script lang="ts" setup name="DBList">
+import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import mysqlIcon from "/@/icons/mysql_icon.svg";
 import mysqlTableIcon from "/@/icons/mysql_table.svg";
-import saveOrUpdateSource from "/@/views/api/dataSource/EditDataSource.vue";
+import SaveOrUpdateSource from "/@/views/api/dataSource/EditDataSource.vue";
+import mittBus from '/@/utils/mitt';
 
-export default defineComponent({
-  name: 'typeTab',
-  components: {
-    saveOrUpdateSource,
+const saveOrUpdateRef = ref()
+
+const state = reactive({
+  // source
+  sourceList: [],
+  sourceForm: {
+    id: null,
   },
-  setup() {
-    const {proxy} = <any>getCurrentInstance();
-
-    const saveOrUpdateRef = ref()
-
-    const state = reactive({
-      // source
-      sourceList: [],
-      sourceForm: {
-        id: null,
-      },
-      dataSourceForm: {
-        id: null,
-        name: "",
-        type: "mysql",
-        host: "",
-        port: "",
-        user: "",
-        password: "",
-      },
-      // db
-      dbList: [],
-      dbForm: {
-        id: null,
-        source_id: null,
-      },
-      currentDB: '',
-      // table
-      tableList: [],
-      tableForm: {
-        source_id: null,
-        databases: null,
-      },
-
-      // column
-    });
-    // source
-    const getSourceList = () => {
-      useQueryDBApi().getSourceList(state.sourceForm).then((res: any) => {
-        state.sourceList = res.data
-      })
-    }
-
-    // source 变更
-    const sourceChange = (value: string) => {
-      state.dbForm.source_id = state.tableForm.source_id = value
-      if (!value) {
-        state.sourceForm.id = null
-        state.dbList = []
-        state.tableList = []
-      } else {
-        getDBList()
-      }
-    }
-
-    // 获取数据库列表
-    const getDBList = () => {
-      useQueryDBApi().getDBList(state.dbForm).then((res: any) => {
-        state.dbList = res.data
-      })
-    }
-
-    // 点击数据库
-    const clickDB = async (row: any, column, event) => {
-      let iconInfo = event.currentTarget.querySelector(".el-table__expand-icon")
-      if (iconInfo) {
-        iconInfo.click();
-      }
-      console.log(row, column, event)
-    }
-
-    // 加载数据库列表
-    const getTableList = async (databases: string = "") => {
-      if (databases) state.tableForm.databases = databases
-      let res = await useQueryDBApi().getTableList(state.tableForm)
-      return res.data
-    }
-
-    // 加载数据库列表
-    const loadTableList = async (row: any, treeNode: unknown, resolve: (date: any) => void) => {
-      state.tableForm.databases = row.name
-      let tableList: any = await getTableList()
-      if (row.type === "database") {
-        state.tableForm.databases = row.name
-        state.currentDB = row.name
-        let dbs = await getColumnList()
-        let data = {
-          database: row.name,
-          source_id: state.sourceForm.id,
-          dbs: [{dbName: row.name, tables: dbs}]
-        }
-        proxy.mittBus.emit("setSourceInfo", data)
-        // emit("setData", data)
-      }
-      // return tableList
-      resolve(tableList)
-    }
-
-    // 获取字段列表
-    const getColumnList = async (table: any) => {
-      if (table) {
-        state.tableForm.table = table
-      } else {
-        state.tableForm.table = null
-      }
-      let res: any = await useQueryDBApi().getColumnList(state.tableForm)
-      return res.data
-    }
-
-    const handleCheckChange = (
-        data: any,
-        checked: boolean,
-        indeterminate: boolean
-    ) => {
-      console.log(data, checked, indeterminate)
-    }
-
-    // 打开数据源新增页面
-    const handelCreatePage = () => {
-      saveOrUpdateRef.value.openDialog("save")
-    }
-
-    const saveOrUpdateSource = () => {
-      useQueryDBApi().saveOrUpdate()
-    }
-
-    onMounted(() => {
-      getSourceList()
-
-      proxy.mittBus.on("getColumnList", async (table: any) => {
-        await getColumnList(table).then(async (res) => {
-          console.log("table--------------->", res)
-          return res
-        })
-      })
-    })
-
-    onUnmounted(() => {
-      proxy.mittBus.off("getColumnList")
-    })
-
-    return {
-      getSourceList,
-      getDBList,
-      getColumnList,
-      clickDB,
-      getTableList,
-      loadTableList,
-      sourceChange,
-      handleCheckChange,
-      mysqlIcon,
-      mysqlTableIcon,
-      saveOrUpdateRef,
-      handelCreatePage,
-      ...toRefs(state),
-    };
+  dataSourceForm: {
+    id: null,
+    name: "",
+    type: "mysql",
+    host: "",
+    port: "",
+    user: "",
+    password: "",
   },
+  // db
+  dbList: [],
+  dbForm: {
+    id: null,
+    source_id: null,
+  },
+  currentDB: '',
+  // table
+  tableList: [],
+  tableForm: {
+    source_id: null,
+    databases: null,
+  },
+
+  // column
 });
+// source
+const getSourceList = () => {
+  useQueryDBApi().getSourceList(state.sourceForm).then((res: any) => {
+    state.sourceList = res.data.rows
+  })
+}
+
+// source 变更
+const sourceChange = (value: string) => {
+  state.dbForm.source_id = state.tableForm.source_id = value
+  if (!value) {
+    state.sourceForm.id = null
+    state.dbList = []
+    state.tableList = []
+  } else {
+    getDBList()
+  }
+}
+
+// 获取数据库列表
+const getDBList = () => {
+  useQueryDBApi().getDBList(state.dbForm).then((res: any) => {
+    state.dbList = res.data
+  })
+}
+
+// 点击数据库
+const clickDB = async (row: any, column, event) => {
+  let iconInfo = event.currentTarget.querySelector(".el-table__expand-icon")
+  if (iconInfo) {
+    iconInfo.click();
+  }
+  console.log(row, column, event)
+}
+
+// 加载数据库列表
+const getTableList = async (databases: string = "") => {
+  if (databases) state.tableForm.databases = databases
+  let res = await useQueryDBApi().getTableList(state.tableForm)
+  return res.data
+}
+
+// 加载数据库列表
+const loadTableList = async (row: any, treeNode: unknown, resolve: (date: any) => void) => {
+  state.tableForm.databases = row.name
+  let tableList: any = await getTableList()
+  if (row.type === "database") {
+    state.tableForm.databases = row.name
+    state.currentDB = row.name
+    let dbs = await getColumnList()
+    let data = {
+      database: row.name,
+      source_id: state.sourceForm.id,
+      dbs: [{dbName: row.name, tables: dbs}]
+    }
+    mittBus.emit("setSourceInfo", data)
+    // emit("setData", data)
+  }
+  // return tableList
+  resolve(tableList)
+}
+
+// 获取字段列表
+const getColumnList = async (table: any) => {
+  if (table) {
+    state.tableForm.table = table
+  } else {
+    state.tableForm.table = null
+  }
+  let res: any = await useQueryDBApi().getColumnList(state.tableForm)
+  return res.data
+}
+
+const handleCheckChange = (
+  data: any,
+  checked: boolean,
+  indeterminate: boolean
+) => {
+  console.log(data, checked, indeterminate)
+}
+
+// 打开数据源新增页面
+const handelCreatePage = () => {
+  saveOrUpdateRef.value.openDialog("save")
+}
+
+const saveOrUpdateSource = () => {
+  useQueryDBApi().saveOrUpdate()
+}
+
+onMounted(() => {
+  getSourceList()
+
+  mittBus.on("getColumnList", async (table: any) => {
+    await getColumnList(table).then(async (res) => {
+      console.log("table--------------->", res)
+      return res
+    })
+  })
+})
+
+onUnmounted(() => {
+  mittBus.off("getColumnList")
+})
+
 </script>
 
 <style lang="scss" scoped>

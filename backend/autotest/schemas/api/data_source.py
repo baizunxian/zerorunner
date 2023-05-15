@@ -15,12 +15,12 @@ class SourceQuery(BaseSchema):
 
 class SourceIn(BaseModel):
     id: int = Field(None, description="id")
-    type: str = Field(None, description="")
-    name: str = Field(..., description="")
-    host: str = Field(None, description="")
-    port: str = Field(None, description="")
-    user: str = Field(None, description="")
-    password: str = Field(None, description="")
+    type: str = Field(None, description="数据源类型 mysql, redis, 等")
+    name: str = Field(..., description="数据源名称")
+    host: str = Field(None, description="地址")
+    port: str = Field(None, description="端口")
+    user: str = Field(None, description="用户名")
+    password: str = Field(None, description="密码")
 
 
 class EnvListSchema(BaseModel):
@@ -37,9 +37,9 @@ class SourceId(BaseModel):
 
 class EnvIn(BaseModel):
     id: int = Field(None, description="")
-    name: str = Field(None, description="")
-    domain_name: str = Field(None, description="")
-    remarks: str = Field(None, description="")
-    headers: typing.List[typing.Dict[str, typing.Any]] = Field(None, description="")
-    variables: typing.List[typing.Dict[str, typing.Any]] = Field(None, description="")
-    data_sources: typing.List[int] = Field(None, description="")
+    name: str = Field(None, description="环境名称")
+    domain_name: str = Field(None, description="域名")
+    remarks: str = Field(None, description="备注")
+    headers: typing.List[typing.Dict[str, typing.Any]] = Field(None, description="请求头")
+    variables: typing.List[typing.Dict[str, typing.Any]] = Field(None, description="变量")
+    data_sources: typing.List[int] = Field(None, description="数据源 弃用")

@@ -2,6 +2,7 @@
 # @author: xiaobai
 
 import time
+import traceback
 import typing
 
 from loguru import logger
@@ -53,8 +54,10 @@ def run_loop_request(runner: SessionRunner,
             runner.set_run_log(f"🔄for循环---> 开始")
             for for_variable_value in iterable_obj:
                 try:
+                    # 设置变量
                     runner.with_variables({for_variable_name: for_variable_value})
-                    runner.execute_loop(step.loop_request.teststeps,
+                    # 执行循环
+                    runner.execute_loop(steps=step.loop_request.teststeps,
                                         step_tag=f"For {for_variable_value}",
                                         parent_step_result=step_result)
                     time.sleep(step.loop_request.for_sleep_time)
@@ -78,12 +81,14 @@ def run_loop_request(runner: SessionRunner,
                     break
                 runner.set_run_log(f"条件不满足继续while循环 ---> {c_result}")
                 try:
-                    runner.execute_loop(step.loop_request.teststeps,
+                    runner.execute_loop(steps=step.loop_request.teststeps,
                                         step_tag=f"while {check_value}",
                                         parent_step_result=step_result)
                     runner.set_step_result_status(step_result, TStepResultStatusEnum.success)
                 except Exception as err:
-                    logger.error(err)
+                    # 执行for循环错误
+                    runner.set_run_log(f"执行for循环错误:{str(err)}", step_result=step_result)
+                    logger.error(traceback.format_exc())
                     continue
                 run_number += 1
                 if run_number > 100:

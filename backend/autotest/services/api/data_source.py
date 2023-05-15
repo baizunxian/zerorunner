@@ -4,15 +4,15 @@
 # @create time: 2022/9/13 16:48
 import traceback
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import typing
 
 from loguru import logger
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.api_models import DataSource
 from autotest.schemas.api.data_source import SourceQuery, SourceIn, SourceId
 from autotest.schemas.base import BaseSchema
-from zerorunner.ext.db import DB
+from autotest.models.api_models import DataSource
+from zerorunner.ext.db import DB, DBConfig
 
 
 class SourceInfo(BaseModel):
@@ -47,20 +47,29 @@ class SourceSaveSchema(BaseModel):
     env_id: int
 
 
+class SourceIdIn(BaseModel):
+    source_id: int = Field(None, description="数据源id")
+
+
+class SourceTableIn(BaseModel):
+    source_id: int = Field(None, description="数据源id")
+    databases: str = Field(None, description="databases")
+
+
 class DataSourceService:
     @staticmethod
-    def get_db_connect(source_id: int, databases: str = None) -> "DB":
-        from autotest.models.api_models import DataSource
-        source_info = DataSource.get(source_id)
+    async def get_db_connect(source_id: int, database: str = None) -> "DB":
+        source_info = await DataSource.get(source_id)
         if not source_info:
-            return []
-        source_info = jsonable_encoder(source_info)
-        if databases:
-            source_info.update({"database": databases})
-        source_info = SourceInfo(**jsonable_encoder(source_info)).dict()
-        source_info['read_timeout'] = 3
-        db_info = DB(**source_info)
-        return db_info
+            raise ValueError("未找到数据源~")
+        db_config = DBConfig(host=source_info.host,
+                             port=source_info.port,
+                             user=source_info.user,
+                             password=source_info.password,
+                             database=database,
+                             read_timeout=3)
+        db_engine = DB(db_config)
+        return db_engine
 
     @staticmethod
     async def get_source_list(params: SourceQuery) -> typing.Dict[str, typing.Any]:
@@ -86,42 +95,45 @@ class DataSourceService:
 
     @staticmethod
     async def test_connect(params: SourceInfo) -> bool:
-        source_info = params.dict()
-        source_info['read_timeout'] = 3
         try:
-            db_info = DB(**source_info)
-            db_info.close()
+            db_config = DBConfig(host=params.host,
+                                 port=params.port,
+                                 user=params.user,
+                                 password=params.password,
+                                 read_timeout=3)
+            db_engine = DB(db_config)
+            db_engine.close()
         except Exception as err:
             logger.error(traceback.format_exc())
             return False
         return True
 
     @staticmethod
-    def get_db_list(source_id: int):
+    async def get_db_list(params: SourceIdIn):
         """获取数据库列表"""
-        db_info = DataSourceService.get_db_connect(source_id)
-        data = db_info.execute("show databases;")
+        db_engine = await DataSourceService.get_db_connect(params.source_id)
+        data = db_engine.execute("show databases;")
         db_list = []
         for db in data:
             db_list.append({"name": db.get("Database", None), "hasChildren": True, "type": "database"})
         return db_list
 
     @staticmethod
-    def get_table_list(source_id: int, databases: str):
+    async def get_table_list(params: SourceTableIn):
         """获取数据库表列表"""
-        db_info = DataSourceService.get_db_connect(source_id, databases)
-        data = db_info.execute(f"show tables from {databases};")
+        db_engine = await DataSourceService.get_db_connect(params.source_id, params.databases)
+        data = db_engine.execute(f"show tables from {params.databases};")
         table_list = []
         for table in data:
-            table_list.append({"name": table.get(f"Tables_in_{databases}", None), "type": "table"})
+            table_list.append({"name": table.get(f"Tables_in_{params.databases}", None), "type": "table"})
         return table_list
 
     @staticmethod
-    def get_column_list(source_id: int, databases: str):
+    async def get_column_list(source_id: int, databases: str):
         """获取数据库表字段"""
         sql = f"""SELECT TABLE_NAME AS "table_name", COLUMN_NAME AS 'column_name', DATA_TYPE AS "data_type" FROM information_schema.COLUMNS  WHERE TABLE_SCHEMA = '{databases}';"""
-        db_info = DataSourceService.get_db_connect(source_id, databases)
-        data = db_info.execute(sql)
+        db_engine = await DataSourceService.get_db_connect(source_id, databases)
+        data = db_engine.execute(sql)
         table_column_list = []
         table_info = {}
         for column in data:
@@ -136,8 +148,8 @@ class DataSourceService:
         return table_column_list
 
     @staticmethod
-    def execute(params: ExecuteParam):
+    async def execute(params: ExecuteParam):
         """执行语句"""
-        db_info = DataSourceService.get_db_connect(params.source_id, params.database)
-        data = db_info.execute(params.sql)
+        db_engine = await DataSourceService.get_db_connect(params.source_id, params.database)
+        data = db_engine.execute(params.sql)
         return data

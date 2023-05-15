@@ -6,7 +6,7 @@ from fastapi import APIRouter
 
 from autotest.corelibs.http_response import partner_success
 from autotest.schemas.api.data_source import SourceQuery, SourceIn, SourceId
-from autotest.services.api.data_source import DataSourceService, SourceInfo, ExecuteParam
+from autotest.services.api.data_source import DataSourceService, SourceInfo, ExecuteParam, SourceIdIn, SourceTableIn
 
 router = APIRouter()
 
@@ -40,33 +40,28 @@ async def test_connect(params: SourceInfo):
 
 
 @router.post('/dbList', description="数据列表")
-def get_db_list():
-    source_id = request.get_json().get('source_id', None)
-    data = DataSourceService.get_db_list(source_id)
+async def get_source_list(params: SourceIdIn):
+    data = await DataSourceService.get_db_list(params)
     return partner_success(data)
 
 
 @router.post('/tableList', description="表列表")
-def get_table_list():
+async def get_table_list(params: SourceTableIn):
     """
     表列表
     :return:
     """
-    source_id = request.get_json().get('source_id', None)
-    databases = request.get_json().get('databases', None)
-    data = DataSourceService.get_table_list(source_id, databases)
+    data = await DataSourceService.get_table_list(params)
     return partner_success(data)
 
 
 @router.post('/columnList', description="获取表字段")
-def get_column_list():
-    source_id = request.get_json().get('source_id', None)
-    databases = request.get_json().get('databases', None)
-    data = DataSourceService.get_column_list(source_id, databases)
+async def get_column_list(params: SourceTableIn):
+    data = await DataSourceService.get_column_list(params.source_id, params.databases)
     return partner_success(data)
 
 
 @router.post('/mysql/execute', description="mysql 查询")
-def mysql_execute(params: ExecuteParam):
-    data = DataSourceService.execute(params)
+async def mysql_execute(params: ExecuteParam):
+    data = await DataSourceService.execute(params)
     return partner_success(data)

@@ -129,19 +129,20 @@ class HandleStepData(object):
 
     async def init_step(self):
         step_obj = None
+        step_type = self.api_info.step_type.lower()
         self.step.step_type = self.api_info.step_type
-        if self.api_info.step_type.lower() == TStepTypeEnum.api.value.lower():
+        if step_type == TStepTypeEnum.api.value.lower():
             step_obj = await self.__init_api_step()
             await self.init_request_headers()
-        elif self.api_info.step_type.lower() == TStepTypeEnum.sql.value.lower():
+        elif step_type == TStepTypeEnum.sql.value.lower():
             step_obj = await self.__init_sql_step()
-        elif self.api_info.step_type.lower() == TStepTypeEnum.wait.value.lower():
+        elif step_type == TStepTypeEnum.wait.value.lower():
             step_obj = await self.__init_wait_step()
-        elif self.api_info.step_type.lower() == TStepTypeEnum.loop.value.lower():
+        elif step_type == TStepTypeEnum.loop.value.lower():
             step_obj = await self.__init_loop_step()
-        elif self.api_info.step_type.lower() == TStepTypeEnum.IF.value.lower():
+        elif step_type == TStepTypeEnum.IF.value.lower():
             step_obj = await self.__init_if_step()
-        elif self.api_info.step_type.lower() == TStepTypeEnum.script.value.lower():
+        elif step_type == TStepTypeEnum.script.value.lower():
             step_obj = await self.__init_script_step()
 
         await self.init_variables()
@@ -203,6 +204,10 @@ class HandleStepData(object):
 
     async def __init_if_step(self) -> Step:
         self.step.if_request = TIFRequest(**self.api_info.if_request.dict())
+        self.step.if_request.check = parse_string_value(self.step.if_request.check)
+        self.step.if_request.comparator = parse_string_value(self.step.if_request.comparator)
+        self.step.if_request.expect = parse_string_value(self.step.if_request.expect)
+
         new_teststeps = []
         for step in self.api_info.if_request.teststeps:
             new_step_obj = (await HandleStepData().init(step)).step_obj
@@ -212,6 +217,11 @@ class HandleStepData(object):
 
     async def __init_loop_step(self) -> Step:
         self.step.loop_request = TLoopRequest(**self.api_info.loop_request.dict())
+        self.step.loop_request.for_variable_name = parse_string_value(self.step.loop_request.for_variable_name)
+        self.step.loop_request.for_variable = parse_string_value(self.step.loop_request.for_variable)
+        self.step.loop_request.while_comparator = parse_string_value(self.step.loop_request.while_comparator)
+        self.step.loop_request.while_variable = parse_string_value(self.step.loop_request.while_variable)
+        self.step.loop_request.while_value = parse_string_value(self.step.loop_request.while_value)
         new_teststeps = []
         for step in self.api_info.loop_request.teststeps:
             new_step_obj = (await HandleStepData().init(step)).step_obj

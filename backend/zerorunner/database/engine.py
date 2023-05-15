@@ -97,6 +97,10 @@ class DBEngine(object):
     def update(self, query, commit=True):
         return self._fetch(query=query, commit=commit)
 
+    def close(self):
+        if self.session:
+            self.session.close()
+
 
 if __name__ == "__main__":
     # db = DBEngine("mysql+pymysql://xxxxx:xxxxx@10.0.0.1:3306/dbname?charset=utf8mb4")

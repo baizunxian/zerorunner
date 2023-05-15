@@ -20,6 +20,15 @@ class ModuleService:
         return data
 
     @staticmethod
+    async def get_all() -> typing.Dict:
+        """
+        获取模块列表
+        :return:
+        """
+        data = await ModuleInfo.get_all()
+        return data
+
+    @staticmethod
     async def save_or_update(params: ModuleIn) -> typing.Dict:
         """
         模块保存方法

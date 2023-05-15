@@ -13,6 +13,12 @@ async def project_list(params: ProjectQuery):
     return partner_success(data)
 
 
+@router.post('/getAllProject', description="获取所有项目")
+async def get_all_project():
+    data = await ProjectService.get_all()
+    return partner_success(data)
+
+
 @router.post('/saveOrUpdate', description="更新保存项目")
 async def save_or_update(params: ProjectIn):
     data = await ProjectService.save_or_update(params)

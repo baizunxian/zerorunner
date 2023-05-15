@@ -10,6 +10,7 @@ from jmespath.exceptions import JMESPathError
 from jsonpath import jsonpath
 from loguru import logger
 
+from zerorunner import exceptions
 from zerorunner.exceptions import ValidationFailure, ParamsError
 from zerorunner.model.base import CheckModeEnum
 from zerorunner.models import VariablesMapping, Validators, FunctionsMapping, ExtractData
@@ -84,10 +85,10 @@ def uniform_validator(validator):
 
     if "check" in validator and "expect" in validator:
         # format1
-        check_mode = validator["mode"]
         check_item = validator["check"]
         expect_value = validator["expect"]
         message = validator.get("message", "")
+        check_mode = validator.get("mode", None)
         continue_extract = validator.get("continue_extract", False)
         continue_index = validator.get("continue_index", 0)
         comparator = validator.get("comparator", "eq")
@@ -135,6 +136,25 @@ class ResponseObjectBase(object):
         self.resp_obj = resp_obj
         self.parser = parser
         self.validation_results: typing.Dict = {}
+
+    def __getattr__(self, key):
+        if key in ["json", "content", "body"]:
+            try:
+                value = self.resp_obj.json()
+            except ValueError:
+                value = self.resp_obj.content
+        elif key == "cookies":
+            value = self.resp_obj.cookies.get_dict()
+        else:
+            try:
+                value = getattr(self.resp_obj, key)
+            except AttributeError:
+                err_msg = "ResponseObject does not have attribute: {}".format(key)
+                logger.error(err_msg)
+                raise exceptions.ParamsError(err_msg)
+
+        self.__dict__[key] = value
+        return value
 
     def extract(self,
                 extractors: typing.List[ExtractData],
