@@ -119,8 +119,10 @@ class FunctionsService:
         :return:
         """
         common_func_path = os.path.join(config.BASEDIR, 'autotest', 'utils', 'basic_function.py')
-        w = open(common_func_path, encoding='utf8')
-        common_content = w.read()
+        common_content = ''
+        if os.path.exists(common_func_path):
+            w = open(common_func_path, encoding='utf8')
+            common_content = w.read()
         content = ''
         if func_id:
             func_info = await Functions.get(func_id)
