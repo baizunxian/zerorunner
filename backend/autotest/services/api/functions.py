@@ -118,7 +118,7 @@ class FunctionsService:
         :param func_id:
         :return:
         """
-        common_func_path = os.path.join(config.BASEDIR, 'utils', 'basic_function.py')
+        common_func_path = os.path.join(config.BASEDIR, 'autotest', 'utils', 'basic_function.py')
         w = open(common_func_path, encoding='utf8')
         common_content = w.read()
         content = ''
