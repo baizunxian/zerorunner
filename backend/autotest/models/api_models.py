@@ -922,7 +922,7 @@ class DataSource(Base):
         if params.source_ids and isinstance(params.source_ids, list):
             q.append(cls.id.in_(params.source_ids))
         u = aliased(User)
-        stmt = select(cls.get_table_columns(),
+        stmt = select(cls.get_table_columns(exclude={"password"}),
                       u.nickname.label('created_by_name'),
                       User.nickname.label('updated_by_name'),
                       ).where(*q) \

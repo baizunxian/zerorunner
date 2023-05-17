@@ -49,12 +49,16 @@ const props = defineProps({
     }
   },
 
+  executeHandle: {
+    type: Function,
+  },
+
   dbList: {
     type: Array,
     default: () => []
   },
   onInputTableAlia: {
-    type: Array,
+    type: [Array, Function],
     default: () => []
   },
   onInputField: {
@@ -106,40 +110,40 @@ const initEditor = () => {
   // 初始化编辑器，确保dom已经渲染
   let options = {...state.options, ...props.options}
   state.sqlSnippets = new SQLSnippets(
-      monaco,
-      props.onInputField,
-      props.onInputTableAlia,
-      props.dbs
+    monaco,
+    props.onInputField,
+    props.onInputTableAlia,
+    props.dbs
   )
 
   monaco.languages.register({id: props.long})
   monaco.languages.registerCompletionItemProvider(
-      props.long,
-      {
-        async provideCompletionItems(model, position) {
-          let suggestions: any = []
-          let language: any = pythonLanguage
-          switch (props.long) {
-            case "sql":
-              return await state.sqlSnippets.provideCompletionItems(model, position)
-            default:
-              // language = pythonLanguage
-              // language.keywords.forEach((item: any) => {
-              //   suggestions.push({
-              //     label: item,
-              //     kind: monaco.languages.CompletionItemKind.Keyword,
-              //     insertText: item
-              //   });
-              // })
-              return {
-                // suggestions: cloneDeep(vCompletion),//自定义代码补全
-                suggestions: suggestions
-              }
-          }
+    props.long,
+    {
+      async provideCompletionItems(model, position) {
+        let suggestions: any = []
+        let language: any = pythonLanguage
+        switch (props.long) {
+          case "sql":
+            return await state.sqlSnippets.provideCompletionItems(model, position)
+          default:
+            // language = pythonLanguage
+            // language.keywords.forEach((item: any) => {
+            //   suggestions.push({
+            //     label: item,
+            //     kind: monaco.languages.CompletionItemKind.Keyword,
+            //     insertText: item
+            //   });
+            // })
+            return {
+              // suggestions: cloneDeep(vCompletion),//自定义代码补全
+              suggestions: suggestions
+            }
+        }
 
-        },
-        triggerCharacters: ['.'],
-      }
+      },
+      triggerCharacters: ['.'],
+    }
   )
   let modEditor: any
   if (props.isDiff) {
@@ -196,11 +200,41 @@ const initEditor = () => {
     })
   }
 
+  if (props.long == 'sql') {
+    modEditor.addAction({
+      id: 'executeSql', // action unique id
+      label: '执行', // action 在右键时展示的名称
+      precondition: null,
+      keybindingContext: "editorLangId == 'sql'",
+      contextMenuGroupId: 'navigation',// 右键展示位置
+      run: () => {
+        if (props.executeHandle) props.executeHandle()
+      }
+    })
+
+    modEditor.onDidChangeCursorPosition((event: any) => {
+      let value = getValue()
+      let offSet = toRaw(getMode()).getOffsetAt(event.position)
+      let language = props.long;
+
+      if (props.value !== value && language === 'json') {
+        emit('on-cursor-change', {offSet: offSet})
+      }
+      if (language == 'json' && offSet !== 0) {
+        state.jsonPath = getJsonPath(value, offSet)
+        // emit('on-jsonpath-change', {jsonPath: state.jsonPath})
+      }
+    })
+  }
+
 }
 
 // 获取value
 const getValue = () => {
   return toRaw(editor.value).getValue()
+}
+const getSelectionValue = () => {
+  return toRaw(editor.value).getModel().getValueInRange(toRaw(editor.value).getSelection())
 }
 
 const getMode = () => {
@@ -210,79 +244,85 @@ const getMode = () => {
 const copyToClipboard = () => {
   if (state.jsonPath) {
     navigator.clipboard.writeText(state.jsonPath)
-        .then(function () {
-              ElMessage.success(`复制成功！ ${state.jsonPath}`)
-            }, function () {
-              ElMessage.error("jsonpath copy failed.");
-            }
-        );
+      .then(function () {
+          ElMessage.success(`复制成功！ ${state.jsonPath}`)
+        }, function () {
+          ElMessage.error("jsonpath copy failed.");
+        }
+      );
   } else {
     ElMessage.warning("没有可复制的路径...");
   }
 }
 
 watch(
-    () => props.value,
-    (newVal) => {
-      if (state.contentBackup !== newVal) {
-        try {
-          state.isSettingContent = true;
-          toRaw(editor.value).setValue(newVal)
-        } finally {
-          state.isSettingContent = false;
-        }
-        state.contentBackup = newVal;
+  () => props.value,
+  (newVal) => {
+    if (state.contentBackup !== newVal) {
+      try {
+        state.isSettingContent = true;
+        toRaw(editor.value).setValue(newVal)
+      } finally {
+        state.isSettingContent = false;
       }
+      state.contentBackup = newVal;
+    }
 
-    },
-    {deep: true}
-)
-
-watch(
-    () => props.long,
-    (newVal) => {
-      monaco.editor.setModelLanguage(toRaw(editor.value).getModel(), newVal)
-    },
-    {deep: true}
-)
-watch(
-    () => props.theme,
-    () => {
-      monaco.editor.setTheme(props.theme)
-    },
-    {deep: true}
-)
-watch(
-    () => props.oldString,
-    (newVal) => {
-      toRaw(originalEditor.value).setValue(newVal)
-    },
-    {deep: true}
-)
-watch(
-    () => props.newString,
-    (newVal) => {
-      toRaw(modifiedEditor.value).setValue(newVal)
-    },
-    {deep: true}
+  },
+  {deep: true}
 )
 
 watch(
-    () => props.dbs,
-    () => {
-      state.sqlSnippets.setDbSchema(props.dbs)
-    },
-    {deep: true}
+  () => props.long,
+  (newVal) => {
+    monaco.editor.setModelLanguage(toRaw(editor.value).getModel(), newVal)
+  },
+  {deep: true}
+)
+watch(
+  () => props.theme,
+  () => {
+    monaco.editor.setTheme(props.theme)
+  },
+  {deep: true}
+)
+watch(
+  () => props.oldString,
+  (newVal) => {
+    toRaw(originalEditor.value).setValue(newVal)
+  },
+  {deep: true}
+)
+watch(
+  () => props.newString,
+  (newVal) => {
+    toRaw(modifiedEditor.value).setValue(newVal)
+  },
+  {deep: true}
+)
+
+watch(
+  () => props.dbs,
+  () => {
+    state.sqlSnippets.setDbSchema(props.dbs)
+  },
+  {deep: true}
 )
 
 onMounted(() => {
   initEditor()
 })
 
+
+defineExpose({
+  getValue,
+  getMode,
+  getSelectionValue,
+})
 </script>
 <style scoped>
 .monaco-editor {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 }
 </style>

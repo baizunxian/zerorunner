@@ -17,7 +17,7 @@
       <el-select v-model="state.sourceForm.id"
                  clearable
                  placeholder="请选择数据源"
-                 style="width: 200px; margin-left: -1px"
+                 style="width: 100%; margin-left: -1px"
                  @change="sourceChange"
       >
         <el-option
@@ -30,62 +30,93 @@
       </el-select>
 
 
-      <el-button link type="primary" class="ml10" @click="handelCreatePage">
-        <el-icon>
-          <ele-CirclePlusFilled/>
-        </el-icon>
-        新增
-      </el-button>
+      <!--      <el-button link type="primary" class="ml10" @click="handelCreatePage">-->
+      <!--        <el-icon>-->
+      <!--          <ele-CirclePlusFilled/>-->
+      <!--        </el-icon>-->
+      <!--        新增-->
+      <!--      </el-button>-->
     </div>
     <div class="tree-current-node">
-      <span style="color: #2c2f37;font-weight: 600; font-size: 12px">当前库：</span>{{ state.currentDB }}
+      <span>当前库：</span>{{ state.currentDBRow.name }}
     </div>
 
-    <div style="height: 100%; overflow-y: auto">
+    <div class="tree-database-list">
       <el-table
           :data="state.dbList"
-          style="width: 100%"
+          class="w100"
           row-key="name"
           lazy
+          highlight-current-row
           :show-header="false"
           :load="loadTableList"
           @row-click="clickDB"
+          @row-contextmenu="rowContextmenu"
           :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
         <el-table-column prop="name" label="name" width="auto" :show-overflow-tooltip="true">
           <template #default="{row}">
+
             <svg-icon v-if="row.type === 'database'"
                       :size="18"
                       :name="mysqlIcon"
                       align="absmiddle"
-                      style="vertical-align: text-bottom;"/>
+                      style="vertical-align: text-bottom;cursor:pointer;"/>
             <svg-icon v-else
                       :size="18"
                       :name="mysqlTableIcon"
                       align="absmiddle"
-                      style="vertical-align: text-bottom;"/>
-            <span style="margin-left: 4px; color: #1f1f1f; font-size: 14px">{{ row.name }}</span>
+                      style="vertical-align: text-bottom;cursor:pointer;"/>
+
+            <span style="margin-left: 4px; color: #1f1f1f; font-size: 14px;cursor:pointer;">{{ row.name }}</span>
+
           </template>
         </el-table-column>
       </el-table>
 
     </div>
 
-    <SaveOrUpdateSource ref="saveOrUpdateRef" @getList="getSourceList"/>
+    <!--    <SaveOrUpdateSource ref="saveOrUpdateRef" @getList="getSourceList"/>-->
+    <!--右键菜单-->
+    <div class="row-contextmenu"
+         ref="rowContextmenuRef"
+         v-show="state.showRowContextMenu"
+         v-click-outside="onClickOutside">
+      <div class="row-contextmenu-item row-contextmenu-item-available"
+           v-for="item in state.rowContextmenuList"
+           @click="rowContextmenuClick(item)"
+      >{{ item.name }}
+      </div>
+    </div>
+
+    <!--  showCreateTable  -->
+    <el-dialog v-model="state.showCreateTable" :title="`建表语句：${(state.rightClickRow.name)}`">
+      <z-monaco-editor
+          :style="{height: '500px'}"
+          ref="monacoEditRef"
+          v-model:value="state.createTableContent"
+          long="sql"
+      ></z-monaco-editor>
+    </el-dialog>
 
   </div>
 
 </template>
 
 <script lang="ts" setup name="DBList">
-import {onMounted, onUnmounted, reactive, ref} from 'vue';
+import {nextTick, onMounted, onUnmounted, reactive, ref} from 'vue';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import mysqlIcon from "/@/icons/mysql_icon.svg";
 import mysqlTableIcon from "/@/icons/mysql_table.svg";
-import SaveOrUpdateSource from "/@/views/api/dataSource/EditDataSource.vue";
 import mittBus from '/@/utils/mitt';
+import {useThemeConfig} from "/@/stores/themeConfig";
+import {storeToRefs} from "pinia";
+// 定义变量内容
+const storesThemeConfig = useThemeConfig();
+const {themeConfig} = storeToRefs(storesThemeConfig);
 
 const saveOrUpdateRef = ref()
+const rowContextmenuRef = ref()
 
 const state = reactive({
   // source
@@ -108,7 +139,7 @@ const state = reactive({
     id: null,
     source_id: null,
   },
-  currentDB: '',
+  currentDBRow: {},
   // table
   tableList: [],
   tableForm: {
@@ -117,6 +148,15 @@ const state = reactive({
   },
 
   // column
+  showRowContextMenu: false,
+  showCreateTable: false,
+  createTableContent: "",
+  rightClickRow: {},
+  rowContextmenuList: [
+    {name: "查看建表语句", value: 'view_create_table_sql'},
+    {name: "生成select*语句", value: 'generate_select_sql'},
+  ],
+
 });
 // source
 const getSourceList = () => {
@@ -145,12 +185,15 @@ const getDBList = () => {
 }
 
 // 点击数据库
-const clickDB = async (row: any, column, event) => {
+const clickDB = async (row: any, column: any, event: any) => {
   let iconInfo = event.currentTarget.querySelector(".el-table__expand-icon")
   if (iconInfo) {
     iconInfo.click();
   }
   console.log(row, column, event)
+  if (row.type === "database") {
+    state.currentDBRow = row
+  }
 }
 
 // 加载数据库列表
@@ -166,7 +209,6 @@ const loadTableList = async (row: any, treeNode: unknown, resolve: (date: any) =
   let tableList: any = await getTableList()
   if (row.type === "database") {
     state.tableForm.databases = row.name
-    state.currentDB = row.name
     let dbs = await getColumnList()
     let data = {
       database: row.name,
@@ -208,14 +250,51 @@ const saveOrUpdateSource = () => {
   useQueryDBApi().saveOrUpdate()
 }
 
+const rowContextmenu = (row: any, column: any, event: any) => {
+  event.preventDefault();
+  state.showRowContextMenu = true
+  state.rightClickRow = row
+  nextTick(() => {
+    let {isCollapse} = themeConfig.value;
+    let sidebarWidth = isCollapse ? 64 : 220
+    let headerWidth = isCollapse ? 87 : 87
+    rowContextmenuRef.value.style.left = `${event.clientX - sidebarWidth}px`;
+    rowContextmenuRef.value.style.top = `${event.clientY - headerWidth}px`;
+  })
+}
+
+const rowContextmenuClick = async (item: any) => {
+  if (item.value == 'view_create_table_sql') {
+    let params = {
+      source_id: state.sourceForm.id,
+      databases: state.currentDBRow.name,
+      table_name: state.rightClickRow.name
+    }
+    let {data}: any = await useQueryDBApi().showCreateTable(params)
+    console.log("data", data)
+    state.createTableContent = data.create_table_sql
+    state.showCreateTable = true
+  } else if (item.value === "generate_select_sql") {
+    mittBus.emit("setSql", "select * from " + `${state.rightClickRow.name} limit 20;`)
+  }
+  state.showRowContextMenu = false
+  console.log(item)
+}
+
+const onClickOutside = () => {
+  state.showRowContextMenu = false
+}
+
 onMounted(() => {
   getSourceList()
 
   mittBus.on("getColumnList", async (table: any) => {
-    await getColumnList(table).then(async (res) => {
-      console.log("table--------------->", res)
-      return res
-    })
+    let res = await getColumnList(table)
+    return res
+    // await getColumnList(table).then(async (res) => {
+    //   console.log("table--------------->", res)
+    //   return res
+    // })
   })
 })
 
@@ -246,6 +325,17 @@ onUnmounted(() => {
     padding: 0 0 8px 6px;
     border-bottom: 1px solid #dee2ea;
     margin-bottom: 6px;
+
+    span {
+      color: #2c2f37;
+      font-weight: 600;
+      font-size: 12px
+    }
+  }
+
+  .tree-database-list {
+    height: calc(100% - 70px);
+    overflow-y: auto;
   }
 }
 
@@ -276,5 +366,45 @@ onUnmounted(() => {
 
 //}
 
+.row-contextmenu {
+  z-index: 2043;
+  width: 150px;
+  position: absolute;
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color-light);
+  min-width: 150px;
+  //color: var(--el-text-color-regular);
+  text-align: justify;
+  box-shadow: var(--el-box-shadow-light);
+  word-break: break-all;
+  box-sizing: border-box;
+  border-radius: var(--el-popper-border-radius);
+  line-height: 20px;
+  word-wrap: break-word;
+  visibility: visible;
+
+  .row-contextmenu-item {
+    list-style: none;
+    line-height: 32px;
+    padding: 0 16px;
+    margin: 0;
+    font-size: 13px;
+    outline: 0;
+    display: flex;
+    align-items: center;
+    transition: .2s;
+    border-bottom: 1px solid transparent;
+  }
+
+  .row-contextmenu-item-available {
+    color: #606266;
+    cursor: pointer;
+
+    &:hover {
+      background: #ecf5ff;
+      color: #409eff;
+    }
+  }
+}
 
 </style>

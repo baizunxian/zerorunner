@@ -97,6 +97,10 @@ def __default_serialize(obj: typing.Any):
 
     elif isinstance(obj, RequestsCookieJar):
         return obj.get_dict()
+
+    elif obj is None:
+        return None
+
     elif not isinstance(obj, (str, bytes, int, float, Iterable,)):
         # class instance, e.g. MultipartEncoder()
         return repr(obj)

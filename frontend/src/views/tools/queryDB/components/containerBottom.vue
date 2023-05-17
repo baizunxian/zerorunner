@@ -1,5 +1,6 @@
 <template>
   <el-tabs
+      v-show="state.data.length > 0"
       v-model="state.activeName"
       type="card"
       class="demo-tabs"
@@ -12,25 +13,26 @@
         :label="item.title"
         :name="item.name"
         size="small"
+
     >
       <div style="overflow-y: auto">
         <el-table :data="findTableData(item.tabIndex)"
                   border
-                  fit
+                  class="nowrap-tab w100"
                   size="small"
-                  :max-height="state.tableHeight"
-                  style="width: 100%">
+                  :max-height="state.tableHeight">
           <el-table-column
+              scoped-slot
               v-for="(value ,key) in  findTableData(item.tabIndex)[0]"
               :label="key"
               :prop="key"
               :key="key"
               align="center"
+              :render-header="renderHeader"
               :show-overflow-tooltip="true"
               width="auto"
           >
           </el-table-column>
-
         </el-table>
       </div>
 
@@ -38,8 +40,12 @@
   </el-tabs>
 </template>
 <script lang="ts" setup name="containerBottom">
-import {getCurrentInstance, onMounted, onUnmounted, reactive} from 'vue';
+import {getCurrentInstance, h, nextTick, onMounted, onUnmounted, reactive} from 'vue';
 import mittBus from '/@/utils/mitt';
+import commonFunction from '/@/utils/commonFunction'
+
+const {copyText} = commonFunction()
+
 
 const {proxy} = <any>getCurrentInstance();
 const state = reactive({
@@ -65,7 +71,6 @@ const addTab = (result: string) => {
     content: result,
   })
   state.activeName = newTabName
-  console.log(state.data, "state.data")
 }
 
 const removeTab = (targetName: string) => {
@@ -87,7 +92,28 @@ const removeTab = (targetName: string) => {
 }
 
 const setTableHeight = (tableHeight: number) => {
-  state.tableHeight = tableHeight - 60
+  nextTick(() => {
+    state.tableHeight = tableHeight - 60
+  })
+}
+
+const renderHeader = ({column, $index}: any) => {
+  // 新建一个 span
+  let span = document.createElement('span');
+  // 设置表头名称
+  span.innerText = column.label;
+  // 临时插入 document
+  document.body.appendChild(span);
+  // 重点：获取 span 最小宽度，设置当前列，注意这里加了 20，字段较多时还是有挤压，且渲染后的 div 内左右 padding 都是 10，所以 +20 。（可能还有边距/边框等值，需要根据实际情况加上）
+  column.minWidth = span.getBoundingClientRect().width + 20;
+  // 移除 document 中临时的 span
+  document.body.removeChild(span);
+  return h('span', {
+    style: {color: "#606266"},
+    onClick: () => {
+      copyText(column.label)
+    }
+  }, column.label);
 }
 
 onMounted(() => {
@@ -99,7 +125,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  mittBus.off("setExecuteResult", () => {})
+  mittBus.off("setExecuteResult", () => {
+  })
 })
 
 defineExpose({
@@ -113,6 +140,5 @@ defineExpose({
 :deep(.el-tabs__content) {
   overflow: auto;
 }
-
 
 </style>

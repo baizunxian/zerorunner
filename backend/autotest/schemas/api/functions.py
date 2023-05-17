@@ -18,7 +18,7 @@ class FuncListQuery(BaseSchema):
     """查询参数序列化"""
 
     id: int = Field(None, description="id")
-    name: str = Field(None, description="函数名")
+    func_name: str = Field(None, description="函数名")
 
 
 class FuncListSchema(BaseSchema):

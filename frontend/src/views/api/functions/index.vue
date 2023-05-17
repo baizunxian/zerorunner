@@ -47,7 +47,7 @@
         <el-input
             clearable
             v-model="state.funcQuery.func_name"
-            placeholder="输入函数名查询"
+            placeholder="输入函数名,函数说明查询"
             style="width: 200px;"
             class="filter-item"
             @keyup.enter.native="search"/>

@@ -6,7 +6,8 @@ from fastapi import APIRouter
 
 from autotest.corelibs.http_response import partner_success
 from autotest.schemas.api.data_source import SourceQuery, SourceIn, SourceId
-from autotest.services.api.data_source import DataSourceService, SourceInfo, ExecuteParam, SourceIdIn, SourceTableIn
+from autotest.services.api.data_source import DataSourceService, SourceInfo, ExecuteParam, SourceIdIn, SourceTableIn, \
+    CreateTableIn
 
 router = APIRouter()
 
@@ -64,4 +65,10 @@ async def get_column_list(params: SourceTableIn):
 @router.post('/mysql/execute', description="mysql 查询")
 async def mysql_execute(params: ExecuteParam):
     data = await DataSourceService.execute(params)
+    return partner_success(data)
+
+
+@router.post('/showCreateTable', description="查询建表语句")
+async def show_create_table(params: CreateTableIn):
+    data = await DataSourceService.show_create_table(params)
     return partner_success(data)

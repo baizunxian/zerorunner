@@ -13,26 +13,31 @@
  * @method onCurrentContextmenuClick tagsview 右键菜单每项点击时
  */
 declare type MittType<T = any> = {
-	openSetingsDrawer?: string;
-	restoreDefault?: string;
-	setSendColumnsChildren: T;
-	setSendClassicChildren: T;
-	getBreadcrumbIndexSetFilterRoutes?: string;
-	layoutMobileResize: T;
-	openOrCloseSortable?: string;
-	openShareTagsView?: string;
-	onTagsViewRefreshRouterView?: T;
-	onCurrentContextmenuClick?: T;
+  openSetingsDrawer?: string;
+  restoreDefault?: string;
+  setSendColumnsChildren: T;
+  setSendClassicChildren: T;
+  getBreadcrumbIndexSetFilterRoutes?: string;
+  layoutMobileResize: T;
+  openOrCloseSortable?: string;
+  openShareTagsView?: string;
+  onTagsViewRefreshRouterView?: T;
+  onCurrentContextmenuClick?: T;
+// 	 dataSrouce
+  getColumnList?: T;
+  setSourceInfo?: T;
+  setSql?: T;
+  setExecuteResult?: T;
 };
 
 // mitt 参数类型定义
 declare type LayoutMobileResize = {
-	layout: string;
-	clientWidth: number;
+  layout: string;
+  clientWidth: number;
 };
 
 // mitt 参数菜单类型
 declare type MittMenu = {
-	children: RouteRecordRaw[];
-	item?: RouteItem;
+  children: RouteRecordRaw[];
+  item?: RouteItem;
 };

@@ -67,6 +67,14 @@ export function useQueryDBApi() {
         method: 'POST',
         data
       })
+    },
+    // 执行
+    showCreateTable(data?: object) {
+      return request({
+        url: '/dataSource/showCreateTable',
+        method: 'POST',
+        data
+      })
     }
   };
 }

@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <el-card style="height: 100%">
+  <div class="app-container h100">
+    <el-card class="h100" :body-style="state.bodyStyle">
       <z-splitpanes class="default-theme" @resize="state.paneSize = $event[0].size" style="height: 100%;">
         <z-pane :size="32">
           <db-list></db-list>
@@ -36,6 +36,7 @@ const containerTopRef = ref()
 const containerBottomRef = ref()
 const state = reactive({
   paneSize: 50,
+  bodyStyle: {height: "100%"}
 });
 
 const winChange = (changeType: string, $event: any) => {
@@ -45,6 +46,9 @@ const winChange = (changeType: string, $event: any) => {
     if (changeType == 'resize') {
       topHeight = containerRef.value.$el.offsetHeight * $event[0].size / 100
       BottomHeight = containerRef.value.$el.offsetHeight * $event[1].size / 100
+    } else {
+      topHeight = topHeight / 2
+      BottomHeight = BottomHeight / 2
     }
     containerTopRef.value.setMonacoHeHeight(topHeight)
     containerBottomRef.value.setTableHeight(BottomHeight)
@@ -54,13 +58,5 @@ const winChange = (changeType: string, $event: any) => {
 
 <style lang="scss" scoped>
 
-:deep(.el-card) {
-  height: 100%;
-
-  .el-card__body {
-    height: 100%;
-    padding: 5px;
-  }
-}
 
 </style>
