@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-# import asyncio
 import asyncio
+import logging
 import uuid
 from abc import ABC
-
 from celery import Celery, Task
 from celery._state import _task_stack
+from celery.signals import setup_logging
 from celery.worker.request import Request
-from loguru import logger
 
 from autotest.config import config
+from autotest.corelibs import logger
 from autotest.corelibs.local import g
+from autotest.corelibs.logger import InterceptHandler
 from autotest.db.redis import init_redis_pool
 from autotest.utils.async_converter import AsyncIOPool
 
@@ -69,11 +70,10 @@ class TaskRequest(Request):
 #     """
 
 
-# @after_setup_logger.connect
-# def setup_loggers(logger, *args, **kwargs):
-#     """logger 初始化统一处理日志格式"""
-#     logger.handlers = []
-#     logger.addHandler(InterceptHandler())
+@setup_logging.connect
+def setup_loggers(*args, **kwargs):
+    """logger 初始化统一处理日志格式"""
+    logging.basicConfig(handlers=[InterceptHandler()], level="INFO")
 
 
 def create_celery():
