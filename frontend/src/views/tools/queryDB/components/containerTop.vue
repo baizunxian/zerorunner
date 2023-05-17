@@ -66,7 +66,10 @@ const setSql = (sql: string) => {
 }
 
 const execute = () => {
-  console.log("monacoEditRef", monacoEditRef.value.getSelectionValue())
+  if (state.sql === "") {
+    ElMessage.warning("请输入sql语句查询！")
+    return;
+  }
   if (state.executeForm.source_id == "") {
     ElMessage.warning('请选择对应数据源！');
     return

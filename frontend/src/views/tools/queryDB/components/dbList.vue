@@ -190,10 +190,17 @@ const clickDB = async (row: any, column: any, event: any) => {
   if (iconInfo) {
     iconInfo.click();
   }
-  console.log(row, column, event)
   if (row.type === "database") {
     state.currentDBRow = row
   }
+  state.tableForm.databases = row.name
+  let dbs = await getColumnList()
+  let data = {
+    database: state.currentDBRow.name,
+    source_id: state.sourceForm.id,
+    dbs: [{dbName: row.name, tables: dbs}]
+  }
+  mittBus.emit("setSourceInfo", data)
 }
 
 // 加载数据库列表
@@ -207,18 +214,6 @@ const getTableList = async (databases: string = "") => {
 const loadTableList = async (row: any, treeNode: unknown, resolve: (date: any) => void) => {
   state.tableForm.databases = row.name
   let tableList: any = await getTableList()
-  if (row.type === "database") {
-    state.tableForm.databases = row.name
-    let dbs = await getColumnList()
-    let data = {
-      database: row.name,
-      source_id: state.sourceForm.id,
-      dbs: [{dbName: row.name, tables: dbs}]
-    }
-    mittBus.emit("setSourceInfo", data)
-    // emit("setData", data)
-  }
-  // return tableList
   resolve(tableList)
 }
 
@@ -252,15 +247,17 @@ const saveOrUpdateSource = () => {
 
 const rowContextmenu = (row: any, column: any, event: any) => {
   event.preventDefault();
-  state.showRowContextMenu = true
-  state.rightClickRow = row
-  nextTick(() => {
-    let {isCollapse} = themeConfig.value;
-    let sidebarWidth = isCollapse ? 64 : 220
-    let headerWidth = isCollapse ? 87 : 87
-    rowContextmenuRef.value.style.left = `${event.clientX - sidebarWidth}px`;
-    rowContextmenuRef.value.style.top = `${event.clientY - headerWidth}px`;
-  })
+  if (row.type === 'table') {
+    state.showRowContextMenu = true
+    state.rightClickRow = row
+    nextTick(() => {
+      let {isCollapse} = themeConfig.value;
+      let sidebarWidth = isCollapse ? 64 : 220
+      let headerWidth = isCollapse ? 87 : 87
+      rowContextmenuRef.value.style.left = `${event.clientX - sidebarWidth}px`;
+      rowContextmenuRef.value.style.top = `${event.clientY - headerWidth}px`;
+    })
+  }
 }
 
 const rowContextmenuClick = async (item: any) => {
@@ -271,14 +268,12 @@ const rowContextmenuClick = async (item: any) => {
       table_name: state.rightClickRow.name
     }
     let {data}: any = await useQueryDBApi().showCreateTable(params)
-    console.log("data", data)
     state.createTableContent = data.create_table_sql
     state.showCreateTable = true
   } else if (item.value === "generate_select_sql") {
     mittBus.emit("setSql", "select * from " + `${state.rightClickRow.name} limit 20;`)
   }
   state.showRowContextMenu = false
-  console.log(item)
 }
 
 const onClickOutside = () => {
