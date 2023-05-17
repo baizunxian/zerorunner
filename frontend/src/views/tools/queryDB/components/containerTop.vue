@@ -16,7 +16,6 @@
           :dbs="state.dbs"
           v-model:value="state.sql"
           v-model:long="state.long"
-          :onInputTableAlia="onInputTableAlia"
           :executeHandle="execute"
       ></z-monaco-editor>
     </div>
@@ -93,19 +92,19 @@ const execute = () => {
   }
 }
 
-const onInputTableAliaData = computed(() => {
-  console.log('22222222222222222222')
-  return []
-})
+// const onInputTableAliaData = computed(() => {
+//   console.log('22222222222222222222')
+//   return []
+// })
 
-const onInputTableAlia = async (table: any) => {
-  console.log("databases----------->", table)
-  let res = await mittBus.emit("getColumnList", (table: any) => {
-    console.log("table------------table", table)
-  })
-  console.log("res------------res", res)
-  return []
-}
+// const onInputTableAlia = async (table: any) => {
+//   console.log("databases----------->", table)
+//   let res = await mittBus.emit("getColumnList", (table: any) => {
+//     console.log("table------------table", table)
+//   })
+//   console.log("res------------res", res)
+//   return []
+// }
 onBeforeMount(() => {
   mittBus.on('setSourceInfo', (data: any) => {
     setData(data)
