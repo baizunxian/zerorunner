@@ -59,8 +59,7 @@ def init_middleware(app: FastAPI):
     """"""
     @app.middleware("http")
     async def intercept(request: Request, call_next):
-        if not g.trace_id:
-            g.trace_id = get_str_uuid()
+        g.trace_id = get_str_uuid()
         token = request.headers.get("token", None)
         g.redis = app.state.redis
         g.token = token
