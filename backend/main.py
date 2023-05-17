@@ -6,7 +6,7 @@ import uvicorn
 from fastapi import FastAPI, Depends
 
 from autotest.config import config
-from autotest.corelibs.logger import init_logger
+from autotest.corelibs.logger import init_logger, logger
 from autotest.db.redis import init_redis_pool
 from autotest.init.cors import init_cors
 from autotest.init.exception import init_exception

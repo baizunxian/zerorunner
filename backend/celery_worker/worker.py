@@ -10,9 +10,8 @@ from celery.signals import setup_logging
 from celery.worker.request import Request
 
 from autotest.config import config
-from autotest.corelibs import logger
 from autotest.corelibs.local import g
-from autotest.corelibs.logger import InterceptHandler
+from autotest.corelibs.logger import InterceptHandler, logger
 from autotest.db.redis import init_redis_pool
 from autotest.utils.async_converter import AsyncIOPool
 
