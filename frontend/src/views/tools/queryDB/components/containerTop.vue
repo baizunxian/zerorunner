@@ -1,35 +1,35 @@
 <template>
   <div>
     <div class="db-query-top-bar">
-      <el-link @click="execute">
+      <el-button link type="primary" @click="execute">
         <el-icon>
           <ele-CaretRight/>
         </el-icon>
         执行
-      </el-link>
+      </el-button>
     </div>
 
-    <div style="border: 1px solid #E6E6E6; overflow-y: auto" ref="monacoEditDivRef">
+    <div style="border: 1px solid #E6E6E6; overflow-y: auto">
       <z-monaco-editor
-          :style="{height: state.height + 'px'}"
           ref="monacoEditRef"
+          :style="{height: state.height + 'px'}"
           :dbs="state.dbs"
-          v-model:value="state.executeForm.sql"
+          v-model:value="state.sql"
           v-model:long="state.long"
           :onInputTableAlia="onInputTableAlia"
+          :executeHandle="execute"
       ></z-monaco-editor>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup name="ContainerTop">
-import {onMounted, onUnmounted, reactive, ref} from 'vue';
+import {computed, onBeforeMount, onUnmounted, reactive, ref} from 'vue';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import {ElMessage} from "element-plus/es";
 import {ElLoading} from "element-plus";
 import mittBus from '/@/utils/mitt';
 
-const monacoEditDivRef = ref()
 const monacoEditRef = ref()
 
 const state = reactive({
@@ -38,8 +38,9 @@ const state = reactive({
   // db
   dbs: [],
   //execute
+  sql: 'select  * from ',
   executeForm: {
-    sql: 'select  * from ',
+    sql: '',
     source_id: "",
     database: "",
   }
@@ -55,15 +56,33 @@ const setData = (data: any) => {
   state.executeForm.database = data.database
 }
 
-const execute = async () => {
+
+const setSql = (sql: string) => {
+  if (state.sql === "") {
+    state.sql = sql
+  } else {
+    state.sql = `${state.sql}\n${sql}`
+  }
+}
+
+const execute = () => {
+  console.log("monacoEditRef", monacoEditRef.value.getSelectionValue())
   if (state.executeForm.source_id == "") {
     ElMessage.warning('请选择对应数据源！');
     return
   }
   const loading = ElLoading.service({text: "sql执行中...", target: monacoEditRef.value.$el})
   try {
-    let res = await useQueryDBApi().execute(state.executeForm)
-    mittBus.emit("setExecuteResult", res.data)
+    let selectionSql = monacoEditRef.value.getSelectionValue()
+    if (selectionSql !== "") {
+      state.executeForm.sql = selectionSql
+    } else {
+      state.executeForm.sql = state.sql
+    }
+    useQueryDBApi().execute(state.executeForm).then((res: any) => {
+      mittBus.emit("setExecuteResult", res.data)
+    })
+
   } catch (err) {
     console.log(err)
   } finally {
@@ -71,22 +90,33 @@ const execute = async () => {
   }
 }
 
+const onInputTableAliaData = computed(() => {
+  console.log('22222222222222222222')
+  return []
+})
+
 const onInputTableAlia = async (table: any) => {
   console.log("databases----------->", table)
-  let res = await mittBus.emit("getColumnList", (table) => {
+  let res = await mittBus.emit("getColumnList", (table: any) => {
     console.log("table------------table", table)
   })
   console.log("res------------res", res)
-  return res
+  return []
 }
-onMounted(() => {
-  mittBus.on("setSourceInfo", (data: any) => {
+onBeforeMount(() => {
+  mittBus.on('setSourceInfo', (data: any) => {
     setData(data)
+  })
+  mittBus.on('setSql', (data: any) => {
+    setSql(data)
   })
 })
 
 onUnmounted(() => {
-  mittBus.off("setSourceInfo")
+  mittBus.off("setSourceInfo", () => {
+  })
+  mittBus.off("setSql", () => {
+  })
 })
 
 
@@ -102,7 +132,7 @@ defineExpose({
   flex: none;
   display: flex;
   border-bottom: 1px solid #dee2ea;
-  padding: 0 2px;
+  padding-bottom: 10px;
 }
 
 </style>

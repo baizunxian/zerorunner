@@ -227,7 +227,6 @@ interface StateData {
   long: string,
 }
 
-const formDataRef = ref()
 const monacoEditRef = ref()
 
 const state = reactive<StateData>({
@@ -338,24 +337,6 @@ const handleHeader = (remove: any = false) => {
 // 打开语言选择面板
 const showPopover = () => {
   state.popoverOpen = !state.popoverOpen
-}
-// 美化json
-const jsonFormat = () => {
-  try {
-    state.rawData = monacoEditRef.value.getValue()
-    state.rawData = JSON.stringify(JSON.parse(state.rawData), null, 4);
-  } catch {
-    ElMessage.info('JSON格式错误！')
-  }
-}
-// 压缩json
-const jsonCompact = () => {
-  try {
-    state.rawData = monacoEditRef.value.getValue()
-    state.rawData = JSON.stringify(JSON.parse(state.rawData));
-  } catch {
-    ElMessage.info('JSON格式错误！')
-  }
 }
 
 // bodyData

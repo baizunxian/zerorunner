@@ -1,10 +1,9 @@
 import typing
 
 from sqlalchemy import Column, Boolean, DateTime, Integer, func, select, update, delete, insert, Select, \
-    Executable, Result, String
+    Executable, Result, String, ClauseList
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative
-
 from autotest.corelibs import g
 from autotest.corelibs.pagination import parse_pagination
 from autotest.db.session import provide_session
@@ -185,12 +184,14 @@ class Base:
         return await parse_pagination(stmt)
 
     @classmethod
-    def get_table_columns(cls) -> list:
+    def get_table_columns(cls, exclude: set = None) -> ClauseList:
         """
         获取模型所有字段
+        exclude: 排除字段  {"name"}
         :return:
         """
-        return cls.__table__.columns
+        exclude = exclude if exclude else {}
+        return ClauseList(*[i for i in cls.__table__.columns if i.name not in exclude])
 
     @classmethod
     async def get_result(cls, stmt: Select, first=False) -> typing.Any:

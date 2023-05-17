@@ -100,8 +100,8 @@ class FunctionsService:
                 file_content = content
             if file_content.find(f'def {func_name}(') == -1:
                 continue
-            if params.name:
-                if params.name in func.__name__ or params.name in func.__doc__ if func.__doc__ else '':
+            if params.func_name:
+                if params.func_name in func.__name__ or params.func_name in func.__doc__ if func.__doc__ else '':
                     func_list.append(FunctionsService.handle_func_info(func))
             else:
                 func_list.append(FunctionsService.handle_func_info(func))

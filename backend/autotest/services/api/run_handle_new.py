@@ -6,6 +6,7 @@ import traceback
 import typing
 import uuid
 
+from autotest.utils.des import decrypt_rsa_password
 from config import config
 from loguru import logger
 from autotest.models.api_models import Env, DataSource, ApiInfo, EnvFunc
@@ -18,7 +19,6 @@ from zerorunner.model.base import TStepTypeEnum
 from zerorunner.model.step_model import TStep, TRequest, TSqlRequest, TIFRequest, TLoopRequest, TScriptRequest, \
     TWaitRequest, TestCase
 from zerorunner.models import TConfig
-from zerorunner.parser import parse_string_value
 from zerorunner.steps.step import Step
 from zerorunner.steps.step_api_requet import RunRequestStep
 from zerorunner.steps.step_if_requet import RunIFStep
@@ -26,6 +26,19 @@ from zerorunner.steps.step_loop_requet import RunLoopStep
 from zerorunner.steps.step_script_requet import RunScriptStep
 from zerorunner.steps.step_sql_request import RunSqlStep
 from zerorunner.steps.step_wait_requet import RunWaitStep
+from json.decoder import JSONDecodeError
+
+
+def parse_string_to_json(str_value: str):
+    try:
+        return json.loads(str_value)
+    except TypeError:
+        return str_value
+    except JSONDecodeError:
+        return str_value
+    except SyntaxError:
+        # e.g. $var, ${func}
+        return str_value
 
 
 def handle_headers_or_validators(param: typing.List[ApiBaseSchema]) -> typing.Dict:
@@ -56,7 +69,7 @@ def handle_headers_or_validators(param: typing.List[ApiBaseSchema]) -> typing.Di
 
 
 def parse_validators_string_value(validators: typing.Dict):
-    return {key: parse_string_value(value) for key, value in validators.items()}
+    return {key: parse_string_to_json(value) for key, value in validators.items()}
 
 
 class HandleConfig(object):
@@ -192,7 +205,7 @@ class HandleStepData(object):
         if source_info:
             self.step.sql_request.host = source_info.host
             self.step.sql_request.user = source_info.user
-            self.step.sql_request.password = source_info.password
+            self.step.sql_request.password = decrypt_rsa_password(source_info.password)
             self.step.sql_request.port = source_info.port
         else:
             raise ValueError(f"{self.step.name} sql环境信息为空")
@@ -204,9 +217,9 @@ class HandleStepData(object):
 
     async def __init_if_step(self) -> Step:
         self.step.if_request = TIFRequest(**self.api_info.if_request.dict())
-        self.step.if_request.check = parse_string_value(self.step.if_request.check)
-        self.step.if_request.comparator = parse_string_value(self.step.if_request.comparator)
-        self.step.if_request.expect = parse_string_value(self.step.if_request.expect)
+        self.step.if_request.check = parse_string_to_json(self.step.if_request.check)
+        self.step.if_request.comparator = parse_string_to_json(self.step.if_request.comparator)
+        self.step.if_request.expect = parse_string_to_json(self.step.if_request.expect)
 
         new_teststeps = []
         for step in self.api_info.if_request.teststeps:
@@ -217,11 +230,11 @@ class HandleStepData(object):
 
     async def __init_loop_step(self) -> Step:
         self.step.loop_request = TLoopRequest(**self.api_info.loop_request.dict())
-        self.step.loop_request.for_variable_name = parse_string_value(self.step.loop_request.for_variable_name)
-        self.step.loop_request.for_variable = parse_string_value(self.step.loop_request.for_variable)
-        self.step.loop_request.while_comparator = parse_string_value(self.step.loop_request.while_comparator)
-        self.step.loop_request.while_variable = parse_string_value(self.step.loop_request.while_variable)
-        self.step.loop_request.while_value = parse_string_value(self.step.loop_request.while_value)
+        self.step.loop_request.for_variable_name = parse_string_to_json(self.step.loop_request.for_variable_name)
+        self.step.loop_request.for_variable = parse_string_to_json(self.step.loop_request.for_variable)
+        self.step.loop_request.while_comparator = parse_string_to_json(self.step.loop_request.while_comparator)
+        self.step.loop_request.while_variable = parse_string_to_json(self.step.loop_request.while_variable)
+        self.step.loop_request.while_value = parse_string_to_json(self.step.loop_request.while_value)
         new_teststeps = []
         for step in self.api_info.loop_request.teststeps:
             new_step_obj = (await HandleStepData().init(step)).step_obj
@@ -264,7 +277,7 @@ class HandleStepData(object):
         if self.api_info.validators and isinstance(self.api_info.validators, typing.List):
             for vail in self.api_info.validators:
                 # 解析字符串value
-                vail.expect = parse_string_value(vail.expect)
+                vail.expect = parse_string_to_json(vail.expect)
                 self.step.validators.append(vail.dict())
 
 

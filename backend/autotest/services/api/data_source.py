@@ -12,6 +12,7 @@ from autotest.exceptions.exceptions import ParameterError
 from autotest.schemas.api.data_source import SourceQuery, SourceIn, SourceId
 from autotest.schemas.base import BaseSchema
 from autotest.models.api_models import DataSource
+from autotest.utils.des import encrypt_rsa_password, decrypt_rsa_password
 from zerorunner.ext.db import DB, DBConfig
 
 
@@ -56,16 +57,23 @@ class SourceTableIn(BaseModel):
     databases: str = Field(None, description="databases")
 
 
+class CreateTableIn(BaseModel):
+    source_id: int = Field(None, description="数据源id")
+    databases: str = Field(None, description="databases")
+    table_name: str = Field(None, description="table_name")
+
+
 class DataSourceService:
     @staticmethod
     async def get_db_connect(source_id: int, database: str = None) -> "DB":
         source_info = await DataSource.get(source_id)
+        new_password = decrypt_rsa_password(source_info.password)
         if not source_info:
             raise ValueError("未找到数据源~")
         db_config = DBConfig(host=source_info.host,
                              port=source_info.port,
                              user=source_info.user,
-                             password=source_info.password,
+                             password=new_password,
                              database=database,
                              read_timeout=3)
         db_engine = DB(db_config)
@@ -84,7 +92,8 @@ class DataSourceService:
             source_info = await DataSource.get(params.id)
             if not source_info:
                 raise ParameterError("数据不存在！")
-
+        if params.password:
+            params.password = encrypt_rsa_password(params.password)
         data = await DataSource.create_or_update(params.dict())
         return data
 
@@ -146,6 +155,18 @@ class DataSourceService:
         for key, value in table_info.items():
             table_column_list.append({"tblName": key, "tableColumns": value})
         return table_column_list
+
+    @staticmethod
+    async def show_create_table(params: CreateTableIn):
+        """查询建表语句"""
+        sql = f"""show create table {params.table_name};"""
+        db_engine = await DataSourceService.get_db_connect(params.source_id, params.databases)
+        data = db_engine.execute(sql)
+        data = data[0] if data else {}
+        create_table = data.pop("Create Table", "")
+        if create_table:
+            data['create_table_sql'] = create_table
+        return data
 
     @staticmethod
     async def execute(params: ExecuteParam):
