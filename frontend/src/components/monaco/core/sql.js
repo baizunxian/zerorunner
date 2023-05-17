@@ -88,7 +88,7 @@ export default class Snippets {
       // <库名>.<表名> || <别名>.<字段>
     } else if (lastToken.endsWith('.')) {
       // 去掉点后的字符串
-      const tokenNoDot = lastToken.slice(0, lastToken.length - 1)
+      const tokenNoDot = lastToken.slice(0, lastToken.length - 1);
       if (this.dbSchema.find(db => db.dbName === tokenNoDot.replace(/^.*,/g, ''))) {
         // <库名>.<表名>联想
         console.log("库名.表名 联想", lastToken);
@@ -96,13 +96,13 @@ export default class Snippets {
           suggestions: [...this.getTableSuggestByDbName(tokenNoDot.replace(/^.*,/g, ''))]
         };
       } else if (this.getTableNameAndTableAlia(textBeforePointerMulti.split(';')[textBeforePointerMulti.split(';').length - 1] + textAfterPointerMulti.split(';')[0])) {
-        const tableInfoList = this.getTableNameAndTableAlia(textBeforePointerMulti.split(';')[textBeforePointerMulti.split(';').length - 1] + textAfterPointerMulti.split(';')[0])
-        const currentTable = tableInfoList.find(item => item.tableAlia === tokenNoDot.replace(/^.*,/g, '') || item.tableName === tokenNoDot.replace(/^.*,/g, ''))
+        const tableInfoList = this.getTableNameAndTableAlia(textBeforePointerMulti.split(';')[textBeforePointerMulti.split(';').length - 1] + textAfterPointerMulti.split(';')[0]);
+        const currentTable = tableInfoList.find(item => item.tableAlia === tokenNoDot.replace(/^.*,/g, '') || item.tableName === tokenNoDot.replace(/^.*,/g, ''));
         console.log("currentTable", currentTable);
         // <别名>.<字段>联想
         if (currentTable && currentTable.tableName) {
           console.log("别名.字段 联想", lastToken);
-          console.log("别名.字段 联想", await this.getTableColumnSuggestByTableAlia(currentTable.tableName))
+          console.log("别名.字段 联想", await this.getTableColumnSuggestByTableAlia(currentTable.tableName));
           return {
             suggestions: await this.getTableColumnSuggestByTableAlia(currentTable.tableName)
           };
@@ -127,10 +127,11 @@ export default class Snippets {
       };
       // 字段联想
     } else if (['select', 'where', 'order by', 'group by', 'by', 'and', 'or', 'having', 'distinct', 'on'].includes(lastToken.replace(/.*?\(/g, '')) || (lastToken.endsWith('.') && !this.dbSchema.find(db => `${db.dbName}.` === lastToken)) || /(select|where|order by|group by|by|and|or|having|distinct|on)\s+.*?\s?,\s*$/.test(textBeforePointer.toLowerCase())) {
-      console.log("字段联想", lastToken, await this.getTableColumnSuggest());
-      return {
-        suggestions: await this.getTableColumnSuggest()
-      };
+      console.log("字段联想", lastToken);
+      return {suggestions : []}
+      // return {
+      //   suggestions: await this.getTableColumnSuggest()
+      // };
       // 自定义字段联想
     } else if (this.customKeywords.toString().includes(lastToken)) {
       console.log("自定义字段联想", lastToken);
@@ -139,7 +140,6 @@ export default class Snippets {
       };
       // 默认联想
     } else {
-      console.log("默认联想", lastToken, [...this.getDataBaseSuggest(), ...this.getTableSuggest(), ...this.getKeywordSuggest()])
       return {
         suggestions: [...this.getDataBaseSuggest(), ...this.getTableSuggest(), ...this.getKeywordSuggest()]
       };
@@ -259,7 +259,7 @@ export default class Snippets {
       db.tables.forEach(table => {
         table.tableColumns && table.tableColumns.forEach(field => {
           defaultFields.push({
-            label: field.columnName ? field.columnName : '',
+            label: field.columnName ? `${table.tblName}.${field.columnName}` : '',
             kind: this.monaco.languages.CompletionItemKind.Field,
             detail: `<字段> ${field.commentName ? field.commentName : ''} <${field.columnType}>`,
             sortText: this.SORT_TEXT.Column,
@@ -295,7 +295,7 @@ export default class Snippets {
         });
       });
     }
-    return [...defaultFields, ...asyncFields]
+    return [...defaultFields, ...asyncFields];
   }
 
   /**
@@ -307,29 +307,31 @@ export default class Snippets {
     const defaultFields = [];
     this.dbSchema.forEach(db => {
       db.tables.forEach(table => {
-        table.tableColumns && table.tableColumns.forEach(field => {
-          console.log("field--------->", field);
-          defaultFields.push({
-            label: field.columnName ? field.columnName : '',
-            kind: this.monaco.languages.CompletionItemKind.Field,
-            detail: `<字段> ${field.commentName ? field.commentName : ''} <${field.columnType}>`,
-            sortText: this.SORT_TEXT.Column,
-            insertText: field.columnName ? field.columnName : '',
-            documentation: {
-              value: `
+        if (tableName === table.tblName) {
+          table.tableColumns && table.tableColumns.forEach(field => {
+            defaultFields.push({
+              label: field.columnName ? field.columnName : '',
+              kind: this.monaco.languages.CompletionItemKind.Field,
+              detail: `<字段> ${field.commentName ? field.commentName : ''} <${field.columnType}>`,
+              sortText: this.SORT_TEXT.Column,
+              insertText: field.columnName ? field.columnName : '',
+              documentation: {
+                value: `
   ### 数据库: ${field.dbName}
   ### 表: ${field.tblName}
   ### 注释: ${field.commentName ? field.commentName : ''}
               `
-            }
+              }
+            });
           });
-        });
+
+        }
+
       });
     });
-    console.log("defaultFields", defaultFields)
-    const asyncFields = []
+    const asyncFields = [];
     if (typeof this.onInputTableAila === 'function') {
-      const fileds = await this.onInputTableAila(tableName)
+      const fileds = await this.onInputTableAila(tableName);
       fileds.forEach(field => {
         asyncFields.push({
           label: field.columnName ? field.columnName : '',
@@ -355,11 +357,11 @@ export default class Snippets {
    * @param {*} sqlText SQL字符串
    */
   getTableNameAndTableAlia(sqlText) {
-    const regTableAliaFrom = /(^|(\s+))from\s+([^\s]+(\s+|(\s+as\s+))[^\s]+(\s+|,)\s*)+(\s+(where|left|right|full|join|inner|union))?/ig
-    const regTableAliaJoin = /(^|(\s+))join\s+([^\s]+)\s+(as\s+)?([^\s]+)\s+on/ig
-    const regTableAliaFromList = sqlText.match(regTableAliaFrom) ? sqlText.match(regTableAliaFrom) : []
-    const regTableAliaJoinList = sqlText.match(regTableAliaJoin) ? sqlText.match(regTableAliaJoin) : []
-    const strList = [...regTableAliaFromList.map(item => item.replace(/(^|(\s+))from\s+/ig, '').replace(/\s+(where|left|right|full|join|inner|union)((\s+.*?$)|$)/ig, '').replace(/\s+as\s+/gi, ' ').trim()), ...regTableAliaJoinList.map(item => item.replace(/(^|(\s+))join\s+/ig, '').replace(/\s+on((\s+.*?$)|$)/, '').replace(/\s+as\s+/gi, ' ').trim())]
+    const regTableAliaFrom = /(^|(\s+))from\s+([^\s]+(\s+||(\s+as\s+))[^\s]+(\s+|,)\s*)+(\s+(where|left|right|full|join|inner|union))?/ig;
+    const regTableAliaJoin = /(^|(\s+))join\s+([^\s]+)\s+(as\s+)?([^\s]+)\s+on/ig;
+    const regTableAliaFromList = sqlText.match(regTableAliaFrom) ? sqlText.match(regTableAliaFrom) : [];
+    const regTableAliaJoinList = sqlText.match(regTableAliaJoin) ? sqlText.match(regTableAliaJoin) : [];
+    const strList = [...regTableAliaFromList.map(item => item.replace(/(^|(\s+))from\s+/ig, '').replace(/\s+(where|left|right|full|join|inner|union)((\s+.*?$)|$)/ig, '').replace(/\s+as\s+/gi, ' ').trim()), ...regTableAliaJoinList.map(item => item.replace(/(^|(\s+))join\s+/ig, '').replace(/\s+on((\s+.*?$)|$)/, '').replace(/\s+as\s+/gi, ' ').trim())];
     const tableList = [];
     strList.map(tableAndAlia => {
       tableAndAlia.split(',').forEach(item => {
@@ -370,6 +372,10 @@ export default class Snippets {
         });
       });
     });
+    console.log("sqlText", sqlText);
+    console.log("strList", strList);
+    console.log("regTableAliaFromList", regTableAliaFromList);
+    console.log("regTableAliaJoinList", regTableAliaJoinList);
     console.log("regTableAliaFromList", regTableAliaFromList);
     console.log("regTableAliaJoinList", regTableAliaJoinList);
     console.log("获取sql中所有的表名和别名", tableList);

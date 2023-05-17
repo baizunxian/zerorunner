@@ -192,15 +192,15 @@ const clickDB = async (row: any, column: any, event: any) => {
   }
   if (row.type === "database") {
     state.currentDBRow = row
+    state.tableForm.databases = row.name
+    let dbs = await getColumnList()
+    let data = {
+      database: state.currentDBRow.name,
+      source_id: state.sourceForm.id,
+      dbs: [{dbName: row.name, tables: dbs}]
+    }
+    mittBus.emit("setSourceInfo", data)
   }
-  state.tableForm.databases = row.name
-  let dbs = await getColumnList()
-  let data = {
-    database: state.currentDBRow.name,
-    source_id: state.sourceForm.id,
-    dbs: [{dbName: row.name, tables: dbs}]
-  }
-  mittBus.emit("setSourceInfo", data)
 }
 
 // 加载数据库列表
