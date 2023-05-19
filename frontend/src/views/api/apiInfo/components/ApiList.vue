@@ -422,6 +422,9 @@ const oneSelfChange = (val: boolean) => {
   getList()
 }
 
+defineExpose({
+  getSelectionData,
+})
 
 // 页面加载时
 onMounted(() => {

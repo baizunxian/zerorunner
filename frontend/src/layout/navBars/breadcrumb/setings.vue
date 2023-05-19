@@ -321,6 +321,7 @@
           <div class="layout-breadcrumb-seting-bar-flex-value">
             <el-select v-model="getThemeConfig.animation" placeholder="请选择" size="default" style="width: 90px"
                        @change="setLocalThemeConfig">
+              <el-option label="default" value="default"></el-option>
               <el-option label="slide-right" value="slide-right"></el-option>
               <el-option label="slide-left" value="slide-left"></el-option>
               <el-option label="opacitys" value="opacitys"></el-option>
@@ -436,8 +437,8 @@
           </div>
         </div>
         <div class="copy-config">
-          <el-alert title="点击下方按钮，复制布局配置去 `src/store/modules/themeConfig.ts` 中修改。" type="warning"
-                    :closable="false"></el-alert>
+<!--          <el-alert title="点击下方按钮，复制布局配置去 `src/store/modules/themeConfig.ts` 中修改。" type="warning"-->
+<!--                    :closable="false"></el-alert>-->
           <el-button size="default" class="copy-config-btn" type="primary" ref="copyConfigBtnRef"
                      @click="onCopyConfigClick">
             <el-icon class="mr5">

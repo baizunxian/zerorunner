@@ -47,7 +47,7 @@ logger.add(
     # retention=config.LOGGER_RETENTION,
     filter=correlation_id_filter,
     format=fmt,
-    enqueue=True
+    # enqueue=True
 )
 
 
@@ -74,6 +74,3 @@ def init_logger():
         if '.' not in logger_name:
             logging.getLogger(logger_name).handlers = []
             logging.getLogger(logger_name).addHandler(InterceptHandler())
-
-
-init_logger()

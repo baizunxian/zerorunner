@@ -6,7 +6,7 @@ import uvicorn
 from fastapi import FastAPI, Depends
 
 from autotest.config import config
-from autotest.corelibs.logger import logger
+from autotest.corelibs.logger import init_logger, logger
 from autotest.db.redis import init_redis_pool
 from autotest.init.cors import init_cors
 from autotest.init.exception import init_exception
@@ -30,6 +30,8 @@ def init_app():
     init_middleware(app)  # 注册请求响应拦截
 
     init_cors(app)  # 初始化跨域
+
+    init_logger()
 
     logger.info("日志初始化成功！！!")  # 初始化日志
 

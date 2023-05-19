@@ -135,13 +135,17 @@ const onDialog = () => {
 };
 // 测试数据源连接
 const testConnect = () => {
-  useQueryDBApi().testConnect(state.form).then((res: any) => {
-    let {data} = res
-    if (data) {
-      state.isTestConnect = true
-      ElMessage.success("测试连接成功")
-    } else {
-      ElMessage.warning("测试连接失败！")
+  formRef.value.validate((valid: any) => {
+    if (valid) {
+      useQueryDBApi().testConnect(state.form).then((res: any) => {
+        let {data} = res
+        if (data) {
+          state.isTestConnect = true
+          ElMessage.success("测试连接成功")
+        } else {
+          ElMessage.warning("测试连接失败！")
+        }
+      })
     }
   })
 }
@@ -150,11 +154,11 @@ const saveOrUpdate = () => {
   formRef.value.validate((valid: any) => {
     if (valid) {
       useQueryDBApi().saveOrUpdate(state.form)
-          .then(() => {
-            ElMessage.success('操作成功');
-            emit('getList')
-            onDialog(); // 关闭弹窗
-          })
+        .then(() => {
+          ElMessage.success('操作成功');
+          emit('getList')
+          onDialog(); // 关闭弹窗
+        })
     }
   })
 };
@@ -162,17 +166,17 @@ const saveOrUpdate = () => {
 // environment
 const getEnvList = () => {
   useEnvApi().getList(state.envListQuery)
-      .then(res => {
-        state.envList = res.data.rows
-      })
+    .then(res => {
+      state.envList = res.data.rows
+    })
 };
 
 watch(
-    () => state.form,
-    () => {
-      state.isTestConnect = false
-    },
-    {deep: true}
+  () => state.form,
+  () => {
+    state.isTestConnect = false
+  },
+  {deep: true}
 )
 
 defineExpose({

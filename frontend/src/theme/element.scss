@@ -53,7 +53,6 @@
     }
   }
 
-  // https://gitee.com/lyt-top/vue-next-admin/issues/I5K1PM
   .el-form-item .el-form-item__label .el-icon {
     margin-right: 0px;
   }
@@ -282,11 +281,11 @@
   }
 }
 
-.el-dialog__body {
-  max-height: calc(90vh - 111px) !important;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
+//.el-dialog__body {
+//  height: calc(90vh - 111px) !important;
+//  overflow-y: auto;
+//  overflow-x: hidden;
+//}
 
 /* Card 卡片
 ------------------------------- */

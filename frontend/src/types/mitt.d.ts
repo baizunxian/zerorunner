@@ -11,6 +11,10 @@
  * @method openShareTagsView 布局设置弹窗，开启 TagsView 共用
  * @method onTagsViewRefreshRouterView tagsview 刷新界面
  * @method onCurrentContextmenuClick tagsview 右键菜单每项点击时
+ * @method getColumnList 数据查询工具，获取字段列表
+ * @method setSourceInfo 数据查询工具，设置数据源信息
+ * @method setSql 数据查询工具，设置sql
+ * @method setSql 数据查询工具，设置执行结果
  */
 declare type MittType<T = any> = {
   openSetingsDrawer?: string;

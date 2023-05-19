@@ -12,7 +12,7 @@ fi
 
 if [ $1 = "celery-worker" ]; then
     echo "start celery worker"
-     /usr/local/bin/python -m celery -A celery_worker.worker.celery worker --pool=solo -c 10 -l INFO
+     /usr/local/bin/python -m celery -A celery_worker.worker.celery worker --pool=gevent -c 10 -l INFO
 fi
 
 if [ $1 = "celery-beat" ]; then
