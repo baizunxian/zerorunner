@@ -355,8 +355,8 @@ defineExpose({
   }
 }
 
-:deep(.task-content .el-dialog__body) {
-  height: 68vh;
-}
+//:deep(.task-content .el-dialog__body) {
+//  height: 68vh;
+//}
 
 </style>

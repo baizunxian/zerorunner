@@ -1,19 +1,6 @@
 <template>
   <div class="dbTreeForDbQuery">
     <div class="wrapper-op">
-      <!--      <el-select v-model="dbForm.data_source"-->
-      <!--                 clearable placeholder="请选择数据库"-->
-      <!--                 style="width: 200px"-->
-      <!--                 @change="sourceChange"-->
-      <!--      >-->
-      <!--        <el-option-->
-      <!--            v-for="item in dataSource"-->
-      <!--            :key="item"-->
-      <!--            :label="item"-->
-      <!--            :value="item"-->
-      <!--        >-->
-      <!--        </el-option>-->
-      <!--      </el-select>-->
       <el-select v-model="state.sourceForm.id"
                  clearable
                  placeholder="请选择数据源"
@@ -30,12 +17,12 @@
       </el-select>
 
 
-      <!--      <el-button link type="primary" class="ml10" @click="handelCreatePage">-->
-      <!--        <el-icon>-->
-      <!--          <ele-CirclePlusFilled/>-->
-      <!--        </el-icon>-->
-      <!--        新增-->
-      <!--      </el-button>-->
+      <el-button link type="primary" class="ml10" @click="handelCreatePage">
+        <el-icon>
+          <ele-CirclePlusFilled/>
+        </el-icon>
+        新增
+      </el-button>
     </div>
     <div class="tree-current-node">
       <span>当前库：</span>{{ state.currentDBRow.name }}
@@ -76,7 +63,7 @@
 
     </div>
 
-    <!--    <SaveOrUpdateSource ref="saveOrUpdateRef" @getList="getSourceList"/>-->
+    <SaveOrUpdateSource ref="saveOrUpdateRef" @getList="getSourceList"/>
     <!--右键菜单-->
     <div class="row-contextmenu"
          ref="rowContextmenuRef"
@@ -111,6 +98,7 @@ import mysqlTableIcon from "/@/icons/mysql_table.svg";
 import mittBus from '/@/utils/mitt';
 import {useThemeConfig} from "/@/stores/themeConfig";
 import {storeToRefs} from "pinia";
+import SaveOrUpdateSource from "/@/views/api/dataSource/EditDataSource.vue";
 // 定义变量内容
 const storesThemeConfig = useThemeConfig();
 const {themeConfig} = storeToRefs(storesThemeConfig);
@@ -145,6 +133,7 @@ const state = reactive({
   tableForm: {
     source_id: null,
     databases: null,
+    table: null,
   },
 
   // column
@@ -166,12 +155,13 @@ const getSourceList = () => {
 }
 
 // source 变更
-const sourceChange = (value: string) => {
+const sourceChange = (value: any) => {
   state.dbForm.source_id = state.tableForm.source_id = value
   if (!value) {
     state.sourceForm.id = null
     state.dbList = []
     state.tableList = []
+    state.currentDBRow = {}
   } else {
     getDBList()
   }
@@ -186,25 +176,31 @@ const getDBList = () => {
 
 // 点击数据库
 const clickDB = async (row: any, column: any, event: any) => {
+  console.log("clickDB", row, column, event)
   let iconInfo = event.currentTarget.querySelector(".el-table__expand-icon")
   if (iconInfo) {
     iconInfo.click();
   }
   if (row.type === "database") {
+    let data: any
+    if (row.db_data) {
+      data = row.db_data
+    } else {
+      let dbs = await getColumnList()
+      row.db_data = data = {
+        database: row.name,
+        source_id: state.sourceForm.id,
+        dbs: [{dbName: row.name, tables: dbs}]
+      }
+    }
     state.currentDBRow = row
     state.tableForm.databases = row.name
-    let dbs = await getColumnList()
-    let data = {
-      database: state.currentDBRow.name,
-      source_id: state.sourceForm.id,
-      dbs: [{dbName: row.name, tables: dbs}]
-    }
     mittBus.emit("setSourceInfo", data)
   }
 }
 
 // 加载数据库列表
-const getTableList = async (databases: string = "") => {
+const getTableList = async (databases: any = "") => {
   if (databases) state.tableForm.databases = databases
   let res = await useQueryDBApi().getTableList(state.tableForm)
   return res.data
@@ -218,7 +214,7 @@ const loadTableList = async (row: any, treeNode: unknown, resolve: (date: any) =
 }
 
 // 获取字段列表
-const getColumnList = async (table: any) => {
+const getColumnList = async (table: any = null) => {
   if (table) {
     state.tableForm.table = table
   } else {
@@ -228,21 +224,9 @@ const getColumnList = async (table: any) => {
   return res.data
 }
 
-const handleCheckChange = (
-  data: any,
-  checked: boolean,
-  indeterminate: boolean
-) => {
-  console.log(data, checked, indeterminate)
-}
-
 // 打开数据源新增页面
 const handelCreatePage = () => {
   saveOrUpdateRef.value.openDialog("save")
-}
-
-const saveOrUpdateSource = () => {
-  useQueryDBApi().saveOrUpdate()
 }
 
 const rowContextmenu = (row: any, column: any, event: any) => {

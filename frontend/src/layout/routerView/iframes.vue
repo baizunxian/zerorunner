@@ -34,7 +34,7 @@ const props = defineProps({
 	// 过渡动画 name
 	name: {
 		type: String,
-		default: () => 'slide-right',
+		default: () => 'default',
 	},
 	// iframe 列表
 	list: {

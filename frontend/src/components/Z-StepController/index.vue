@@ -2,28 +2,28 @@
   <div class="h100" id="stepController" style="overflow-y: auto">
     <el-backtop :right="200" :bottom="200" :visibility-height="10" target="#stepController"/>
     <div class="h100" style="overflow-y: auto;">
-<!--      <el-dropdown style="padding-left: 33px">-->
-<!--        <el-button type="primary">-->
-<!--          {{ `添加${use_type === 'case' ? '步骤' : 'Hook'}` }}-->
-<!--          <el-icon class="el-icon&#45;&#45;right">-->
-<!--            <arrowDown/>-->
-<!--          </el-icon>-->
-<!--        </el-button>-->
-<!--        <template #dropdown>-->
-<!--          <el-dropdown-menu>-->
-<!--            <el-dropdown-item v-for="(value, key)  in state.optTypes"-->
-<!--                              :key="key"-->
-<!--                              style="margin: 5px 0"-->
-<!--                              :style="{ color: getStepTypeInfo(key,'color')}"-->
-<!--                              @click="handleAddData(key)">-->
-<!--              <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"-->
-<!--                 :style="{color:getStepTypeInfo(key,'color')}"></i>-->
-<!--              {{ value }}-->
-<!--            </el-dropdown-item>-->
+      <!--      <el-dropdown style="padding-left: 33px">-->
+      <!--        <el-button type="primary">-->
+      <!--          {{ `添加${use_type === 'case' ? '步骤' : 'Hook'}` }}-->
+      <!--          <el-icon class="el-icon&#45;&#45;right">-->
+      <!--            <arrowDown/>-->
+      <!--          </el-icon>-->
+      <!--        </el-button>-->
+      <!--        <template #dropdown>-->
+      <!--          <el-dropdown-menu>-->
+      <!--            <el-dropdown-item v-for="(value, key)  in state.optTypes"-->
+      <!--                              :key="key"-->
+      <!--                              style="margin: 5px 0"-->
+      <!--                              :style="{ color: getStepTypeInfo(key,'color')}"-->
+      <!--                              @click="handleAddData(key)">-->
+      <!--              <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"-->
+      <!--                 :style="{color:getStepTypeInfo(key,'color')}"></i>-->
+      <!--              {{ value }}-->
+      <!--            </el-dropdown-item>-->
 
-<!--          </el-dropdown-menu>-->
-<!--        </template>-->
-<!--      </el-dropdown>-->
+      <!--          </el-dropdown-menu>-->
+      <!--        </template>-->
+      <!--      </el-dropdown>-->
 
       <el-tree
           ref="stepTreeRef"
@@ -49,19 +49,7 @@
       <el-backtop target=".el-tree"/>
     </div>
 
-    <el-dialog
-        draggable
-        title="添加接口"
-        v-model="state.showApioInfo"
-        width="60%">
-      <SelectCase ref="selectApiRef"></SelectCase>
-      <template #footer>
-      <span class="dialog-footer">
-        <el-button type="primary" @click="addApiStep">添加</el-button>
-      </span>
-      </template>
-    </el-dialog>
-
+    <SelectCase ref="selectApiRef" @addApiStep="addApiStep"></SelectCase>
     <ApiInfoController ref="ApiInfoControllerRef"></ApiInfoController>
 
   </div>
@@ -77,7 +65,6 @@ import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
 import {ArrowDown} from '@element-plus/icons-vue'
 import ApiInfoController from "./apiInfo/ApiInfoController.vue"
 
-const ApiInfoControllerRef = ref()
 
 const emit = defineEmits([])
 
@@ -100,11 +87,12 @@ const props = defineProps({
   }
 })
 
-
+const ApiInfoControllerRef = ref()
 const route = useRoute()
 const router = useRouter()
 const selectApiRef = ref()
 const stepTreeRef = ref()
+
 const state = reactive({
   // data
   optType: "script",
@@ -160,7 +148,7 @@ const handleAddData = async (optType: string) => {
     let stepData = await getAddData(optType)
     appendTreeDate(stepData)
   } else {
-    state.showApioInfo = true
+    selectApiRef.value.onOpenApiList()
   }
 }
 
@@ -229,15 +217,15 @@ const getAddData = (optType: string) => {
     }
 
   }
-      // else if (optType === "extract") {
-      //   data = {
-      //     id: id,
-      //     name: name,
-      //     value: null,
-      //     json_path_list: [],
-      //     step_type: "extract",
-      //     enable: true
-      //   }
+    // else if (optType === "extract") {
+    //   data = {
+    //     id: id,
+    //     name: name,
+    //     value: null,
+    //     json_path_list: [],
+    //     step_type: "extract",
+    //     enable: true
+    //   }
   // }
   else if (optType === "if") {
     data.if_request = {
@@ -266,7 +254,7 @@ const getAddData = (optType: string) => {
       while_timeout: 0
     }
   } else if (optType === "api") {
-    state.showApioInfo = true
+    selectApiRef.value.onOpenApiList()
   }
   return data
 }
@@ -322,6 +310,10 @@ defineExpose({
 
 <style lang="scss" scoped>
 
+:deep(.el-overlay .el-dialog .el-dialog__body) {
+  padding: 0 !important;
+}
+
 // el-terr
 :deep(.el-tree-node__content) {
   height: 100%;
@@ -339,10 +331,6 @@ defineExpose({
 :deep(.el-input--small .el-input__inner) {
   --el-input-inner-height: calc(var(--el-input-height, 24px) - 1px);
 }
-</style>
-
-
-<style lang="scss" scoped>
 
 .el-tree {
   padding: 10px;
