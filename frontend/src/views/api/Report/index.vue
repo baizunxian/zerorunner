@@ -66,7 +66,7 @@ const state = reactive({
     },
     {
       key: 'run_type',
-      label: '任务类型',
+      label: '运行类型',
       width: '',
       align: 'center',
       showTooltip: true,

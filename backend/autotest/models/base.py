@@ -1,5 +1,6 @@
 import typing
 
+from loguru import logger
 from sqlalchemy import Column, Boolean, DateTime, Integer, func, select, update, delete, insert, Select, \
     Executable, Result, String, ClauseList
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -60,30 +61,16 @@ class Base:
         return await cls.get_result(stmt)
 
     @classmethod
-    async def create_or_update(cls,
-                               params: typing.Union[typing.Dict],
-                               is_async=False) -> typing.Dict[typing.Text, typing.Any]:
+    async def create_or_update(cls, params: typing.Union[typing.Dict]) -> typing.Dict[typing.Text, typing.Any]:
         """
         :param params: 更新数据 dict
-        :param is_async: 是否异步
         :return: 更新后的数据 dict
         """
         if not isinstance(params, dict):
             raise ValueError("更新参数错误！")
         params = {key: value for key, value in params.items() if hasattr(cls, key)}
         id = params.get("id", None)
-        if g.trace_id:
-            params['trace_id'] = g.trace_id
-        if not is_async:
-            try:
-                current_user_info = await current_user(g.token)
-            except AccessTokenFail as err:
-                current_user_info = None
-            if current_user_info:
-                current_user_id = current_user_info.get("id", None)
-                params["updated_by"] = current_user_id
-                if not id:
-                    params["created_by"] = current_user_id
+        params = await cls.handle_params(params)
         if id:
             stmt = update(cls).where(cls.id == id).values(**params)
         else:
@@ -111,6 +98,7 @@ class Base:
         result = await cls.execute(stmt)
         (primary_key,) = result.inserted_primary_key
         params["id"] = primary_key
+        params = cls.handle_params(params)
         return cls(**params) if not to_dict else params
 
     @classmethod
@@ -128,23 +116,32 @@ class Base:
         return result.rowcount
 
     @classmethod
-    async def handle_params(cls, params: typing.List) -> typing.List:
+    async def handle_params(cls, params: typing.Union[typing.List, typing.Dict]) -> typing.Any:
         """
         :param params: 参数列表
         :return: 过滤好的参数
         """
         if isinstance(params, dict):
             params = {key: value for key, value in params.items() if hasattr(cls, key)}
+            id = params.get("id", None)
+            params['trace_id'] = g.trace_id
             try:
                 current_user_info = await current_user(g.token)
             except AccessTokenFail as err:
+                logger.debug(f"获取用户信息失败: {err}")
                 current_user_info = None
             if current_user_info:
                 current_user_id = current_user_info.get("id", None)
                 params["updated_by"] = current_user_id
-                params["created_by"] = current_user_id
+                if not id:
+                    params["created_by"] = current_user_id
+            else:
+                params["updated_by"] = -1  # -1 代表系统
+                params["created_by"] = -1  # -1 代表系统
         elif isinstance(params, list):
             params = [await cls.handle_params(p) for p in params]
+        else:
+            raise ValueError("参数错误")
         return params
 
     @classmethod

@@ -143,7 +143,7 @@ class TimedTasksService:
             return timed_task
         except Exception as err:
             logger.error(f"保存定时任务错误：\n{traceback.format_exc()}")
-            raise ValueError(f"保存定时任务错误: \n{err}")
+            raise ValueError(f"保存定时任务错误: \n{str(err)}")
 
     @staticmethod
     async def deleted(params: TimedTasksId) -> int:
