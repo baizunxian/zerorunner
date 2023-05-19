@@ -82,9 +82,7 @@ const route = useRoute();
 const router = useRouter();
 const EnvInfoRef = ref()
 const httpConfigRef = ref()
-const databaseConfigRef = ref()
 const commonConfigRef = ref()
-const funcConfigRef = ref()
 const state = reactive({
   isShowDialog: false,
   activeName: 'httpConfig',
@@ -98,8 +96,6 @@ const saveOrUpdate = () => {
     let msgData = EnvInfoRef.value.getData()
     let httpData = httpConfigRef.value.getData()
     let commonData = commonConfigRef.value.getData()
-    let FuncConfig = funcConfigRef.value.getData()
-    // let databaseData = databaseConfigRef.value.getData()
 
     // 组装表单
     let form = {
@@ -113,10 +109,10 @@ const saveOrUpdate = () => {
     // 保存用例
     useEnvApi().saveOrUpdate(form).then(res => {
       ElMessage.success('保存成功！')
-      let case_id = res.data
-      EnvInfoRef.value.setId(case_id)
+      EnvInfoRef.value.setId(res.data.id)
     })
   } catch (err: any) {
+    console.log(err)
     ElMessage.info(err || '信息表单填写不完整')
   }
 }
@@ -130,14 +126,11 @@ const setData = async () => {
   EnvInfoRef.value.setData(data)
   httpConfigRef.value.setData(data)
   commonConfigRef.value.setData(data)
-  databaseConfigRef.value.setData(data)
-  funcConfigRef.value.setData(data)
 }
 
-// 返回到列表
-const goBack = () => {
-  router.push({name: 'apiTestCase'})
-}
+defineExpose({
+  saveOrUpdate
+})
 
 onMounted(() => {
   setData()

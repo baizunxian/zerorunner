@@ -14,6 +14,7 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
+          ref="tableRef"
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
           :total="state.total"
@@ -159,6 +160,7 @@ import {formatLookup} from "/@/utils/lookup";
 
 
 const lookupFormRef = ref();
+const tableRef = ref();
 // const store = useStore();
 // const lookupInfo = store.state.lookup.lookup;
 const state = reactive({
@@ -206,7 +208,6 @@ const state = reactive({
   ],
   // list
   listData: [],
-  tableLoading: false,
   total: 0,
   listQuery: {
     page: 1,
@@ -248,12 +249,14 @@ const state = reactive({
 });
 // 获取数据字典列表
 const getList = () => {
-  state.tableLoading = true
+  tableRef.value.openLoading()
   useLookupApi().getLookupList(state.listQuery)
       .then(res => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
-        state.tableLoading = false
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
       })
 };
 

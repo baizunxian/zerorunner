@@ -772,7 +772,7 @@ class Env(Base):
     async def get_env_by_name(cls, name):
         """根据环境名称获取环境"""
         stmt = select(cls).where(cls.name == name, cls.enabled_flag == 1)
-        await cls.get_result(stmt, first=True)
+        return await cls.get_result(stmt, first=True)
 
 
 class EnvDataSource(Base):

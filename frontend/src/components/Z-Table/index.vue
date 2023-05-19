@@ -6,7 +6,7 @@
       v-bind="options"
       :load="load"
       :border="border"
-      v-loading="loading"
+      v-loading="tableLoading"
       row-class-name="d-row-class-name"
       :lazy="lazy"
       @selection-change="handleSelectionChange"
@@ -152,7 +152,7 @@
   </div>
 </template>
 <script setup lang="ts" name="z-table">
-import {defineAsyncComponent} from 'vue'
+import {computed, defineAsyncComponent, reactive} from 'vue'
 import {formatLookup} from '/@/utils/lookup'
 
 const Expand = defineAsyncComponent(() => import("./expand.vue"))
@@ -260,8 +260,18 @@ const props = defineProps({
   },
   loading: {
     type: Boolean,
-    default: false
+    default: () => {
+      return false
+    }
   }
+})
+
+const state = reactive({
+  tableLoading: false,
+})
+
+const tableLoading = computed(() => {
+  return props.loading || state.tableLoading
 })
 
 const emit = defineEmits([
@@ -324,9 +334,26 @@ const handleRow = (row: any, key: string, lookupCode: string) => {
   }
 }
 
-// onMounted(() => {
-//   console.log("props-------->", props)
-// })
+const openLoading = () => {
+  if (props.loading) {
+    emit('update:loading', true)
+  } else {
+    state.tableLoading = true
+  }
+}
+
+const closeLoading = () => {
+  if (props.loading) {
+    emit('update:loading', false)
+  } else {
+    state.tableLoading = false
+  }
+}
+
+defineExpose({
+  openLoading,
+  closeLoading
+})
 
 
 </script>

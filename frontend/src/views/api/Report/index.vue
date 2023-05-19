@@ -25,6 +25,7 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
+          ref="tableRef"
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
           v-model:total="state.total"
@@ -45,6 +46,7 @@ import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDeta
 
 
 const reportDetailRef = ref()
+const tableRef = ref()
 const state = reactive({
   columns: [
     {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
@@ -126,12 +128,15 @@ const state = reactive({
 
 // 获取列表
 const getList = () => {
-  state.tableLoading = true;
-  useReportApi().getList(state.listQuery).then(res => {
-    state.listData = res.data.rows
-    state.total = res.data.rowTotal
-    state.tableLoading = false
-  });
+  tableRef.value.openLoading()
+  useReportApi().getList(state.listQuery)
+      .then(res => {
+        state.listData = res.data.rows
+        state.total = res.data.rowTotal
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
+      });
 };
 
 // 查询

@@ -47,7 +47,7 @@ const setData = (data: any) => {
 }
 
 // 回填id
-const setId = (id: number | null) => {
+const setId = (id: any) => {
   state.data.id = id
 }
 
@@ -58,6 +58,7 @@ onMounted(() => {
 defineExpose({
   setData,
   getData,
+  setId,
 })
 
 </script>

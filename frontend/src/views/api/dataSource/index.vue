@@ -17,6 +17,7 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
+          ref="tableRef"
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
           :total="state.total"
@@ -38,6 +39,7 @@ import EditDataSource from "./EditDataSource.vue";
 const emit = defineEmits(["selectionChange"])
 
 const EditDataSourceRef = ref();
+const tableRef = ref();
 const state = reactive({
   columns: [
     {label: '', columnType: 'selection', width: 'auto', show: true},
@@ -97,11 +99,14 @@ const state = reactive({
 // 初始化表格数据
 const getList = () => {
   state.tableLoading = true
+  tableRef.value.openLoading()
   useQueryDBApi().getSourceList(state.listQuery)
       .then(res => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
-        state.tableLoading = false
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
       })
 };
 

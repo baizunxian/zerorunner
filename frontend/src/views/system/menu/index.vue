@@ -12,6 +12,7 @@
       <z-table
           :columns="state.columns"
           :data="state.menuList"
+          ref="tableRef"
           :row-key="'id'"
           :showPage="false"
           v-model:page-size="state.listQuery.pageSize"
@@ -37,6 +38,7 @@ import EditMenu from '/@/views/system/menu/EditMenu.vue';
 
 
 const EditRef = ref();
+const tableRef = ref();
 const state = reactive({
   columns: [
     {
@@ -75,7 +77,6 @@ const state = reactive({
   // list
   menuList: [],
   allMenuList: null,
-  menuTableLoading: false,
   listQuery: {
     page: 1,
     pageSize: 200,
@@ -99,7 +100,7 @@ const menuAssembly = (parent_menu: Array<object>, all_menu: Array<object>) => {
 
 // 获取菜单列表
 const getList = async () => {
-  state.menuTableLoading = true
+  tableRef.value.openLoading()
   let res = await useMenuApi().allMenu({})
   state.allMenuList = res.data
   let parent_menu: any = []
@@ -109,7 +110,7 @@ const getList = async () => {
     }
   })
   menuAssembly(parent_menu, res.data)
-  state.menuTableLoading = false
+  tableRef.value.closeLoading()
 };
 // 打开新增菜单弹窗
 // const onOpenAddMenu = () => {

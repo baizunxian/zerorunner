@@ -11,6 +11,7 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
+          ref="tableRef"
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
           :total="state.total"
@@ -29,6 +30,7 @@ import {useRolesApi} from "/@/api/useSystemApi/roles";
 
 
 const SaveOrUpdateRoleRef = ref();
+const tableRef = ref();
 const state = reactive({
   columns: [
     {
@@ -85,12 +87,14 @@ const state = reactive({
 });
 // 初始化表格数据
 const getList = () => {
-  state.tableLoading = true
+  tableRef.value.openLoading()
   useRolesApi().getList(state.listQuery)
       .then(res => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
-        state.tableLoading = false
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
       })
 };
 

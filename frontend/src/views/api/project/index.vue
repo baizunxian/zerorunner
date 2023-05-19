@@ -10,6 +10,7 @@
       </div>
       <z-table
           :columns="state.columns"
+          ref="tableRef"
           :data="state.listData"
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
@@ -31,6 +32,7 @@ import {useProjectApi} from "/@/api/useAutoApi/project";
 const Edit = defineAsyncComponent(() => import("./EditProject.vue"))
 
 // 自定义数据
+const tableRef = ref();
 const EditRef = ref();
 const state = reactive({
   columns: [
@@ -76,7 +78,6 @@ const state = reactive({
     },
   ],
   listData: [],
-  tableLoading: false,
   total: 0,
   listQuery: {
     page: 1,
@@ -87,12 +88,15 @@ const state = reactive({
 
 // 初始化表格数据
 const getList = () => {
-  state.tableLoading = true
+  tableRef.value.openLoading()
   useProjectApi().getList(state.listQuery)
       .then(res => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
-        state.tableLoading = false
+        tableRef.value.closeLoading()
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
       })
 };
 // 查询

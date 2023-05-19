@@ -31,6 +31,7 @@
         <z-table
             :columns="state.columns"
             :data="state.listData"
+            ref="tableRef"
             v-model:page-size="state.listQuery.pageSize"
             v-model:page="state.listQuery.page"
             :total="state.total"
@@ -182,7 +183,7 @@ const ReportDetail = defineAsyncComponent(() => import("/@/components/Z-Report/A
 
 const reportDetailRef = ref();
 const importFormRef = ref();
-const uploadRef = ref();
+const tableRef = ref();
 const router = useRouter();
 
 const state = reactive({
@@ -302,13 +303,15 @@ const state = reactive({
 
 // 初始化表格数据
 const getList = () => {
-  state.tableLoading = true
+  tableRef.value.openLoading()
   useApiInfoApi().getList(state.listQuery)
     .then(res => {
       state.listData = res.data.rows
       state.total = res.data.rowTotal
-      state.tableLoading = false
-    })
+      tableRef.value.closeLoading()
+    }).catch(()  =>{
+        tableRef.value.closeLoading()
+  })
 };
 
 // 选择用例
