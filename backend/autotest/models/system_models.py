@@ -247,7 +247,7 @@ class LookupValue(Base):
         if lookup_code:
             q.append(cls.lookup_code == lookup_code)
         stmt = select(cls.get_table_columns()).where(*q) \
-            .odery_by(cls.id.desc())
+            .order_by(cls.id.desc())
         return await cls.get_result(stmt, True)
 
 
