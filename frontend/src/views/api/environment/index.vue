@@ -9,6 +9,7 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
+          ref="tableRef"
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
           :total="state.total"
@@ -41,12 +42,13 @@ import {useRouter} from "vue-router";
 import EditEnv from './components/EditEnv.vue';
 
 const EditEnvRef = ref();
+const tableRef = ref();
 const router = useRouter();
 const state = reactive({
   columns: [
     {label: '序号', columnType: 'index', width: 'auto', align: 'center', show: true},
     {
-      key: 'name', label: '配置名称', width: '', align: 'center', show: true,
+      key: 'name', label: '环境名称', width: '', align: 'center', show: true,
       render: (row: any) => h(ElButton, {
         link: true,
         type: "primary",
@@ -82,7 +84,6 @@ const state = reactive({
   ],
   // list
   listData: [],
-  tableLoading: false,
   total: 0,
   listQuery: {
     page: 1,
@@ -97,12 +98,14 @@ const state = reactive({
 });
 // 初始化表格数据
 const getList = () => {
-  state.tableLoading = true
+  tableRef.value.openLoading()
   useEnvApi().getList(state.listQuery)
       .then(res => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
-        state.tableLoading = false
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
       })
 };
 

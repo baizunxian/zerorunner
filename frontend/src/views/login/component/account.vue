@@ -11,9 +11,7 @@
       </el-input>
     </el-form-item>
     <el-form-item class="login-animation2">
-      <el-input :type="state.isShowPassword ? 'text' : 'password'"
-                placeholder="密码：123456"
-                @keyup.enter.native="onSignIn"
+      <el-input :type="state.isShowPassword ? 'text' : 'password'" placeholder="密码：123456"
                 v-model="state.ruleForm.password" autocomplete="off">
         <template #prefix>
           <el-icon class="el-input__icon">

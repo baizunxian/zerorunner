@@ -12,6 +12,7 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
+          ref="tableRef"
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
           :total="state.total"
@@ -52,9 +53,9 @@ interface listQueryRow {
 }
 
 interface StateRow {
+  columns: Array<any>;
   fieldData: Array<any>;
   listData: Array<TableDataRow>;
-  tableLoading: boolean;
   total: number;
   listQuery: listQueryRow;
   roleList: Array<any>;
@@ -63,6 +64,7 @@ interface StateRow {
 
 
 const SaveOrUpdateUserRef = ref()
+const tableRef = ref()
 
 const state = reactive<StateRow>({
   columns: [
@@ -93,7 +95,6 @@ const state = reactive<StateRow>({
   ],
   // list
   listData: [],
-  tableLoading: false,
   total: 0,
   listQuery: {
     page: 1,
@@ -109,12 +110,14 @@ const state = reactive<StateRow>({
 });
 // 获取用户数据
 const getList = () => {
-  state.tableLoading = true
+  tableRef.value.openLoading()
   useUserApi().getList(state.listQuery)
       .then(res => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
-        state.tableLoading = false
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
       })
 };
 

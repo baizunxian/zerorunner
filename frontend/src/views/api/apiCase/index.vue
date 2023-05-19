@@ -13,6 +13,7 @@
             :data="state.listData"
             v-model:page-size="state.listQuery.pageSize"
             v-model:page="state.listQuery.page"
+            ref="tableRef"
             :total="state.total"
             @pagination-change="getList"
         />
@@ -63,7 +64,7 @@ import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRouter} from 'vue-router'
 import {useEnvApi} from "/@/api/useAutoApi/env";
 
-const saveOrUpdateRef = ref();
+const tableRef = ref();
 const router = useRouter();
 const state = reactive({
   columns: [
@@ -111,7 +112,6 @@ const state = reactive({
   ],
   // list
   listData: [],
-  tableLoading: false,
   total: 0,
   listQuery: {
     page: 1,
@@ -132,12 +132,14 @@ const state = reactive({
 });
 // 初始化表格数据
 const getList = () => {
-  state.tableLoading = true
+  tableRef.value.openLoading()
   useApiCaseApi().getList(state.listQuery)
       .then(res => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
-        state.tableLoading = false
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
       })
 };
 

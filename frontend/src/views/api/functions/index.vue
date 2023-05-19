@@ -26,6 +26,7 @@
       <z-table
           :columns="state.columns"
           :data="state.listData"
+          ref="tableRef"
           v-model:page-size="state.listQuery.pageSize"
           v-model:page="state.listQuery.page"
           :total="state.total"
@@ -159,6 +160,7 @@ import {useRouter} from 'vue-router'
 
 const emit = defineEmits(["selectionChange"])
 
+const tableRef = ref()
 const router = useRouter();
 const {copyText} = commonFunction();
 const state = reactive({
@@ -202,7 +204,6 @@ const state = reactive({
   ],
   // list
   listData: [],
-  tableLoading: false,
   total: 0,
   listQuery: {
     page: 1,
@@ -242,12 +243,14 @@ const state = reactive({
 });
 // 初始化表格数据
 const getList = () => {
-  state.tableLoading = true
+  tableRef.value.openLoading()
   useFunctionsApi().getList(state.listQuery)
       .then(res => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
-        state.tableLoading = false
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
       })
 };
 
