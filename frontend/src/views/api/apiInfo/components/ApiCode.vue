@@ -38,9 +38,14 @@ const getData = () => {
   }
 }
 
+const getDataLength = () => {
+  return state.setup_code.length + state.teardown_code.length
+}
+
 defineExpose({
   setData,
   getData,
+  getDataLength,
 })
 
 </script>

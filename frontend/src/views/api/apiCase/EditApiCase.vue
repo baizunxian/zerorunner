@@ -140,23 +140,15 @@
         <el-tabs v-model="state.activeTabName" class="demo-tabs">
           <el-tab-pane label="变量" name="variable">
             <template #label>
-              <el-badge :hidden="!getDataLength('variables')"
-                        :value="getDataLength('variables')"
-                        class="badge-item"
-                        type="primary">
-                <strong>变量</strong>
-              </el-badge>
+              <strong>变量</strong>
+              <span class="ui-badge-circle" v-show="getDataLength('variables')">{{ getDataLength('variables') }}</span>
             </template>
             <VariableController :data="state.form.variables"></VariableController>
           </el-tab-pane>
           <el-tab-pane label="请求头" name="second">
             <template #label>
-              <el-badge :hidden="!getDataLength('headers')"
-                        :value="getDataLength('headers')"
-                        class="badge-item"
-                        type="primary">
-                <strong>请求头</strong>
-              </el-badge>
+              <strong>请求头</strong>
+              <span class="ui-badge-circle" v-show="getDataLength('headers')">{{ getDataLength('headers') }}</span>
             </template>
             <HeadersController :data="state.form.headers"></HeadersController>
           </el-tab-pane>
@@ -397,7 +389,7 @@ onMounted(() => {
 }
 
 :deep(.el-badge__content.is-fixed) {
-  top: 8px;
+  top: 10px;
   right: calc(-7px + var(--el-badge-size) / 2);
 }
 

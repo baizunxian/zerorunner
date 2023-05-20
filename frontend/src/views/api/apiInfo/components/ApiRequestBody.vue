@@ -443,9 +443,22 @@ watch(
     }
 );
 
+const getDataLength = () => {
+  let dataLength = 0
+  if (state.mode === 'form_data') {
+    dataLength = state.formData.length
+  } else if (state.mode === 'raw') {
+    dataLength = state.rawData.length
+  } else if (state.mode === 'none') {
+    dataLength = 0
+  }
+  return dataLength
+}
+
 defineExpose({
   setData,
   getData,
+  getDataLength,
 })
 
 </script>

@@ -57,7 +57,7 @@
           </el-col>
 
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
-            <el-form-item label="密码">
+            <el-form-item label="密码" prop="password">
               <el-input type="password" v-model="state.form.password" placeholder="请输入密码" clearable></el-input>
             </el-form-item>
           </el-col>
@@ -106,6 +106,8 @@ const state = reactive({
     host: [{required: true, message: '请选数据源地址', trigger: 'blur'},],
     env_id: [{required: true, message: '请选数环境', trigger: 'blur'},],
     port: [{required: true, message: '请输入端口号', trigger: 'blur'},],
+    user: [{required: true, message: '请输入用户名', trigger: 'blur'},],
+    password: [{required: true, message: '请输入密码', trigger: 'blur'},],
   },
 
   // environment

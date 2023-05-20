@@ -1,0 +1,25 @@
+.ui-badge-circle {
+  font-size: 12px;
+  display: inline-flex;
+  margin-left: 4px;
+  justify-content: center;
+  align-items: center;
+  max-width: 16px;
+  max-height: 16px;
+  border-radius: 100px;
+  padding: 0 4px;
+  color: var(--el-bg-color);
+  background-color: var(--el-color-primary);
+}
+
+.ui-badge-status-dot {
+  position: relative;
+  top: -1px;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 5px;
+  vertical-align: middle;
+  border-radius: 50%;
+  background: var(--el-color-primary);
+}
