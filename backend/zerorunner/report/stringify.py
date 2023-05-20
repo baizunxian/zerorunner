@@ -1,7 +1,11 @@
 import json
 import typing
 from base64 import b64encode
-from collections import Iterable
+
+try:
+    from collections import Iterable
+except ImportError:
+    from collections.abc import Iterable
 from json import JSONDecodeError
 from jinja2 import escape
 from requests.cookies import RequestsCookieJar
