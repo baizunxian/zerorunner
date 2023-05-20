@@ -15,7 +15,8 @@ class UserIn(BaseModel):
     user_type: str = Field(None, description='用户类型')
     remarks: str = Field(None, description='用户描述')
     avatar: str = Field(None, description='头像')
-    tags: str = Field(None, description='标签')
+    tags: typing.List = Field(None, description='标签')
+    roles: typing.List = Field(None, description='权限')
     password: str = Field(description='标签', default=decrypt_rsa_password("123456"))
 
 

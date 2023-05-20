@@ -98,7 +98,7 @@ const onSignIn = async () => {
         // Session.set('userInfo', res.data);
         await useUserInfo().setUserInfos();
         // await initBackEndControlRoutes();
-        await initFrontEndControlRoutes();
+        // await initFrontEndControlRoutes();
         signInSuccess(false);
       })
       .catch((e: any) => {

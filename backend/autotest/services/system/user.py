@@ -3,8 +3,6 @@ from datetime import datetime
 import traceback
 import uuid
 
-from fastapi.encoders import jsonable_encoder
-
 from autotest.corelibs import g
 from loguru import logger
 from autotest.corelibs.codes import CodeEnum
@@ -39,14 +37,12 @@ class UserService:
         if u_password != password:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         token = str(uuid.uuid4())
-        # 用户信息
-        if "roles" in user_info:
-            user_info['roles'] = []
         user_info['token'] = token
         login_time = default_serialize(datetime.now())
-        if "tags" in user_info:
-            tags = user_info.get("tags", None)
-            user_info["tags"] = tags.split(",") if tags else []
+        tags = user_info.get("tags", None)
+        roles = user_info.get("roles", None)
+        user_info["tags"] = tags if tags else []
+        user_info["roles"] = roles if roles else []
         await g.redis.set(TEST_USER_INFO.format(token), user_info, CACHE_DAY)
         logger.info('用户 [{}] 登录了系统'.format(user_info["username"]))
 
@@ -98,10 +94,10 @@ class UserService:
         """
         data = await User.get_list(params)
         for row in data.get("rows"):
-            if not row["roles"]:
-                row["roles"] = []
-            else:
-                row["roles"] = list(map(int, row["roles"].split(',')))
+            roles = row.get("roles", None)
+            tags = row.get("roles", None)
+            row["roles"] = roles if roles else []
+            row["tags"] = tags if tags else []
         return data
 
     @staticmethod
@@ -112,21 +108,16 @@ class UserService:
         :return:
         """
         if not params.id:
-            if User.get_user_by_name(params.username):
-                raise ValueError('用户名已存在！')
+            if User.get_user_by_name(params.nickname):
+                raise ValueError('用户昵称已存在！')
         else:
-            user_info = await User.get(params.id)
-            if user_info.username != params.username and User.get_user_by_name(params.username):
-                raise ValueError('用户名已存在！')
-            token = g.token
-            user_info = jsonable_encoder(user_info)
-            if 'roles' in user_info:
-                user_info['roles'] = list(map(int, user_info['roles'].split(","))) if user_info['roles'] else []
-            if 'tags' in user_info:
-                user_info['tags'] = user_info['tags'].split(",") if user_info['tags'] else []
-            await g.redis.set(TEST_USER_INFO.format(token), user_info, CACHE_DAY)
+            user_info = await User.get(params.id, to_dict=True)
+            if user_info['nickname'] != params.nickname and User.get_user_by_nickname(params.nickname):
+                raise ValueError('用户昵称已存在！')
         result = await User.create_or_update(params.dict())
-
+        current_user_info = await current_user()
+        if current_user_info.get("id") == params.id:
+            await g.redis.set(TEST_USER_INFO.format(g.token), result, CACHE_DAY)
         return result
 
     @staticmethod

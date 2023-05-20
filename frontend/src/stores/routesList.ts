@@ -9,6 +9,7 @@ import {defineStore} from 'pinia';
 export const useRoutesList = defineStore('routesList', {
   state: (): RoutesListState => ({
     routesList: [],
+    isGet: false,
     isColumnsMenuHover: false,
     isColumnsNavHover: false,
   }),
@@ -21,6 +22,9 @@ export const useRoutesList = defineStore('routesList', {
     },
     async setColumnsNavHover(bool: Boolean) {
       this.isColumnsNavHover = bool;
+    },
+    async setIsGet(bool: Boolean) {
+      this.isGet = bool;
     },
   },
 });

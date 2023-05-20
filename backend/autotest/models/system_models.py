@@ -3,7 +3,7 @@
 import typing
 import uuid
 
-from sqlalchemy import Column, String, Text, Integer, DateTime, select, update, BigInteger, Index
+from sqlalchemy import Column, String, Text, Integer, DateTime, select, update, BigInteger, Index, JSON
 from sqlalchemy.orm import aliased
 
 from autotest.models.base import Base
@@ -19,13 +19,13 @@ class User(Base):
     username = Column(String(64), nullable=False, comment='用户名', index=True)
     password = Column(Text, nullable=False, comment='密码')
     email = Column(String(64), nullable=True, comment='邮箱')
-    roles = Column(String, nullable=False, comment='用户类型')
+    roles = Column(JSON, nullable=False, comment='用户类型')
     status = Column(Integer, nullable=False, comment='用户状态  1 锁定， 0 正常', default=0)
     nickname = Column(String, nullable=False, comment='用户昵称')
     user_type = Column(String, nullable=False, comment='用户类型 10 管理人员, 20 测试人员', default=20)
     remarks = Column(String, nullable=False, comment='用户描述')
     avatar = Column(Text, nullable=False, comment='头像')
-    tags = Column(String, nullable=False, comment='标签')
+    tags = Column(JSON, nullable=False, comment='标签')
 
     @classmethod
     async def get_list(cls, params: UserQuery):
@@ -52,6 +52,11 @@ class User(Base):
     @classmethod
     async def get_user_by_name(cls, username: str):
         stmt = select(*cls.get_table_columns()).where(cls.username == username, cls.enabled_flag == 1)
+        return await cls.get_result(stmt, True)
+
+    @classmethod
+    async def get_user_by_nickname(cls, nickname: str):
+        stmt = select(*cls.get_table_columns()).where(cls.nickname == nickname, cls.enabled_flag == 1)
         return await cls.get_result(stmt, True)
 
 
