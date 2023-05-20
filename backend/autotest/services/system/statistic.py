@@ -4,7 +4,6 @@ from sqlalchemy import text
 
 from autotest.models.api_models import ProjectInfo, ModuleInfo, ApiInfo, ApiCase, ApiTestReport
 from autotest.models.sys_models import User
-from autotest.serialize.sys_serializes.statistic import StatisticProjectCaseNum, StatisticReportNum, StatisticReportRate
 from autotest.utils.basic_function import get_today_start, get_today_end
 
 

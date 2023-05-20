@@ -4,8 +4,7 @@ import uuid
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiInfo
 from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
-from autotest.schemas.api.test_report import TestReportSaveSchema
-from autotest.services.api.run_handle_new import HandleStepData, HandelRunApiStep
+from autotest.services.api.run_handle_new import HandelRunApiStep
 from autotest.services.api.test_report import ReportService
 from autotest.utils.serialize import default_serialize
 from zerorunner.loader import load_script_content
@@ -103,7 +102,7 @@ class ApiInfoService:
         summary = runner.run_tests(case_info.get_testcase())
         report_info = await ReportService.save_report(summary=summary,
                                                       run_mode='api',
-                                                      run_type=10,
+                                                      run_type=params.run_type,
                                                       project_id=case_info.api_info.project_id,
                                                       module_id=case_info.api_info.module_id,
                                                       env_id=case_info.api_info.env_id,

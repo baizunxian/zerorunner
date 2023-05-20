@@ -3,7 +3,6 @@ import typing
 
 from loguru import logger
 
-from autotest.corelibs.pagination import parse_pagination
 from autotest.models.system_models import Roles, User
 from autotest.schemas.system.roles import RoleQuery, RoleIn, RoleDel
 

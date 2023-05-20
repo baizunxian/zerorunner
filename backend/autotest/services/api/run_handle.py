@@ -5,13 +5,14 @@ import os
 import traceback
 import typing
 
-from config import config
 from loguru import logger
+
 from autotest.models.api_models import ApiInfo, Env, DataSource
 from autotest.models.system_models import FileInfo
 from autotest.schemas.api.api_case import TestCaseRun
 from autotest.schemas.api.api_info import ApiInfoRun, ApiBaseSchema
 from autotest.utils.serialize import default_serialize
+from config import config
 from zerorunner.loader import load_module_functions
 from zerorunner.models import (
     TApiController,

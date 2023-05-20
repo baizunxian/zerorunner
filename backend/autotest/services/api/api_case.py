@@ -1,7 +1,5 @@
-import time
 import typing
 
-from autotest.corelibs import g
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiCase
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \

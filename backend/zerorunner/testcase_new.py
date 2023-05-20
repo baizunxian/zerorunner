@@ -150,5 +150,5 @@ class ZeroRunner(object):
                 if not step.success:
                     summary.success = False
                     break
-        summary.start_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime(summary.start_time))
+        summary.start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(summary.start_time))
         return summary
