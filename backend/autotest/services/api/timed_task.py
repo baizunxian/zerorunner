@@ -110,7 +110,7 @@ class TimedTasksService:
             params.task = 'zerorunner.batch_async_run_testcase'
         if params.case_ids:
             params.case_ids = list(map(str, params.case_ids))
-        user_info = await current_user(g.token)
+        user_info = await current_user()
 
         try:
 
@@ -131,8 +131,8 @@ class TimedTasksService:
                 run_type=30,
                 run_mode=params.run_mode,
                 env_id=params.case_env_id,
-                ex_user_id=user_info.get("id"),
-                ex_user_name=user_info.get("nickname"),
+                exec_user_id=user_info.get("id"),
+                exec_user_name=user_info.get("nickname"),
             )
 
             params.case_ids = ','.join(params.case_ids)

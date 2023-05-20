@@ -51,7 +51,7 @@ class MenuService:
 
     @staticmethod
     async def set_menu_views(params: MenuViews):
-        current_user_info = await current_user(g.token)
+        current_user_info = await current_user()
         current_user_id = current_user_info.get("id", None)
         remote_addr = g.request.headers.get("X-Real-Ip", None)
         # remote_ip = g.request.remote_addr

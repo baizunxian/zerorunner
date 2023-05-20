@@ -89,10 +89,11 @@ class ApiInfoService:
         return api_info
 
     @staticmethod
-    async def run(params: ApiRunSchema):
+    async def run(params: ApiRunSchema, **kwargs) -> typing.Dict:
         """
         运行测试用例
         :param params:
+        :param kwargs:
         :return:
         """
         case_info = await ApiInfo.get(params.id)
@@ -106,6 +107,8 @@ class ApiInfoService:
                                                       project_id=case_info.api_info.project_id,
                                                       module_id=case_info.api_info.module_id,
                                                       env_id=case_info.api_info.env_id,
+                                                      exec_user_id=params.exec_user_id,
+                                                      exec_user_name=params.exec_user_name,
                                                       )
         return report_info
 

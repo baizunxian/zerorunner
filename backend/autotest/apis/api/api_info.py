@@ -6,6 +6,7 @@ from loguru import logger
 from autotest.corelibs.http_response import partner_success
 from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
 from autotest.services.api.api_info import ApiInfoService
+from autotest.utils import current_user
 from celery_worker.tasks.test_case import async_run_api
 
 router = APIRouter()
@@ -58,10 +59,15 @@ async def run_test(params: ApiRunSchema):
     运行用例
     :return:
     """
+    current_user_info = await current_user()
+    params.exec_user_id = current_user_info.get("id", None)
+    params.exec_user_name = current_user_info.get("nickname", None)
 
     if params.run_type == 20:
         logger.info('异步执行用例 ~')
-        async_run_api.delay(**params.dict())
+
+        params_dict = params.dict()
+        async_run_api.delay(**params_dict)
         return partner_success(code=0, msg='用例执行中，请稍后查看报告即可,默认模块名称命名报告')
     else:
         summary = await ApiInfoService.run(params)  # 初始化校验，避免生成用例是出错

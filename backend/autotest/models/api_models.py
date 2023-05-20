@@ -509,6 +509,8 @@ class ApiTestReport(Base):
     project_id = Column(Integer, nullable=True, comment='项目id')
     module_id = Column(Integer, nullable=True, comment='模块id')
     env_id = Column(Integer, nullable=True, comment='运行环境')
+    exec_user_id = Column(Integer, nullable=True, comment='执行人id')
+    exec_user_name = Column(String(255), nullable=True, comment='执行人昵称')
 
     @classmethod
     async def get_list(cls, params: TestReportQuery):
@@ -535,11 +537,7 @@ class ApiTestReport(Base):
             q.append(cls.creation_date.between(*params.min_and_max))
         if params.execute_user_name:
             q.append(User.nickname.like('%{}%'.format(params.execute_user_name)))
-        stmt = select(cls.get_table_columns(),
-                      User.nickname.label('run_user_name')) \
-            .where(*q) \
-            .outerjoin(User, User.id == cls.created_by) \
-            .order_by(cls.id.desc())
+        stmt = select(cls.get_table_columns()).where(*q).order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
     @classmethod
@@ -643,6 +641,8 @@ class ApiTestReportDetail:
                 response_time_ms = Column(DECIMAL(), nullable=True, comment='响应耗时')
                 elapsed_ms = Column(DECIMAL(), nullable=True, comment='请求耗时')
                 log = Column(Text, nullable=True, comment='运行日志')
+                exec_user_id = Column(Integer, nullable=True, comment='执行人id')
+                exec_user_name = Column(String(255), nullable=True, comment='执行人昵称')
 
                 @classmethod
                 async def get_list(cls, params: TestReportDetailQuery):

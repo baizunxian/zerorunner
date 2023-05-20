@@ -94,5 +94,5 @@ class TaskKwargsIn(BaseSchema):
     run_type: int = Field(None, description="运行类型")
     run_mode: str = Field(None, description="运行模式")
     env_id: int = Field(None, description="环境id")
-    ex_user_id: int = Field(None, description="执行人id")
-    ex_user_name: str = Field(None, description="执行人名称")
+    exec_user_id: int = Field(None, description="执行人id")
+    exec_user_name: str = Field(None, description="执行人名称")
