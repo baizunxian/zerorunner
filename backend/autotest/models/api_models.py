@@ -523,8 +523,6 @@ class ApiTestReport(Base):
             q.append(cls.project_id == params.project_id)
         if params.module_id:
             q.append(cls.module_id == params.module_id)
-        if params.run_user_name:
-            q.append(User.created_by.like('%{}%'.format(params.run_user_name)))
         if params.ids:
             q.append(cls.id.in_(params.ids))
         if params.user_ids:
@@ -535,8 +533,8 @@ class ApiTestReport(Base):
             q.append(cls.project_id.in_(params.project_ids))
         if params.min_and_max:
             q.append(cls.creation_date.between(*params.min_and_max))
-        if params.execute_user_name:
-            q.append(User.nickname.like('%{}%'.format(params.execute_user_name)))
+        if params.exec_user_name:
+            q.append(cls.exec_user_name.like('%{}%'.format(params.exec_user_name)))
         stmt = select(cls.get_table_columns()).where(*q).order_by(cls.id.desc())
         return await cls.pagination(stmt)
 

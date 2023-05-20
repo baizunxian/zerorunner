@@ -11,7 +11,7 @@
             @keyup.enter.native="search"/>
         <el-input
             clearable
-            v-model="state.listQuery.execute_user_name"
+            v-model="state.listQuery.exec_user_name"
             placeholder="输入执行人查询" style="width: 150px;"
             class="ml10"
             @keyup.enter.native="search"/>
@@ -117,8 +117,7 @@ const state = reactive({
     id: null,
     name: null,
     min_and_max: null,
-    execute_user_name: null,
-    responsible_name: null,
+    exec_user_name: null,
     status: null,
     ids: [],
   },
