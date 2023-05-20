@@ -143,7 +143,7 @@ const bindFuncs = () => {
       return e.id
     }),
   }
-  useEnvApi().bindingFuncs(form).then((res) => {
+  useEnvApi().bindingFuncs(form).then((res: any) => {
     state.showBindPage = false
     ElMessage.success("关联成功!")
     getBindFuncsList()
