@@ -373,7 +373,8 @@ const runApi = () => {
         reportDetailRef.value.showReport()
         state.showRunPage = !state.showRunPage;
       } else {
-        ElMessage.error(res.msg);
+        ElMessage.success(res.msg);
+        state.showRunPage = !state.showRunPage;
       }
       state.runApiLoading = !state.runApiLoading;
     })
