@@ -693,7 +693,7 @@ class ApiTestReportDetail:
                         # 错误步骤数
                         func.sum(func.if_(cls.status == "ERROR" == 1, 1, 0)).label("count_step_error"),
                         # 平均请求时长
-                        func.avg(cls.elapsed_ms).label("avg_request_time"),
+                        func.round(func.avg(cls.elapsed_ms), 2).label("avg_request_time"),
                         # 总执行时长
                         func.sum(cls.duration).label("count_request_time"),
                         # 用例数

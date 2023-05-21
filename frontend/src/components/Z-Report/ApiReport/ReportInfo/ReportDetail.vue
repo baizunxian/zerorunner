@@ -3,7 +3,7 @@
       draggable
       v-if="state.showReportDialog"
       v-model="state.showReportDialog"
-      width="80%"
+      width="90%"
       top="5vh"
       destroy-on-close
       :close-on-click-modal="false">
