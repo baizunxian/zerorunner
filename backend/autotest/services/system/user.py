@@ -210,7 +210,7 @@ class UserService:
             all_menu = await Menu.get_menu_all()
             menu_ids += [i["id"] for i in all_menu]
         else:
-            roles = await Roles.get_roles_by_ids(user_info.roles.split(",") if user_info.roles else [])
+            roles = await Roles.get_roles_by_ids(user_info.roles if user_info.roles else [])
             for i in roles:
                 menu_ids += list(map(int, i["menus"].split(',')))
             if not menu_ids:
