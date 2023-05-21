@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
+import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,9 +58,11 @@ async def login_verification(request: Request):
 
 def init_middleware(app: FastAPI):
     """"""
+
     @app.middleware("http")
     async def intercept(request: Request, call_next):
         g.trace_id = get_str_uuid()
+        start_time = time.time()
         token = request.headers.get("token", None)
         g.redis = app.state.redis
         g.token = token
@@ -72,4 +75,5 @@ def init_middleware(app: FastAPI):
             return partner_success(code=err.code, msg=err.msg)
         response = await call_next(request)
         response.headers["X-request-id"] = g.trace_id
+        logger.info(f"请求耗时： {time.time() - start_time}")
         return response

@@ -37,13 +37,18 @@ class UserService:
         if u_password != password:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         token = str(uuid.uuid4())
-        user_info['token'] = token
         login_time = default_serialize(datetime.now())
         tags = user_info.get("tags", None)
         roles = user_info.get("roles", None)
-        user_info["tags"] = tags if tags else []
-        user_info["roles"] = roles if roles else []
-        await g.redis.set(TEST_USER_INFO.format(token), user_info, CACHE_DAY)
+        token_user_info = {
+            "id": user_info["id"],
+            "token": token,
+            "login_time": login_time,
+            "username": user_info["username"],
+            "roles": roles if roles else [],
+            "tags": tags if tags else []
+        }
+        await g.redis.set(TEST_USER_INFO.format(token), token_user_info, CACHE_DAY)
         logger.info('用户 [{}] 登录了系统'.format(user_info["username"]))
 
         try:
@@ -62,7 +67,7 @@ class UserService:
             await UserService.user_login_record(params)
         except Exception as err:
             logger.error(f"登录日志记录错误\n{err}")
-        return user_info
+        return token_user_info
 
     @staticmethod
     async def logout():
@@ -117,7 +122,15 @@ class UserService:
         result = await User.create_or_update(params.dict())
         current_user_info = await current_user()
         if current_user_info.get("id") == params.id:
-            await g.redis.set(TEST_USER_INFO.format(g.token), result, CACHE_DAY)
+            token_user_info = {
+                "id": result["id"],
+                "token": current_user_info.get("token"),
+                "login_time": current_user_info.get("login_time"),
+                "username": result["username"],
+                "roles": result["roles"],
+                "tags": result["tags"]
+            }
+            await g.redis.set(TEST_USER_INFO.format(g.token), token_user_info, CACHE_DAY)
         return result
 
     @staticmethod
@@ -167,10 +180,21 @@ class UserService:
     @staticmethod
     async def get_user_info_by_token(token: str) -> typing.Union[typing.Dict[typing.Text, typing.Any], None]:
         """根据token获取用户信息"""
-        user_info = await g.redis.get(TEST_USER_INFO.format(token))
+        token_user_info = await g.redis.get(TEST_USER_INFO.format(token))
+        if not token_user_info:
+            raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
+        user_info = await User.get(token_user_info.get("id"))
         if not user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
-        return user_info
+        return {
+            "id": user_info.id,
+            "avatar": user_info.avatar,
+            "username": user_info.username,
+            "nickname": user_info.nickname,
+            "roles": user_info.roles,
+            "tags": user_info.tags,
+            "login_time": token_user_info.get("login_time", None)
+        }
 
     @staticmethod
     async def get_menu_by_token(token: str) -> typing.List[typing.Dict[typing.Text, typing.Any]]:
