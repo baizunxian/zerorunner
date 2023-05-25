@@ -45,6 +45,7 @@ class UserService:
             "token": token,
             "login_time": login_time,
             "username": user_info["username"],
+            "nickname": user_info["nickname"],
             "roles": roles if roles else [],
             "tags": tags if tags else []
         }
@@ -127,6 +128,7 @@ class UserService:
                 "token": current_user_info.get("token"),
                 "login_time": current_user_info.get("login_time"),
                 "username": result["username"],
+                "nickname": result["nickname"],
                 "roles": result["roles"],
                 "tags": result["tags"]
             }

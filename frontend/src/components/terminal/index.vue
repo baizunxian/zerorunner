@@ -66,7 +66,7 @@ const writeDefaultInfo = () => {
 
 const websocket = () => {
   if ('WebSocket' in window) {
-    let url = `ws://127.0.0.1:8100/api/ws/user1`
+    let url = `ws://127.0.0.1:8101/api/ws/user1`
     let ws = new WebSocket(url)
     stata.ws = ws
     nextTick(() => {

@@ -21,9 +21,9 @@ class User(Base):
     email = Column(String(64), nullable=True, comment='邮箱')
     roles = Column(JSON, nullable=False, comment='用户类型')
     status = Column(Integer, nullable=False, comment='用户状态  1 锁定， 0 正常', default=0)
-    nickname = Column(String, nullable=False, comment='用户昵称')
-    user_type = Column(String, nullable=False, comment='用户类型 10 管理人员, 20 测试人员', default=20)
-    remarks = Column(String, nullable=False, comment='用户描述')
+    nickname = Column(String(255), nullable=False, comment='用户昵称')
+    user_type = Column(Integer, nullable=False, comment='用户类型 10 管理人员, 20 测试人员', default=20)
+    remarks = Column(String(255), nullable=False, comment='用户描述')
     avatar = Column(Text, nullable=False, comment='头像')
     tags = Column(JSON, nullable=False, comment='标签')
 

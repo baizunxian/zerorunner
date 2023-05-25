@@ -160,9 +160,10 @@ const deleted = (row: TableDataRow) => {
 // 处理角色名称
 const handleRoles = (roles: any) => {
   let roleTagList: any[] = []
+  roles = roles? roles: []
   roles.forEach((role: any) => {
     let roleName = state.roleList.find(e => e.id == role)?.name
-    roleTagList.push(h(ElTag, null, roleName))
+    roleTagList.push(h(ElTag, null, () => roleName))
   })
   return h('div', null, roleTagList)
 }
