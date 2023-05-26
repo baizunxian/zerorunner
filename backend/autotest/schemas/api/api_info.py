@@ -67,9 +67,11 @@ class ApiRunSchema(BaseModel):
     ids: typing.List[int] = Field(None, description="ids")
     env_id: str = Field(None, description="环境id")
     name: str = Field(None, description="名称")
-    run_type: int = Field(None, description="运行类型")
+    run_type: int = Field(None, description="运行类型 10 同步， 20 异步")
     run_mode: str = Field(None, description="运行模式")
     number_of_run: int = Field(None, description="运行次数")
+    exec_user_id: int = Field(None, description="执行人id")
+    exec_user_name: str = Field(None, description="执行人")
 
     @root_validator
     def root_validator(cls, data):

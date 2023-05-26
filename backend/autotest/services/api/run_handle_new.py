@@ -5,15 +5,17 @@ import os
 import traceback
 import typing
 import uuid
+from json.decoder import JSONDecodeError
 
-from autotest.utils.des import decrypt_rsa_password
-from config import config
 from loguru import logger
+
 from autotest.models.api_models import Env, DataSource, ApiInfo, EnvFunc
 from autotest.models.system_models import FileInfo
 from autotest.schemas.api.api_case import TestCaseRun, TCaseStepData
 from autotest.schemas.api.api_info import ApiBaseSchema, ApiInfoIn
 from autotest.schemas.step_data import TStepData
+from autotest.utils.des import decrypt_rsa_password
+from config import config
 from zerorunner.loader import load_module_functions, load_func_content
 from zerorunner.model.base import TStepTypeEnum
 from zerorunner.model.step_model import TStep, TRequest, TSqlRequest, TIFRequest, TLoopRequest, TScriptRequest, \
@@ -26,7 +28,6 @@ from zerorunner.steps.step_loop_requet import RunLoopStep
 from zerorunner.steps.step_script_requet import RunScriptStep
 from zerorunner.steps.step_sql_request import RunSqlStep
 from zerorunner.steps.step_wait_requet import RunWaitStep
-from json.decoder import JSONDecodeError
 
 
 def parse_string_to_json(str_value: str):

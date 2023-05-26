@@ -4,6 +4,7 @@ import typing
 from uuid import uuid4
 
 from fastapi import WebSocket
+from loguru import logger
 
 from autotest.corelibs import g
 from autotest.db.redis import init_redis_pool
@@ -21,12 +22,14 @@ class ConnectionManager:
     async def connect(self, ws: WebSocket):
         # 等待连接
         g.trace_id = uuid4().hex
+        logger.info(f"用户{ws}连接成功")
         await ws.accept()
         # 存储ws连接对象
         self.active_connections.append(ws)
 
     def disconnect(self, ws: WebSocket):
         # 关闭时 移除ws对象
+        logger.info(f"用户{ws}断开连接")
         self.active_connections.remove(ws)
 
     @staticmethod

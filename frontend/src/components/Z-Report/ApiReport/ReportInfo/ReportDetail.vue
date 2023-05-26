@@ -3,7 +3,7 @@
       draggable
       v-if="state.showReportDialog"
       v-model="state.showReportDialog"
-      width="80%"
+      width="90%"
       top="5vh"
       destroy-on-close
       :close-on-click-modal="false">
@@ -17,7 +17,7 @@
     <div class="">
       <el-card style="margin-bottom: 10px">
         <ReportStatistics :data="state.statisticsData"
-                          :run_user_name="state.run_user_name"
+                          :exec_user_name="state.exec_user_name"
                           :start_time="state.start_time">
         </ReportStatistics>
       </el-card>
@@ -118,6 +118,11 @@ import {useReportApi} from "/@/api/useAutoApi/report";
 import {getMethodColor, getStatusTag} from "/@/utils/case"
 import ReportStatistics from "./ReportStatistics.vue"
 import {Promotion} from "@element-plus/icons-vue"
+import {useUserInfo} from '/@/stores/userInfo';
+import {storeToRefs} from "pinia";
+
+const stores = useUserInfo();
+const {userInfos} = storeToRefs(stores);
 
 const props = defineProps({
   reportInfo: {
@@ -237,8 +242,8 @@ const state = reactive({
   showLog: false,
   // report_info
   report_id: null,
-  start_time: null,
-  run_user_name: null,
+  start_time: "",
+  exec_user_name: "",
   // view
   viewErrOrFailApiStatus: false,
 
@@ -249,7 +254,8 @@ const state = reactive({
     name: null,
     api_name: null,
     url: null,
-    step_type: null,
+    step_type: "",
+    parent_step_id: null,
     status_list: []
   },
   tableLoading: false,
@@ -268,13 +274,15 @@ const state = reactive({
 })
 
 const initReport = () => {
+  state.start_time = props.reportInfo.start_time
+  state.exec_user_name = userInfos.value.nickname
   if (props.isDebug) {
     state.listData = props.reportInfo.step_results
     state.statisticsData = getStatisticsDataByDebug(props.reportInfo.step_results)
   } else {
     state.report_id = props.reportInfo.id
     state.start_time = props.reportInfo.start_time
-    state.run_user_name = props.reportInfo.run_user_name
+    state.exec_user_name = props.reportInfo.exec_user_name
     state.listQuery.id = state.report_id
     state.statQuery.id = state.report_id
     if (state.report_id) {
@@ -306,7 +314,6 @@ const getStatisticsDataByDebug = (step_results: Array<StepResult>) => {
 
   step_results.forEach((e: any) => {
     if (e.step_type == 'api') {
-      console.log("api", e)
       e.url = e.session_data.req_resp.request.url
       e.method = e.session_data.req_resp.request.method
       e.status_code = e.session_data.req_resp.response.status_code
@@ -348,7 +355,7 @@ const searchDetail = () => {
 
 // 查看错误或者失败的api
 const viewErrOrFailApi = (value: any) => {
-  state.listQuery.step_type = null
+  state.listQuery.step_type = ""
   state.listQuery.status_list = []
   if (value) {
     state.listQuery.step_type = "api"
@@ -372,7 +379,7 @@ const viewDetail = (row: any) => {
 
 // 获取子步骤数据
 const getChildrenData = async (row: any, treeNode: any, resolve: any) => {
-  state.listQuery.id = 3
+  state.listQuery.id = row.id
   state.listQuery.parent_step_id = row.step_id
   let res = await useReportApi().getReportDetail(state.listQuery)
   resolve(res.data.rows)

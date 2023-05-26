@@ -62,6 +62,7 @@ export async function initBackEndControlRoutes() {
 export async function setFilterMenuAndCacheTagsViewRoutes() {
   const storesRoutesList = useRoutesList(pinia);
   await storesRoutesList.setRoutesList(dynamicRoutes[0].children as any);
+  await storesRoutesList.setIsGet(true);
   setCacheTagsViewRoutes();
 }
 

@@ -26,6 +26,7 @@
                   <el-tab-pane name='ApiRequestBody'>
                     <template #label>
                       <strong>请求体</strong>
+                      <span class="ui-badge-status-dot" v-show="getDataLength('body')"></span>
                     </template>
                     <div class="case-tabs">
                       <ApiRequestBody ref="ApiRequestBodyRef" @updateHeader="updateHeader"/>
@@ -34,12 +35,8 @@
 
                   <el-tab-pane name='ApiRequestHeaders'>
                     <template #label>
-                      <el-badge :hidden="!getDataLength('header')"
-                                :value="getDataLength('header')"
-                                class="badge-item"
-                                type="primary">
-                        <strong>请求头</strong>
-                      </el-badge>
+                      <strong>请求头</strong>
+                      <span class="ui-badge-circle" v-show="getDataLength('header')">{{ getDataLength('header') }}</span>
                     </template>
                     <div class="case-tabs">
                       <ApiRequestHeaders ref="ApiRequestHeadersRef"/>
@@ -48,12 +45,8 @@
 
                   <el-tab-pane name='ApiVariables'>
                     <template #label>
-                      <el-badge :hidden="!getDataLength('variables')"
-                                :value="getDataLength('variables')"
-                                class="badge-item"
-                                type="primary">
-                        <strong>变量</strong>
-                      </el-badge>
+                      <strong>变量</strong>
+                      <span class="ui-badge-circle" v-show="getDataLength('variables')">{{ getDataLength('variables') }}</span>
                     </template>
                     <div class="case-tabs">
                       <ApiVariables ref="ApiVariablesRef"/>
@@ -62,11 +55,8 @@
 
                   <el-tab-pane name='extracts' class="h100">
                     <template #label>
-                      <el-badge :hidden="!getDataLength('extracts')"
-                                :value="getDataLength('extracts')"
-                                class="badge-item" type="primary">
-                        <strong>提取</strong>
-                      </el-badge>
+                      <strong>提取</strong>
+                      <span class="ui-badge-circle" v-show="getDataLength('extracts')">{{ getDataLength('extracts') }}</span>
                     </template>
                     <div class="case-tabs">
                       <ApiExtracts ref="ApiExtractsRef"/>
@@ -75,24 +65,16 @@
 
                   <el-tab-pane name='Code' class="h100">
                     <template #label>
-                      <!--                      <el-badge :hidden="!getDataLength('hook')"-->
-                      <!--                                :value="getDataLength('hook')"-->
-                      <!--                                class="badge-item"-->
-                      <!--                                type="primary">-->
                       <strong>Code</strong>
-                      <!--                      </el-badge>-->
+                      <span class="ui-badge-status-dot" v-show="getDataLength('code')"></span>
                     </template>
                     <ApiCode ref="ApiCodeRef"/>
                   </el-tab-pane>
 
                   <el-tab-pane name='Hook' class="h100">
                     <template #label>
-                      <el-badge :hidden="!getDataLength('hook')"
-                                :value="getDataLength('hook')"
-                                class="badge-item"
-                                type="primary">
-                        <strong>Hook</strong>
-                      </el-badge>
+                      <strong>Hook</strong>
+                      <span class="ui-badge-circle" v-show="getDataLength('hook')">{{ getDataLength('hook') }}</span>
                     </template>
                     <ApiHooks ref="ApiHookRef"/>
                   </el-tab-pane>
@@ -128,12 +110,8 @@
 
                   <el-tab-pane name='assertController' class="h100">
                     <template #label>
-                      <el-badge :hidden="!getDataLength('validators')"
-                                :value="getDataLength('validators')"
-                                class="badge-item"
-                                type="primary">
-                        <strong>断言规则</strong>
-                      </el-badge>
+                      <strong>断言规则</strong>
+                      <span class="ui-badge-circle" v-show="getDataLength('validators')">{{ getDataLength('validators') }}</span>
                     </template>
                     <div class="case-tabs">
                       <ApiValidators ref="ApiValidatorsRef"/>
@@ -306,10 +284,10 @@ const saveOrUpdateOrDebug = (type: string) => {
     // 保存用例
     if (type === 'save') {
       useApiInfoApi().saveOrUpdate(apiCaseData)
-        .then(res => {
-          ElMessage.success('保存成功！')
-          state.api_id = res.data.id
-        })
+          .then(res => {
+            ElMessage.success('保存成功！')
+            state.api_id = res.data.id
+          })
     } else {
       // testCaseData.type = type
       // testCaseData.base_url = urlForm.base_url
@@ -321,23 +299,23 @@ const saveOrUpdateOrDebug = (type: string) => {
         customClass: 'loading-class'
       })
       useApiInfoApi().debugApi(apiCaseData)
-        .then(res => {
-          state.reportData = null
+          .then(res => {
+            state.reportData = null
 
-          if (type === 'debug') {
-            console.log('-----------------debug---------------')
-            state.reportData = res.data
-            state.showReport = true
-            toResponse()
+            if (type === 'debug') {
+              console.log('-----------------debug---------------')
+              state.reportData = res.data
+              state.showReport = true
+              toResponse()
+              loading.close()
+            } else {
+              // this.drawer = true
+              loading.close()
+            }
+          })
+          .catch(() => {
             loading.close()
-          } else {
-            // this.drawer = true
-            loading.close()
-          }
-        })
-        .catch(() => {
-          loading.close()
-        })
+          })
     }
   } catch (err: any) {
     console.log(err)
@@ -359,20 +337,20 @@ const initApi = () => {
   if (api_id) {
     state.api_id = api_id
     useApiInfoApi().getApiInfo({id: state.api_id})
-      .then(res => {
-        let apiCaseData = res.data
-        ApiInfoRef.value.setData(apiCaseData)
-        ApiRequestBodyRef.value.setData(apiCaseData.request)
-        ApiRequestHeadersRef.value.setData(apiCaseData.headers)
-        ApiVariablesRef.value.setData(apiCaseData.variables)
-        ApiExtractsRef.value.setData(apiCaseData.extracts)
-        ApiValidatorsRef.value.setData(apiCaseData.validators)
-        ApiCodeRef.value.setData(apiCaseData.setup_code, apiCaseData.teardown_code)
-        // APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.api_id)
-        // APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.api_id)
-        ApiHookRef.value.setData(apiCaseData.setup_hooks, apiCaseData.teardown_hooks, state.api_id)
+        .then(res => {
+          let apiCaseData = res.data
+          ApiInfoRef.value.setData(apiCaseData)
+          ApiRequestBodyRef.value.setData(apiCaseData.request)
+          ApiRequestHeadersRef.value.setData(apiCaseData.headers)
+          ApiVariablesRef.value.setData(apiCaseData.variables)
+          ApiExtractsRef.value.setData(apiCaseData.extracts)
+          ApiValidatorsRef.value.setData(apiCaseData.validators)
+          ApiCodeRef.value.setData(apiCaseData.setup_code, apiCaseData.teardown_code)
+          // APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.api_id)
+          // APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.api_id)
+          ApiHookRef.value.setData(apiCaseData.setup_hooks, apiCaseData.teardown_hooks, state.api_id)
 
-      })
+        })
   } else {
     state.api_id = null
     state.reportData = null
@@ -396,6 +374,8 @@ const goBack = () => {
 
 const getDataLength = (ref: string) => {
   switch (ref) {
+    case "body":
+      return ApiRequestBodyRef?.value.getDataLength()
     case "header":
       return ApiRequestHeadersRef?.value.getDataLength()
     case "variables":
@@ -406,6 +386,8 @@ const getDataLength = (ref: string) => {
       return ApiExtractsRef.value.getDataLength()
     case "hook":
       return ApiHookRef.value.getDataLength()
+    case "code":
+      return ApiCodeRef.value.getDataLength()
     default:
       return 0
   }
@@ -430,10 +412,10 @@ const toResponse = () => {
 }
 
 watch(
-  () => props.api_id,
-  () => {
-    initApi()
-  },
+    () => props.api_id,
+    () => {
+      initApi()
+    },
 )
 
 onMounted(() => {
@@ -451,7 +433,7 @@ onMounted(() => {
 }
 
 :deep(.el-badge__content.is-fixed) {
-  top: 8px;
+  top: 10px;
   right: calc(-7px + var(--el-badge-size) / 2);
 }
 

@@ -78,11 +78,12 @@ const props = defineProps({
 })
 
 
-const route = useRoute();
-const router = useRouter();
 const EnvInfoRef = ref()
 const httpConfigRef = ref()
 const commonConfigRef = ref()
+const databaseConfigRef = ref()
+const funcConfigRef = ref()
+
 const state = reactive({
   isShowDialog: false,
   activeName: 'httpConfig',
@@ -126,6 +127,8 @@ const setData = async () => {
   EnvInfoRef.value.setData(data)
   httpConfigRef.value.setData(data)
   commonConfigRef.value.setData(data)
+  databaseConfigRef.value.setData(data)
+  funcConfigRef.value.setData(data)
 }
 
 defineExpose({

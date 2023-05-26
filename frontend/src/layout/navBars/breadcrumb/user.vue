@@ -236,7 +236,7 @@ onMounted(() => {
   }
 
   :deep(.el-badge__content.is-fixed) {
-    top: 12px;
+    top: 10px;
   }
 }
 </style>

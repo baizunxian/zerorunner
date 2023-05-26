@@ -1,6 +1,4 @@
-import typing
-
-from fastapi import APIRouter, UploadFile, Form, File
+from fastapi import APIRouter, UploadFile, File
 
 from autotest.corelibs.http_response import partner_success
 from autotest.schemas.system.file import FileId

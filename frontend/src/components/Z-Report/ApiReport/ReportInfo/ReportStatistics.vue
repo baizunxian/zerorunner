@@ -118,7 +118,7 @@
 
           <div class="echarts-item__info">
             <strong>执行人：</strong>
-            <span class="">{{ run_user_name }}</span>
+            <span class="">{{ exec_user_name }}</span>
           </div>
         </div>
 
@@ -160,7 +160,7 @@ const props = defineProps({
   start_time: {
     type: String
   },
-  run_user_name: {
+  exec_user_name: {
     type: String
   },
 })

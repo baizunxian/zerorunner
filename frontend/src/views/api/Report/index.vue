@@ -11,7 +11,7 @@
             @keyup.enter.native="search"/>
         <el-input
             clearable
-            v-model="state.listQuery.execute_user_name"
+            v-model="state.listQuery.exec_user_name"
             placeholder="输入执行人查询" style="width: 150px;"
             class="ml10"
             @keyup.enter.native="search"/>
@@ -87,7 +87,7 @@ const state = reactive({
     {key: 'run_success_count', label: '成功数', align: 'center', width: '', show: true},
     {key: 'duration', label: '运行耗时(秒)', align: 'center', width: '', show: true},
     {key: 'start_time', label: '运行时间', align: 'center', width: '150', show: true},
-    {key: 'run_user_name', label: '执行人', align: 'center', width: '', show: true},
+    {key: 'exec_user_name', label: '执行人', align: 'center', width: '', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
       render: (row: any) => h("div", null, [
@@ -117,8 +117,7 @@ const state = reactive({
     id: null,
     name: null,
     min_and_max: null,
-    execute_user_name: null,
-    responsible_name: null,
+    exec_user_name: null,
     status: null,
     ids: [],
   },

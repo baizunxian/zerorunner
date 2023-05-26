@@ -1,4 +1,3 @@
-import time
 import typing
 
 from autotest.exceptions.exceptions import ParameterError
@@ -8,6 +7,7 @@ from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, Te
 from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.api.test_report import ReportService
+from autotest.utils import current_user
 from autotest.utils.serialize import default_serialize
 from zerorunner.testcase_new import ZeroRunner
 
@@ -68,10 +68,12 @@ class ApiCaseService:
         runner = ZeroRunner()
         testcase = api_case_info.get_testcase()
         summary = runner.run_tests(testcase)
+        current_user_info = await current_user()
         summary_params = await ReportService.get_report_result(summary,
                                                                api_case_info.api_case.project_id,
                                                                api_case_info.api_case.module_id,
-                                                               api_case_info.api_case.env_id)
+                                                               api_case_info.api_case.env_id,
+                                                               ex_user_id=current_user_info.get("id", None))
         report_info = await ReportService.save_report(summary_params)
         report_id = report_info.get("id")
         await ReportService.save_report_detail(summary, report_id)

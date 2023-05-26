@@ -24,7 +24,9 @@ class ReportService:
                           run_type: int = 10,
                           project_id: int = None,
                           module_id: int = None,
-                          env_id: int = None) -> typing.Dict:
+                          env_id: int = None,
+                          **kwargs: typing.Any
+                          ) -> typing.Dict:
         """
         保存报告
         :param summary: 报告
@@ -35,6 +37,8 @@ class ReportService:
         :param env_id: 环境id
         :return:
         """
+        exec_user_id = kwargs.get("exec_user_id", None)
+        exec_user_name = kwargs.get("exec_user_name", None)
         report_info = TestReportSaveSchema(
             name=summary.name,
             start_time=summary.start_time,
@@ -52,11 +56,15 @@ class ReportService:
             run_log=summary.log,
             project_id=project_id,
             module_id=module_id,
-            env_id=env_id
+            env_id=env_id,
+            exec_user_id=exec_user_id,
+            exec_user_name=exec_user_name,
         )
 
         api_test_report = await ReportService.save_report_info(report_info)
-        await ReportService.save_report_detail(summary, api_test_report.get("id"))
+        await ReportService.save_report_detail(summary, api_test_report.get("id"),
+                                               exec_user_id=exec_user_id,
+                                               exec_user_name=exec_user_name)
 
         return api_test_report
 
@@ -67,19 +75,23 @@ class ReportService:
         return api_test_report
 
     @staticmethod
-    async def save_report_detail(summary: TestCaseSummary, report_id: typing.Union[int, str]):
+    async def save_report_detail(summary: TestCaseSummary, report_id: typing.Union[int, str], **kwargs: typing.Any):
         """
         报春报告详情
         :param summary: 报告结果
         :param report_id: 报告id
+        :param kwargs: kwargs
         :return:
         """
-
+        exec_user_id = kwargs.get("exec_user_id", None)
+        exec_user_name = kwargs.get("exec_user_name", None)
         step_results = ReportService.parser_summary(summary.step_results)
         for result in step_results:
             report_detail_info = ApiTestReportDetail.model(report_id)
             report_detail_info.id = None
             result["report_id"] = report_id
+            result["exec_user_id"] = exec_user_id
+            result["exec_user_name"] = exec_user_name
             await report_detail_info.create_or_update(result)
 
     @staticmethod
@@ -145,8 +157,11 @@ class ReportService:
         return data
 
     @staticmethod
-    async def get_report_result(summary: TestCaseSummary, project_id: int, module_id: int,
-                                env_id: int) -> TestReportSaveSchema:
+    async def get_report_result(summary: TestCaseSummary,
+                                project_id: int,
+                                module_id: int,
+                                env_id: int,
+                                ex_user_id: int = None) -> TestReportSaveSchema:
         report_info = TestReportSaveSchema(
             name=summary.name,
             start_time=summary.start_time,
@@ -164,6 +179,8 @@ class ReportService:
             run_log=summary.log,
             project_id=project_id,
             module_id=module_id,
-            env_id=env_id
+            env_id=env_id,
+            updated_by=ex_user_id,
+            created_by=ex_user_id,
         )
         return report_info

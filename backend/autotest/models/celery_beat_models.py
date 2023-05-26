@@ -134,7 +134,7 @@ class PeriodicTaskChanged(Base):
     @classmethod
     async def update_changed(cls):
         stmt = select(cls).where(cls.id == 1).limit(1)
-        s = cls.get_result(stmt, first=True)
+        s = await cls.get_result(stmt, first=True)
         if s:
             stmt = update(cls).where(cls.id == 1).values(last_update=dt.datetime.now())
         else:

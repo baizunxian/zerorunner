@@ -55,6 +55,8 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
     :param kwargs: 其他参数
     :return:
     """
+    exec_user_id = kwargs.get("exec_user_id", None)
+    exec_user_name = kwargs.get("exec_user_name", None)
     r: MyRedis = g.redis
     if not case_id:
         raise ValueError("id 不能为空！")
@@ -71,6 +73,8 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
             project_id=api_case_info.api_case.project_id,
             module_id=api_case_info.api_case.module_id,
             env_id=api_case_info.api_case.env_id,
+            exec_user_id=exec_user_id,
+            exec_user_name=exec_user_name,
             start_time=time.strftime("%Y-%m-%d %H-%M-%S", time.localtime(time.time()))
         )
         report_info = await ReportService.save_report_info(report_params)
@@ -127,7 +131,9 @@ async def run_case_step(report_id: typing.Union[str, int]):
     testcase_list_key = TEST_EXECUTE_SET.format(report_id)
     testcase_static_key = TEST_EXECUTE_STATS.format(report_id)
     testcase_task_key = TEST_EXECUTE_TASK.format(report_id)
-
+    report_info = await ApiTestReport.get(report_id, to_dict=True)
+    exec_user_id = report_info.get("exec_user_id", None)
+    exec_user_name = report_info.get("exec_user_name", None)
     while await r.llen(testcase_list_key):
         testcase_dict = await r.cus_lpop(testcase_list_key)
         if testcase_dict:
@@ -147,7 +153,10 @@ async def run_case_step(report_id: typing.Union[str, int]):
                 await r.set(testcase_static_key, static_dict)
                 r_lock.release()
 
-            await ReportService.save_report_detail(summary, report_id)
+            await ReportService.save_report_detail(summary=summary,
+                                                   report_id=report_id,
+                                                   exec_user_id=exec_user_id,
+                                                   exec_user_name=exec_user_name)
 
     if t_lock.acquire():
         await r.decrby(testcase_task_key)
@@ -156,7 +165,6 @@ async def run_case_step(report_id: typing.Union[str, int]):
 
     if run_test_num == 0:
         static_dict = await r.get(testcase_static_key)
-        report_info = await ApiTestReport.get(report_id, to_dict=True)
         report_info.update(static_dict)
         summary_params = TestReportSaveSchema(**report_info)
         summary_params.success = static_dict["run_err_count"] == 0 and static_dict["run_fail_count"] == 0

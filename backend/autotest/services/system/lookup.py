@@ -44,6 +44,8 @@ class LookupValueService:
         """获取所有数据字典"""
         all_lookup_value = await LookupValue.get_lookup_value()
         lookup_dict = {}
+        if not all_lookup_value:
+            return {}
         for lookup_info in all_lookup_value:
             code = lookup_info["code"]
             lookup_code = lookup_info["lookup_code"]

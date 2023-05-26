@@ -13,11 +13,10 @@ class TestReportQuery(BaseSchema):
     project_name: str = Field(None, description="")
     project_id: int = Field(None, description="")
     module_id: int = Field(None, description="")
-    execute_user_name: str = Field(None, description="")
+    exec_user_name: str = Field(None, description="")
     min_and_max: str = Field(None, description="")
     report_type: str = Field(None, description="")
     name: str = Field(None, description="")
-    run_user_name: str = Field(None, description="")
     user_ids: typing.List[int] = Field(None, description="")
     created_by: int = Field(None, description="")
     project_ids: typing.List[int] = Field(None, description="")
@@ -44,14 +43,8 @@ class TestReportSaveSchema(BaseModel):
     project_id: int = Field(None, description="")
     module_id: int = Field(None, description="")
     env_id: int = Field(None, description="")
-
-    # @root_validator
-    # def root_validator(cls, data):
-    #     start_time = data.get("start_time", None)
-    #     if start_time in data:
-    #         data['start_time'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time)) \
-    #             if start_time and isinstance(start_time, (float, int)) else None
-    #     return data
+    exec_user_id: int = Field(None, description="")
+    exec_user_name: str = Field(None, description="")
 
 
 class TestReportMakeSchema(BaseModel):

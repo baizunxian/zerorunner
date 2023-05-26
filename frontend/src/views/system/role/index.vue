@@ -41,14 +41,14 @@ const state = reactive({
         onClick: () => {
           onOpenSaveOrUpdate("update", row)
         }
-      }, row.name)
+      }, () => row.name)
     },
     {key: 'role_type', label: '权限类型', width: '', align: 'center', show: true},
     {
       key: 'status', label: '角色状态', width: '', align: 'center', show: true,
       render: (row: any) => h(ElTag, {
         type: row.status == 10 ? "success" : "info",
-      }, row.status == 10 ? "启用" : "禁用",)
+      }, () => row.status == 10 ? "启用" : "禁用",)
     },
     {key: 'description', label: '角色描述', width: '', align: 'center', show: true},
     {key: 'description', label: '备注', width: '', align: 'center', show: true},

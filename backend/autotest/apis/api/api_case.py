@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from autotest.utils import current_user
 from celery_worker.tasks.test_case import async_run_testcase
 from autotest.corelibs.http_response import partner_success
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
@@ -31,7 +32,13 @@ async def save_or_update(params: ApiCaseIn):
 async def run_testcase(params: ApiTestCaseRun):
     if not params.id:
         raise ValueError("id 不能为空！")
-    async_run_testcase.delay(case_id=params.id, env_id=params.env_id)
+    current_user_info = await current_user()
+    exec_user_id = current_user_info.get("id", None)
+    exec_user_name = current_user_info.get("nickname", None)
+    async_run_testcase.delay(case_id=params.id,
+                             env_id=params.env_id,
+                             exec_user_id=exec_user_id,
+                             exec_user_name=exec_user_name)
     return partner_success(msg="用例异步运行， 请稍后再测试报告列表查看 😊")
 
 

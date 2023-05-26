@@ -509,6 +509,8 @@ class ApiTestReport(Base):
     project_id = Column(Integer, nullable=True, comment='项目id')
     module_id = Column(Integer, nullable=True, comment='模块id')
     env_id = Column(Integer, nullable=True, comment='运行环境')
+    exec_user_id = Column(Integer, nullable=True, comment='执行人id')
+    exec_user_name = Column(String(255), nullable=True, comment='执行人昵称')
 
     @classmethod
     async def get_list(cls, params: TestReportQuery):
@@ -521,8 +523,6 @@ class ApiTestReport(Base):
             q.append(cls.project_id == params.project_id)
         if params.module_id:
             q.append(cls.module_id == params.module_id)
-        if params.run_user_name:
-            q.append(User.created_by.like('%{}%'.format(params.run_user_name)))
         if params.ids:
             q.append(cls.id.in_(params.ids))
         if params.user_ids:
@@ -533,13 +533,9 @@ class ApiTestReport(Base):
             q.append(cls.project_id.in_(params.project_ids))
         if params.min_and_max:
             q.append(cls.creation_date.between(*params.min_and_max))
-        if params.execute_user_name:
-            q.append(User.nickname.like('%{}%'.format(params.execute_user_name)))
-        stmt = select(cls.get_table_columns(),
-                      User.nickname.label('run_user_name')) \
-            .where(*q) \
-            .outerjoin(User, User.id == cls.created_by) \
-            .order_by(cls.id.desc())
+        if params.exec_user_name:
+            q.append(cls.exec_user_name.like('%{}%'.format(params.exec_user_name)))
+        stmt = select(cls.get_table_columns()).where(*q).order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
     @classmethod
@@ -643,6 +639,8 @@ class ApiTestReportDetail:
                 response_time_ms = Column(DECIMAL(), nullable=True, comment='响应耗时')
                 elapsed_ms = Column(DECIMAL(), nullable=True, comment='请求耗时')
                 log = Column(Text, nullable=True, comment='运行日志')
+                exec_user_id = Column(Integer, nullable=True, comment='执行人id')
+                exec_user_name = Column(String(255), nullable=True, comment='执行人昵称')
 
                 @classmethod
                 async def get_list(cls, params: TestReportDetailQuery):
@@ -695,7 +693,7 @@ class ApiTestReportDetail:
                         # 错误步骤数
                         func.sum(func.if_(cls.status == "ERROR" == 1, 1, 0)).label("count_step_error"),
                         # 平均请求时长
-                        func.avg(cls.elapsed_ms).label("avg_request_time"),
+                        func.round(func.avg(cls.elapsed_ms), 2).label("avg_request_time"),
                         # 总执行时长
                         func.sum(cls.duration).label("count_request_time"),
                         # 用例数

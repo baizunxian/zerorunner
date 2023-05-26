@@ -46,13 +46,13 @@ const state = reactive({
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {
       key: 'name', label: '数据源名称', width: 'auto', align: 'center', show: true, render: (row: any) =>
-          h(ElButton, {
-            link: true,
-            type: "primary",
-            onClick: () => {
-              onOpenSaveOrUpdate("update", row)
-            }
-          }, () => row.name)
+        h(ElButton, {
+          link: true,
+          type: "primary",
+          onClick: () => {
+            onOpenSaveOrUpdate("update", row)
+          }
+        }, () => row.name)
     },
     // {key: 'env_name', label: '所属环境', width: '', align: 'center', show: true},
     {key: 'type', label: '类型', width: '', align: 'center', show: true},
@@ -101,13 +101,13 @@ const getList = () => {
   state.tableLoading = true
   tableRef.value.openLoading()
   useQueryDBApi().getSourceList(state.listQuery)
-      .then(res => {
-        state.listData = res.data.rows
-        state.total = res.data.rowTotal
-      })
-      .finally(() => {
-        tableRef.value.closeLoading()
-      })
+    .then(res => {
+      state.listData = res.data.rows
+      state.total = res.data.rowTotal
+    })
+    .finally(() => {
+      tableRef.value.closeLoading()
+    })
 };
 
 // 查询
@@ -128,15 +128,15 @@ const deleted = (row: any) => {
     cancelButtonText: '取消',
     type: 'warning',
   })
-      .then(() => {
-        useQueryDBApi().deletedSource({id: row.id})
-            .then(() => {
-              ElMessage.success('删除成功');
-              getList()
-            })
-      })
-      .catch(() => {
-      });
+    .then(() => {
+      useQueryDBApi().deletedSource({id: row.id})
+        .then(() => {
+          ElMessage.success('删除成功');
+          getList()
+        })
+    })
+    .catch(() => {
+    });
 };
 const selectionChange = (val: any) => {
   state.selectChangeList = val
