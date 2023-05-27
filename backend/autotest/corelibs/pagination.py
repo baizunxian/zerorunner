@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from autotest.corelibs import g
 from autotest.corelibs.consts import DEFAULT_PAGE, DEFAULT_PER_PAGE
 from autotest.db.session import provide_session
-from autotest.utils.serialize import count_query, paginate_query, unwrap_scalars
+from autotest.corelibs.serialize import count_query, paginate_query, unwrap_scalars
 
 
 @provide_session

@@ -1,28 +1,69 @@
-from sqlalchemy import Column, String, Integer, Text
+from sqlalchemy import Column, String, Integer, JSON, select
+from sqlalchemy.orm import aliased
 
+from autotest.models.api_models import ProjectInfo, ModuleInfo
 from autotest.models.base import Base
+from autotest.models.system_models import User
+from autotest.schemas.ui.ui_element import UiElementQuery
+from autotest.schemas.ui.ui_page import UiPageQuery
 
 
-class Page(Base):
+class UiPage(Base):
     """页面表"""
     __tablename__ = 'ui_page'
 
-    page_name = Column(String(255), nullable=False, comment='页面名称', index=True)
-    page_url = Column(String(255), nullable=False, comment='页面ui', index=True)
-    project_id = Column(String(255), nullable=True, comment='项目id', index=True)
-    module_id = Column(String(255), nullable=True, comment='模块id', index=True)
-    remark = Column(String(255), nullable=True, comment='备注', index=True)
+    name = Column(String(255), nullable=False, comment='页面名称', index=True)
+    url = Column(String(255), nullable=False, comment='url')
+    project_id = Column(String(255), nullable=True, comment='项目id')
+    module_id = Column(String(255), nullable=True, comment='模块id')
+    remarks = Column(String(255), nullable=True, comment='备注')
+
+    @classmethod
+    async def get_list(cls, params: UiPageQuery):
+        q = [cls.enabled_flag == 1]
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.url:
+            q.append(cls.url.like('%{}%'.format(params.url)))
+        u = aliased(User)
+        stmt = select(cls.get_table_columns(),
+                      ModuleInfo.name.label('module_name'),
+                      ProjectInfo.name.label('project_name'),
+                      u.nickname.label('updated_by_name'),
+                      User.nickname.label('created_by_name')) \
+            .where(*q) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
+            .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
 
 
-class Element(Base):
+class UiElement(Base):
     """元素表"""
     __tablename__ = 'ui_element'
 
-    element_name = Column(String(255), nullable=False, comment='元素名称', index=True)
-    by_type = Column(String(255), nullable=True, comment='定位类型')
-    by_value = Column(String(255), nullable=True, comment='定位元素值')
-    page_id = Column(Integer, nullable=False, comment='定位元素值')
-    remark = Column(String(255), nullable=True, comment='备注')
+    name = Column(String(255), nullable=False, comment='元素名称', index=True)
+    location_type = Column(String(255), nullable=True, comment='定位类型')
+    location_value = Column(String(255), nullable=True, comment='定位元素值')
+    page_id = Column(Integer, nullable=False, comment='关联页面')
+    remarks = Column(String(255), nullable=True, comment='备注')
+
+    @classmethod
+    async def get_list(cls, params: UiElementQuery):
+        q = [cls.enabled_flag == 1]
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        u = aliased(User)
+        stmt = select(cls.get_table_columns(),
+                      u.nickname.label('updated_by_name'),
+                      User.nickname.label('created_by_name')) \
+            .where(*q) \
+            .join(u, u.id == cls.updated_by) \
+            .join(User, User.id == cls.created_by) \
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
 
 
 class UiCase(Base):
@@ -30,37 +71,74 @@ class UiCase(Base):
     __tablename__ = 'ui_case'
 
     name = Column(String(255), nullable=False, comment='用例名', index=True)
-    condition = Column(String(255), nullable=True, comment='前置条件')
-    flag = Column(Integer, nullable=True, comment='自动化标记')
-    result = Column(String(255), nullable=True, comment='运行结果')
-    steps = Column(Text, nullable=True, comment='运行步骤')
-    remark = Column(String(255), nullable=True, comment='备注')
+    tags = Column(Integer, nullable=True, comment='自动化标记')
+    steps = Column(JSON, nullable=True, comment='运行步骤')
+    setup_hooks = Column(JSON, nullable=True, comment='前置操作')
+    teardown_hooks = Column(JSON, nullable=True, comment='后置操作')
+    variables = Column(JSON, nullable=True, comment='变量')
+    remarks = Column(String(255), nullable=True, comment='备注')
 
 
-class Steps(Base):
+class UiSteps(Base):
     """步骤表"""
     __tablename__ = 'ui_steps'
 
-    no = Column(Integer, nullable=False, comment='步骤排序', index=True)
-    operate = Column(String(255), nullable=True, comment='操作')
-    data = Column(String(255), nullable=True, comment='输入数据')
-    by = Column(String(255), nullable=True, comment='定位元素方式')
-    value = Column(String(255), nullable=True, comment='定位元素值')
+    index = Column(Integer, nullable=False, comment='步骤排序', index=True)
+    operation = Column(String(255), nullable=True, comment='操作')
+    input_data = Column(String(255), nullable=True, comment='输入数据')
+    location_type = Column(String(255), nullable=True, comment='定位元素方式')
+    location_value = Column(String(255), nullable=True, comment='定位元素值')
     output = Column(String(255), nullable=True, comment='输出')
-    remark = Column(String(255), nullable=True, comment='备注')
-    ui_case_id = Column(Integer, nullable=True, comment='关联ui测试用例')
+    remarks = Column(String(255), nullable=True, comment='备注')
+    case_id = Column(Integer, nullable=True, comment='关联ui测试用例')
 
 
 class UiReports(Base):
     """报告表"""
     __tablename__ = 'ui_reports'
 
-    report_name = Column(String(255), nullable=False, comment='报告名', index=True)
-    result = Column(Text, nullable=False, comment='报告结果', index=True)
-    project_id = Column(String(255), nullable=True, comment='项目id', index=True)
-    module_id = Column(String(255), nullable=True, comment='模块id', index=True)
-    summary_success = Column(Integer(), nullable=True, comment='是否成功', index=True)
-    summary_start_at = Column(String(255), nullable=True, comment='开始时间', index=True)
-    summary_duration = Column(String(255), nullable=True, comment='执行时间', index=True)
-    c_id = Column(Integer(), nullable=True, comment='用例id', index=True)
-    remark = Column(String(255), nullable=True, comment='备注', index=True)
+    name = Column(String(255), nullable=False, comment='报告名', index=True)
+    result = Column(JSON, nullable=False, comment='报告结果')
+    project_id = Column(String(255), nullable=True, comment='项目id')
+    module_id = Column(String(255), nullable=True, comment='模块id')
+    success = Column(Integer(), nullable=True, comment='是否成功')
+    status = Column(String(255), nullable=True, comment='状态')
+    duration = Column(String(255), nullable=True, comment='执行耗时')
+    case_id = Column(Integer(), nullable=True, comment='用例id', index=True)
+    remarks = Column(String(255), nullable=True, comment='备注')
+
+
+class UiReportDetail:
+    """报告表"""
+
+    _mapper = {}
+
+    @staticmethod
+    def model(id: int):
+        # 目前一个表，多个表修改取模数
+        table_index = id % 1  # 取模数 100 代表 100 张表
+        class_name = f'ui_report_detail_{table_index}'
+
+        mode_class = UiReportDetail._mapper.get(class_name, None)
+        if mode_class is None:
+            class ModelClass(Base):
+                __module__ = __name__
+                __name__ = class_name,
+                __tablename__ = class_name
+
+                name = Column(String(255), nullable=False, comment='报告名', index=True)
+                result = Column(JSON, nullable=False, comment='报告结果')
+                project_id = Column(String(255), nullable=True, comment='项目id', index=True)
+                module_id = Column(String(255), nullable=True, comment='模块id', index=True)
+                success = Column(Integer(), nullable=True, comment='是否成功')
+                status = Column(String(255), nullable=True, comment='状态')
+                duration = Column(String(255), nullable=True, comment='执行耗时')
+                case_id = Column(Integer(), nullable=True, comment='用例id', index=True)
+                remarks = Column(String(255), nullable=True, comment='备注')
+
+            mode_class = ModelClass
+            UiReportDetail._mapper[class_name] = ModelClass
+
+        cls = mode_class()
+        cls.id = id
+        return cls

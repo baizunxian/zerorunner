@@ -36,9 +36,9 @@ export function useApiInfoApi() {
         data,
       });
     },
-    run: (data?: object) => {
+    runApi: (data?: object) => {
       return request({
-        url: `${BaseApiPath}/run`,
+        url: `${BaseApiPath}/runApi`,
         method: 'POST',
         data,
       });

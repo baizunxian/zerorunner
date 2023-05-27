@@ -9,7 +9,7 @@ from autotest.corelibs.pagination import parse_pagination
 from autotest.db.session import provide_session
 from autotest.exceptions.exceptions import AccessTokenFail
 from autotest.utils.current_user import current_user
-from autotest.utils.serialize import unwrap_scalars
+from autotest.corelibs.serialize import unwrap_scalars
 
 
 @as_declarative()
@@ -34,10 +34,10 @@ class Base:
     id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
     creation_date = Column(DateTime(), default=func.now(), comment='创建时间')
     created_by = Column(Integer, nullable=True, comment='创建人ID')
-    updation_date = Column(DateTime(), default=func.now(), onupdate=func.now(), nullable=False, comment='更新时间')
+    updation_date = Column(DateTime(), default=func.now(), onupdate=func.now(), nullable=True, comment='更新时间')
     updated_by = Column(Integer, nullable=True, comment='更新人ID')
     enabled_flag = Column(Boolean(), default=1, nullable=False, comment='是否删除, 0 删除 1 非删除')
-    trace_id = Column(String(255), nullable=False, comment="trace_id")
+    trace_id = Column(String(255), nullable=True, comment="trace_id")
 
     @classmethod
     async def get(cls, id: typing.Union[int, str], to_dict=False) -> typing.Union["Base", typing.Dict]:
@@ -184,7 +184,7 @@ class Base:
         exclude: 排除字段  {"name"}
         :return:
         """
-        exclude = exclude if exclude else {}
+        exclude = exclude if exclude else set()
         return ClauseList(*[i for i in cls.__table__.columns if i.name not in exclude])
 
     @classmethod

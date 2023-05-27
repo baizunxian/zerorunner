@@ -8,7 +8,7 @@ from config import config
 from autotest.models.system_models import FileInfo
 from autotest.schemas.system.file import FileIn, FileId
 import aiofiles
-
+from pathlib import Path
 from autotest.utils.common import get_str_uuid
 
 
@@ -29,7 +29,7 @@ class FileService:
         file_name = f'{str(uuid.uuid4()).replace("-", "").upper()}'
         if extend_name:
             file_name = f"{file_name}.{extend_name}"
-        abs_file_path = os.path.join(file_dir, file_name)
+        abs_file_path = Path(file_dir).joinpath(file_name).as_posix()
         contents = await file.read()
         file_size = len(contents) / 1024
         async with aiofiles.open(abs_file_path, "wb") as f:
@@ -59,7 +59,7 @@ class FileService:
         if not file_info:
             logger.error(f'{file_id} 文件不存在！')
             return HTMLResponse(content="文件不存在")
-        file_dir = os.path.join(config.TEST_FILES_DIR, file_info.name)
+        file_dir = Path(config.TEST_FILES_DIR).joinpath(file_info.name).as_posix()
         if not os.path.isfile(file_dir):
             logger.error(f'{file_info.name}文件不存在！')
             return HTMLResponse(content="文件不存在")

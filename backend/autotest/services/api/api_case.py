@@ -8,7 +8,7 @@ from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.api.test_report import ReportService
 from autotest.utils import current_user
-from autotest.utils.serialize import default_serialize
+from autotest.corelibs.serialize import default_serialize
 from zerorunner.testcase_new import ZeroRunner
 
 

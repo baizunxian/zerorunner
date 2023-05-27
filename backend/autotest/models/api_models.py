@@ -602,14 +602,14 @@ class ApiTestReportDetail:
     def model(id: int):
         # 目前一个表，多个表修改取模数
         table_index = id % 1
-        class_name = 'api_test_report_detail_%d' % table_index
+        class_name = f'api_test_report_detail_{table_index}'
 
         mode_class = ApiTestReportDetail._mapper.get(class_name, None)
         if mode_class is None:
             class ModelClass(Base):
                 __module__ = __name__
                 __name__ = class_name,
-                __tablename__ = 'api_test_report_detail_%d' % table_index
+                __tablename__ = class_name
 
                 name = Column(String(255), nullable=False, comment='步骤名称', index=True)
                 case_id = Column(String(255), nullable=True, comment='用例id')

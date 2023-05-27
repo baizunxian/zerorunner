@@ -8,7 +8,7 @@ from starlette.responses import Response, JSONResponse
 from autotest.corelibs import g
 from autotest.corelibs.codes import CodeEnum
 from loguru import logger
-from autotest.utils.serialize import default_serialize
+from autotest.corelibs.serialize import default_serialize
 import orjson
 
 

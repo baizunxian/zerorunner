@@ -2,6 +2,7 @@
 # @author: xiaobai
 import os
 import typing
+from pathlib import Path
 
 from pydantic import BaseSettings, AnyHttpUrl, Field
 
@@ -69,7 +70,7 @@ class Configs(BaseSettings):
     # task_queues = (
     #     Queue("case", )
     # )
-    TEST_FILES_DIR: str = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'files')
+    TEST_FILES_DIR: str = Path(__file__).parent.joinpath("static", "files").as_posix()
 
     task_run_pool: int = 3
 

@@ -17,7 +17,7 @@ from autotest.schemas.api.timed_task import TaskKwargsIn
 from autotest.services.api.api_info import ApiInfoService
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.api.test_report import ReportService
-from autotest.utils.serialize import default_serialize
+from autotest.corelibs.serialize import default_serialize
 from zerorunner.model.step_model import TestCase
 from zerorunner.testcase_new import ZeroRunner
 

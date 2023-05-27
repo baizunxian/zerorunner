@@ -205,7 +205,6 @@ import {useProjectApi} from "/@/api/useAutoApi/project";
 import 'splitpanes/dist/splitpanes.css';
 import {handleEmpty} from "/@/utils/other";
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
-// import nestedDraggable from "/@/components/Z-Step/nestedDraggable.vue"
 import {getStepTypesByUse, getStepTypeInfo} from "/@/utils/case";
 import {ArrowDown} from "@element-plus/icons-vue";
 

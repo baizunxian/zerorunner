@@ -13,7 +13,7 @@ from autotest.schemas.system.user import UserLogin, UserIn, UserResetPwd, UserDe
 from autotest.services.system.menu import MenuService
 from autotest.utils.current_user import current_user
 from autotest.utils.des import encrypt_rsa_password, decrypt_rsa_password
-from autotest.utils.serialize import default_serialize
+from autotest.corelibs.serialize import default_serialize
 
 
 class UserService:

@@ -11,13 +11,13 @@ router = APIRouter()
 
 
 @router.post('/list', description="用例列表")
-async def suites_list(params: ApiCaseQuery):
+async def api_case_list(params: ApiCaseQuery):
     data = await ApiCaseService.list(params)
     return partner_success(data)
 
 
 @router.post('/getCaseByIds', description="根据ids获取用例列表")
-async def suites_list(params: ApiCaseIdsQuery):
+async def get_case_by_ids(params: ApiCaseIdsQuery):
     data = await ApiCaseService.get_case_by_ids(params)
     return partner_success(data)
 
@@ -55,6 +55,6 @@ async def deleted(params: ApiCaseId):
 
 
 @router.post('/getCaseInfo', description="用例信息")
-async def case_info(params: ApiCaseId):
+async def get_case_info(params: ApiCaseId):
     data = await ApiCaseService.get_case_info(params)
     return partner_success(data)

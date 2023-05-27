@@ -365,7 +365,7 @@ const getEnvList = () => {
 // 运行测试用例
 const runApi = () => {
   state.runApiLoading = !state.runApiLoading;
-  useApiInfoApi().run(state.runForm)
+  useApiInfoApi().runApi(state.runForm)
     .then((res: any) => {
       if (state.runForm.run_type === 10) {
         ElMessage.success('运行成功');
