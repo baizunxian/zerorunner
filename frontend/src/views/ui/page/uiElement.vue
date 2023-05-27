@@ -5,12 +5,19 @@
         <strong>元素管理</strong>
         <div>
           <el-button type="primary" @click="addElement" :disabled="!props.pageId">添加元素</el-button>
+          <el-button type="success" @click="getElementList" :disabled="!props.pageId">
+            <el-icon>
+              <Refresh></Refresh>
+            </el-icon>
+            刷新
+          </el-button>
         </div>
       </div>
     </template>
 
     <el-table
         :data="state.elementList"
+        v-loading="state.loading"
     >
       <template v-for="(col, index) in state.columns" :key="col.key">
 
@@ -24,7 +31,9 @@
             :align="col.align"
             :width="col.width">
           <template #default="{row}">
-            <el-select v-model="row.location_type" placeholder="请选择" style="width:100%"
+            <el-select v-model="row.location_type"
+                       placeholder="请选择"
+                       style="width:100%"
                        v-if="row._edit">
               <el-option
                   v-for="type in state.locationTypes"
@@ -58,28 +67,38 @@
           show-overflow-tooltip="true"
           label="操作"
           align="center"
-          width="200">
-        <template #default="{row, index}">
+          width="120">
+        <template #default="{row, $index}">
           <div v-show="!row._edit">
             <el-button type="primary" @click="editElement(row)">编辑</el-button>
-            <el-button type="danger" @click="deleted">删除</el-button>
+            <el-button type="danger" @click="deletedElement(row)">删除</el-button>
           </div>
           <div v-show="row._edit">
             <el-button type="warning" @click="saveElement(row)">保存</el-button>
-            <el-button type="info" @click="closeEditElement(row, index)">取消</el-button>
+            <el-button type="info" @click="closeEditElement(row, $index)">取消</el-button>
           </div>
         </template>
       </el-table-column>
     </el-table>
 
+    <div class="mt20">
+      <el-pagination
+          :total="state.total"
+          :page-size="state.listQuery.pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          v-model:current-page="state.listQuery.page"
+          @size-change="getElementList"
+      />
+    </div>
+
   </el-card>
 </template>
 
-<script setup lang="ts" name="EditPage">
-import {ElButton, ElMessage} from "element-plus";
-import {h, onMounted, reactive, ref} from "vue";
-import {useUiPageApi} from "/@/api/useUiApi/uiPage";
+<script setup lang="ts" name="UiElement">
+import {ElButton, ElMessage, ElMessageBox} from "element-plus";
+import {h, onMounted, reactive, watch} from "vue";
 import {useUiElementApi} from "/@/api/useUiApi/uiElement";
+import {Refresh} from "@element-plus/icons-vue";
 
 const props = defineProps({
   pageId: {
@@ -87,9 +106,6 @@ const props = defineProps({
     default: 0
   }
 })
-
-const tableRef = ref()
-const tagInputRef = ref()
 
 const state = reactive({
   columns: [
@@ -109,6 +125,12 @@ const state = reactive({
   ],
   elementList: [],
   total: 0,
+  loading: false,
+  listQuery: {
+    page: 1,
+    pageSize: 10,
+    page_id: null
+  },
 
   locationTypes: [
     {label: 'id', value: 'id'},
@@ -125,19 +147,19 @@ const state = reactive({
 
 //   tmpElRows
   tmpElRows: {},
+
 });
 
 const getElementList = () => {
-  tableRef.value.openLoading()
-  useUiPageApi().getList(state.listQuery)
-    .then((res: any) => {
-      state.elementList = res.data.list;
-      state.total = res.data.total;
-
-    })
-    .finally(() => {
-      tableRef.value.closeLoading()
-    })
+  state.loading = true
+  useUiElementApi().getList(state.listQuery)
+      .then((res: any) => {
+        state.elementList = res.data.rows;
+        state.total = res.data.rowTotal;
+      })
+      .finally(() => {
+        state.loading = false
+      })
 };
 
 // 编辑元素
@@ -154,37 +176,69 @@ const closeEditElement = (row: any, index: number) => {
     state.elementList.splice(index, 1)
   }
 }
-// 更新保存 元素
-const saveElement = (row: any) => {
-  // 判断有 row.page_name 则保存，不然就是url为空
-  if (row.location_type && row.name) {
-    useUiElementApi().saveOrUpdate(row)
-      .then(res => {
-        row._edit = false
-        ElMessage.success('保存成功')
-        // 保存成功后不刷新页面，直接塞入id， 不然后面点删除数据id为空
-        row.id = res.data.id
-      })
-  } else {
-    ElMessage.warning('元素，或者定位值不能为空!')
-  }
-}
 
 const addElement = () => {
-  state.elementList.push({
+  state.elementList.unshift({
+    page_id: props.pageId,
     name: '',
     location_type: '',
     location_value: '',
-    page_id: '',
     remarks: '',
     _edit: true,
   })
 
 }
 
+// 更新保存 元素
+const saveElement = (row: any) => {
+  console.log(state, "state")
+  // 判断有 row.page_name 则保存，不然就是url为空
+  if (row.location_type && row.name) {
+    useUiElementApi().saveOrUpdate(row)
+        .then(res => {
+          row._edit = false
+          ElMessage.success('保存成功')
+          // 保存成功后不刷新页面，直接塞入id， 不然后面点删除数据id为空
+          if (!row.id) {
+            state.total++
+          }
+          row.id = res.data.id
+        })
+  } else {
+    ElMessage.warning('元素，或者定位值不能为空!')
+  }
+}
 
-onMounted(() => {
-})
+
+// 删除
+const deletedElement = (row: any) => {
+  ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    useUiElementApi().deleted({id: row.id})
+        .then((res: any) => {
+          ElMessage.success('删除成功')
+          getElementList()
+        })
+  })
+}
+
+watch(
+    () => props.pageId,
+    (page_id) => {
+      state.elementList = []
+      if (page_id) {
+        state.listQuery.page_id = props.pageId
+        getElementList()
+      }
+    },
+    {
+      deep: true,
+    }
+);
+
 </script>
 
 <style scoped lang="scss">

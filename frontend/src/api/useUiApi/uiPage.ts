@@ -9,6 +9,13 @@ export function useUiPageApi() {
         data,
       });
     },
+    getPageById: (data: object) => {
+      return request({
+        url: '/uiPage/getPageById',
+        method: 'post',
+        data,
+      });
+    },
     saveOrUpdate: (data: object) => {
       return request({
         url: '/uiPage/saveOrUpdate',

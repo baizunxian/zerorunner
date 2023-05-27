@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <el-card>
-      <UiPageInfo></UiPageInfo>
-      <UiElement></UiElement>
+      <UiPageInfo v-model:data="state.pageData"></UiPageInfo>
+      <UiElement :page-id="state.pageData.id"></UiElement>
     </el-card>
 
   </div>
@@ -10,11 +10,13 @@
 
 <script setup lang="ts" name="EditPage">
 import {ElButton} from "element-plus";
-import {h, reactive, ref} from "vue";
+import {h, reactive, ref, onMounted} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
 import UiPageInfo from "/@/views/ui/page/uiPageInfo.vue";
 import UiElement from "/@/views/ui/page/uiElement.vue";
+import {useRoute} from "vue-router";
 
+const route = useRoute()
 const tableRef = ref()
 
 const state = reactive({
@@ -68,21 +70,33 @@ const state = reactive({
     name: '',
   },
 //
-  form: {},
+  pageData: {},
 });
 
 const getElementList = () => {
   tableRef.value.openLoading()
   useUiPageApi().getList(state.listQuery)
-    .then((res: any) => {
-      state.listData = res.data.list;
-      state.total = res.data.total;
+      .then((res: any) => {
+        state.listData = res.data.list;
+        state.total = res.data.total;
 
-    })
-    .finally(() => {
-      tableRef.value.closeLoading()
-    })
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
+      })
 }
+
+const initPage = async () => {
+  if (route.query.id) {
+    let {data} = await useUiPageApi().getPageById({id: route.query.id})
+    state.pageData = data
+  }
+}
+
+onMounted(() => {
+  initPage()
+})
+
 </script>
 
 <style scoped lang="scss">

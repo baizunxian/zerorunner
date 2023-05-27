@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
+import typing
+
 from pydantic import BaseModel, Field
 
 
@@ -16,7 +18,8 @@ class UiPageIn(BaseModel):
     url: str = Field(..., title="页面地址")
     project_id: int = Field(..., title="项目id")
     module_id: int = Field(..., title="模块id")
-    remark: str = Field(None, title="备注")
+    remarks: str = Field(None, title="备注")
+    tags: typing.List = Field(None, title="备注")
 
 
 class UiPageId(BaseModel):

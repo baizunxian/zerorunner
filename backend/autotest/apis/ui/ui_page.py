@@ -15,6 +15,12 @@ async def ui_page_list(params: UiPageQuery):
     return partner_success(data)
 
 
+@router.post("/getPageById")
+async def get_page_by_id(params: UiPageId):
+    data = await UiPageServer.get_page_by_id(params)
+    return partner_success(data)
+
+
 @router.post("/saveOrUpdate")
 async def save_or_update(params: UiPageIn):
     data = await UiPageServer.save_or_update(params)

@@ -90,7 +90,7 @@ const getList = () => {
   useUiPageApi().getList(state.listQuery)
     .then((res: any) => {
       state.listData = res.data.rows;
-      state.total = res.data.total;
+      state.total = res.data.rowTotal;
 
     })
     .finally(() => {

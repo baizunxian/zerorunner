@@ -13,8 +13,8 @@ class UiElementServer:
 
     @staticmethod
     async def save_or_update(params: UiElementIn):
-        return await UiElement.save_or_update(params)
+        return await UiElement.create_or_update(params.dict())
 
     @staticmethod
     async def deleted(id: int):
-        return await UiElement.deleted(id)
+        return await UiElement.delete(id)

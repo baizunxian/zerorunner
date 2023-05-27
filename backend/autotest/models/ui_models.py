@@ -14,8 +14,9 @@ class UiPage(Base):
 
     name = Column(String(255), nullable=False, comment='页面名称', index=True)
     url = Column(String(255), nullable=False, comment='url')
-    project_id = Column(String(255), nullable=True, comment='项目id')
-    module_id = Column(String(255), nullable=True, comment='模块id')
+    project_id = Column(Integer, nullable=True, comment='项目id')
+    module_id = Column(Integer, nullable=True, comment='模块id')
+    tags = Column(JSON, nullable=False, comment='标签')
     remarks = Column(String(255), nullable=True, comment='备注')
 
     @classmethod
@@ -39,6 +40,24 @@ class UiPage(Base):
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
+    @classmethod
+    async def get_page_by_id(cls, id):
+        q = [cls.enabled_flag == 1, cls.id == id]
+        u = aliased(User)
+        stmt = select(cls.get_table_columns(),
+                      ModuleInfo.name.label('module_name'),
+                      ProjectInfo.name.label('project_name'),
+                      u.nickname.label('updated_by_name'),
+                      User.nickname.label('created_by_name')) \
+            .where(*q) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
+            .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .order_by(cls.id.desc())
+
+        return await cls.get_result(stmt, first=True)
+
 
 class UiElement(Base):
     """元素表"""
@@ -55,6 +74,8 @@ class UiElement(Base):
         q = [cls.enabled_flag == 1]
         if params.name:
             q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.page_id:
+            q.append(cls.page_id == params.page_id)
         u = aliased(User)
         stmt = select(cls.get_table_columns(),
                       u.nickname.label('updated_by_name'),

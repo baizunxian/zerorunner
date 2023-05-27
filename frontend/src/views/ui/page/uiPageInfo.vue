@@ -1,34 +1,34 @@
 <template>
   <div class="api-case el-card">
-    <el-row>
-
-      <el-col :xs="15" :sm="15" :md="15" :lg="15" :xl="15" class="mb20">
-        <div class="api-case__method" style="padding-left: 5px">
-          <el-input
-              size="default"
-              v-model="state.form.url"
-              placeholder="URL"
-          >
-          </el-input>
-        </div>
-      </el-col>
-      <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-        <div class="api-case__operation" style="padding-left: 12px">
-          <el-button size="default" type="primary" @click="savePage" class="title-button">保存
-          </el-button>
-          <el-button size="default" type="success" @click="handleDebug">调试</el-button>
-          <!--          <el-button size="default" type="danger" @click="saveOrUpdateOrDebug('debug')">删除</el-button>-->
-        </div>
-      </el-col>
-      <!--      </div>-->
-    </el-row>
-
     <div class="api-case__detail">
       <el-form ref="formRef"
                :model="state.form"
                label-width="auto"
                label-position="right"
                :rules="state.rules">
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="页面地址" prop="name">
+              <el-col :xs="15" :sm="15" :md="15" :lg="15" :xl="15" class="mb20">
+                <div class="api-case__method">
+                  <el-input
+                      size="default"
+                      v-model="state.form.url"
+                      placeholder="URL"
+                  >
+                  </el-input>
+                </div>
+              </el-col>
+              <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+                <div class="api-case__operation" style="padding-left: 12px">
+                  <el-button size="default" type="primary" @click="savePage" class="title-button">保存
+                  </el-button>
+                </div>
+              </el-col>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
         <el-row :gutter="24">
           <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
             <el-form-item label="页面名称" prop="name">
@@ -130,17 +130,27 @@
 </template>
 
 <script setup lang="ts" name="EditPage">
-import {ElButton} from "element-plus";
-import {nextTick, onMounted, reactive, ref} from "vue";
+import {ElButton, ElMessage} from "element-plus";
+import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {useModuleApi} from "/@/api/useAutoApi/module";
 
-const tableRef = ref()
+const emit = defineEmits(["update:data"]);
+
+const props = defineProps({
+  data: {
+    type: Object,
+    default: () => {
+      return {}
+    }
+  },
+})
+
 const tagInputRef = ref()
 
 const state = reactive({
-  form: {},
+  form: props.data,
   // project
   projectTree: [],
   projectQuery: {
@@ -184,13 +194,13 @@ const removeTag = (tag: string) => {
 // 获取项目列表
 const getProjectTree = () => {
   useProjectApi().getTree({})
-    .then(res => {
-      state.projectTree = res.data
-    })
+      .then(res => {
+        state.projectTree = res.data
+      })
 }
 const projectModuleChange = (value: any) => {
-  state.form.project_id = value[0] ? value : ""
-  state.form.module_id = value[1] ? value : ""
+  state.form.project_id = value ? value[0] : ""
+  state.form.module_id = value ? value[1] : ""
 }
 // 选择项目
 const selectProject = (project_id: any) => {
@@ -204,20 +214,34 @@ const selectProject = (project_id: any) => {
 // 获取模块列表
 const getModuleList = () => {
   useModuleApi().getList(state.moduleQuery)
-    .then(res => {
-      state.moduleList = res.data.rows
-    })
+      .then(res => {
+        state.moduleList = res.data.rows
+      })
 }
 
 const savePage = () => {
   useUiPageApi().saveOrUpdate(state.form).then((res: any) => {
     state.form = res.data
+    emit("update:data", state.form)
+    ElMessage.success("保存成功")
   })
 }
 
 onMounted(() => {
   getProjectTree()
 })
+
+watch(
+    () => props.data,
+    () => {
+      state.form = props.data
+      state.form.project_module = [props.data.project_id, props.data.module_id]
+    },
+    {
+      deep: true,
+    }
+);
+
 </script>
 
 <style scoped lang="scss">

@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 
 from autotest.corelibs.http_response import partner_success
-from autotest.schemas.ui.ui_element import UiElementQuery, UiElementIn
+from autotest.schemas.ui.ui_element import UiElementQuery, UiElementIn, UiElementId
 from autotest.services.ui.ui_element import UiElementServer
 
 router = APIRouter()
@@ -22,6 +22,6 @@ async def save_or_update(params: UiElementIn):
 
 
 @router.post("/deleted")
-async def save_or_update(params: UiElementIn):
-    data = await UiElementServer.save_or_update(params)
+async def save_or_update(params: UiElementId):
+    data = await UiElementServer.deleted(params.id)
     return partner_success(data)
