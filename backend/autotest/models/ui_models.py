@@ -4,6 +4,7 @@ from sqlalchemy.orm import aliased
 from autotest.models.api_models import ProjectInfo, ModuleInfo
 from autotest.models.base import Base
 from autotest.models.system_models import User
+from autotest.schemas.ui.ui_case import UiCaseQuery
 from autotest.schemas.ui.ui_element import UiElementQuery
 from autotest.schemas.ui.ui_page import UiPageQuery
 
@@ -86,6 +87,19 @@ class UiElement(Base):
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
+    @classmethod
+    async def get_element_all(cls):
+        q = [cls.enabled_flag == 1]
+        stmt = select(cls.get_table_columns(),
+                      UiPage.name.label('page_name'),
+                      UiPage.id.label('page_id'),
+                      UiPage.url.label('page_url'),
+                      ) \
+            .where(*q) \
+            .outerjoin(UiPage, UiPage.id == cls.page_id) \
+            .order_by(cls.id.desc())
+        return await cls.get_result(stmt)
+
 
 class UiCase(Base):
     """ui 用例表"""
@@ -93,11 +107,33 @@ class UiCase(Base):
 
     name = Column(String(255), nullable=False, comment='用例名', index=True)
     tags = Column(Integer, nullable=True, comment='自动化标记')
+    project_id = Column(Integer, nullable=True, comment='项目id')
+    module_id = Column(Integer, nullable=True, comment='模块id')
     steps = Column(JSON, nullable=True, comment='运行步骤')
     setup_hooks = Column(JSON, nullable=True, comment='前置操作')
     teardown_hooks = Column(JSON, nullable=True, comment='后置操作')
     variables = Column(JSON, nullable=True, comment='变量')
+    version = Column(String(255), nullable=False, comment='版本')
     remarks = Column(String(255), nullable=True, comment='备注')
+
+    @classmethod
+    async def get_list(cls, params: UiCaseQuery):
+        q = [cls.enabled_flag == 1]
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        u = aliased(User)
+        stmt = select(cls.get_table_columns(),
+                      ModuleInfo.name.label('module_name'),
+                      ProjectInfo.name.label('project_name'),
+                      u.nickname.label('updated_by_name'),
+                      User.nickname.label('created_by_name')) \
+            .where(*q) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
+            .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .order_by(cls.id.desc())
+        return await cls.pagination(stmt)
 
 
 class UiSteps(Base):
@@ -112,6 +148,7 @@ class UiSteps(Base):
     output = Column(String(255), nullable=True, comment='输出')
     remarks = Column(String(255), nullable=True, comment='备注')
     case_id = Column(Integer, nullable=True, comment='关联ui测试用例')
+    version = Column(String(255), nullable=False, comment='版本')
 
 
 class UiReports(Base):
@@ -149,6 +186,7 @@ class UiReportDetail:
 
                 name = Column(String(255), nullable=False, comment='报告名', index=True)
                 result = Column(JSON, nullable=False, comment='报告结果')
+                report_id = Column(Integer, nullable=False, comment='报告id')
                 project_id = Column(String(255), nullable=True, comment='项目id', index=True)
                 module_id = Column(String(255), nullable=True, comment='模块id', index=True)
                 success = Column(Integer(), nullable=True, comment='是否成功')
