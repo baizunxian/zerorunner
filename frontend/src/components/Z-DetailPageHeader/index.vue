@@ -6,7 +6,8 @@
         @back="back"
     >
       <template #content>
-        <slot name="content"></slot>
+        <span style="padding-right: 10px;" v-if="!slots.content">{{ content }}</span>
+        <slot name="content" v-else></slot>
       </template>
       <template #extra>
         <slot name="extra"></slot>
@@ -18,14 +19,31 @@
 </template>
 
 <script lang="ts" setup name="DetailPageHeader">
-import {reactive} from 'vue';
+import {computed, reactive} from 'vue';
+import {useSlots} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 
+const route = useRoute()
+const router = useRouter()
+const slots = useSlots()
+const props = defineProps({
+  editType: String
+})
 const emit = defineEmits(['back'])
 
 const state = reactive({});
 
+const content = computed(() => {
+  let editType = props.editType || route.query.editType
+  if (!editType) return ""
+  if (editType === 'save') return '新增'
+  if (editType === 'update') return '更新'
+  else return ""
+})
 const back = () => {
-  emit("back")
+  router.go(-1)
+  // console.log("back", emit)
+  // emit("back")
 }
 
 </script>

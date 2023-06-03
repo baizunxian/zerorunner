@@ -1,0 +1,88 @@
+# To execute this docker-compose yml file use `docker-compose -f docker-compose-v3-video.yml up`
+# Add the `-d` flag at the end for detached execution
+# To stop the execution, hit Ctrl+C, and then `docker-compose -f docker-compose-v3-video.yml down`
+version: "3"
+services:
+  chrome:
+    image: selenium/node-chrome:4.9.1-20230508
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - TZ=Asia/Shanghai
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  #  edge:
+  #    image: selenium/node-edge:4.9.1-20230508
+  #    shm_size: 2gb
+  #    depends_on:
+  #      - selenium-hub
+  #    environment:
+  #      - SE_EVENT_BUS_HOST=selenium-hub
+  #      - SE_EVENT_BUS_PUBLISH_PORT=4442
+  #      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+  #
+  #  firefox:
+  #    image: selenium/node-firefox:4.9.1-20230508
+  #    shm_size: 2gb
+  #    depends_on:
+  #      - selenium-hub
+  #    environment:
+  #      - SE_EVENT_BUS_HOST=selenium-hub
+  #      - SE_EVENT_BUS_PUBLISH_PORT=4442
+  #      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  chrome_video:
+    image: selenium/video:ffmpeg-4.3.1-20230508
+    volumes:
+      - /data/selenium/videos:/videos
+    depends_on:
+      - chrome
+    environment:
+      - TZ=Asia/Shanghai
+      - DISPLAY_CONTAINER_NAME=chrome
+      - FILE_NAME=chrome_video.mp4
+
+  #  edge_video:
+  #    image: selenium/video:ffmpeg-4.3.1-20230508
+  #    volumes:
+  #      - /tmp/videos:/videos
+  #    depends_on:
+  #      - edge
+  #    environment:
+  #      - DISPLAY_CONTAINER_NAME=edge
+  #      - FILE_NAME=edge_video.mp4
+  #
+  #  firefox_video:
+  #    image: selenium/video:ffmpeg-4.3.1-20230508
+  #    volumes:
+  #      - /tmp/videos:/videos
+  #    depends_on:
+  #      - firefox
+  #    environment:
+  #      - DISPLAY_CONTAINER_NAME=firefox
+  #      - FILE_NAME=firefox_video.mp4
+
+  selenium-hub:
+    image: selenium/hub:4.9.1-20230508
+    container_name: selenium-hub
+    command: >
+      --max-sessions=5
+      --max-instances=5
+      --grid-timeout=300000
+      --newSessionWaitTimeout=300000
+      --session-creation-timeout=300000
+      --timeout=300000
+      --enablePassThrough false
+      --enableFileUpload true
+      --enableVideo true
+      --videoScreenSize 1920x1080
+      --videoFrameRate 24
+      --videoCodec h264
+      --videoMaxDurationSecs 3600
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"

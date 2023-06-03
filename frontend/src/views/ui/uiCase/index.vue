@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" name="uiCase">
 import {ElButton, ElMessage, ElMessageBox} from "element-plus";
 import {h, onMounted, reactive, ref} from "vue";
 import {useUiCaseApi} from "/@/api/useUiApi/uiCase";

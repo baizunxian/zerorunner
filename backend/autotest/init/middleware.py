@@ -13,31 +13,6 @@ from autotest.exceptions.exceptions import AccessTokenFail
 from autotest.utils.common import get_str_uuid
 
 
-def register_cors(app: FastAPI):
-    """ 跨域请求 -- https://fastapi.tiangolo.com/zh/tutorial/cors/ """
-
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[str(origin) for origin in config.CORS_ORIGINS],
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE"],
-        allow_headers=["*"],
-    )
-
-
-async def set_body(request: Request):
-    """中间件中获取请求体,为了全局拿到 分页数"""
-    # 中间件中使用会导致文件上传无限循环写入临时文件
-    if "multipart/form-data; boundary=" in request.headers.get("content-type", ""):
-        return
-    receive_ = await request._receive()
-
-    async def receive():
-        return receive_
-
-    request._receive = receive
-
-
 async def login_verification(request: Request):
     """
     登录校验
@@ -75,5 +50,4 @@ def init_middleware(app: FastAPI):
             return partner_success(code=err.code, msg=err.msg)
         response = await call_next(request)
         response.headers["X-request-id"] = g.trace_id
-        logger.info(f"请求耗时： {time.time() - start_time}")
         return response

@@ -21,6 +21,7 @@ from zerorunner.model.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
     Parser
 from zerorunner.response import uniform_validator
+from zerorunner.ui_driver.driver import DriverApp
 from zerorunner.utils import merge_variables
 
 
@@ -42,6 +43,8 @@ class SessionRunner(object):
     # time
     __start_time: float = 0
     __duration: float = 0
+    # ui 驱动
+    driver_app: DriverApp = None
     # log
     __log__: str = ""
 
@@ -172,7 +175,7 @@ class SessionRunner(object):
             self.__step_results.append(step_result)
 
     @staticmethod
-    def get_step_result(step: TStep, step_tag: str = None):
+    def get_step_result(step: TStep, step_tag: str = None) -> StepResult:
         """步初始化骤结果对象"""
         step_result = StepResult(name=step.name,
                                  step_type=step.step_type,
@@ -352,7 +355,13 @@ class SessionRunner(object):
                      steps: typing.List[object],
                      step_tag=None,
                      parent_step_result: StepResult = None):
-        """执行循环"""
+        """
+        执行循环
+        :param steps: 步骤
+        :param step_tag: 步骤标签
+        :param parent_step_result: 父级步骤结果
+        :return:
+        """
         for step in steps:
             self.run_step(step, step_tag=step_tag, parent_step_result=parent_step_result)
 

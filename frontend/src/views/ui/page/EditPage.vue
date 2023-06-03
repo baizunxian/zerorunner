@@ -1,6 +1,16 @@
 <template>
   <div class="app-container">
     <el-card>
+      <template #header>
+        <z-detail-page-header
+            class="page-header"
+            style="margin: 5px 0;"
+            :edit-type="route.query.editType"
+            @back="initPage"
+        >
+        </z-detail-page-header>
+      </template>
+
       <UiPageInfo v-model:data="state.pageData"></UiPageInfo>
       <UiElement :page-id="state.pageData.id"></UiElement>
     </el-card>
@@ -9,8 +19,7 @@
 </template>
 
 <script setup lang="ts" name="EditPage">
-import {ElButton} from "element-plus";
-import {h, reactive, ref, onMounted} from "vue";
+import {onMounted, reactive, ref} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
 import UiPageInfo from "/@/views/ui/page/uiPageInfo.vue";
 import UiElement from "/@/views/ui/page/uiElement.vue";
@@ -20,71 +29,9 @@ const route = useRoute()
 const tableRef = ref()
 
 const state = reactive({
-  columns: [
-    {label: '序号', columnType: 'index', width: 'auto', show: true},
-    {
-      key: 'name', label: '模块名称', width: '', show: true,
-      render: (row: any) => h(ElButton, {
-        link: true,
-        type: "primary",
-        onClick: () => {
-          onOpenSaveOrUpdate("update", row)
-        }
-      }, () => row.name)
-    },
-    {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
-    {key: 'test_user', label: '测试人员', width: '', align: 'center', show: true},
-    {key: 'dev_user', label: '开发人员', width: '', align: 'center', show: true},
-    {key: 'case_count', label: '用例数', width: '', align: 'center', show: true},
-    {key: 'simple_desc', label: '描述', width: '', align: 'center', show: true},
-    {key: 'remarks', label: '备注', width: '', align: 'center', show: true},
-    {key: 'config_id', label: '关联配置', width: '', align: 'center', show: true},
-    {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
-    {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
-    {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
-    {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
-    {
-      label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: (row: any) => h("div", null, [
-        h(ElButton, {
-          type: "primary",
-          onClick: () => {
-            onOpenSaveOrUpdate("update", row)
-          }
-        }, () => '编辑'),
-
-        h(ElButton, {
-          type: "danger",
-          onClick: () => {
-            deleted(row)
-          }
-        }, () => '删除')
-      ])
-    },
-  ],
-  listData: [],
-  total: 0,
-  listQuery: {
-    page: 1,
-    pageSize: 20,
-    name: '',
-  },
 //
   pageData: {},
 });
-
-const getElementList = () => {
-  tableRef.value.openLoading()
-  useUiPageApi().getList(state.listQuery)
-      .then((res: any) => {
-        state.listData = res.data.list;
-        state.total = res.data.total;
-
-      })
-      .finally(() => {
-        tableRef.value.closeLoading()
-      })
-}
 
 const initPage = async () => {
   if (route.query.id) {

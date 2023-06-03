@@ -496,7 +496,7 @@ class ApiTestReport(Base):
     start_time = Column(DateTime, nullable=True, comment='执行时间')
     duration = Column(String(255), nullable=True, comment='运行耗时')
     case_id = Column(Integer, nullable=True, comment='执行用例id')
-    run_mode = Column(String(255), nullable=True, comment='运行模式， case 用例， suites 套件')
+    run_mode = Column(String(255), nullable=True, comment='运行模式， api 接口， case 用例')
     run_type = Column(Integer, nullable=True, comment='运行类型， 10 同步， 20 异步，30 定时任务')
     success = Column(Integer, nullable=True, comment='是否成功， True, False')
     run_count = Column(Integer, nullable=True, comment='运行步骤数')

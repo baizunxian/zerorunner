@@ -9,7 +9,7 @@ export function useUiCaseApi() {
         data,
       });
     },
-    getPageById: (data: object) => {
+    getCaseById: (data: object) => {
       return request({
         url: '/uiCase/getCaseById',
         method: 'post',

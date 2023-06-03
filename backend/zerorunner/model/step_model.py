@@ -10,6 +10,7 @@ from zerorunner.model.base import Name
 
 
 class TStepBase(BaseModel):
+    """步骤基类"""
     case_id: typing.Union[str, int] = Field(None, description="用例id")
     step_type: str = Field("", description="步骤类型 api if loop sql wait 等")
     name: Name = Field("", description="步骤名称")
@@ -31,10 +32,10 @@ class ExtractData(BaseModel):
 
 class ValidatorData(BaseModel):
     """验证模式"""
-    mode: str = Field("", description="校验方法")
-    check: typing.Any = Field("", description="校验值")
-    comparator: str = Field("", description="比较器")
-    expect: typing.Any = Field("", description="预期值")
+    mode: str = Field(None, description="校验方法")
+    check: typing.Any = Field(None, description="校验值")
+    comparator: str = Field(None, description="比较器")
+    expect: typing.Any = Field(None, description="预期值")
     continue_extract: bool = Field(False, description="继续提取 针对 mode = JsonPath 才有效")
     continue_index: int = Field(0, description="提取index")
 
@@ -64,6 +65,16 @@ class TSqlRequest(BaseModel):
     database: typing.Optional[str] = Field("", description="数据库")
     timeout: typing.Optional[int] = Field(None, description="超时时间")  # 超时时间
     variable_name: typing.Optional[str] = Field(None, description="变量赋值名称")  # 变量赋值名称
+
+
+class TUiRequest(BaseModel):
+    """ui请求模型"""
+    action: str = Field(None, description="动作")
+    input_data: str = Field(None, description="输入数据")
+    location_type: str = Field(None, description="定位类型")
+    location_value: str = Field(None, description="定位值")
+    cookie: typing.Dict = Field(None, description="cookie")
+    output: str = Field(None, description="输出")
 
 
 class TIFRequest(BaseModel):
@@ -130,9 +141,11 @@ class TStep(TStepBase):
     wait_request: TWaitRequest = Field(None, description="wait请求")
     loop_request: TLoopRequest = Field(None, description="loop请求")
     script_request: TScriptRequest = Field(None, description="script请求")
+    ui_request: TUiRequest = Field(None, description="ui请求")
 
 
 class TConfig(BaseModel):
+    """配置模型"""
     name: Name = Field(..., description="名称")
     case_id: typing.Union[str, int, None] = Field(None, description="用例id")
     verify: Verify = Field(False, description="是否校验")
@@ -152,5 +165,6 @@ class TConfig(BaseModel):
 
 
 class TestCase(BaseModel):
+    """用例模型"""
     config: TConfig = Field(..., description="配置")
     teststeps: typing.List[typing.Union[TStep, object]] = Field(..., description="用例步骤")

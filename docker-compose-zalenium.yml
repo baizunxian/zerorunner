@@ -1,0 +1,54 @@
+version: '3.8'
+
+# 自动刷新页面 http://localhost:4444/grid/admin/live?refresh=numberOfSeconds
+# 查看单个构建 http://localhost:4444/grid/admin/live?refresh=20；?build=myTestBuild
+# http://localhost:4444/grid/admin/live?build=myTestBuild
+
+# Dashboard http://localhost:4444/dashboard/#
+# 状态查看 http://localhost:4444/wd/hub/status#
+
+# 安装依赖 docker pull elgalu/selenium
+
+# docker pull aerokube/selenoid-ui
+# docker pull aerokube/selenoid
+# docker pull selenoid/video-recorder
+# docker pull selenoid/vnc:firefox_58.0
+
+services:
+  zalenium:
+    image: "dosel/zalenium"
+    hostname: zalenium
+    container_name: zalenium
+    tty: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock  # 配置文件挂载
+      - /data/zalenium/videos:/home/seluser/videos  # 视频挂载目录
+    ports:
+      # 端口映射,格式 宿主机端口:容器端口
+      - "4444:4444"
+    restart: always
+    command: >
+      start --desiredContainers 2
+      --maxDockerSeleniumContainers 8
+      --timeZone "Asia/Shanghai"
+      --videoRecordingEnabled true
+      --sauceLabsEnabled false
+      --browserStackEnabled false
+
+    networks:
+      - zero_network
+
+networks:
+  zero_network:
+    external: true
+
+
+#--maxDockerSeleniumContainers 8
+#      --screenWidth 800 --screenHeight 600
+#      --timeZone "Asia/Shanghai"
+#      --videoRecordingEnabled true
+#      --sauceLabsEnabled false
+#      --browserStackEnabled false
+#      --testingBotEnabled false
+#      --cbtEnabled false
+#      --startTunnel false

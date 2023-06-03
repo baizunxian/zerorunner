@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" name="uiPage">
 import {ElButton, ElMessage, ElMessageBox} from "element-plus";
 import {h, onMounted, reactive, ref} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
@@ -45,6 +45,7 @@ const state = reactive({
       }, () => row.name)
     },
     {key: 'url', label: 'url', width: '', align: 'center', show: true},
+    {key: 'element_count', label: '元素数量', width: '', align: 'center', show: true},
     {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
     {key: 'module_name', label: '所属模块', width: '', align: 'center', show: true},
     {key: 'remarks', label: '备注', width: '', align: 'center', show: true},

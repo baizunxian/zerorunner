@@ -17,7 +17,6 @@ declare interface TStepDataStat {
   if_request: TStepIFData | null
   wait_request: TStepWaitData | null
   script_request: TStepScriptData | null
-  ui_request: TUiRequestData | null
   // 其他字段
   showDetail: boolean | null
 }
@@ -114,15 +113,6 @@ declare interface TStepWaitData {
 
 declare interface TStepScriptData {
   script_content: string
-}
-
-declare interface TUiRequestData {
-  action: string
-  input_data: string
-  location_type: string
-  location_value: string
-  cookie: string
-  output: string
 }
 
 

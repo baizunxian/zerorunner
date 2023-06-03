@@ -1,9 +1,10 @@
-from sqlalchemy import Column, String, Integer, JSON, select
+from sqlalchemy import Column, String, Integer, JSON, select, func, Text, DateTime, text, DECIMAL
 from sqlalchemy.orm import aliased
 
 from autotest.models.api_models import ProjectInfo, ModuleInfo
 from autotest.models.base import Base
 from autotest.models.system_models import User
+from autotest.schemas.api.test_report import TestReportQuery
 from autotest.schemas.ui.ui_case import UiCaseQuery
 from autotest.schemas.ui.ui_element import UiElementQuery
 from autotest.schemas.ui.ui_page import UiPageQuery
@@ -32,12 +33,15 @@ class UiPage(Base):
                       ModuleInfo.name.label('module_name'),
                       ProjectInfo.name.label('project_name'),
                       u.nickname.label('updated_by_name'),
+                      func.count(UiElement.id).label('element_count'),
                       User.nickname.label('created_by_name')) \
             .where(*q) \
             .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
             .outerjoin(User, User.id == cls.created_by) \
+            .outerjoin(UiElement, UiElement.page_id == cls.id) \
+            .group_by(cls.id) \
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
@@ -67,7 +71,7 @@ class UiElement(Base):
     name = Column(String(255), nullable=False, comment='元素名称', index=True)
     location_type = Column(String(255), nullable=True, comment='定位类型')
     location_value = Column(String(255), nullable=True, comment='定位元素值')
-    page_id = Column(Integer, nullable=False, comment='关联页面')
+    page_id = Column(Integer, nullable=False, comment='关联页面', index=True)
     remarks = Column(String(255), nullable=True, comment='备注')
 
     @classmethod
@@ -156,14 +160,103 @@ class UiReports(Base):
     __tablename__ = 'ui_reports'
 
     name = Column(String(255), nullable=False, comment='报告名', index=True)
-    result = Column(JSON, nullable=False, comment='报告结果')
+    start_time = Column(DateTime, nullable=True, comment='执行时间')
+    duration = Column(DECIMAL(), nullable=True, comment='执行耗时')
+    case_id = Column(Integer(), nullable=True, comment='用例id', index=True)
+    run_type = Column(Integer, nullable=True, comment='运行类型， 10 同步， 20 异步，30 定时任务')
+    success = Column(Integer(), nullable=True, comment='是否成功')
+    run_count = Column(Integer, nullable=True, comment='运行步骤数')
+    run_success_count = Column(Integer, nullable=True, comment='运行成功数')
+    run_fail_count = Column(Integer, nullable=True, comment='运行失败数')
+    run_skip_count = Column(Integer, nullable=True, comment='运行跳过数')
+    run_err_count = Column(Integer, nullable=True, comment='运行错误数')
+    run_log = Column(Text, nullable=True, comment='运行日志')
     project_id = Column(String(255), nullable=True, comment='项目id')
     module_id = Column(String(255), nullable=True, comment='模块id')
-    success = Column(Integer(), nullable=True, comment='是否成功')
-    status = Column(String(255), nullable=True, comment='状态')
-    duration = Column(String(255), nullable=True, comment='执行耗时')
-    case_id = Column(Integer(), nullable=True, comment='用例id', index=True)
-    remarks = Column(String(255), nullable=True, comment='备注')
+    env_id = Column(Integer, nullable=True, comment='运行环境')
+    exec_user_id = Column(Integer, nullable=True, comment='执行人id')
+    exec_user_name = Column(String(255), nullable=True, comment='执行人昵称')
+
+    @classmethod
+    async def get_list(cls, params: TestReportQuery):
+        q = [cls.enabled_flag == 1]
+        if params.id:
+            q.append(cls.id == params.id)
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.project_id:
+            q.append(cls.project_id == params.project_id)
+        if params.module_id:
+            q.append(cls.module_id == params.module_id)
+        if params.ids:
+            q.append(cls.id.in_(params.ids))
+        if params.user_ids:
+            q.append(cls.execute_user_id.in_(params.user_ids))
+        if params.created_by:
+            q.append(cls.created_by == params.created_by)
+        if params.project_ids:
+            q.append(cls.project_id.in_(params.project_ids))
+        if params.min_and_max:
+            q.append(cls.creation_date.between(*params.min_and_max))
+        if params.exec_user_name:
+            q.append(cls.exec_user_name.like('%{}%'.format(params.exec_user_name)))
+        stmt = select(cls.get_table_columns()).where(*q).order_by(cls.id.desc())
+        return await cls.pagination(stmt)
+
+    @classmethod
+    def get_project_by_name(cls, project_name):
+        return cls.query.filter(cls.project_name == project_name, cls.enabled_flag == 1).first()
+
+    @classmethod
+    def get_report_by_id(cls, report_id):
+        return cls.query.filter(cls.id == report_id, cls.enabled_flag == 1).first()
+
+    @classmethod
+    def get_report_by_time(cls, begin_time, end_time):
+        return cls.query.filter(cls.enabled_flag == 1, cls.start_at.between(begin_time, end_time),
+                                cls.success.isnot(None)) \
+            .with_entities(cls.id,
+                           cls.name,
+                           cls.start_time,
+                           cls.success,
+                           cls.run_count,
+                           cls.run_success_count,
+                           cls.created_by,
+                           cls.run_type,
+                           cls.run_mode)
+
+    @classmethod
+    def statistic_report(cls, start_time=None, end_time=None):
+        q = []
+        if start_time and end_time:
+            q.append(cls.creation_date.between(start_time, end_time))
+        return cls.query.outerjoin(User, User.id == cls.execute_user_id) \
+            .with_entities(
+            func.count(cls.id).label('run_num'),
+            User.username.label('employee_code'),
+            User.nickname.label('username'),
+        ) \
+            .filter(cls.enabled_flag == 1,
+                    cls.execute_user_id != -1,
+                    *q)
+
+    @classmethod
+    def get_statistic_report(cls, start_time=None, end_time=None):
+        q = []
+        if start_time and end_time:
+            q.append(cls.creation_date.between(start_time, end_time))
+        return cls.query.filter(cls.enabled_flag == 1,
+                                cls.execute_user_id != -1,
+                                *q) \
+            .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
+            .with_entities(
+            cls.id,
+            ProjectInfo.name.label('project_name'),
+            func.round(func.sum(func.if_(cls.success, 1, 0)) / func.count(cls.id) * 100, 2).label(
+                'pass_rate'),
+            func.round(func.sum(cls.successful_use_case) / func.sum(cls.run_test_count) * 100, 2).label(
+                'successes_rate'),
+        ).group_by(text('project_name'))
 
 
 class UiReportDetail:
@@ -185,15 +278,20 @@ class UiReportDetail:
                 __tablename__ = class_name
 
                 name = Column(String(255), nullable=False, comment='报告名', index=True)
-                result = Column(JSON, nullable=False, comment='报告结果')
+                index = Column(Integer, nullable=False, comment='步骤顺序')
+                variables = Column(JSON, nullable=True, comment='步骤变量')
                 report_id = Column(Integer, nullable=False, comment='报告id')
-                project_id = Column(String(255), nullable=True, comment='项目id', index=True)
-                module_id = Column(String(255), nullable=True, comment='模块id', index=True)
                 success = Column(Integer(), nullable=True, comment='是否成功')
                 status = Column(String(255), nullable=True, comment='状态')
-                duration = Column(String(255), nullable=True, comment='执行耗时')
-                case_id = Column(Integer(), nullable=True, comment='用例id', index=True)
+                step_id = Column(Integer(), nullable=True, comment='步骤id', index=True)
                 remarks = Column(String(255), nullable=True, comment='备注')
+                start_time = Column(DateTime, nullable=True, comment='开始时间')
+                duration = Column(DECIMAL(), nullable=True, comment='耗时')
+                setup_hook_results = Column(JSON, nullable=True, comment='前置hook结果')
+                teardown_hook_results = Column(JSON, nullable=True, comment='后置hook结果')
+                validator_results = Column(JSON, nullable=True, comment='断言结果')
+                screenshot_file_id = Column(String(255), nullable=True, comment='截图文件id')
+                log = Column(Text, nullable=True, comment='运行日志')
 
             mode_class = ModelClass
             UiReportDetail._mapper[class_name] = ModelClass
