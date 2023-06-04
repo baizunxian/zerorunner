@@ -1,0 +1,22 @@
+version: "3"
+services:
+  node-docker:
+    image: selenium/node-docker:4.9.1-20230508
+    volumes:
+      - ./assets:/opt/selenium/assets   # vido session ...
+      - ./node-config.toml:/opt/bin/config.toml
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+
+  selenium-hub:
+    image: selenium/hub:4.9.1-20230508
+    container_name: selenium-hub
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"

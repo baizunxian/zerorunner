@@ -16,32 +16,46 @@ version: '3.8'
 
 services:
   zalenium:
-    image: "dosel/zalenium"
+    image: "dosel/zalenium:latest"
     hostname: zalenium
     container_name: zalenium
     tty: true
+    privileged: true
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock  # 配置文件挂载
       - /data/zalenium/videos:/home/seluser/videos  # 视频挂载目录
+      - /usr/bin/docker:/usr/bin/docker
     ports:
       # 端口映射,格式 宿主机端口:容器端口
       - "4444:4444"
+      - "8000:8000"
     restart: always
     command: >
       start --desiredContainers 2
-      --maxDockerSeleniumContainers 8
-      --timeZone "Asia/Shanghai"
-      --videoRecordingEnabled true
-      --sauceLabsEnabled false
-      --browserStackEnabled false
+            --maxDockerSeleniumContainers 8
+            --screenWidth 800 --screenHeight 600
+            --timeZone "Europe/Berlin"
+            --videoRecordingEnabled true
+            --sauceLabsEnabled false
+            --browserStackEnabled false
+            --testingBotEnabled false
+            --cbtEnabled false
+            --lambdaTestEnabled false
+            --startTunnel false
+    environment:
+      - PULL_SELENIUM_IMAGE=true
+      - ZALENIUM_PROXY_CLEANUP_TIMEOUT=1800
 
-    networks:
-      - zero_network
-
+#    networks:
+#      - zero_network
 networks:
-  zero_network:
-    external: true
-
+  zalenium:
+    driver: overlay
+    attachable: true
 
 #--maxDockerSeleniumContainers 8
 #      --screenWidth 800 --screenHeight 600
