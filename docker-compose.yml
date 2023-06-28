@@ -12,6 +12,8 @@ services:
     image: zerorunner:latest
     container_name: zerorunner_app
     hostname: zerorunner-container
+    volumes:
+      - ./backend/static:/app/static  # 挂载静态文件
     build:
       context: .
       dockerfile: zero-docker-file/Dockerfile-backend-build
