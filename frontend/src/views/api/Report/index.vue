@@ -52,7 +52,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
     {
       key: 'name', label: '报告名称', align: 'center', width: '', show: true,
-      render: (row: any) => h(ElButton, {
+      render: ({row}: any) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -62,7 +62,7 @@ const state = reactive({
     },
     {
       key: 'status', label: '运行结果', align: 'center', width: '', show: true,
-      render: (row: any) => h(ElTag, {
+      render: ({row}: any) => h(ElTag, {
         type: row.success ? "success" : "danger",
       }, () => row.success ? "通过" : "不通过",)
     },
@@ -90,7 +90,7 @@ const state = reactive({
     {key: 'exec_user_name', label: '执行人', align: 'center', width: '', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
-      render: (row: any) => h("div", null, [
+      render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {

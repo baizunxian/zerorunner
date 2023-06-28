@@ -5,8 +5,8 @@ from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiInfo
 from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
 from autotest.services.api.run_handle_new import HandelRunApiStep
-from autotest.services.api.test_report import ReportService
-from autotest.utils.serialize import default_serialize
+from autotest.services.api.api_report import ReportService
+from autotest.corelibs.serialize import default_serialize
 from zerorunner.loader import load_script_content
 from zerorunner.script_code import Zero
 from zerorunner.testcase_new import ZeroRunner
@@ -54,7 +54,7 @@ class ApiInfoService:
         return await ApiInfo.create_or_update(params.dict())
 
     @staticmethod
-    def set_api_status(**kwargs: typing.Any):
+    async def set_api_status(**kwargs: typing.Any):
         """
         用例失效生效
         :param kwargs:
@@ -67,13 +67,13 @@ class ApiInfoService:
             case_info.save()
 
     @staticmethod
-    def deleted(c_id: typing.Union[int, str]):
+    async def deleted(id: typing.Union[int, str]):
         """
-        删除测试用例
-        :param c_id:
+        删除api
+        :param id:
         :return:
         """
-        return ApiInfo.delete(c_id)
+        return await ApiInfo.delete(id=id)
 
     @staticmethod
     async def detail(params: ApiId) -> typing.Dict:

@@ -21,6 +21,7 @@ from zerorunner.model.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
     Parser
 from zerorunner.response import uniform_validator
+from zerorunner.ext.zero_driver.driver import ZeroDriver
 from zerorunner.utils import merge_variables
 
 
@@ -42,6 +43,8 @@ class SessionRunner(object):
     # time
     __start_time: float = 0
     __duration: float = 0
+    # ui 驱动
+    zero_driver: ZeroDriver = None
     # log
     __log__: str = ""
 
@@ -172,9 +175,10 @@ class SessionRunner(object):
             self.__step_results.append(step_result)
 
     @staticmethod
-    def get_step_result(step: TStep, step_tag: str = None):
+    def get_step_result(step: TStep, step_tag: str = None) -> StepResult:
         """步初始化骤结果对象"""
         step_result = StepResult(name=step.name,
+                                 index=step.index,
                                  step_type=step.step_type,
                                  start_time=time.time(),
                                  step_tag=step_tag,
@@ -267,6 +271,10 @@ class SessionRunner(object):
         """获取步骤"""
         return self.__step_results
 
+    def clear_step_results(self):
+        """清空步骤结果"""
+        self.__step_results.clear()
+
     def get_export_variables(self) -> typing.Dict:
         """获取导出的变量"""
         # override testcase export vars with step export
@@ -317,7 +325,6 @@ class SessionRunner(object):
             step_tag (str): 步骤标签
             parent_step_result (StepResult): 父级结构
         """
-        logger.info(f"run step begin: {step.name} >>>>>>")
         self.__init()
         # run step
         logger.info(f"run step begin: {step.name} >>>>>>")
@@ -352,7 +359,13 @@ class SessionRunner(object):
                      steps: typing.List[object],
                      step_tag=None,
                      parent_step_result: StepResult = None):
-        """执行循环"""
+        """
+        执行循环
+        :param steps: 步骤
+        :param step_tag: 步骤标签
+        :param parent_step_result: 父级步骤结果
+        :return:
+        """
         for step in steps:
             self.run_step(step, step_tag=step_tag, parent_step_result=parent_step_result)
 

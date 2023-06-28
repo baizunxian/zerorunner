@@ -45,7 +45,7 @@ const state = reactive({
     {label: '', columnType: 'selection', width: 'auto', show: true},
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {
-      key: 'name', label: '数据源名称', width: 'auto', align: 'center', show: true, render: (row: any) =>
+      key: 'name', label: '数据源名称', width: 'auto', align: 'center', show: true, render: ({row}: any) =>
         h(ElButton, {
           link: true,
           type: "primary",
@@ -65,7 +65,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: (row: any) => h("div", null, [
+      render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {

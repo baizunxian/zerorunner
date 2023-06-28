@@ -6,9 +6,9 @@ from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, Te
     ApiTestCaseRun
 from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
-from autotest.services.api.test_report import ReportService
+from autotest.services.api.api_report import ReportService
 from autotest.utils import current_user
-from autotest.utils.serialize import default_serialize
+from autotest.corelibs.serialize import default_serialize
 from zerorunner.testcase_new import ZeroRunner
 
 
@@ -74,7 +74,7 @@ class ApiCaseService:
                                                                api_case_info.api_case.module_id,
                                                                api_case_info.api_case.env_id,
                                                                ex_user_id=current_user_info.get("id", None))
-        report_info = await ReportService.save_report(summary_params)
+        report_info = await ReportService.save_report_info(summary_params)
         report_id = report_info.get("id")
         await ReportService.save_report_detail(summary, report_id)
         return report_info

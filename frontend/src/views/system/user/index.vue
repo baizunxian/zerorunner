@@ -70,7 +70,7 @@ const state = reactive<StateRow>({
   columns: [
     {
       key: 'username', label: '账户名称', width: '', align: 'center', show: true,
-      render: (row: any) => h(ElButton, {
+      render: ({row}: any) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -81,12 +81,12 @@ const state = reactive<StateRow>({
     {key: 'nickname', label: '用户昵称', width: '', align: 'center', show: true},
     {
       key: 'roles', label: '关联角色', width: '', align: 'center', show: true,
-      render: (row: any) => handleRoles(row.roles)
+      render: ({row}: any) => handleRoles(row.roles)
     },
     {key: 'email', label: '邮箱', width: '', align: 'center', show: true},
     {
       key: 'status', label: '用户状态', width: '', align: 'center', show: true,
-      render: (row: any) => h(ElTag, {
+      render: ({row}: any) => h(ElTag, {
         type: row.status ? "success" : "info",
       }, () => row.status ? "启用" : "禁用",)
     },

@@ -2,27 +2,27 @@
 # @author: xiaobai
 import os
 import typing
+from pathlib import Path
 
 from pydantic import BaseSettings, AnyHttpUrl, Field
 
+__version__ = "2.1.0"
+
 project_desc = """
     🎉 zerorunner 管理员接口汇总 🎉
-    ✨ 账号: admin ✨
-    ✨ 密码: 123456 ✨
-    ✨ 权限(scopes): admin ✨
 """
 
 
 class Configs(BaseSettings):
     PROJECT_DESC: str = project_desc  # 描述
-    PROJECT_VERSION: typing.Union[int, str] = 2.0  # 版本
+    PROJECT_VERSION: typing.Union[int, str] = __version__  # 版本
     BASE_URL: AnyHttpUrl = "http://127.0.0.1:8100"  # 开发环境
 
     API_PREFIX: str = "/api"  # 接口前缀
     STATIC_DIR: str = 'static'  # 静态文件目录
     GLOBAL_ENCODING: str = 'utf8'  # 全局编码
     CORS_ORIGINS: typing.List[typing.Any] = ["*"]  # 跨域请求
-    WHITE_ROUTER = ["/api/user/login", "/api/user/logout"]  # 路由白名单，不需要鉴权
+    WHITE_ROUTER = ["/api/user/login"]  # 路由白名单，不需要鉴权
 
     SECRET_KEY: str = "kPBDjVk0o3Y1wLxdODxBpjwEjo7-Euegg4kdnzFIRjc"  # 密钥(每次重启服务密钥都会改变, token解密失败导致过期, 可设置为常量)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 1  # token过期时间: 60 minutes * 24 hours * 1 days = 1 days
@@ -45,7 +45,7 @@ class Configs(BaseSettings):
     # dir
     BASEDIR: str = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
-    # celery
+    # job
     broker_url: str = Field(..., env="CELERY_BROKER_URL")
     result_backend: str = Field(..., env="CELERY_RESULT_BACKEND")
     accept_content: typing.List[str] = ["json"]
@@ -65,15 +65,22 @@ class Configs(BaseSettings):
     include: typing.List[typing.Any] = [
         'celery_worker.tasks.test_case',
         'celery_worker.tasks.common',
+        'celery_worker.tasks.task_run',
+        'celery_worker.tasks.ui_case',
     ]
     # task_queues = (
-    #     Queue("case", )
+    #     Queue('default', routing_key='default'),
+    #     Queue('ui_case', routing_key='ui_case'),
+    #     Queue('api_case', routing_key='api_case'),
     # )
-    TEST_FILES_DIR: str = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'files')
+
+    #  job -A your_app worker -Q api_case,ui_case
+
+    TEST_FILES_DIR: str = Path(__file__).parent.joinpath("static", "files").as_posix()
 
     task_run_pool: int = 3
 
-    # celery beat
+    # job beat
     beat_db_uri: str = Field(..., env="CELERY_BEAT_DB_URL")
 
     class Config:

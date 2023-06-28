@@ -61,7 +61,7 @@ export default defineComponent({
         {label: '序号', columnType: 'index', width: 'auto', show: true},
         {
           key: 'name', label: '配置名称', width: '', show: true,
-          render: (row: any) => h(ElButton, {
+          render: ({row}: any) => h(ElButton, {
             link: true,
             type: "primary",
             onClick: () => {
@@ -77,7 +77,7 @@ export default defineComponent({
         {key: 'created_by_name', label: '创建人', width: '', show: true},
         {
           label: '操作', fixed: 'right', width: 'auto',
-          render: (row: any) => h("div", null, [
+          render: ({row}: any) => h("div", null, [
             h(ElButton, {
               link: true,
               type: "primary",

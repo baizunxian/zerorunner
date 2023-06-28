@@ -34,29 +34,26 @@ async def save_or_update(params: ApiInfoIn):
     return partner_success(case_info)
 
 
-@router.post('/setCaseStatus', description="接口失效生效")
-def set_case_status():
-    parsed_data = request.json
-    ApiInfoService.set_api_status(**parsed_data)
+@router.post('/setApiStatus', description="接口失效生效")
+async def set_api_status():
+    await ApiInfoService.set_api_status(**parsed_data)
     return partner_success()
 
 
 @router.post('/deleted', description="删除接口")
-def deleted():
+async def deleted(params: ApiId):
     """
     删除用例
     :return:
     """
-    parsed_data = request.json
-    c_id = parsed_data.get('id', None)
-    ApiInfoService.deleted(c_id)
-    return partner_success()
+    data = await ApiInfoService.deleted(params.id)
+    return partner_success(data)
 
 
-@router.post('/run', description="运行接口")
-async def run_test(params: ApiRunSchema):
+@router.post('/runApi', description="运行接口")
+async def run_api(params: ApiRunSchema):
     """
-    运行用例
+    运行api
     :return:
     """
     current_user_info = await current_user()
@@ -66,8 +63,8 @@ async def run_test(params: ApiRunSchema):
     if params.run_type == 20:
         logger.info('异步执行用例 ~')
 
-        params_dict = params.dict()
-        async_run_api.delay(**params_dict)
+        params_dict = params
+        async_run_api.apply_async(kwargs=params_dict.dict(), __business_id=params.id)
         return partner_success(code=0, msg='用例执行中，请稍后查看报告即可,默认模块名称命名报告')
     else:
         summary = await ApiInfoService.run(params)  # 初始化校验，避免生成用例是出错
@@ -77,16 +74,6 @@ async def run_test(params: ApiRunSchema):
 @router.post('/debugApi', description="debug接口")
 async def debug_api(params: ApiInfoIn):
     data = await ApiInfoService.debug_api(params)
-    return partner_success(data)
-
-
-@router.post('/testRunCase', description="测试运行用例")
-def test_run_case():
-    """
-    测试运行用例
-    :return:
-    """
-    data = run_timed_task(**request.json)
     return partner_success(data)
 
 

@@ -167,7 +167,7 @@ const state = reactive({
   columns: [
     {
       key: 'code', label: '编码', width: '', align: 'center', show: true,
-      render: (row: any) => h(ElButton, {
+      render: ({row}: any) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -182,7 +182,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'left', align: 'center', width: '220',
-      render: (row: any) => h("div", null, [
+      render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {

@@ -2,7 +2,7 @@ import time
 import typing
 
 from autotest.models.api_models import ApiTestReport, ApiTestReportDetail
-from autotest.schemas.api.test_report import TestReportQuery, TestReportId, TestReportDetailQuery, TestReportSaveSchema
+from autotest.schemas.api.api_report import TestReportQuery, TestReportId, TestReportDetailQuery, TestReportSaveSchema
 from zerorunner.model.result_model import TestCaseSummary, StepResult
 
 

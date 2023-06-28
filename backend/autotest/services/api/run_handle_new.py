@@ -19,7 +19,7 @@ from config import config
 from zerorunner.loader import load_module_functions, load_func_content
 from zerorunner.model.base import TStepTypeEnum
 from zerorunner.model.step_model import TStep, TRequest, TSqlRequest, TIFRequest, TLoopRequest, TScriptRequest, \
-    TWaitRequest, TestCase
+    TWaitRequest, TestCase, TUiRequest
 from zerorunner.models import TConfig
 from zerorunner.steps.step import Step
 from zerorunner.steps.step_api_requet import RunRequestStep
@@ -27,6 +27,7 @@ from zerorunner.steps.step_if_requet import RunIFStep
 from zerorunner.steps.step_loop_requet import RunLoopStep
 from zerorunner.steps.step_script_requet import RunScriptStep
 from zerorunner.steps.step_sql_request import RunSqlStep
+from zerorunner.steps.step_ui_requet import RunUiStep
 from zerorunner.steps.step_wait_requet import RunWaitStep
 
 
@@ -134,7 +135,7 @@ class HandleStepData(object):
     async def init(self, params: TStepData) -> "HandleStepData":
         # 过滤需要处理的数据 其他参数一次性赋值给TStep对象
         exclude_set = {"request", "sql_request", "if_request", "loop_request", "wait_request", "script_request",
-                       "variables", "setup_hooks", "teardown_hooks", "validators"}
+                       "ui_request", "variables", "setup_hooks", "teardown_hooks", "validators"}
         self.step = TStep(**params.dict(exclude=exclude_set))
         self.api_info = params
         self.step_obj = None
@@ -158,6 +159,8 @@ class HandleStepData(object):
             step_obj = await self.__init_if_step()
         elif step_type == TStepTypeEnum.script.value.lower():
             step_obj = await self.__init_script_step()
+        elif step_type == TStepTypeEnum.ui.value.lower():
+            step_obj = await self.__init_ui_step()
 
         await self.init_variables()
         await self.init_setup_hooks()
@@ -199,6 +202,10 @@ class HandleStepData(object):
         elif request_mode == 'none':
             self.step.request.data = None
         return Step(RunRequestStep(self.step))
+
+    async def __init_ui_step(self) -> Step:
+        self.step.ui_request = TUiRequest(**self.api_info.ui_request.dict())
+        return Step(RunUiStep(self.step))
 
     async def __init_sql_step(self) -> Step:
         source_info = await DataSource.get(self.api_info.sql_request.source_id)
@@ -289,7 +296,7 @@ class HandelRunApiStep(object):
 
     async def init(self, params: ApiInfoIn) -> "HandelRunApiStep":
         self.config = None
-        self.teststeps = []
+        self.teststeps: typing.List[Step] = []
         self.api_info = params
         await self.init_config()
         await self.init_steps(params)
@@ -337,20 +344,20 @@ class HandelTestCase(object):
         self.config.name = self.api_case.name
 
     async def init_steps(self, steps: typing.List[TCaseStepData]) -> "HandelTestCase":
-        step_data = await self.handle_teststeps(steps)
+        step_data = await self.handle_steps(steps)
         for step in step_data:
             step_obj = (await HandleStepData().init(step)).step_obj
             self.teststeps.append(step_obj)
         return self
 
     @staticmethod
-    async def handle_teststeps(teststeps: typing.List[TCaseStepData]) -> typing.List[TStepData]:
+    async def handle_steps(steps: typing.List[TCaseStepData]) -> typing.List[TStepData]:
         new_step_data: typing.List[TStepData] = []
-        for step in teststeps:
+        for step in steps:
             if step.enable is False:
                 continue
             new_step = None
-            new_sub_steps = await HandelTestCase.handle_teststeps(step.sub_steps)
+            new_sub_steps = await HandelTestCase.handle_steps(step.sub_steps)
             if step.step_type.lower() == TStepTypeEnum.IF.value.lower():
                 step.if_request.teststeps = new_sub_steps
                 new_step = TStepData(**step.dict())

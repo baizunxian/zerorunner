@@ -11,13 +11,13 @@ router = APIRouter()
 
 
 @router.post('/list', description="用例列表")
-async def suites_list(params: ApiCaseQuery):
+async def api_case_list(params: ApiCaseQuery):
     data = await ApiCaseService.list(params)
     return partner_success(data)
 
 
 @router.post('/getCaseByIds', description="根据ids获取用例列表")
-async def suites_list(params: ApiCaseIdsQuery):
+async def get_case_by_ids(params: ApiCaseIdsQuery):
     data = await ApiCaseService.get_case_by_ids(params)
     return partner_success(data)
 
@@ -35,10 +35,11 @@ async def run_testcase(params: ApiTestCaseRun):
     current_user_info = await current_user()
     exec_user_id = current_user_info.get("id", None)
     exec_user_name = current_user_info.get("nickname", None)
-    async_run_testcase.delay(case_id=params.id,
-                             env_id=params.env_id,
-                             exec_user_id=exec_user_id,
-                             exec_user_name=exec_user_name)
+    kwargs = dict(case_id=params.id,
+                  env_id=params.env_id,
+                  exec_user_id=exec_user_id,
+                  exec_user_name=exec_user_name)
+    async_run_testcase.apply_async(kwargs=kwargs, __business_id=params.id)
     return partner_success(msg="用例异步运行， 请稍后再测试报告列表查看 😊")
 
 
@@ -55,6 +56,6 @@ async def deleted(params: ApiCaseId):
 
 
 @router.post('/getCaseInfo', description="用例信息")
-async def case_info(params: ApiCaseId):
+async def get_case_info(params: ApiCaseId):
     data = await ApiCaseService.get_case_info(params)
     return partner_success(data)

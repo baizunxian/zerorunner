@@ -247,11 +247,11 @@ class PeriodicTask(ModelBase, ModelMixin):
 
     args = sa.Column(sa.Text(), default='[]')
     kwargs = sa.Column(sa.Text(), default='{}')
-    # queue for celery
+    # queue for job
     queue = sa.Column(sa.String(255))
-    # exchange for celery
+    # exchange for job
     exchange = sa.Column(sa.String(255))
-    # routing_key for celery
+    # routing_key for job
     routing_key = sa.Column(sa.String(255))
     priority = sa.Column(sa.Integer())
     expires = sa.Column(sa.DateTime(timezone=True))

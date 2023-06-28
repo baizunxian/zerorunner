@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts" name="webSsh">
-import {nextTick, onBeforeUnmount, onMounted, onUnmounted, reactive, ref} from "vue"
+import {nextTick, onBeforeUnmount, onMounted, onUnmounted, reactive, ref, onDeactivated} from "vue"
 import {Terminal} from "xterm"
 import {FitAddon} from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
@@ -182,7 +182,7 @@ const writeOfColor = (txt: string, fontCss = "", bgColor = "") => {
   stata.term.write(`\x1B[${fontCss}${bgColor}${txt}\x1B[0m`)
 }
 
-onBeforeUnmount(() => {
+onDeactivated(() => {
   // toRaw(stata.term)?.dispose()
   stata.ws?.close()
   stata.ws = null

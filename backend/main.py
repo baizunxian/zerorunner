@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 
-
 import uvicorn
 from fastapi import FastAPI, Depends
 
@@ -9,19 +8,21 @@ from autotest.config import config
 from autotest.corelibs.logger import init_logger, logger
 from autotest.db.redis import init_redis_pool
 from autotest.init.cors import init_cors
+from autotest.init.dependencies import set_global_request
 from autotest.init.exception import init_exception
 from autotest.init.middleware import init_middleware
+from autotest.init.mount import init_mount
 from autotest.init.routers import init_router
-from autotest.init.dependencies import set_global_request
 
-app = FastAPI(description=config.PROJECT_DESC,
+app = FastAPI(title="zerorunner",
+              description=config.PROJECT_DESC,
               version=config.PROJECT_VERSION,
               dependencies=[Depends(set_global_request)])
 
 
-def init_app():
+async def init_app():
     """ 注册中心 """
-    # register_mount(app)  # 挂载静态文件
+    init_mount(app)  # 挂载静态文件
 
     init_exception(app)  # 注册捕获全局异常
 
@@ -38,7 +39,8 @@ def init_app():
 
 @app.on_event("startup")
 async def startup():
-    init_app()  # 加载注册中心
+    await init_app()  # 加载注册中心
+    # from autotest.models import init_db
     # await init_db()  # 初始化表
     # await init_data()  # 初始化数据
     app.state.redis = await init_redis_pool()  # redis

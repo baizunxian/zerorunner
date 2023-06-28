@@ -22,7 +22,6 @@
                   size="small"
                   :max-height="state.tableHeight">
           <el-table-column
-              scoped-slot
               v-for="(value ,key) in  findTableData(item.tabIndex)[0]"
               :label="key"
               :prop="key"

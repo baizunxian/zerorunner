@@ -43,6 +43,7 @@ class TStepTypeEnum(str, Enum):
     extract = "extract"
     loop = "loop"
     IF = "IF"
+    ui = "ui"
 
 
 TStepControllerDict = {
@@ -53,7 +54,8 @@ TStepControllerDict = {
     "sql": "sql控制器",
     "extract": "提取控制器",
     "loop": "循环控制器",
-    "if": "条件控制器"
+    "if": "条件控制器",
+    "ui": "ui用例"
 }
 
 
@@ -85,6 +87,7 @@ class TStepResultStatusEnum(str, Enum):
 
 
 class TStepLogType(str, Enum):
+    """步骤日志类型"""
     start = "开始"
     end = "结束"
     success = "成功"
@@ -97,6 +100,7 @@ class TStepLogType(str, Enum):
 
 
 class CheckModeEnum(str, Enum):
+    """校验模式枚举"""
     JsonPath = "JsonPath"
     jmespath = "jmespath"
     variable_or_func = "variable_or_func"
