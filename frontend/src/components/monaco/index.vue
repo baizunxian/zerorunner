@@ -12,6 +12,10 @@ import {ElMessage} from "element-plus";
 
 const props = defineProps({
   // 展示的字符串
+  // modelValue: {
+  //   type: String,
+  //   default: '',
+  // },
   value: {
     type: String,
     default: '',
@@ -39,7 +43,7 @@ const props = defineProps({
   // 主题
   theme: {
     type: String,
-    default: 'vs',   // vs hc-black  vs-dark
+    default: 'vs-dark',   // vs ||  hc-black || vs-dark
   },
   //lineNumbers
   options: {
@@ -168,6 +172,8 @@ const initEditor = () => {
     const content = toRaw(modEditor).getValue();
     state.contentBackup = content;
     emit("update:value", content)
+    // emit("update:modelValue", content)
+
   })
   state.contentBackup = props.value;
   state.isSettingContent = false;

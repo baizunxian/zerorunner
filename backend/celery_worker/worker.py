@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import asyncio
+import datetime
+import json
 import logging
+import traceback
 import uuid
 from abc import ABC
 from celery import Celery, Task
 from celery._state import _task_stack
-from celery.signals import setup_logging
+from celery.signals import setup_logging, task_prerun
 from celery.worker.request import Request
 
 from autotest.config import config
 from autotest.corelibs.local import g
 from autotest.corelibs.logger import InterceptHandler, logger
 from autotest.db.redis import init_redis_pool
+from autotest.schemas.job.task_record import TaskRecordIn
+from autotest.services.job.task_record import TaskRecordServer
 from autotest.utils.async_converter import AsyncIOPool
 
 
@@ -31,7 +36,7 @@ class TaskRequest(Request):
 
 # @celeryd_after_setup.connect
 # def setup_direct_queue(sender, instance, **kwargs):
-#     """此信号在工作实例设置之后但在它调用运行之前发送。这意味着该 选项中的任何队列都已启用，日志记录已设置等"""
+#     """此信号在工作实例设置之后但在它调用运行之前发送。这意味着该选项中的任何队列都已启用，日志记录已设置等"""
 #     queue_name = '{0}.dq'.format(sender)  # sender is the nodename of the worker
 #
 #
@@ -57,27 +62,43 @@ class TaskRequest(Request):
 #     """
 
 
-# @task_prerun.connect
-# def receiver_task_pre_run(task: Task, *args, **kwargs):
-#     """
-#     任务执行前执行
-#     :param task_id: 任务id
-#     :param task: task 实例
-#     :param args:
-#     :param kwargs:
-#     :return:
-#     """
+@task_prerun.connect
+def receiver_task_pre_run(task: Task, *args, **kwargs):
+    """
+    任务执行前执行
+    :param task: task 实例
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    try:
+        # 获取定时任务id，如果是定时任务则记录定时任务id
+        business_id = task.request.properties.get("__business_id", None)
+        task_type = task.request.properties.get("__task_type", None)
+        params = TaskRecordIn(
+            task_name=task.name,
+            task_type=task_type,
+            task_id=task.request.id,
+            start_time=datetime.datetime.now(),
+            status="RUNNING",
+            business_id=business_id,
+            args=json.dumps(task.request.args),
+            kwargs=json.dumps(task.request.kwargs)
+        )
+        AsyncIOPool.run_in_pool(TaskRecordServer.save_or_update(params))
+    except:
+        logger.error(f"task pre run error:\n{traceback.format_exc()}")
 
 
 @setup_logging.connect
 def setup_loggers(*args, **kwargs):
     """logger 初始化统一处理日志格式"""
-    logging.basicConfig(handlers=[InterceptHandler()], level="INFO")
+    logging.basicConfig(handlers=[InterceptHandler()], level=config.LOGGER_LEVEL)
 
 
 def create_celery():
     """
-    celery 初始类
+    job 初始类
     :return:
     """
 
@@ -89,7 +110,9 @@ def create_celery():
 
         def apply_async(self, args=None, kwargs=None, task_id=None, producer=None,
                         link=None, link_error=None, shadow=None, **options):
-            headers = {"headers": {"trace_id": g.trace_id}}
+            __task_type = options.get("__task_type", None)
+            __task_type = __task_type if __task_type else 10
+            headers = {"headers": {"trace_id": g.trace_id}, "__task_type": __task_type}
             if options:
                 options.update(headers)
             else:
@@ -100,12 +123,34 @@ def create_celery():
         def on_success(self, retval, task_id, args, kwargs):
             """任务成功时回调"""
             logger.info("on_success")
+            self.handel_task_record("SUCCESS", str(retval))
             return super(ContextTask, self).on_success(retval, task_id, args, kwargs)
 
         def on_failure(self, exc, task_id, args, kwargs, einfo):
             """任务失败时回调"""
             logger.info("on_failure")
+            self.handel_task_record("FAILURE", str(exc), einfo.traceback)
             return super(ContextTask, self).on_failure(exc, task_id, args, kwargs, einfo)
+
+        def handel_task_record(self, status: str, result: str, err: str = None):
+            """
+            处理任务记录
+            :param status: 状态
+            :param result: 结果
+            :param err: 异常信息
+            :return:
+            """
+            try:
+                record_task_info = AsyncIOPool.run_in_pool(TaskRecordServer.get_task_record_by_id(self.request.id))
+                if record_task_info:
+                    record_task_info["status"] = status
+                    record_task_info["result"] = result
+                    record_task_info["traceback"] = err
+                    record_task_info["end_time"] = datetime.datetime.now()
+                    params = TaskRecordIn(**record_task_info)
+                    AsyncIOPool.run_in_pool(TaskRecordServer.save_or_update(params))
+            except:
+                logger.error(f"handel task  result error task id [{self.request.id}]:\n{traceback.format_exc()}")
 
         def __call__(self, *args, **kwargs):
             """重写call方法 支持异步函数的运行"""
@@ -122,7 +167,7 @@ def create_celery():
                 self.pop_request()
                 _task_stack.pop()
 
-    _celery_: Celery = Celery("zerorunner-celery-worker", task_cls=ContextTask)
+    _celery_: Celery = Celery("zerorunner-job-worker", task_cls=ContextTask)
     _celery_.config_from_object(config)
 
     return _celery_
@@ -132,13 +177,13 @@ celery = create_celery()
 
 # celery_worker 专用于celery的worker
 # worker windows 启动，只能单线程
-# celery -A celery_worker.worker.celery worker --pool=solo -l INFO
+# job -A celery_worker.worker.job worker --pool=solo -l INFO
 # worker linux  启动
-# celery -A celery_worker.worker.celery worker --pool=solo -c 10 -l INFO  linux 启动
+# job -A celery_worker.worker.job worker --pool=solo -c 10 -l INFO  linux 启动
 # beat
-# celery -A celery_worker.worker.celery beat  -l INFO  启动节拍器，定时任务需要
+# job -A celery_worker.worker.job beat  -l INFO  启动节拍器，定时任务需要
 # beat 数据库
-# celery -A celery_worker.worker.celery beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+# job -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
 if __name__ == '__main__':
     import sys

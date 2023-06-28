@@ -63,8 +63,8 @@ async def run_api(params: ApiRunSchema):
     if params.run_type == 20:
         logger.info('异步执行用例 ~')
 
-        params_dict = params.dict()
-        async_run_api.delay(**params_dict)
+        params_dict = params
+        async_run_api.apply_async(kwargs=params_dict.dict(), __business_id=params.id)
         return partner_success(code=0, msg='用例执行中，请稍后查看报告即可,默认模块名称命名报告')
     else:
         summary = await ApiInfoService.run(params)  # 初始化校验，避免生成用例是出错

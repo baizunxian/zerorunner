@@ -146,7 +146,7 @@ const state = reactive({
     {label: 'N', columnType: 'index', align: 'center', width: 'auto', showTooltip: false},
     {
       key: 'name', label: '名称', align: 'center', width: 'auto', show: true,
-      render: (row: any) => h(ElButton, {
+      render: ({row}: any) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -158,7 +158,7 @@ const state = reactive({
     },
     {
       key: 'method', label: '请求方法', align: 'center', width: '', show: true,
-      render: (row: any) => row.method ? h(ElTag, {
+      render: ({row}: any) => row.method ? h(ElTag, {
         type: "",
         style: {"background": getMethodColor(row.method), color: "#ffffff",}
       }, () => row.method) : "-"
@@ -170,7 +170,7 @@ const state = reactive({
     },
     {
       key: 'step_tag', label: '步骤标签', align: 'center', width: '', show: true,
-      render: (row: any) => row.step_tag ? h(ElTag, {
+      render: ({row}: any) => row.step_tag ? h(ElTag, {
         type: getStatusTag(row.status),
       }, () => row.step_tag) : "-"
     },
@@ -184,7 +184,7 @@ const state = reactive({
     },
     {
       key: 'status_code', label: 'HttpCode', width: '', align: 'center', show: true,
-      render: (row: any) => row.status_code ? h(ElTag, {
+      render: ({row}: any) => row.status_code ? h(ElTag, {
         type: row.status_code == 200 ? "success" : "warning",
       }, () => row.status_code == 200 ? "200 OK" : row.status_code) : "-"
     },
@@ -207,14 +207,14 @@ const state = reactive({
     // {key: 'run_count', label: '运行数', align: 'center', width: '', show: true},
     {
       key: 'status', label: '状态', align: "center", width: 'auto', show: true,
-      render: (row: any) => h(ElTag, {
+      render: ({row}: any) => h(ElTag, {
         type: getStatusTag(row.status),
-      }, () => row.status.toUpperCase())
+      }, () => row.status? row.status.toUpperCase() : "-")
     },
     {key: 'message', label: '错误信息', align: "center", width: 'auto', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '150',
-      render: (row: any) => h("div", null, [
+      render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {

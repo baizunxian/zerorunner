@@ -142,7 +142,7 @@ const getStepData = () => {
     ui_request: {
       action: "",
       input_data: "",
-      location_type: "",
+      location_method: "",
       location_value: "",
       cookie: "",
       output: ""

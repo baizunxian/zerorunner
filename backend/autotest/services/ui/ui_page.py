@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.ui_models import UiPage
+from autotest.models.ui_models import UiPage, UiElement
 from autotest.schemas.ui.ui_page import UiPageQuery, UiPageIn, UiPageId
 
 
@@ -33,3 +33,19 @@ class UiPageServer:
     async def deleted(id: int):
         """删除页面信息"""
         return await UiPage.delete(id)
+
+    @staticmethod
+    async def get_all_page_element():
+        """获取页面元素信息"""
+        all_element = await UiElement.get_all()
+        all_page = await UiPage.get_all()
+        page_element = []
+        for page in all_page:
+            page['elements'] = []
+            page['disabled'] = True
+            for element in all_element:
+                if element['page_id'] == page['id']:
+                    page['elements'].append(element)
+                    page['disabled'] = False
+            page_element.append(page)
+        return page_element

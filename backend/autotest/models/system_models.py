@@ -112,6 +112,10 @@ class Menu(Base):
     async def get_menu_by_title(cls, title: str):
         stmt = select(cls.get_table_columns()).where(cls.title == title, cls.enabled_flag == 1)
         return await cls.get_result(stmt, True)
+    @classmethod
+    async def get_menu_by_name(cls, name: str):
+        stmt = select(cls.get_table_columns()).where(cls.name == name, cls.enabled_flag == 1)
+        return await cls.get_result(stmt, True)
 
     @classmethod
     async def get_menu_by_parent(cls, parent_id: int):

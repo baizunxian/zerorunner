@@ -42,7 +42,7 @@ const tableRef = ref();
 const state = reactive({
   columns: [
     {
-      key: 'title', label: '菜单名称', width: '', align: 'left', show: true, render: (row: any) =>
+      key: 'title', label: '菜单名称', width: '', align: 'left', show: true, render: ({row}: any) =>
           h(ElButton, {
             link: true,
             type: "primary",
@@ -58,7 +58,7 @@ const state = reactive({
     {key: 'sort', label: '排序', width: '', align: 'left', show: true},
     {key: 'menu_type', label: '类型', width: '', align: 'left', show: true}, {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
-      render: (row: any) => h("div", null, [
+      render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {

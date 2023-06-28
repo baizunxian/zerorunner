@@ -35,7 +35,7 @@ const state = reactive({
   columns: [
     {
       key: 'name', label: '角色名称', width: '', align: 'center', show: true,
-      render: (row: any) => h(ElButton, {
+      render: ({row}: any) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -46,7 +46,7 @@ const state = reactive({
     {key: 'role_type', label: '权限类型', width: '', align: 'center', show: true},
     {
       key: 'status', label: '角色状态', width: '', align: 'center', show: true,
-      render: (row: any) => h(ElTag, {
+      render: ({row}: any) => h(ElTag, {
         type: row.status == 10 ? "success" : "info",
       }, () => row.status == 10 ? "启用" : "禁用",)
     },
@@ -58,7 +58,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: (row: any) => h("div", null, [
+      render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {

@@ -85,7 +85,7 @@ class AsyncIOPool:
         )
 
         # Call the default constructor method ...
-        # celery.concurrency.base.BasePool.__init__(
+        # job.concurrency.base.BasePool.__init__(
         #     self,
         #     *args,
         #     **kwargs,
@@ -93,7 +93,7 @@ class AsyncIOPool:
 
         # ... perform the usual "housekeeping", ...
         self.limit = 1
-        # celery.signals.worker_process_init.send(sender=None)
+        # job.signals.worker_process_init.send(sender=None)
 
         # ... create the pool's asyncio eventloop ...
         self.loop = aio.new_event_loop()
@@ -101,7 +101,7 @@ class AsyncIOPool:
         # ... and let it run in an instance-bound thread.
         self.loop_runner = threading.Thread(
             target=self.loop.run_forever,
-            name="celery-worker-async-loop",
+            name="job-worker-async-loop",
             daemon=True,
         )
 

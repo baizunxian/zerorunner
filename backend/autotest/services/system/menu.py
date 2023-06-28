@@ -28,14 +28,14 @@ class MenuService:
 
     @staticmethod
     async def save_or_update(params: MenuIn) -> typing.Dict[typing.Text, typing.Any]:
-
+        existing_menu = await Menu.get_menu_by_name(params.name)
         if not params.id:
-            if await Menu.get_menu_by_title(params.title):
-                raise ValueError('菜单名称以存在！')
+            if existing_menu:
+                raise ValueError('路由名称已存在！')
         else:
             menu_info = await Menu.get(params.id)
-            if menu_info.title != params.title and await Menu.get_menu_by_title(params.title):
-                raise ValueError('用户名已存在！')
+            if menu_info.name != params.name and existing_menu:
+                raise ValueError('路由名称已存在！')
 
         result = await Menu.create_or_update(params.dict())
         return result
@@ -84,7 +84,8 @@ class MenuService:
         return menu
 
     @staticmethod
-    def menu_assembly(parent_menu: typing.List[typing.Any], all_menu: typing.List[typing.Any]) -> typing.List[typing.Any]:
+    def menu_assembly(parent_menu: typing.List[typing.Any], all_menu: typing.List[typing.Any]) -> typing.List[
+        typing.Any]:
         """
         递归遍历菜单
         :param parent_menu: 一级菜单列表

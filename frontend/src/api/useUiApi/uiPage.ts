@@ -30,5 +30,12 @@ export function useUiPageApi() {
         data,
       });
     },
+    getAllPageElement: (data: object) => {
+      return request({
+        url: '/uiPage/getAllPageElement',
+        method: 'post',
+        data,
+      });
+    },
   };
 }

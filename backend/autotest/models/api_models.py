@@ -12,7 +12,7 @@ from autotest.schemas.api.env import EnvQuery, BindingDataSourceIn, BindingFuncI
 from autotest.schemas.api.functions import FuncQuery
 from autotest.schemas.api.module import ModuleQuery
 from autotest.schemas.api.projectquery import ProjectQuery
-from autotest.schemas.api.test_report import TestReportQuery, TestReportDetailQuery
+from autotest.schemas.api.api_report import TestReportQuery, TestReportDetailQuery
 
 
 class ProjectInfo(Base):

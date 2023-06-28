@@ -21,7 +21,7 @@ from zerorunner.model.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
     Parser
 from zerorunner.response import uniform_validator
-from zerorunner.ui_driver.driver import DriverApp
+from zerorunner.ext.zero_driver.driver import ZeroDriver
 from zerorunner.utils import merge_variables
 
 
@@ -44,7 +44,7 @@ class SessionRunner(object):
     __start_time: float = 0
     __duration: float = 0
     # ui 驱动
-    driver_app: DriverApp = None
+    zero_driver: ZeroDriver = None
     # log
     __log__: str = ""
 
@@ -178,6 +178,7 @@ class SessionRunner(object):
     def get_step_result(step: TStep, step_tag: str = None) -> StepResult:
         """步初始化骤结果对象"""
         step_result = StepResult(name=step.name,
+                                 index=step.index,
                                  step_type=step.step_type,
                                  start_time=time.time(),
                                  step_tag=step_tag,
@@ -270,6 +271,10 @@ class SessionRunner(object):
         """获取步骤"""
         return self.__step_results
 
+    def clear_step_results(self):
+        """清空步骤结果"""
+        self.__step_results.clear()
+
     def get_export_variables(self) -> typing.Dict:
         """获取导出的变量"""
         # override testcase export vars with step export
@@ -320,7 +325,6 @@ class SessionRunner(object):
             step_tag (str): 步骤标签
             parent_step_result (StepResult): 父级结构
         """
-        logger.info(f"run step begin: {step.name} >>>>>>")
         self.__init()
         # run step
         logger.info(f"run step begin: {step.name} >>>>>>")

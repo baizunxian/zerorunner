@@ -60,12 +60,13 @@ class SessionData(BaseModel):
 class UiSessionData(BaseModel):
     """ui会话数据"""
     action: str = Field(None, description="动作")
-    input_data: str = Field(None, description="输入数据")
-    location_type: str = Field(None, description="定位类型")
+    data: str = Field(None, description="输入数据")
+    location_method: str = Field(None, description="定位方法")
     location_value: str = Field(None, description="定位值")
     cookie: typing.Dict = Field(None, description="cookie")
     locator_data: typing.Dict = Field({}, description="定位器数据")
     validators: typing.Dict = Field({}, description="校验")
+    screenshot_file_base64: str = Field(None, description="截图base64")
 
 
 class StepResult(BaseModel):

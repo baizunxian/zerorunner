@@ -12,11 +12,11 @@ from autotest.db.redis import MyRedis
 from autotest.models.api_models import ApiCase, ApiTestReport
 from autotest.schemas.api.api_case import TestCaseRun
 from autotest.schemas.api.api_info import ApiRunSchema
-from autotest.schemas.api.test_report import TestReportSaveSchema
+from autotest.schemas.api.api_report import TestReportSaveSchema
 from autotest.schemas.api.timed_task import TaskKwargsIn
 from autotest.services.api.api_info import ApiInfoService
 from autotest.services.api.run_handle_new import HandelTestCase
-from autotest.services.api.test_report import ReportService
+from autotest.services.api.api_report import ReportService
 from autotest.corelibs.serialize import default_serialize
 from zerorunner.model.step_model import TestCase
 from zerorunner.testcase_new import ZeroRunner
@@ -37,15 +37,6 @@ async def async_run_api(**kwargs: typing.Any):
     await ApiInfoService.run(params)
 
 
-@celery.task(name="zerorunner.batch_async_run_testcase")
-def batch_async_run_testcase(**kwargs: typing.Any):
-    """批量执行"""
-    params = TaskKwargsIn(**kwargs)
-    if params.ids:
-        for api_id in params.ids:
-            async_run_testcase.delay(api_id, **kwargs)
-
-
 @celery.task
 async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, int] = None, **kwargs: typing.Any):
     """
@@ -61,10 +52,14 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
     if not case_id:
         raise ValueError("id 不能为空！")
     case_info: ApiCase = await ApiCase.get(case_id)
-    run_params = TestCaseRun(**default_serialize(case_info), env_id=kwargs.get('env_id', None))
+    if not case_id:
+        logger.error(f"用例id: {case_id} 不存在！")
+        return
+    run_params = TestCaseRun(**default_serialize(case_info), env_id=kwargs.get('case_env_id', None))
     api_case_info = await HandelTestCase().init(run_params)
 
     if not report_id:
+        """没有报告id创建报告"""
         report_params = TestReportSaveSchema(
             name=api_case_info.api_case.name,
             case_id=api_case_info.config.case_id,

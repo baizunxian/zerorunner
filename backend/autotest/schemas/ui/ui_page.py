@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 class UiPageQuery(BaseModel):
     """页面查询条件"""
+    id: int = Field(None, title="页面id")
     name: str = Field(None, title="页面名称")
     url: str = Field(None, title="页面地址")
 

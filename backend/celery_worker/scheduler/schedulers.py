@@ -2,10 +2,10 @@
 
 import logging
 import datetime as dt
-# from multiprocessing.util import Finalize
+from multiprocessing.util import Finalize
+
 from billiard.five import values, items
 from kombu.utils.encoding import safe_str, safe_repr
-from multiprocessing.util import Finalize
 
 import sqlalchemy
 from celery import current_app
@@ -92,7 +92,8 @@ class ModelEntry(ScheduleEntry):
             if value is None:
                 continue
             self.options[option] = value
-        self.options['__zero_timed_task_id'] = self.model.id
+        self.options['__business_id'] = self.model.id
+        self.options['__task_type'] = 20
         self.total_run_count = model.total_run_count
         self.enabled = model.enabled
 
@@ -206,7 +207,7 @@ class ModelEntry(ScheduleEntry):
 
         **entry sample:
 
-            {'task': 'celery.backend_cleanup',
+            {'task': 'job.backend_cleanup',
              'schedule': schedules.crontab('0', '4', '*'),
              'options': {'expires': 43200}}
 
@@ -239,7 +240,7 @@ class ModelEntry(ScheduleEntry):
 
         **entry sample:
 
-            {'task': 'celery.backend_cleanup',
+            {'task': 'job.backend_cleanup',
              'schedule': <crontab: 0 4 * * * (m/h/d/dM/MY)>,
              'options': {'expires': 43200}}
 
@@ -386,7 +387,7 @@ class DatabaseScheduler(Scheduler):
     def update_from_dict(self, mapping):
         s = {}
         for name, entry_fields in items(mapping):
-            # {'task': 'celery.backend_cleanup',
+            # {'task': 'job.backend_cleanup',
             #  'schedule': schedules.crontab('0', '4', '*'),
             #  'options': {'expires': 43200}}
             try:
@@ -405,8 +406,8 @@ class DatabaseScheduler(Scheduler):
         entries = {}
         if self.app.conf.result_expires:
             entries.setdefault(
-                'celery.backend_cleanup', {
-                    'task': 'celery.backend_cleanup',
+                'job.backend_cleanup', {
+                    'task': 'job.backend_cleanup',
                     'schedule': schedules.crontab('0', '4', '*'),
                     'options': {'expires': 12 * 3600},
                 },

@@ -118,11 +118,13 @@ declare interface TStepScriptData {
 
 declare interface TUiRequestData {
   action: string
-  input_data: string
-  location_type: string
+  data: string
+  location_method: string
   location_value: string
   cookie: string
   output: string
+  enable: boolean
+  breakpoint: boolean
 }
 
 

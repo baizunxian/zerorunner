@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, APIRouter
+from fastapi import WebSocket, WebSocketDisconnect, APIRouter
+from loguru import logger
 
 from autotest.apis.websocket.connection_manager import websocket_manager
-from loguru import logger
 
 router = APIRouter()
 

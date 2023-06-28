@@ -64,7 +64,6 @@
                            :props="{label:'name', value:'id'}"
                            :options="state.projectTree"
                            filterable
-                           size=""
                            style="width: 100%"
                            @change="projectModuleChange"/>
             </el-form-item>

@@ -35,10 +35,11 @@ async def run_testcase(params: ApiTestCaseRun):
     current_user_info = await current_user()
     exec_user_id = current_user_info.get("id", None)
     exec_user_name = current_user_info.get("nickname", None)
-    async_run_testcase.delay(case_id=params.id,
-                             env_id=params.env_id,
-                             exec_user_id=exec_user_id,
-                             exec_user_name=exec_user_name)
+    kwargs = dict(case_id=params.id,
+                  env_id=params.env_id,
+                  exec_user_id=exec_user_id,
+                  exec_user_name=exec_user_name)
+    async_run_testcase.apply_async(kwargs=kwargs, __business_id=params.id)
     return partner_success(msg="用例异步运行， 请稍后再测试报告列表查看 😊")
 
 

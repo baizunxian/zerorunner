@@ -6,26 +6,26 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.select import Select
 
 from zerorunner.model.step_model import TUiRequest
-from zerorunner.ui_driver.driver import DriverApp
-from zerorunner.ui_driver.locator import locating
+from zerorunner.ext.zero_driver.driver import ZeroDriver
+from zerorunner.ext.zero_driver.locator import locating
 
 
 class Common:
     @staticmethod
-    def title(driver_app: DriverApp):
+    def title(zero_driver: ZeroDriver):
         """获取页面标题"""
-        return driver_app.driver.title
+        return zero_driver.driver.title
 
     @staticmethod
-    def current_url(driver_app: DriverApp):
+    def current_url(zero_driver: ZeroDriver):
         """获取当前页面的url"""
-        return driver_app.driver.current_url
+        return zero_driver.driver.current_url
 
 
 class WebAction:
     """web动作"""
     @staticmethod
-    def open(driver_app: DriverApp, step: TUiRequest):
+    def open(zero_driver: ZeroDriver, step: TUiRequest):
         # if step['data'].get('清理缓存', '') or step['data'].get('clear', ''):
         #     g.driver.delete_all_cookies()
         # if step['data'].get('#open_type', '') in ('新标签页', 'tab'):
@@ -41,20 +41,20 @@ class WebAction:
         #     w.close()
         #     g.set_driver()
         #     w.init()
-        driver_app.driver.get(step.input_data)
+        zero_driver.driver.get(step.data)
         if step.cookie:
-            driver_app.driver.add_cookie(step.cookie)
+            zero_driver.driver.add_cookie(step.cookie)
         sleep(0.5)
 
     @staticmethod
-    def check(step: TUiRequest, driver_app: DriverApp):
+    def check(step: TUiRequest, zero_driver: ZeroDriver):
         """检查元素"""
-        element_location = locating(driver_app, step)
+        element_location = locating(zero_driver, step)
         output = step.output
         var = {}
 
-        if step.location_type in ('title', 'current_url'):
-            var[step.location_type] = getattr(Common, step.location_type)(step.location_value, output)
+        if step.location_method in ('title', 'current_url'):
+            var[step.location_method] = getattr(Common, step.location_method)(step.location_value, output)
 
         else:
             for key in data:
@@ -108,10 +108,10 @@ class WebAction:
             assert data['text'] != g.driver.title
 
     @staticmethod
-    def input(driver_app: DriverApp, step: TUiRequest):
-        element_location = locating(driver_app, step)
+    def input(zero_driver: ZeroDriver, step: TUiRequest):
+        element_location = locating(zero_driver, step)
         element_location.clear()
-        element_location.send_keys(step.input_data)
+        element_location.send_keys(step.data)
         # for key in data:
         #     if key.startswith('text'):
         #         if isinstance(data[key], tuple):
@@ -126,34 +126,34 @@ class WebAction:
         return element_location
 
     @staticmethod
-    def switch_to_frame(driver_app: DriverApp, step: TUiRequest):
-        element_location = locating(driver_app, step)
-        driver_app.driver.implicitly_wait(10)
-        driver_app.driver.switch_to.frame(element_location)
+    def switch_to_frame(zero_driver: ZeroDriver, step: TUiRequest):
+        element_location = locating(zero_driver, step)
+        zero_driver.driver.implicitly_wait(10)
+        zero_driver.driver.switch_to.frame(element_location)
         # icon_QRcode = self.driver.find_element_by_xpath('//*[@id="scan_login-wrap"]/div[1]/img')
         # print(icon_QRcode.text)
         # icon_QRcode.click()
 
     @staticmethod
-    def click(driver_app: DriverApp, step: TUiRequest):
-        element_location = locating(driver_app, step)
+    def click(zero_driver: ZeroDriver, step: TUiRequest):
+        element_location = locating(zero_driver, step)
         if element_location:
             try:
                 element_location.click()
             except ElementClickInterceptedException:  # 如果元素为不可点击状态，则等待1秒，再重试一次
                 sleep(1)
                 # if data.get('mode'):
-                #     driver_app.driver.execute_script("arguments[0].click();", element_location)
+                #     zero_driver.driver.execute_script("arguments[0].click();", element_location)
                 # else:
                 element_location.click()
 
         sleep(0.5)
 
         # 获取元素其他属性
-        # driver_app._session_var[key] = element_location.get_attribute(output[key])
+        # zero_driver._session_var[key] = element_location.get_attribute(output[key])
 
         # 判断是否打开了新的窗口，并将新窗口添加到所有窗口列表里
-        # all_handles = driver_app.driver.window_handles
+        # all_handles = zero_driver.driver.window_handles
         # for handle in all_handles:
         #     if handle not in w.windows.values():
         #         w.register(step, handle)
@@ -161,9 +161,9 @@ class WebAction:
         return element_location
 
     @staticmethod
-    def select(driver_app: DriverApp, step: TUiRequest):
+    def select(zero_driver: ZeroDriver, step: TUiRequest):
         """选择"""
-        element_location = locating(driver_app, step)
+        element_location = locating(zero_driver, step)
         for key in data:
             if key.startswith('index'):
                 Select(element_location).select_by_index(data[key])
@@ -173,9 +173,9 @@ class WebAction:
                 Select(element_location).select_by_visible_text(data[key])
 
     @staticmethod
-    def deselect(driver_app: DriverApp, step: TUiRequest):
+    def deselect(zero_driver: ZeroDriver, step: TUiRequest):
         """取消选择"""
-        element_location = locating(driver_app, step)
+        element_location = locating(zero_driver, step)
         for key in data:
             if key.startswith('all'):
                 Select(element_location).deselect_all()
@@ -187,9 +187,9 @@ class WebAction:
                 Select(element_location).deselect_by_visible_text(data[key])
 
     @staticmethod
-    def hover(driver_app: DriverApp, step: TUiRequest):
-        actions = ActionChains(driver_app.driver)
-        element_location = locating(driver_app, step)
+    def hover(zero_driver: ZeroDriver, step: TUiRequest):
+        actions = ActionChains(zero_driver.driver)
+        element_location = locating(zero_driver, step)
         actions.move_to_element(element_location)
         actions.perform()
         sleep(0.5)
@@ -197,9 +197,9 @@ class WebAction:
         return element_location
 
     @staticmethod
-    def context_click(driver_app: DriverApp, step: TUiRequest):
-        actions = ActionChains(driver_app.driver)
-        element_location = locating(driver_app, step)
+    def context_click(zero_driver: ZeroDriver, step: TUiRequest):
+        actions = ActionChains(zero_driver.driver)
+        element_location = locating(zero_driver, step)
         actions.context_click(element_location)
         actions.perform()
         sleep(0.5)
@@ -207,9 +207,9 @@ class WebAction:
         return element_location
 
     @staticmethod
-    def double_click(driver_app: DriverApp, step: TUiRequest):
-        actions = ActionChains(driver_app.driver)
-        element_location = locating(driver_app, step)
+    def double_click(zero_driver: ZeroDriver, step: TUiRequest):
+        actions = ActionChains(zero_driver.driver)
+        element_location = locating(zero_driver, step)
         actions.double_click(element_location)
         actions.perform()
         sleep(0.5)
@@ -217,9 +217,9 @@ class WebAction:
         return element_location
 
     @staticmethod
-    def drag_and_drop(driver_app: DriverApp, step: TUiRequest):
+    def drag_and_drop(zero_driver: ZeroDriver, step: TUiRequest):
         """拖拽"""
-        actions = ActionChains(driver_app.driver)
+        actions = ActionChains(zero_driver.driver)
         source = locating(element[0])
         target = locating(element[1])
         actions.drag_and_drop(source, target)
@@ -227,10 +227,10 @@ class WebAction:
         sleep(0.5)
 
     @staticmethod
-    def swipe(driver_app: DriverApp, step: TUiRequest):
+    def swipe(zero_driver: ZeroDriver, step: TUiRequest):
         """滑动"""
-        actions = ActionChains(driver_app.driver)
-        source = locating(driver_app, step)
+        actions = ActionChains(zero_driver.driver)
+        source = locating(zero_driver, step)
         x = data.get('x', 0)
         y = data.get('y', 0)
         actions.drag_and_drop_by_offset(source, x, y)
@@ -238,12 +238,12 @@ class WebAction:
         sleep(0.5)
 
     @staticmethod
-    def script(driver_app: DriverApp, step: TUiRequest):
+    def script(zero_driver: ZeroDriver, step: TUiRequest):
         """执行脚本"""
-        driver_app.driver.execute_script(step.location_value)
+        zero_driver.driver.execute_script(step.location_value)
 
     @staticmethod
-    def message(driver_app: DriverApp, step: TUiRequest):
+    def message(zero_driver: ZeroDriver, step: TUiRequest):
         data = step['data']
         text = data.get('text', '')
         element = step['element']
@@ -260,13 +260,13 @@ class WebAction:
         w.frame = 'Alert'
 
     @staticmethod
-    def upload(driver_app: DriverApp, step: TUiRequest):
+    def upload(zero_driver: ZeroDriver, step: TUiRequest):
         """上传文件"""
         import win32com.client
 
         data = step['data']
         element = step['element']
-        element_location = locating(driver_app, step)
+        element_location = locating(zero_driver, step)
         file_path = data.get('text', '') or data.get('file', '')
 
         element_location.click()
@@ -278,17 +278,17 @@ class WebAction:
         sleep(2)
 
     @staticmethod
-    def navigate(driver_app: DriverApp, step: TUiRequest):
+    def navigate(zero_driver: ZeroDriver, step: TUiRequest):
         """导航"""
         if step.location_value.lower() in ('刷新', 'refresh'):
-            driver_app.driver.refresh()
+            zero_driver.driver.refresh()
         elif step.location_value.lower() in ('前进', 'forward'):
-            driver_app.driver.forward()
+            zero_driver.driver.forward()
         elif step.location_value.lower() in ('后退', 'back'):
-            driver_app.driver.back()
+            zero_driver.driver.back()
 
     @staticmethod
-    def scroll(driver_app: DriverApp, step: TUiRequest):
+    def scroll(zero_driver: ZeroDriver, step: TUiRequest):
         """滚动"""
         x = data.get('x', 0)
         y = data.get('y', 0)
@@ -300,13 +300,13 @@ class WebAction:
             # g.driver.execute_script(
             #     f"window.scrollTo({x},{y})")
             if y:
-                driver_app.driver.execute_script(f"document.documentElement.scrollTop={y}")
+                zero_driver.driver.execute_script(f"document.documentElement.scrollTop={y}")
             if x:
-                driver_app.driver.execute_script(f"document.documentElement.scrollLeft={x}")
+                zero_driver.driver.execute_script(f"document.documentElement.scrollLeft={x}")
         else:
-            element_location = locating(driver_app, step)
+            element_location = locating(zero_driver, step)
 
             if y:
-                driver_app.driver.execute_script(f"arguments[0].scrollTop={y}", element_location)
+                zero_driver.driver.execute_script(f"arguments[0].scrollTop={y}", element_location)
             if x:
-                driver_app.driver.execute_script(f"arguments[0].scrollLeft={x}", element_location)
+                zero_driver.driver.execute_script(f"arguments[0].scrollLeft={x}", element_location)

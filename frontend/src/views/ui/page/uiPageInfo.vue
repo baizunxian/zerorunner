@@ -8,13 +8,13 @@
                :rules="state.rules">
         <el-row>
           <el-col :span="24">
-            <el-form-item label="页面地址" prop="name">
-              <el-col :xs="15" :sm="15" :md="15" :lg="15" :xl="15" class="mb20">
+            <el-form-item label="页面名称" prop="name" size="default">
+              <el-col :xs="10" :sm="10" :md="10" :lg="10" :xl="10" class="mb20">
                 <div class="api-case__method">
                   <el-input
                       size="default"
-                      v-model="state.form.url"
-                      placeholder="URL"
+                      v-model="state.form.name"
+                      placeholder="请输入页面名称"
                   >
                   </el-input>
                 </div>
@@ -31,11 +31,11 @@
 
         <el-row :gutter="24">
           <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="页面名称" prop="name">
-              <el-input v-model.trim="state.form.name"
+            <el-form-item label="页面地址" prop="url">
+              <el-input v-model.trim="state.form.url"
                         style="width: 100%;"
                         clearable
-                        placeholder="请输入名称"></el-input>
+                        placeholder="请输入页面地址"></el-input>
             </el-form-item>
 
           </el-col>
@@ -44,6 +44,7 @@
 
             <el-form-item label="项目/模块" prop="project_id">
               <el-cascader v-model="state.form.project_module"
+                           placeholder="请选择项目/模块"
                            :props="{label:'name', value:'id'}"
                            :options="state.projectTree"
                            filterable
@@ -150,7 +151,12 @@ const props = defineProps({
 const tagInputRef = ref()
 
 const state = reactive({
-  form: props.data,
+  form: {},
+  rules: {
+    name: [{required: true, message: '请输入用例名', trigger: 'blur'}],
+    project_id: [{required: true, message: '请选择所属项目', trigger: 'blur'}],
+    // env_id: [{required: true, message: '请选择运行环境', trigger: 'blur'}],
+  },
   // project
   projectTree: [],
   projectQuery: {
@@ -233,9 +239,10 @@ onMounted(() => {
 
 watch(
     () => props.data,
-    () => {
-      state.form = props.data
-      state.form.project_module = [props.data.project_id, props.data.module_id]
+    (val) => {
+      let newData = JSON.parse(JSON.stringify(val))
+      newData.project_module = [newData.project_id, newData.module_id]
+      state.form = newData
     },
     {
       deep: true,

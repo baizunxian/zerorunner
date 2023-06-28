@@ -60,7 +60,9 @@ class TimedTasksInSchema(BaseSchema):
     """定时任务保存更新"""
     id: int = Field(None, description="")
     case_ids: typing.List[typing.Union[int, str]] = Field(None, description="用例id")
+    case_env_id: int = Field(None, description="case 环境id")
     ui_ids: typing.List[typing.Union[int, str]] = Field(None, description="ui用例id")
+    ui_env_id: int = Field(None, description="ui case 环境id")
     script_ids: typing.List[typing.Union[int, str]] = Field(None, description="脚本id")
     module_id: int = Field(None, description="")
     project_id: int = Field(None, description="")
@@ -76,7 +78,6 @@ class TimedTasksInSchema(BaseSchema):
     interval_id: int = Field(None, description="区间id")
     interval_every: int = Field(None, description="区间数")
     interval_period: str = Field(None, description="间隔单位")
-    case_env_id: int = Field(None, description="case 环境id")
     task_tags: typing.List[str] = Field(None, description="任务标签")
     remarks: int = Field(None, description="备注")
 
@@ -88,7 +89,10 @@ class TimedTasksId(BaseSchema):
 
 class TaskKwargsIn(BaseSchema):
     """定时任务执行参数"""
-    ids: typing.List[typing.Union[str, int]] = Field(None, description="ids")
+    case_ids: typing.List[typing.Union[str, int]] = Field(None, description="ids")
+    case_env_id: int = Field(None, description="环境id")
+    ui_ids: typing.List[typing.Union[str, int]] = Field(None, description="ids")
+    ui_env_id: int = Field(None, description="环境id")
     name: str = Field(None, description="任务名称")
     project_id: int = Field(None, description="项目id")
     run_type: int = Field(None, description="运行类型")

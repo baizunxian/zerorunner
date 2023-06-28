@@ -5,7 +5,7 @@ from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiInfo
 from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
 from autotest.services.api.run_handle_new import HandelRunApiStep
-from autotest.services.api.test_report import ReportService
+from autotest.services.api.api_report import ReportService
 from autotest.corelibs.serialize import default_serialize
 from zerorunner.loader import load_script_content
 from zerorunner.script_code import Zero

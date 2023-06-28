@@ -35,3 +35,10 @@ async def deleted(params: UiPageId):
     """删除页面信息"""
     data = await UiPageServer.deleted(params.id)
     return partner_success(data)
+
+
+@router.post("/getAllPageElement")
+async def get_all_page_element():
+    """获取页面元素信息"""
+    data = await UiPageServer.get_all_page_element()
+    return partner_success(data)

@@ -70,8 +70,8 @@ class TSqlRequest(BaseModel):
 class TUiRequest(BaseModel):
     """ui请求模型"""
     action: str = Field(None, description="动作")
-    input_data: str = Field(None, description="输入数据")
-    location_type: str = Field(None, description="定位类型")
+    data: str = Field(None, description="输入数据")
+    location_method: str = Field(None, description="定位方法")
     location_value: str = Field(None, description="定位值")
     cookie: typing.Dict = Field(None, description="cookie")
     output: str = Field(None, description="输出")

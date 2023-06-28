@@ -2,13 +2,14 @@
 # @author: xiaobai
 import datetime as dt
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, insert, update, select
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, insert, update, select, Text
 from sqlalchemy.orm import aliased
 
 from autotest.models.api_models import ModuleInfo, ProjectInfo
 from autotest.models.base import Base
 from autotest.models.system_models import User
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema
+from autotest.schemas.job.task_record import TaskRecordQuery
 
 
 class TimedTask(Base):
@@ -140,3 +141,47 @@ class PeriodicTaskChanged(Base):
         else:
             stmt = insert(cls).values(id=1, last_update=dt.datetime.now())
         await cls.execute(stmt)
+
+
+# 任务记录表
+class CeleryTaskRecord(Base):
+    __tablename__ = 'celery_task_record'
+
+    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
+    task_id = Column(String(255), nullable=False, comment='任务id')
+    task_name = Column(String(255), nullable=False, comment='任务名称')
+    task_type = Column(String(255), nullable=False, comment='任务类型 10普通任务 20定时任务')
+    status = Column(String(255), nullable=False, comment='任务状态')
+    result = Column(String(255), nullable=False, comment='任务结果')
+    start_time = Column(DateTime, nullable=False, comment='开始时间')
+    end_time = Column(DateTime, nullable=False, comment='结束时间')
+    duration = Column(String(255), nullable=False, comment='耗时')
+    traceback = Column(Text, nullable=False, comment='异常信息')
+    business_id = Column(Integer(), nullable=False, comment='业务id')
+    args = Column(Text, nullable=False, comment='业务参数')
+    kwargs = Column(Text, nullable=False, comment='业务参数')
+
+    @classmethod
+    async def get_list(cls, params: TaskRecordQuery):
+        q = [cls.enabled_flag == 1]
+        if params.task_name:
+            q.append(cls.task_name.like('%{}%'.format(params.task_name)))
+        if params.task_type:
+            q.append(cls.task_type == params.task_type)
+        if params.status:
+            q.append(cls.status == params.status)
+        if params.start_time:
+            q.append(cls.start_time >= params.start_time)
+        if params.end_time:
+            q.append(cls.end_time <= params.end_time)
+        if params.task_id:
+            q.append(cls.task_id == params.task_id)
+        if params.business_id:
+            q.append(cls.business_id == params.business_id)
+        stmt = select(cls.get_table_columns()).where(*q).order_by(cls.id.desc())
+        return await cls.pagination(stmt)
+
+    @classmethod
+    async def get_task_record_by_task_id(cls, task_id: str) -> dict:
+        stmt = select(cls.get_table_columns()).where(cls.task_id == task_id)
+        return await cls.get_result(stmt, first=True)

@@ -10,23 +10,24 @@ from zerorunner import exceptions
 from zerorunner.model import step_model
 from zerorunner.model.result_model import TestCaseSummary
 from zerorunner.reports import HtmlTestResult
-from zerorunner import runner_new
+from zerorunner.runner_new import SessionRunner
 from zerorunner.report.stringify import stringify_summary
 from zerorunner.steps.step import Step
 
 
 class ZeroRunner(object):
-    def __init__(self, failfast: bool = False):
+    def __init__(self, failfast: bool = False, session_runner: SessionRunner = None):
         self.exception_stage = "initialize ZeroRunner()"
         kwargs = {"failfast": failfast, "resultclass": HtmlTestResult}
         self.unittest_runner = unittest.TextTestRunner(**kwargs)
         self.test_loader = unittest.TestLoader()
         self._summary = None
         self.report_id = None
+        self.session_runner = session_runner
 
     def add_tests(self, testcase: step_model.TestCase) -> typing.List[unittest.TestSuite]:
 
-        def _add_test(test_runner: runner_new.SessionRunner, test_step: Step):
+        def _add_test(test_runner: SessionRunner, test_step: Step):
             """
             test_runner : Runner
             test_step : TController
@@ -48,7 +49,7 @@ class ZeroRunner(object):
         testcase_list = []
 
         for index, step in enumerate(testcase.teststeps):
-            test_runner = runner_new.SessionRunner()
+            test_runner = self.session_runner if self.session_runner else SessionRunner()
             test_runner.with_config(testcase.config)
             test_method_name = "test_{:04}".format(index)
             test_method = _add_test(test_runner, step)

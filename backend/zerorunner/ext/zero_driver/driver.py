@@ -14,7 +14,7 @@ from zerorunner.parser import Parser, parse_string_value
 
 class DriverSetting(BaseModel):
     """driver设置"""
-    command_executor: str = Field("http://", description="远程地址")
+    command_executor: str = Field("http://127.0.0.1:4444/wb/hub", description="远程地址")
     browser_name: str = Field("chrome", description="浏览器名称")
     headless: bool = Field(True, description="是否无头模式")
     executable_path: str = Field(None, description="浏览器驱动路径")
@@ -24,7 +24,7 @@ class DriverSetting(BaseModel):
     element_wait_timeout: int = Field(10, description="元素等待超时")
 
 
-class DriverApp:
+class ZeroDriver:
     def __init__(self, setting: DriverSetting):
         self.setting = setting
         self._session_variables = {}
@@ -42,6 +42,7 @@ class DriverApp:
                 self.driver = webdriver.Chrome(executable_path=setting.executable_path, options=options)
             else:
                 """远程执行"""
+                # 默认vnc密码：secret
                 """http://chromedriver.storage.googleapis.com/index.htm 驱动下载"""
                 desired_capabilities = {
                     "browserName": "chrome",  # 浏览器名称
@@ -168,7 +169,7 @@ class DriverApp:
             raise ParamsError(f"invalid validator: {validator}")
 
         # uniform comparator, e.g. lt => less_than, eq => equals
-        assert_method = DriverApp.get_uniform_comparator(comparator)
+        assert_method = ZeroDriver.get_uniform_comparator(comparator)
 
         return {
             "mode": check_mode,
@@ -208,7 +209,7 @@ class DriverApp:
             if "validate_extractor" not in self.validation_results:
                 self.validation_results["validate_extractor"] = []
 
-            u_validator = DriverApp.uniform_validator(v)
+            u_validator = ZeroDriver.uniform_validator(v)
             check_mode = u_validator["mode"]
             # check item
             check_item = u_validator["check"]

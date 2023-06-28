@@ -3,11 +3,12 @@ from sqlalchemy.orm import aliased
 
 from autotest.models.api_models import ProjectInfo, ModuleInfo
 from autotest.models.base import Base
-from autotest.models.system_models import User
-from autotest.schemas.api.test_report import TestReportQuery
+from autotest.models.system_models import User, FileInfo
+from autotest.schemas.api.api_report import TestReportQuery
 from autotest.schemas.ui.ui_case import UiCaseQuery
 from autotest.schemas.ui.ui_element import UiElementQuery
 from autotest.schemas.ui.ui_page import UiPageQuery
+from autotest.schemas.ui.ui_report import UiReportQuery, UiReportDetailQuery
 
 
 class UiPage(Base):
@@ -69,7 +70,7 @@ class UiElement(Base):
     __tablename__ = 'ui_element'
 
     name = Column(String(255), nullable=False, comment='元素名称', index=True)
-    location_type = Column(String(255), nullable=True, comment='定位类型')
+    location_method = Column(String(255), nullable=True, comment='定位类型')
     location_value = Column(String(255), nullable=True, comment='定位元素值')
     page_id = Column(Integer, nullable=False, comment='关联页面', index=True)
     remarks = Column(String(255), nullable=True, comment='备注')
@@ -110,7 +111,7 @@ class UiCase(Base):
     __tablename__ = 'ui_case'
 
     name = Column(String(255), nullable=False, comment='用例名', index=True)
-    tags = Column(Integer, nullable=True, comment='自动化标记')
+    tags = Column(JSON, nullable=True, comment='自动化标记')
     project_id = Column(Integer, nullable=True, comment='项目id')
     module_id = Column(Integer, nullable=True, comment='模块id')
     steps = Column(JSON, nullable=True, comment='运行步骤')
@@ -132,12 +133,26 @@ class UiCase(Base):
                       u.nickname.label('updated_by_name'),
                       User.nickname.label('created_by_name')) \
             .where(*q) \
-            .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
+            .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(User, User.id == cls.created_by) \
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
+
+    @classmethod
+    async def get_case_by_id(cls, id):
+        q = [cls.enabled_flag == 1, cls.id == id]
+        u = aliased(User)
+        stmt = select(cls.get_table_columns(),
+                      u.nickname.label('updated_by_name'),
+                      User.nickname.label('created_by_name')
+                      ) \
+            .where(*q) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .order_by(cls.id.desc())
+        return await cls.get_result(stmt, first=True)
 
 
 class UiSteps(Base):
@@ -147,7 +162,7 @@ class UiSteps(Base):
     index = Column(Integer, nullable=False, comment='步骤排序', index=True)
     operation = Column(String(255), nullable=True, comment='操作')
     input_data = Column(String(255), nullable=True, comment='输入数据')
-    location_type = Column(String(255), nullable=True, comment='定位元素方式')
+    location_method = Column(String(255), nullable=True, comment='定位元素方式')
     location_value = Column(String(255), nullable=True, comment='定位元素值')
     output = Column(String(255), nullable=True, comment='输出')
     remarks = Column(String(255), nullable=True, comment='备注')
@@ -178,7 +193,7 @@ class UiReports(Base):
     exec_user_name = Column(String(255), nullable=True, comment='执行人昵称')
 
     @classmethod
-    async def get_list(cls, params: TestReportQuery):
+    async def get_list(cls, params: UiReportQuery):
         q = [cls.enabled_flag == 1]
         if params.id:
             q.append(cls.id == params.id)
@@ -280,9 +295,14 @@ class UiReportDetail:
                 name = Column(String(255), nullable=False, comment='报告名', index=True)
                 index = Column(Integer, nullable=False, comment='步骤顺序')
                 variables = Column(JSON, nullable=True, comment='步骤变量')
-                report_id = Column(Integer, nullable=False, comment='报告id')
+                data = Column(String(500), nullable=True, comment='步骤数据')
+                action = Column(String(255), nullable=True, comment='步骤动作')
+                location_method = Column(String(255), nullable=True, comment='定位方式')
+                location_value = Column(String(255), nullable=True, comment='定位值')
+                report_id = Column(Integer, nullable=False, comment='报告id', index=True)
                 success = Column(Integer(), nullable=True, comment='是否成功')
                 status = Column(String(255), nullable=True, comment='状态')
+                case_id = Column(Integer(), nullable=True, comment='用例id', index=True)
                 step_id = Column(Integer(), nullable=True, comment='步骤id', index=True)
                 remarks = Column(String(255), nullable=True, comment='备注')
                 start_time = Column(DateTime, nullable=True, comment='开始时间')
@@ -292,6 +312,80 @@ class UiReportDetail:
                 validator_results = Column(JSON, nullable=True, comment='断言结果')
                 screenshot_file_id = Column(String(255), nullable=True, comment='截图文件id')
                 log = Column(Text, nullable=True, comment='运行日志')
+                message = Column(Text, nullable=True, comment='运行信息')
+
+                @classmethod
+                async def get_list(cls, params: UiReportDetailQuery):
+                    q = [cls.enabled_flag == 1]
+                    q.append(cls.report_id == params.report_id)
+                    if params.name:
+                        q.append(cls.name.like(f"%{params.name}%"))
+                    if params.step_type:
+                        q.append(cls.step_type == params.step_type)
+                    if params.status_list:
+                        q.append(cls.status.in_(params.status_list))
+
+                    stmt = select(cls.get_table_columns(),
+                                  User.nickname.label('case_created_by_name'), ).where(*q) \
+                        .outerjoin(User, User.id == cls.created_by) \
+                        .order_by(cls.index)
+                    return await cls.pagination(stmt)
+
+                @classmethod
+                async def get_details(cls, params: UiReportDetailQuery):
+                    q = [cls.enabled_flag == 1]
+                    q.append(cls.report_id == params.report_id)
+                    if params.name:
+                        q.append(cls.name.like(f"%{params.name}%"))
+                    if params.step_type:
+                        q.append(cls.step_type == params.step_type)
+                    if params.status_list:
+                        q.append(cls.status.in_(params.status_list))
+
+                    stmt = select(cls.get_table_columns(),
+                                  User.nickname.label('case_created_by_name'),
+                                  func.concat('static/', 'files/', FileInfo.name).label("screenshot_url"),
+                                  ).where(*q) \
+                        .outerjoin(User, User.id == cls.created_by) \
+                        .outerjoin(FileInfo, FileInfo.id == cls.screenshot_file_id) \
+                        .order_by(cls.index)
+                    return await cls.get_result(stmt)
+
+                @classmethod
+                async def statistics(cls, params: UiReportDetailQuery):
+                    q = [cls.enabled_flag == 1]
+                    q.append(cls.report_id == params.report_id)
+
+                    stmt = select(
+                        # 总步骤数
+                        func.count('1').label("count_step"),
+                        # 成功步骤数
+                        func.sum(func.if_(cls.status == "SUCCESS" == 1, 1, 0)).label("count_step_success"),
+                        # 失败步骤数
+                        func.sum(func.if_(cls.status == "FAILURE" == 1, 1, 0)).label("count_step_failure"),
+                        # 跳过步骤数
+                        func.sum(func.if_(cls.status == "SKIP" == 1, 1, 0)).label("count_step_skip"),
+                        # 错误步骤数
+                        func.sum(func.if_(cls.status == "ERROR" == 1, 1, 0)).label("count_step_error"),
+                        # 总执行时长
+                        func.sum(cls.duration).label("count_request_time"),
+                        # 用例数
+                        func.sum(func.if_(cls.status != "SKIP", 1, 0)).label("count_case"),
+                        # 成功用例数
+                        func.sum(func.if_(cls.status == "SUCCESS", 1, 0)).label("count_case_success"),
+                        # 失败用例数
+                        func.sum(func.if_(cls.status == "FAILURE", 1, 0)).label("count_case_fail"),
+                        # 测试用例通过率
+                        func.round(
+                            func.sum(
+                                func.if_(cls.status == "SUCCESS", func.if_(cls.status != "SKIP", 1, 0), 0)) / func.sum(
+                                func.if_(cls.status != "SKIP", 1, 0)) * 100, 2).label(
+                            "case_pass_rate"),
+                        # 测试步骤通过率
+                        func.round(func.sum(func.if_(cls.status == "SUCCESS", 1, 0)) / func.count('1') * 100, 2).label(
+                            "step_pass_rate")).where(*q)
+
+                    return await cls.get_result(stmt, first=True)
 
             mode_class = ModelClass
             UiReportDetail._mapper[class_name] = ModelClass

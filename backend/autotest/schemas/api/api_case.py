@@ -45,6 +45,7 @@ class ApiCaseListSchema(BaseSchema):
 
 
 class TCaseRequestData(BaseModel):
+    """用例请求数据 前端保存的 api id"""
     api_id: typing.Union[str, int] = Field(None, description="api id")
     name: str = Field(None, description="用例名称")
     method: str = Field(None, description="请求方法")
@@ -80,7 +81,7 @@ class TestCaseRun(BaseModel):
     module_id: int = Field(None, description="")
     remarks: str = Field(None, description="")
     step_data: typing.List[TCaseStepData] = Field([], description="步骤数据")
-    step_rely: int = Field(None, description="步骤依赖 1依赖，0 不依赖")
+    step_rely: bool = Field(True, description="步骤依赖 True依赖，False 不依赖")
     headers: typing.List[ApiBaseSchema] = Field(None, description="请求头参数")
     variables: typing.List[ApiBaseSchema] = Field(None, description="变量参数")
 

@@ -123,12 +123,14 @@ class TimedTasksService:
                 raise ParameterError("请选择调度类型！")
 
             task_kwargs = TaskKwargsIn(
-                ids=params.case_ids,
                 name=params.name,
+                case_ids=params.case_ids,
+                case_env_id=params.case_env_id,
+                ui_ids=params.ui_ids,
+                ui_env_id=params.ui_env_id,
                 project_id=params.project_id,
                 run_type=30,
                 run_mode=params.run_mode,
-                env_id=params.case_env_id,
                 exec_user_id=user_info.get("id"),
                 exec_user_name=user_info.get("nickname"),
             )
@@ -157,12 +159,19 @@ class TimedTasksService:
         定时任务开关
         """
         task_info = await TimedTask.get(params.id, to_dict=True)
+        if not task_info:
+            return {}
+        enabled = task_info.get("enabled", None)
         task_info_data = {
             "id": task_info["id"],
-            "enabled": not task_info["enabled"],
+            "enabled": not enabled,
             # "start_time": datetime.datetime.now(),
             # "expires": datetime.datetime.now() + datetime.timedelta(minutes=5)
         }
+        if not enabled:
+            # 停止任务时重置最后运行时间
+            task_info_data["last_run_at"] = None
+
         task_info = await TimedTask.create_or_update(task_info_data)
         await PeriodicTaskChanged.update_changed()
         return task_info

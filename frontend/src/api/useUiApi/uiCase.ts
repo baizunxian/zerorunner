@@ -9,9 +9,16 @@ export function useUiCaseApi() {
         data,
       });
     },
-    getCaseById: (data: object) => {
+    getUiCaseById: (data: object) => {
       return request({
-        url: '/uiCase/getCaseById',
+        url: '/uiCase/getUiCaseById',
+        method: 'post',
+        data,
+      });
+    },
+    runUiCaseById: (data: object) => {
+      return request({
+        url: '/uiCase/runUiCaseById',
         method: 'post',
         data,
       });

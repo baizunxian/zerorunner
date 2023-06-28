@@ -1,6 +1,7 @@
 <template>
   <el-table
       :data="data"
+      :size="size"
       :tree-props="treeProps"
       :row-key="rowKey"
       v-bind="options"
@@ -19,75 +20,58 @@
           class-name="index-class"
           v-if="col.columnType === 'index' || col.columnType === 'selection' || col.columnType === 'expand'"
           :sortable="col.sortable"
+          :render-header="col.renderHeader"
+          v-bind="col"
           :prop="col.key"
           :fixed="col.fixed"
           :align="col.align"
           :label="col.label"
           :type="col.columnType"
           :index="indexMethod"
-          :width="col.width"/>
+          :width="col.width">
+
+        <template #default="scope">
+          <component v-if="col.render"
+                     :is="col.render"
+                     :row="scope.row"
+                     :index="scope.$index"
+                     v-bind="scope"/>
+        </template>
+      </el-table-column>
       <!---复选框, 序号 (END)-->
       <!---图片 (START)-->
       <el-table-column
-          v-else-if="col.columnType === 'image'"
+          v-else
+          v-bind="col"
+          :render-header="col.renderHeader"
+          :show-overflow-tooltip="col.show"
           :sortable="col.sortable"
+          :type="col.columnType"
           :prop="col.key"
           :align="col.align"
           :fixed="col.fixed"
           :label="col.label"
           :width="col.width">
-        <template #default="{ row }">
+        <!-- 自定义表头 -->
+        <template #header="{ column, $index }">
+          <component v-if="col.headerRender" :is="col.headerRender" :column="column" :index="$index"/>
+          <slot v-else-if="col.headerSlot" :name="col.headerSlot" :column="column" :index="$index"></slot>
+          <span v-else>{{ col.label }}</span>
+        </template>
+
+        <template #default="scope">
           <!-- 如需更改图片size，可自行配置参数 -->
           <el-image
+              v-if="col.columnType === 'image'"
               preview-teleported
               :hide-on-click-modal="true"
-              :preview-src-list="[row[col.prop]]"
-              :src="row[col.prop]"
+              :preview-src-list="[scope.row[col.prop]]"
+              :src="scope.row[col.prop]"
               fit="cover"
               style="width:40px;height:40px;border-radius:8px"/>
-        </template>
-      </el-table-column>
-      <!---图片 (END)-->
 
-      <!--- 日期格式化 (START)-->
-      <el-table-column
-          v-else-if="col.columnType === 'date'"
-          :sortable="col.sortable"
-          :prop="col.key"
-          :align="col.align"
-          :fixed="col.fixed"
-          :label="col.label"
-          :width="col.width">
-        <template #default="{ row }">
-          <span>{{ (row[col.prop]).format(col.dateFormat ?? 'YYYY-MM-DD') }}</span>
-        </template>
-      </el-table-column>
-      <!---日期格式化 (END)-->
-      <!-- 自定义slot (START) -->
-      <el-table-column
-          :show-overflow-tooltip="col.show"
-          v-else-if="col.slot"
-          :sortable="col.sortable"
-          :prop="col.key"
-          :align="col.align"
-          :fixed="col.fixed"
-          :label="col.label"
-          :width="col.width">
-        <template #default="scope">
-          <slot :name="col.slot" :row="scope.row" :index="scope.$index"></slot>
-        </template>
-      </el-table-column>
-      <!-- 自定义slot (END) -->
-
-      <!-- 如果传递按钮数组，就展示按钮组 START-->
-      <el-table-column
-          v-else-if="col.buttons?.length"
-          :align="col.align"
-          :label="col.label"
-          :fixed="col.fixed"
-          :width="col.width">
-        <template #default="scope">
-          <el-button-group>
+          <!-- 如果传递按钮数组，就展示按钮组 START-->
+          <el-button-group v-else-if="col.buttons?.length">
             <el-button
                 v-for="(btn, index) in col.buttons"
                 size="small"
@@ -95,48 +79,32 @@
                 :type="btn.type"
                 @click="handleAction(btn.command, scope)"
             >{{ btn.name }}
-            </el-button
-            >
+            </el-button>
           </el-button-group>
+          <!-- 如果传递按钮数组，就展示按钮组 END-->
+
+          <!--- 格式化日期 (本项目日期是时间戳，这里日期格式化可根据你的项目来更改) (START)-->
+          <el-button-group v-else-if="col.columnType === 'date'">
+            <span>{{ (scope.row[col.prop]).format(col.dateFormat ?? 'YYYY-MM-DD') }}</span>
+          </el-button-group>
+          <!--- 格式化日期 (本项目日期是时间戳，这里日期格式化可根据你的项目来更改) (END)-->
+          <!-- render函数 (START) 使用内置的component组件可以支持h函数渲染和txs语法-->
+          <component v-else-if="col.render"
+                     :is="col.render"
+                     v-model="scope.row[col.key]"
+                     :row="scope.row"
+                     :index="scope.$index"
+                     v-bind="scope"/>
+          <!-- render函数 (END) -->
+          <!-- 自定义slot (START) -->
+          <slot v-else-if="col.slot" :name="col.slot" :row="scope.row" :index="scope.$index"></slot>
+          <!-- 自定义slot (END) -->
+          <!-- 默认渲染 (START) -->
+          <span v-else>{{ handleRow(scope.row, col.key, col.lookupCode) }}</span>
+          <!-- 默认渲染 (END) -->
+
         </template>
       </el-table-column>
-      <!-- 如果传递按钮数组，就展示按钮组 END-->
-
-      <!-- render函数 (START) -->
-      <el-table-column
-          :show-overflow-tooltip="col.show"
-          v-else-if="col.render"
-          :label="col.label"
-          :sortable="col.sortable"
-          :prop="col.key"
-          :fixed="col.fixed"
-          :align="col.align"
-          :width="col.width">
-        <template #default="scope">
-          <!-- Expand组件代码下方有贴出来 -->
-          <Expand :render="col.render"
-                  :row="scope.row"
-                  :index="scope.$index"/>
-        </template>
-      </el-table-column>
-      <!-- render函数 (END) -->
-
-      <!-- 默认渲染列 (START) -->
-      <el-table-column
-          :show-overflow-tooltip="col.show"
-          v-else
-          :label="col.label"
-          :sortable="col.sortable"
-          :prop="col.key"
-          :fixed="col.fixed"
-          :align="col.align"
-          :width="col.width">
-        <template #default="{row}">
-          {{ handleRow(row, col.key, col.lookupCode) }}
-        </template>
-      </el-table-column>
-
-      <!-- 默认渲染列 (END) -->
     </template>
   </el-table>
   <!-- 分页器 -->
@@ -152,10 +120,8 @@
   </div>
 </template>
 <script setup lang="ts" name="z-table">
-import {computed, defineAsyncComponent, reactive} from 'vue'
+import {computed, reactive} from 'vue'
 import {formatLookup} from '/@/utils/lookup'
-
-const Expand = defineAsyncComponent(() => import("./expand.vue"))
 
 const props = defineProps({
   // 列表
@@ -217,6 +183,13 @@ const props = defineProps({
   load: {
     type: Function,
     default: () => {
+    }
+  },
+  // 加载回调函数
+  size: {
+    type: String,
+    default: () => {
+      return "small"
     }
   },
   // 是否显示占位符
@@ -374,5 +347,6 @@ defineExpose({
 :deep(.el-table__placeholder) {
   display: none;
 }
+
 </style>
 

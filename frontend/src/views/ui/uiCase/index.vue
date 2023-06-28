@@ -35,8 +35,8 @@ const state = reactive({
   columns: [
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {
-      key: 'name', label: '页面名称', width: '', show: true,
-      render: (row: any) => h(ElButton, {
+      key: 'name', label: '用例名称', width: '', show: true,
+      render: ({row}: any) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -52,10 +52,17 @@ const state = reactive({
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
-      label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: (row: any) => h("div", null, [
+      label: '操作', fixed: 'right', width: '200', align: 'center',
+      render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "primary",
+          onClick: () => {
+            runUiCase( row)
+          }
+        }, () => '运行'),
+
+        h(ElButton, {
+          type: "warning",
           onClick: () => {
             onOpenSaveOrUpdate("update", row)
           }
@@ -97,12 +104,19 @@ const getList = () => {
     })
 };
 
+// 运行
+const runUiCase = (row: any) => {
+  useUiCaseApi().runUiCaseById({id: row.id}).then((res => {
+    ElMessage.success('运行成功');
+  }))
+};
+
 // 新增或修改
 const onOpenSaveOrUpdate = (editType: string, row: any) => {
   let query: any = {}
   query.editType = editType
   if (row) query.id = row.id
-  router.push({name: 'EditPage', query: query})
+  router.push({name: 'editUiCase', query: query})
 };
 
 

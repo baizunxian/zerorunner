@@ -193,7 +193,7 @@ const state = reactive({
     {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
     {
       key: 'name', label: '用例名', width: '', show: true,
-      render: (row: any) => h(ElButton, {
+      render: ({row}: any) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -203,7 +203,7 @@ const state = reactive({
     },
     {
       key: 'method', label: '请求方式', width: '', show: true,
-      render: (row: any) => h(ElTag, {
+      render: ({row}: any) => h(ElTag, {
         type: "",
         style: {"background": getMethodColor(row.method), color: "#ffffff",}
       }, () => row.method)
@@ -218,7 +218,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: 'auto', show: true},
     {
       label: '操作', fixed: 'right', width: '200', align: 'center',
-      render: (row: any) => h("div", null, [
+      render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {
