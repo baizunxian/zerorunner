@@ -12,10 +12,10 @@ fi
 
 if [ $1 = "celery-worker" ]; then
     echo "start celery worker"
-     /usr/local/bin/python -m job -A celery_worker.worker.job worker --pool=gevent -c 10 -l INFO
+     /usr/local/bin/python -m celery -A celery_worker.worker.celery worker --pool=gevent -c 10 -l INFO
 fi
 
 if [ $1 = "celery-beat" ]; then
     echo "start celery beat"
-    /usr/local/bin/python  -m job -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+    /usr/local/bin/python  -m celery -A celery_worker.worker.celery beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 fi
