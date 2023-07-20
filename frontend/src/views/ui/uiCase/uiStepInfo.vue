@@ -1,5 +1,7 @@
 <template>
   <el-table
+      v-if="state.showStepTable"
+      class="ui-case-step"
       :data="stepData"
       rowKey="index"
       ref="tableRef">
@@ -318,6 +320,8 @@ const state = reactive({
   stepDataList: [],
   // pageElementList
   pageElementList: [],
+//
+  showStepTable: true,
 });
 
 const stepData = computed({
@@ -325,15 +329,16 @@ const stepData = computed({
     return props.stepDataList
   },
   set(val) {
+    console.log(val, 'val111111111')
     emit('update:stepDataList', val)
   }
 })
 
 const getAllPageElement = () => {
   useUiPageApi().getAllPageElement({})
-    .then(res => {
-      state.pageElementList = res.data
-    })
+      .then(res => {
+        state.pageElementList = res.data
+      })
 }
 
 const handelAddUiCase = () => {
@@ -414,23 +419,26 @@ const moveStep = (index: number, type: string) => {
 
 const createSortable = () => {
   let tableList = tableRef.value.$el.getElementsByClassName('el-table__body-wrapper')
-  let el
-  if (tableList && tableList.length > 0) {
-    el = tableList[0].querySelector('tbody')
-  }
-  if (el) {
-    Sortable.create(el), {
-      animation: 150,
-      sort: true,
-      handle: ".move",
-      draggable: '.icon-step-rank', // 设置可拖拽行的类名(el-table自带的类名)
-      forceFallback: true,
-      onStart: () => {
-        console.log("开始拖动");
-      },
-      onEnd: onEndFunc
-    }
-  }
+  // console.log(document.querySelector('.ui-case-step .el-table__body-wrapper tbody'))
+  // let el
+  // if (tableList && tableList.length > 0) {
+  //   el = tableList[0].querySelector('tbody')
+  // }
+  // console.log(11111111111)
+  // console.log(el, 'el')
+  // if (el) {
+  // Sortable.create(document.querySelector('.ui-case-step .el-table__body-wrapper tbody')), {
+  //   animation: 150,
+  //   sort: true,
+  //   handle: ".move",
+  //   // draggable: '.icon-step-rank', // 设置可拖拽行的类名(el-table自带的类名)
+  //   forceFallback: true,
+  //   onStart: () => {
+  //     console.log("开始拖动");
+  //   },
+  //   onEnd: onEndFunc
+  // }
+  // }
 }
 
 const onEndFunc = ({newIndex, oldIndex}: any) => {
@@ -438,8 +446,13 @@ const onEndFunc = ({newIndex, oldIndex}: any) => {
   console.log(stepData.value, 'stepDataList')
   console.log(newIndex, 'newIndex')
   stepData.value.splice(newIndex, 0, stepData.value.splice(oldIndex, 1)[0])
-  // this.preCaseListShow = false
-  // createSortable()
+  state.showStepTable = false
+  nextTick(() => {
+    state.showStepTable = true
+    nextTick(() => {
+      createSortable()
+    })
+  })
 }
 
 
@@ -451,26 +464,26 @@ onMounted(() => {
 })
 
 watch(
-  () => props.data,
-  (val) => {
-    let newData = JSON.parse(JSON.stringify(val))
-    newData.project_module = [newData.project_id, newData.module_id]
-    state.form = newData
-  },
-  {
-    deep: true,
-  }
+    () => props.data,
+    (val) => {
+      let newData = JSON.parse(JSON.stringify(val))
+      newData.project_module = [newData.project_id, newData.module_id]
+      state.form = newData
+    },
+    {
+      deep: true,
+    }
 );
 
 watch(
-  () => stepData.value,
-  (val) => {
-    console.log(val, 'stepDataList111')
-    computeDataIndex(stepData.value)
-  },
-  {
-    deep: true,
-  }
+    () => stepData.value,
+    (val) => {
+      console.log(val, 'stepDataList111')
+      computeDataIndex(stepData.value)
+    },
+    {
+      deep: true,
+    }
 );
 
 </script>

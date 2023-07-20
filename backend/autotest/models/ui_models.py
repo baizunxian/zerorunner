@@ -1,3 +1,5 @@
+import typing
+
 from sqlalchemy import Column, String, Integer, JSON, select, func, Text, DateTime, text, DECIMAL
 from sqlalchemy.orm import aliased
 
@@ -152,6 +154,13 @@ class UiCase(Base):
             .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(User, User.id == cls.created_by) \
             .order_by(cls.id.desc())
+        return await cls.get_result(stmt, first=True)
+
+    @classmethod
+    async def get_count_by_user_id(cls, user_id: typing.Any):
+        """统计用户创建的用例数量"""
+        stmt = select(func.count(cls.id).label('count')).where(cls.enabled_flag == 1,
+                                                               cls.created_by == user_id)
         return await cls.get_result(stmt, first=True)
 
 

@@ -27,9 +27,9 @@
                 <el-tab-pane label="账号密码登录" name="account">
                   <Account/>
                 </el-tab-pane>
-<!--                <el-tab-pane label="手机号登录" name="mobile">-->
-<!--                  <Mobile/>-->
-<!--                </el-tab-pane>-->
+                <!--                <el-tab-pane label="手机号登录" name="mobile">-->
+                <!--                  <Mobile/>-->
+                <!--                </el-tab-pane>-->
               </el-tabs>
             </div>
             <Scan v-if="state.isScan"/>
@@ -39,6 +39,12 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="login-footer">
+      <div class="login-footer__content">
+        <span>ZERORUNNER</span> |
+        <a href="https://beian.miit.gov.cn/" class="slide" target="_blank">粤ICP备20069344号-1</a>
       </div>
     </div>
   </div>
@@ -279,6 +285,24 @@ onMounted(() => {
           }
         }
       }
+    }
+  }
+}
+
+.login-footer {
+  width: 100%;
+  bottom: 30px;
+  position: absolute;
+
+  background-color: transparent;
+
+  .login-footer__content {
+    //margin: 0 auto;
+    transform: translate(-50%);
+    position: absolute;
+    left: 50%;
+    .slide {
+      text-decoration:none;
     }
   }
 }

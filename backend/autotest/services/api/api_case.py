@@ -109,3 +109,13 @@ class ApiCaseService:
         )
         report_info.update(params_dict)
         summary_params = TestReportSaveSchema(**report_info)
+
+    @staticmethod
+    async def get_count_by_user():
+        """获取用户用例数量"""
+        user_info = await current_user()
+        count_info = await ApiCase.get_count_by_user_id(user_info.get("id", None))
+        if not count_info:
+            return 0
+        if count_info:
+            return count_info.get("count", 0)

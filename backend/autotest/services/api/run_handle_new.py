@@ -104,7 +104,7 @@ class HandleConfig(object):
             if env_info.variables:
                 new_variables = handle_headers_or_validators(env_variables)
                 self.config.variables = parse_validators_string_value(new_variables)
-        config_funcs = await EnvFunc.get_by_env_id(env_id)
+        config_funcs = await EnvFunc.get_by_env_id(env_id) if env_id else []
         if config_funcs:
             for func in config_funcs:
                 func_content = func.get("content", None)

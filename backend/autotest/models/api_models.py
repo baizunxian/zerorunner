@@ -322,6 +322,13 @@ class ApiInfo(Base):
         return await cls.get_result(stmt, True)
 
     @classmethod
+    async def get_count_by_user_id(cls, user_id: typing.Any):
+        """统计用户创建的用例数量"""
+        stmt = select(func.count(cls.id).label('count')).where(cls.enabled_flag == 1,
+                                                               cls.created_by == user_id)
+        return await cls.get_result(stmt, first=True)
+    
+    @classmethod
     def get_api_by_time(cls, start_time, end_time):
         return cls.query.filter(cls.creation_date.between(start_time, end_time), cls.enabled_flag == 1)
 
@@ -415,6 +422,13 @@ class ApiCase(Base):
     async def get_case_by_name(cls, name: str):
         """根据套件名称查询用例"""
         stmt = select(cls.get_table_columns()).where(cls.name == name, cls.enabled_flag == 1)
+        return await cls.get_result(stmt, first=True)
+
+    @classmethod
+    async def get_count_by_user_id(cls, user_id: typing.Any):
+        """统计用户创建的用例数量"""
+        stmt = select(func.count(cls.id).label('count')).where(cls.enabled_flag == 1,
+                                                               cls.created_by == user_id)
         return await cls.get_result(stmt, first=True)
 
     @classmethod
