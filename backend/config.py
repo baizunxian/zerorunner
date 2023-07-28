@@ -77,6 +77,7 @@ class Configs(BaseSettings):
     #  job -A your_app worker -Q api_case,ui_case
 
     TEST_FILES_DIR: str = Path(__file__).parent.joinpath("static", "files").as_posix()
+    PROJECT_ROOT_DIR: str = Path(__file__).parent.as_posix()
 
     task_run_pool: int = 3
 

@@ -9,7 +9,7 @@
 			<LayoutParentView />
 			<LayoutFooter v-if="isFooter" />
 		</el-scrollbar>
-		<el-backtop :target="setBacktopClass" />
+		<el-backtop :target="setBacktopClass"/>
 	</el-main>
 </template>
 

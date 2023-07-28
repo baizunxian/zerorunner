@@ -123,3 +123,13 @@ class UiCaseServer:
                                  step_data=step_data)
         api_case_info = await HandelTestCase().init(run_params)
         return api_case_info
+
+    @staticmethod
+    async def get_count_by_user():
+        """获取用户api数量"""
+        user_info = await current_user()
+        count_info = await UiCase.get_count_by_user_id(user_info.get("id", None))
+        if not count_info:
+            return 0
+        if count_info:
+            return count_info.get("count", 0)

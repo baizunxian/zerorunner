@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import datetime as dt
+import typing
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, insert, update, select, Text
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, insert, update, select, Text, func
 from sqlalchemy.orm import aliased
 
 from autotest.models.api_models import ModuleInfo, ProjectInfo
@@ -84,6 +85,13 @@ class TimedTask(Base):
         """获取任务名存在的个数"""
         stmt = select(cls).where(cls.name == name, cls.enabled_flag == 1)
         return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_count_by_user_id(cls, user_id: typing.Any):
+        """统计用户创建的用例数量"""
+        stmt = select(func.count(cls.id).label('count')).where(cls.enabled_flag == 1,
+                                                               cls.created_by == user_id)
+        return await cls.get_result(stmt, first=True)
 
 
 class Crontab(Base):

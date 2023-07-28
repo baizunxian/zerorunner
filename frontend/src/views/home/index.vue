@@ -1,77 +1,114 @@
 <template>
   <div class="home-container layout-pd">
-    欢迎
-    <!--		<el-row :gutter="15" class="home-card-one mb15">-->
-    <!--			<el-col-->
-    <!--				:xs="24"-->
-    <!--				:sm="12"-->
-    <!--				:md="12"-->
-    <!--				:lg="6"-->
-    <!--				:xl="6"-->
-    <!--				v-for="(v, k) in state.homeOne"-->
-    <!--				:key="k"-->
-    <!--				:class="{ 'home-media home-media-lg': k > 1, 'home-media-sm': k === 1 }"-->
-    <!--			>-->
-    <!--				<div class="home-card-item flex">-->
-    <!--					<div class="flex-margin flex w100" :class="` home-one-animation${k}`">-->
-    <!--						<div class="flex-auto">-->
-    <!--							<span class="font30">{{ v.num1 }}</span>-->
-    <!--							<span class="ml5 font16" :style="{ color: v.color1 }">{{ v.num2 }}%</span>-->
-    <!--							<div class="mt10">{{ v.num3 }}</div>-->
-    <!--						</div>-->
-    <!--						<div class="home-card-item-icon flex" :style="{ background: `var(${v.color2})` }">-->
-    <!--							<i class="flex-margin font32" :class="v.num4" :style="{ color: `var(${v.color3})` }"></i>-->
-    <!--						</div>-->
-    <!--					</div>-->
-    <!--				</div>-->
-    <!--			</el-col>-->
-    <!--		</el-row>-->
-    <!--		<el-row :gutter="15" class="home-card-two mb15">-->
-    <!--			<el-col :xs="24" :sm="14" :md="14" :lg="16" :xl="16">-->
-    <!--				<div class="home-card-item">-->
-    <!--					<div style="height: 100%" ref="homeLineRef"></div>-->
-    <!--				</div>-->
-    <!--			</el-col>-->
-    <!--			<el-col :xs="24" :sm="10" :md="10" :lg="8" :xl="8" class="home-media">-->
-    <!--				<div class="home-card-item">-->
-    <!--					<div style="height: 100%" ref="homePieRef"></div>-->
-    <!--				</div>-->
-    <!--			</el-col>-->
-    <!--		</el-row>-->
-    <!--		<el-row :gutter="15" class="home-card-three">-->
-    <!--			<el-col :xs="24" :sm="10" :md="10" :lg="8" :xl="8">-->
-    <!--				<div class="home-card-item">-->
-    <!--					<div class="home-card-item-title">快捷导航工具</div>-->
-    <!--					<div class="home-monitor">-->
-    <!--						<div class="flex-warp">-->
-    <!--							<div class="flex-warp-item" v-for="(v, k) in state.homeThree" :key="k">-->
-    <!--								<div class="flex-warp-item-box" :class="`home-animation${k}`">-->
-    <!--									<div class="flex-margin">-->
-    <!--										<i :class="v.icon" :style="{ color: v.iconColor }"></i>-->
-    <!--										<span class="pl5">{{ v.label }}</span>-->
-    <!--										<div class="mt10">{{ v.value }}</div>-->
-    <!--									</div>-->
-    <!--								</div>-->
-    <!--							</div>-->
-    <!--						</div>-->
-    <!--					</div>-->
-    <!--				</div>-->
-    <!--			</el-col>-->
-    <!--			<el-col :xs="24" :sm="14" :md="14" :lg="16" :xl="16" class="home-media">-->
-    <!--				<div class="home-card-item">-->
-    <!--					<div style="height: 100%" ref="homeBarRef"></div>-->
-    <!--				</div>-->
-    <!--			</el-col>-->
-    <!--		</el-row>-->
+    <el-card class="mb15">
+      <div class="user-card">
+        <div class="user-info-content">
+          <el-avatar shape="square" :size="70" :src="userInfo.avatar"></el-avatar>
+          <div class="home-user-info">
+            <h3 class="home-user-name">{{ userInfo.username }}</h3>
+            <div class="home-user-login-info">
+              <div class="pt2">登录时间：{{ userInfo.login_time }}</div>
+              <div class="pt2">访问IP：{{ userInfo.lastLoginTime }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="user-statistics">
+          <el-card class="user-statistics-card" v-for="s in state.statisticsCredData" :key="s.name">
+            <div style="display: flex; justify-content: space-between">
+              <div class="statistics-number"><span>{{ s.number }}</span></div>
+              <div class="statistics-comparison" :style="{color: s.ratio >= 0? '#0cbb52': '#ff6462'}">
+                <el-icon class="statistics-comparison__text">
+                  <Top v-if="s.ratio >= 0"/>
+                  <Bottom v-else></Bottom>
+                </el-icon>
+                <span class="statistics-comparison__text" style="margin-right: 5px">{{ s.ratio }}</span>
+                <el-tooltip :content="s.ratioDescribe" placement="top">
+                  <el-icon class="statistics-comparison__text">
+                    <InfoFilled></InfoFilled>
+                  </el-icon>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="font12">{{ s.name }}</div>
+          </el-card>
+        </div>
+      </div>
+    </el-card>
+
+<!--    <el-row :gutter="15" class="home-card-one mb15">-->
+<!--      <el-col-->
+<!--          :xs="24"-->
+<!--          :sm="12"-->
+<!--          :md="12"-->
+<!--          :lg="6"-->
+<!--          :xl="6"-->
+<!--          v-for="(v, k) in state.homeOne"-->
+<!--          :key="k"-->
+<!--          :class="{ 'home-media home-media-lg': k > 1, 'home-media-sm': k === 1 }"-->
+<!--      >-->
+<!--        <div class="home-card-item flex">-->
+<!--          <div class="flex-margin flex w100" :class="` home-one-animation${k}`">-->
+<!--            <div class="flex-auto">-->
+<!--              <span class="font30">{{ v.num1 }}</span>-->
+<!--              <span class="ml5 font16" :style="{ color: v.color1 }">{{ v.num2 }}%</span>-->
+<!--              <div class="mt10">{{ v.num3 }}</div>-->
+<!--            </div>-->
+<!--            <div class="home-card-item-icon flex" :style="{ background: `var(${v.color2})` }">-->
+<!--              <i class="flex-margin font32" :class="v.num4" :style="{ color: `var(${v.color3})` }"></i>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </el-col>-->
+<!--    </el-row>-->
+<!--    <el-row :gutter="15" class="home-card-two mb15">-->
+<!--      <el-col :xs="24" :sm="14" :md="14" :lg="16" :xl="16">-->
+<!--        <div class="home-card-item">-->
+<!--          <div style="height: 100%" ref="homeLineRef"></div>-->
+<!--        </div>-->
+<!--      </el-col>-->
+<!--      <el-col :xs="24" :sm="10" :md="10" :lg="8" :xl="8" class="home-media">-->
+<!--        <div class="home-card-item">-->
+<!--          <div style="height: 100%" ref="homePieRef"></div>-->
+<!--        </div>-->
+<!--      </el-col>-->
+<!--    </el-row>-->
+<!--    <el-row :gutter="15" class="home-card-three">-->
+<!--      <el-col :xs="24" :sm="10" :md="10" :lg="8" :xl="8">-->
+<!--        <div class="home-card-item">-->
+<!--          <div class="home-card-item-title">快捷导航工具</div>-->
+<!--          <div class="home-monitor">-->
+<!--            <div class="flex-warp">-->
+<!--              <div class="flex-warp-item" v-for="(v, k) in state.homeThree" :key="k">-->
+<!--                <div class="flex-warp-item-box" :class="`home-animation${k}`">-->
+<!--                  <div class="flex-margin">-->
+<!--                    <i :class="v.icon" :style="{ color: v.iconColor }"></i>-->
+<!--                    <span class="pl5">{{ v.label }}</span>-->
+<!--                    <div class="mt10">{{ v.value }}</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </el-col>-->
+<!--      <el-col :xs="24" :sm="14" :md="14" :lg="16" :xl="16" class="home-media">-->
+<!--        <div class="home-card-item">-->
+<!--          <div style="height: 100%" ref="homeBarRef"></div>-->
+<!--        </div>-->
+<!--      </el-col>-->
+<!--    </el-row>-->
   </div>
 </template>
 
 <script setup lang="ts" name="home">
-import {reactive, onMounted, ref, watch, nextTick, onActivated, markRaw} from 'vue';
+import {reactive, onMounted, ref, watch, nextTick, onActivated, markRaw, computed} from 'vue';
 import * as echarts from 'echarts';
 import {storeToRefs} from 'pinia';
 import {useThemeConfig} from '/@/stores/themeConfig';
+import {useUserInfo} from '/@/stores/userInfo';
 import {useTagsViewRoutes} from '/@/stores/tagsViewRoutes';
+import {InfoFilled, Top, Bottom} from '@element-plus/icons-vue';
+import {usesStatisticsApi} from "/@/api/useAutoApi/statistics";
 
 // 定义变量内容
 const homeLineRef = ref();
@@ -79,9 +116,28 @@ const homePieRef = ref();
 const homeBarRef = ref();
 const storesTagsViewRoutes = useTagsViewRoutes();
 const storesThemeConfig = useThemeConfig();
+const useUserInfos = useUserInfo();
 const {themeConfig} = storeToRefs(storesThemeConfig);
 const {isTagsViewCurrenFull} = storeToRefs(storesTagsViewRoutes);
+const {userInfos} = storeToRefs(useUserInfos);
+
 const state = reactive({
+  statisticsCredData: [
+    {number: 0, name: '接口数量', ratio: 0, ratioDescribe: '(当月新增接口数量-上月新增接口数量)/上月新增接口数量×100%'},
+    {
+      number: 0,
+      name: '接口用例数量',
+      ratio: 0,
+      ratioDescribe: '(当月新增接口用例数量-上月新增接口用例数量)/上月新增接口用例数量×100%'
+    },
+    {
+      number: 0,
+      name: 'UI用例数量',
+      ratio: 0,
+      ratioDescribe: '(当月新增UI用例数量-上月新增UI用例数量)/上月新增UI用例数量×100%'
+    },
+    {number: 0, name: '任务数量', ratio: 0, ratioDescribe: '(当月新增任务数量-上月新增任务数量)/上月新增任务数量×100%'},
+  ],
   global: {
     homeChartOne: null,
     homeChartTwo: null,
@@ -189,6 +245,12 @@ const state = reactive({
     color: '#303133',
   },
 });
+
+// 用户信息
+const userInfo = computed(() => {
+  return userInfos.value;
+});
+
 
 // 折线图
 const initLineChart = () => {
@@ -357,6 +419,36 @@ const initPieChart = () => {
   state.global.homeChartTwo.setOption(option);
   state.myCharts.push(state.global.homeChartTwo);
 };
+
+const getCountStatistics = async () => {
+  let {data} = await usesStatisticsApi().personalStatistics()
+  state.statisticsCredData = [
+    {
+      number: data.api_count,
+      name: '接口数量',
+      ratio: 0,
+      ratioDescribe: '(当月新增接口数量-上月新增接口数量)/上月新增接口数量×100%'
+    },
+    {
+      number: data.api_case_count,
+      name: '接口用例数量',
+      ratio: 0,
+      ratioDescribe: '(当月新增接口用例数量-上月新增接口用例数量)/上月新增接口用例数量×100%'
+    },
+    {
+      number: data.ui_case_count,
+      name: 'UI用例数量',
+      ratio: 0,
+      ratioDescribe: '(当月新增UI用例数量-上月新增UI用例数量)/上月新增UI用例数量×100%'
+    },
+    {
+      number: data.task_count,
+      name: '任务数量',
+      ratio: 0,
+      ratioDescribe: '(当月新增任务数量-上月新增任务数量)/上月新增任务数量×100%'
+    },
+  ]
+}
 // 柱状图
 const initBarChart = () => {
   if (!state.global.dispose.some((b: any) => b === state.global.homeCharThree)) state.global.homeCharThree.dispose();
@@ -505,6 +597,7 @@ const initEchartsResize = () => {
 // 页面加载时
 onMounted(() => {
   initEchartsResize();
+  getCountStatistics();
 });
 // 由于页面缓存原因，keep-alive
 onActivated(() => {
@@ -643,4 +736,68 @@ $homeNavLengh: 8;
     }
   }
 }
+
+.home-container {
+  :deep(.el-card__body) {
+    padding: 15px;
+  }
+
+  .user-card {
+    display: flex;
+
+    .user-info-content {
+      display: flex;
+
+      .home-user-info {
+        //display: flex;
+        padding-left: 10px;
+
+        .home-user-name {
+
+        }
+
+        .home-user-login-info {
+          font-size: 10px;
+        }
+      }
+
+    }
+
+    .user-statistics {
+      display: flex;
+      padding-left: 50px;
+
+      :deep(.el-card__body) {
+        padding: 8px;
+      }
+
+      .user-statistics-card {
+        width: auto;
+        margin: 0 10px;
+        min-width: 100px;
+
+        .statistics-number {
+          font-size: 24px;
+          color: #333;
+          font-weight: 600;
+        }
+
+        .statistics-comparison {
+          padding-left: 10px;
+          padding-top: 6px;
+          color: #0cbb52;
+
+          .statistics-comparison__text {
+            vertical-align: middle;
+          }
+        }
+      }
+
+    }
+
+  }
+
+}
+
+
 </style>

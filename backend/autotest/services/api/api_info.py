@@ -7,6 +7,7 @@ from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSche
 from autotest.services.api.run_handle_new import HandelRunApiStep
 from autotest.services.api.api_report import ReportService
 from autotest.corelibs.serialize import default_serialize
+from autotest.utils import current_user
 from zerorunner.loader import load_script_content
 from zerorunner.script_code import Zero
 from zerorunner.testcase_new import ZeroRunner
@@ -145,3 +146,13 @@ class ApiInfoService:
             case_info = ApiInfo()
             case_info.update(**parsed_data)
         return len(coll.case_list)
+
+    @staticmethod
+    async def get_count_by_user():
+        """获取用户api数量"""
+        user_info = await current_user()
+        count_info = await ApiInfo.get_count_by_user_id(user_info.get("id", None))
+        if not count_info:
+            return 0
+        if count_info:
+            return count_info.get("count", 0)

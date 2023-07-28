@@ -28,7 +28,7 @@ https://gitee.com/xb_xiaobai/zerorunner
 #### ⛱️ 线上预览
 
 - ZERO AUTOTEST
-  自动化测试平台在线预览 <a href="https://xiaobaicodes.com:8888" target="_blank">https://xiaobaicodes.com:8888</a>
+  自动化测试平台在线预览 <a href="https://xiaobaicodes.com" target="_blank">https://xiaobaicodes.com</a>
 
 - 首页
   ![](static/img/index.png)

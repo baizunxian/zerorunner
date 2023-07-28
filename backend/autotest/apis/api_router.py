@@ -4,7 +4,7 @@
 
 from fastapi import APIRouter
 from autotest.apis.api import project, module, api_info, api_case, api_report, data_source, env, functions, timed_tasks
-from autotest.apis.system import user, menu, roles, lookup, id_center, file
+from autotest.apis.system import user, menu, roles, lookup, id_center, file, statistics
 from autotest.apis.ui import ui_page, ui_element, ui_case, ui_report
 from autotest.apis.websocket import websocket
 from autotest.apis.websocket.ui import web_ui_case
@@ -22,6 +22,7 @@ app_router.include_router(data_source.router, prefix="/dataSource", tags=["dataS
 app_router.include_router(functions.router, prefix="/functions", tags=["functions"])
 app_router.include_router(timed_tasks.router, prefix="/timedTasks", tags=["TimedTasks"])
 app_router.include_router(env.router, prefix="/env", tags=["env"])
+app_router.include_router(statistics.router, prefix="/statistics", tags=["statistics"])
 
 # ui
 app_router.include_router(ui_page.router, prefix="/uiPage", tags=["uiPage"])

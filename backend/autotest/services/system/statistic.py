@@ -1,151 +1,27 @@
-import datetime
-
-from sqlalchemy import text
-
-from autotest.models.api_models import ProjectInfo, ModuleInfo, ApiInfo, ApiCase, ApiTestReport
-from autotest.models.sys_models import User
-from autotest.utils.basic_function import get_today_start, get_today_end
+from autotest.services.api.api_case import ApiCaseService
+from autotest.services.api.api_info import ApiInfoService
+from autotest.services.api.timed_task import TimedTasksService
+from autotest.services.ui.ui_case import UiCaseServer
 
 
 class StatisticService:
     """统计类"""
 
     @staticmethod
-    def index_count_statistic():
-        """获取首页统计数据"""
-        today_start_time = get_today_start()
-        today_end_time = get_today_end()
-        # 项目统计
-        project_count = ProjectInfo.get_all_count()
-        # 模块统计
-        module_count = ModuleInfo.get_all_count()
-        # 用例统计
-        case_count = ApiInfo.get_all_count()
-        # 套件统计
-        suite_count = ApiCase.get_all_count()
-
-        # 当天执行数
-        test_ex_data = StatisticService.get_case_execution_by_time(today_start_time, today_end_time)
-
-        # 新增用例数
-        add_case_count = ApiInfo.get_api_by_time(today_start_time, today_end_time).count()
-
-        # case 分布
-        pcn_sql = ApiInfo.statistic_project_api_number()
-        pcns_data = pcn_sql.group_by(ProjectInfo.name).order_by(text('case_num desc')).all()
-        ucns_data = pcn_sql.group_by(User.nickname).order_by(text('case_num desc')).all()
-
-        # 套件分布
-        scn_sql = ApiCase.statistic_project_case_number()
-        scns_data = scn_sql.group_by(ProjectInfo.name).order_by(text('case_num asc')).all()
-
-        #  project top
-        # pcns_data = StatisticProjectCaseNum.jsonable_encoder(pcns_data)
-
-        # user top
-        # ucns_data = StatisticProjectCaseNum.jsonable_encoder(ucns_data)
-
-        # 套件top
-        # scns_data = StatisticProjectCaseNum.jsonable_encoder(scns_data)
-
-        # 运行用例报告统计 根据人
-        report_statistic = ApiTestReport.statistic_report().group_by(ApiTestReport.execute_user_id).order_by(
-            text('run_num desc')).limit(10).all()
-        # report_statistic = StatisticReportNum.jsonable_encoder(report_statistic_data)
-
-        project_rate = ApiTestReport.get_statistic_report().all()
-        # project_rate = StatisticReportRate.jsonable_encoder(report_rate)
-
+    async def personal_statistics():
+        """个人统计"""
+        api_count = await ApiInfoService.get_count_by_user()
+        api_case_count = await ApiCaseService.get_count_by_user()
+        ui_case_count = await UiCaseServer.get_count_by_user()
+        task_count = await TimedTasksService.get_count_by_user()
         data = {
-            'count_info': {
-                'project_count': project_count,
-                'module_count': module_count,
-                'case_count': case_count,
-                'suite_count': suite_count,
-                'today_total_run': test_ex_data.get('total_run', 0),
-                'today_run_count': test_ex_data.get('count', 0),
-                'add_case_count': add_case_count,
-            },
-            'top_info': {
-                'pcns_data': pcns_data,
-                'ucns_data': ucns_data,
-                'scns_data': scns_data,
-            },
-            'report_info': report_statistic,
-            'case_run_info': StatisticService.get_case_exe_results(),
-            'project_rate': project_rate
+            "api_count": api_count,
+            "api_ratio": 0,
+            "api_case_count": api_case_count,
+            "api_case_ratio": 0,
+            "ui_case_count": ui_case_count,
+            "ui_case_ratio": 0,
+            "task_count": task_count,
+            "task_ratio": 0,
         }
         return data
-
-    @staticmethod
-    def get_case_execution_by_time(begin_time, end_time):
-        """根据时间获取报告数"""
-        results = {
-            'time': 0,
-            'pass': 0,
-            'fail': 0,
-            'percent': 0,
-            'count': 0,
-            'total_run': 0,
-        }
-        report_all = ApiTestReport.get_report_by_time(begin_time, end_time)
-        total_run = 0
-        pass_count = 0
-        for report in report_all.all():
-            if begin_time <= report.start_at.strftime('%Y-%m-%d %H:%M:%S') <= end_time:
-                total_run += report.run_test_count if report.run_test_count else 0
-                pass_count += report.successful_use_case if report.successful_use_case else 0
-        results['date'] = begin_time
-        results['pass'] = pass_count
-        results['fail'] = total_run - pass_count
-        results['percent'] = round(pass_count / total_run * 100, 2) if total_run != 0 else 0.00
-        results['count'] = report_all.count()
-        results['total_run'] = total_run
-        return results
-
-    @staticmethod
-    def get_case_exe_results():
-        """测试报告执行数据"""
-        results = {
-            'date': [],
-            'pass': [],
-            'fail': [],
-            'percent': [],
-            'run_count': [],
-            'module_exe_num': [],
-            'case_exe_num': [],
-            'suite_exe_num': [],
-        }
-        today = datetime.date.today()
-        b_time = today + datetime.timedelta(days=-12)
-        report_all = ApiTestReport.get_report_by_time(b_time.strftime('%Y-%m-%d 00:00:00'),
-                                                    today.strftime('%Y-%m-%d 23:59:59')).all()
-        # todo : 这种方式小数据量效果会比较好，数据量大的话要重新优化
-        for i in range(-11, 1):
-            c_time = (today + datetime.timedelta(days=i))
-            begin_time = c_time.strftime('%Y-%m-%d 00:00:00')
-            end_time = c_time.strftime('%Y-%m-%d 23:59:59')
-            total_run = 0
-            pass_count = 0
-            module_exe_num = 0
-            case_exe_num = 0
-            suite_exe_num = 0
-            for report in report_all:
-                if begin_time <= report.start_at.strftime('%Y-%m-%d %H:%M:%S') <= end_time:
-                    total_run += report.run_test_count if report.run_test_count else 0
-                    pass_count += report.successful_use_case if report.successful_use_case else 0
-                    if report.run_type == 'module':
-                        module_exe_num += 1
-                    if report.run_type == 'case':
-                        case_exe_num += 1
-                    if report.run_type == 'suite':
-                        suite_exe_num += 1
-            results['date'].append(c_time.strftime('%Y-%m-%d'))
-            results['pass'].append(pass_count)
-            results['fail'].append(total_run - pass_count)
-            results['run_count'].append(module_exe_num + case_exe_num + suite_exe_num)
-            results['percent'].append(round(pass_count / total_run * 100, 2) if total_run != 0 else 0.00)
-            results['module_exe_num'].append(module_exe_num)
-            results['case_exe_num'].append(case_exe_num)
-            results['suite_exe_num'].append(suite_exe_num)
-        return results
