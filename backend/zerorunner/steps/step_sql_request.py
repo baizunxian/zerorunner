@@ -32,6 +32,8 @@ def run_sql_request(runner: SessionRunner,
         )
 
         data = db_engine.fetchall(step.sql_request.sql)
+        if isinstance(data, list) and len(data) == 1:
+            data = next(iter(data[0].values()))
         variables = {step.sql_request.variable_name: data}
         runner.with_variables(variables)
         step_result.export_vars.update(variables)
