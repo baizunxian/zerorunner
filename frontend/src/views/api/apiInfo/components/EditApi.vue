@@ -163,7 +163,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ApiSaveOrUpdate">
+<script lang="ts" setup name="EditApiInfo">
 import {defineProps, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from "vue-router"
 import {useApiInfoApi} from '/@/api/useAutoApi/apiInfo'
