@@ -151,6 +151,7 @@ class TConfig(BaseModel):
     verify: Verify = Field(False, description="是否校验")
     base_url: BaseUrl = Field("", description="base_url")
     functions: FunctionsMapping = Field({}, description="函数mapping")
+    step_rely: bool = Field(False, description="步骤依赖")
     # Text: prepare variables in debugtalk.py, ${gen_variables()}
     variables: typing.Union[VariablesMapping, str] = Field({}, description="变量")
     env_variables: typing.Union[VariablesMapping, str] = Field({}, description="环境变量")

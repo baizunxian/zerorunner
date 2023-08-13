@@ -104,3 +104,5 @@ class CheckModeEnum(str, Enum):
     JsonPath = "JsonPath"
     jmespath = "jmespath"
     variable_or_func = "variable_or_func"
+    RequestHeaders = "request_headers"
+    ResponseHeaders = "response_headers"

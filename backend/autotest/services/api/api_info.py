@@ -121,6 +121,7 @@ class ApiInfoService:
         """
         case_info = await HandelRunApiStep().init(params)
         runner = ZeroRunner()
+        print(id(runner))
         summary = runner.run_tests(case_info.get_testcase())
 
         return summary
