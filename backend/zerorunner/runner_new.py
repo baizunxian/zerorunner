@@ -51,11 +51,12 @@ class SessionRunner(object):
     def __init(self):
         self.__config = self.config
         self.__session_variables = self.__session_variables or {}
+        self.extracted_variables = self.extracted_variables or {}
         self.__start_at = 0
         self.__duration = 0
 
         self.case_id = self.case_id or str(uuid.uuid4())
-        self.__step_results = self.__step_results or []
+        self.__step_results = []
         self.session = self.session or HttpSession()
         self.parser = self.parser or Parser(self.config.functions)
 
@@ -229,24 +230,22 @@ class SessionRunner(object):
         """
         获取合并的变量
         优先级
-        __session_variables(会话变量)
-                V
-        extracted_variables(提取变量)
-                V
-        step.variables(用例变量)
-                V
+        step.variables(用例变量) >
+         __session_variables(会话变量) >
+        extracted_variables(提取变量) >
+        config.variables(用例变量) >
         config.env_variables(环境变量)
-
         """
 
         # 合并用例变量
         merge_variable = merge_variables(self.config.env_variables, self.config.variables)
+        # 合并提取变量
+        merge_variable = merge_variables(self.extracted_variables, merge_variable)
+        # 合并会话变量
+        merge_variable = merge_variables(self.__session_variables, merge_variable)
         # 合并用例变量
         if step:
             merge_variable = merge_variables(step.variables, merge_variable)
-        merge_variable = merge_variables(self.__session_variables, merge_variable)
-        # 合并提取变量
-        merge_variable = merge_variables(self.extracted_variables, merge_variable)
         return merge_variable
 
     def __parse_config(self, param: typing.Dict = None):

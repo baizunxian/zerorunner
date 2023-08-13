@@ -19,8 +19,7 @@ from config import config
 from zerorunner.loader import load_module_functions, load_func_content
 from zerorunner.model.base import TStepTypeEnum
 from zerorunner.model.step_model import TStep, TRequest, TSqlRequest, TIFRequest, TLoopRequest, TScriptRequest, \
-    TWaitRequest, TestCase, TUiRequest
-from zerorunner.models import TConfig
+    TWaitRequest, TestCase, TUiRequest, TConfig
 from zerorunner.steps.step import Step
 from zerorunner.steps.step_api_requet import RunRequestStep
 from zerorunner.steps.step_if_requet import RunIFStep
@@ -103,7 +102,8 @@ class HandleConfig(object):
             # 环境变量
             if env_info.variables:
                 new_variables = handle_headers_or_validators(env_variables)
-                self.config.variables = parse_validators_string_value(new_variables)
+                # 43 修复环境变量覆盖用例变量
+                self.config.env_variables = parse_validators_string_value(new_variables)
         config_funcs = await EnvFunc.get_by_env_id(env_id) if env_id else []
         if config_funcs:
             for func in config_funcs:
@@ -342,6 +342,7 @@ class HandelTestCase(object):
                                                 self.api_case.variables)
         self.config = config_info.config
         self.config.name = self.api_case.name
+        self.config.step_rely = self.api_case.step_rely
 
     async def init_steps(self, steps: typing.List[TCaseStepData]) -> "HandelTestCase":
         step_data = await self.handle_steps(steps)
