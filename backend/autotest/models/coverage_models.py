@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-from sqlalchemy import Column, String, Integer, DECIMAL, BLOB, Text
+from sqlalchemy import Column, String, Integer, DECIMAL, Text
 
 from autotest.models import Base
 
@@ -49,9 +49,9 @@ class CoverageMethodDetail(Base):
     name = Column(String(255), nullable=False, comment='包名')
     method_md5 = Column(String(255), nullable=False, comment='类名')
     class_id = Column(Integer, nullable=False, comment='类id')
-    params_string = Column(String(255), nullable=False, comment='参数')
+    params_string = Column(Text, nullable=False, comment='参数')
     offset = Column(Integer(), nullable=False, comment='偏移量')
-    lines_covered_status = Column(String(500), nullable=False, comment='行覆盖状态')
+    lines_covered_status = Column(Text, nullable=False, comment='行覆盖状态')
     branch_missed = Column(Integer(), nullable=False, comment='未覆盖分支', default=0)
     branch_covered = Column(Integer(), nullable=False, comment='覆盖分支', default=0)
     instruction_missed = Column(Integer(), nullable=False, comment='未覆盖指令', default=0)
