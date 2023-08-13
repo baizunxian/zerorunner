@@ -418,8 +418,8 @@ const moveStep = (index: number, type: string) => {
 }
 
 const createSortable = () => {
-  let tableList = tableRef.value.$el.getElementsByClassName('el-table__body-wrapper')
-  // console.log(document.querySelector('.ui-case-step .el-table__body-wrapper tbody'))
+  // let tableList = tableRef.value.$el.querySelector('.ui-case-step .el-table__body-wrapper tbody')
+  // console.log(tableList, 'tableList')
   // let el
   // if (tableList && tableList.length > 0) {
   //   el = tableList[0].querySelector('tbody')
@@ -427,18 +427,18 @@ const createSortable = () => {
   // console.log(11111111111)
   // console.log(el, 'el')
   // if (el) {
-  // Sortable.create(document.querySelector('.ui-case-step .el-table__body-wrapper tbody')), {
-  //   animation: 150,
-  //   sort: true,
-  //   handle: ".move",
-  //   // draggable: '.icon-step-rank', // 设置可拖拽行的类名(el-table自带的类名)
-  //   forceFallback: true,
-  //   onStart: () => {
-  //     console.log("开始拖动");
-  //   },
-  //   onEnd: onEndFunc
-  // }
-  // }
+  Sortable.create(tableRef.value.$el.querySelector('.ui-case-step .el-table__body-wrapper tbody')), {
+    animation: 150,
+    sort: true,
+    handle: ".move",
+    // draggable: '.icon-step-rank', // 设置可拖拽行的类名(el-table自带的类名)
+    forceFallback: true,
+    onStart: () => {
+      console.log("开始拖动");
+    },
+    onEnd: onEndFunc
+    // }
+  }
 }
 
 const onEndFunc = ({newIndex, oldIndex}: any) => {
@@ -446,13 +446,13 @@ const onEndFunc = ({newIndex, oldIndex}: any) => {
   console.log(stepData.value, 'stepDataList')
   console.log(newIndex, 'newIndex')
   stepData.value.splice(newIndex, 0, stepData.value.splice(oldIndex, 1)[0])
-  state.showStepTable = false
-  nextTick(() => {
-    state.showStepTable = true
-    nextTick(() => {
-      createSortable()
-    })
-  })
+  // state.showStepTable = false
+  // nextTick(() => {
+  //   state.showStepTable = true
+  //   nextTick(() => {
+  //     createSortable()
+  //   })
+  // })
 }
 
 
