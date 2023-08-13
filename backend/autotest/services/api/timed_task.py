@@ -152,7 +152,7 @@ class TimedTasksService:
         """
         timed_task = await TimedTask.get(params.id)
         if timed_task and timed_task.enabled:
-            raise ParameterError("定时任务运行中请停止后再删除！")
+            raise ParameterError("定时任务运行中，请先停止后再删除！")
         rowcount = await TimedTask.delete(params.id)
         return rowcount
 
