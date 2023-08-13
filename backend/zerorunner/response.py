@@ -128,6 +128,13 @@ def uniform_validator(validator):
 
 class ResponseObjectBase(object):
 
+
+    def __copy__(self):
+        pass
+
+    def __deepcopy__(self, memo):
+        pass
+
     def __init__(self, resp_obj, parser: Parser = Parser()):
         """初始化
         Args:
@@ -322,6 +329,13 @@ class ResponseObjectBase(object):
 
 
 class ResponseObject(ResponseObjectBase):
+
+    def __copy__(self):
+        pass
+
+    def __deepcopy__(self, memo):
+        pass
+
     def __init__(self, resp_obj, parser: Parser = Parser()):
         """ 使用 requests.Response 初始化 ResponseObject
 

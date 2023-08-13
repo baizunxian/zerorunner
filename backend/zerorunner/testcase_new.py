@@ -48,6 +48,10 @@ class ZeroRunner(object):
         # test_suite = unittest.TestSuite()
         testcase_list = []
 
+        # 用例依赖时公用一个 SessionRunner 获取提交变量等数据
+        if testcase.config.step_rely:
+            self.session_runner = SessionRunner()
+
         for index, step in enumerate(testcase.teststeps):
             test_runner = self.session_runner if self.session_runner else SessionRunner()
             test_runner.with_config(testcase.config)
