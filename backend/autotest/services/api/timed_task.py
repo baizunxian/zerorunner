@@ -23,7 +23,7 @@ class CrontabService:
 
         cron = celery_crontab(*params.crontab.split(" "))
         crontab_query_params = {
-            'minute': cron._orig_hour,
+            'minute': cron._orig_minute,
             'hour': cron._orig_hour,
             'day_of_week': cron._orig_day_of_week,
             'day_of_month': cron._orig_day_of_month,
