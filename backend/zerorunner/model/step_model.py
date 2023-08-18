@@ -156,7 +156,8 @@ class TConfig(BaseModel):
     variables: typing.Union[VariablesMapping, str] = Field({}, description="变量")
     env_variables: typing.Union[VariablesMapping, str] = Field({}, description="环境变量")
     parameters: typing.Union[VariablesMapping, str] = Field({}, description="参数")
-    # setup_hooks: Hooks = []
+    # 请求头
+    headers: VariablesMapping = {}
     # teardown_hooks: Hooks = []
     export: Export = Field([], description="导出数据")
     # path: str = None

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
+import copy
 import traceback
 import typing
 import uuid
@@ -87,6 +88,10 @@ def run_api_request(runner: SessionRunner,
                     parent_step_result: StepResult = None):
     step_result = runner.get_step_result(step, step_tag=step_tag)
     runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
+    # update headers
+    merge_headers = copy.deepcopy(runner.config.headers)
+    merge_headers.update(step.request.headers)
+    step.request.headers = merge_headers
     # parse
     upload_variables = prepare_upload_step(step, runner.config.functions)
     request_dict = step.request.dict()

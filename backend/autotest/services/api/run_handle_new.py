@@ -104,6 +104,9 @@ class HandleConfig(object):
                 new_variables = handle_headers_or_validators(env_variables)
                 # 43 修复环境变量覆盖用例变量
                 self.config.env_variables = parse_validators_string_value(new_variables)
+            # 环境请求头
+            if env_info.headers:
+                self.config.headers.update(handle_headers_or_validators(env_info.headers))
         config_funcs = await EnvFunc.get_by_env_id(env_id) if env_id else []
         if config_funcs:
             for func in config_funcs:
@@ -113,11 +116,11 @@ class HandleConfig(object):
                         load_func_content(func_content, f"{func.get('name', '')}{uuid.uuid4().hex}"))
 
     async def init_headers(self, headers: typing.List[ApiBaseSchema]):
-        self.config.headers = handle_headers_or_validators(headers)
+        self.config.headers.update(handle_headers_or_validators(headers))
 
     async def init_variables(self, variables: typing.List[ApiBaseSchema]):
         new_variables = handle_headers_or_validators(variables)
-        self.config.variables = parse_validators_string_value(new_variables)
+        self.config.variables.update(parse_validators_string_value(new_variables))
 
     async def init_functions(self):
         from autotest.utils import basic_function
@@ -263,7 +266,7 @@ class HandleStepData(object):
         初始化变量
         """
         new_variables = handle_headers_or_validators(self.api_info.variables)
-        self.step.variables = parse_validators_string_value(new_variables)
+        self.step.variables.update(parse_validators_string_value(new_variables))
 
     async def init_setup_hooks(self):
         for step in self.api_info.setup_hooks:
@@ -388,7 +391,7 @@ class HandelTestCase(object):
 
     async def __init_headers(self):
         if self.api_case.headers:
-            self.config.headers = handle_headers_or_validators(self.api_case.headers)
+            self.config.headers.update(handle_headers_or_validators(self.api_case.headers))
 
     def get_config(self) -> TConfig:
         return self.config
