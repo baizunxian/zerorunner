@@ -178,7 +178,7 @@ def run_api_request(runner: SessionRunner,
         # teardown code
         if step.teardown_code:
             zero = Zero(parsed_request_dict['headers'])
-            load_script_content(step.setup_code, str(uuid.uuid4()), params={"zero": zero, "requests": requests})
+            load_script_content(step.teardown_code, str(uuid.uuid4()), params={"zero": zero, "requests": requests})
             parsed_zero_headers = runner.parser.parse_data(
                 zero.headers.get_headers(), merge_variable
             )

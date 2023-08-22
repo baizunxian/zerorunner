@@ -36,13 +36,13 @@ class ApiInfoService:
         # 判断用例名是否重复
         existing_data = await ApiInfo.get_api_by_name(name=params.name)
         mod = None
-        zero = Zero()
-        if params.setup_code:
-            mod = load_script_content(params.setup_code, str(uuid.uuid4()), params={"zero": zero})
-        if params.teardown_code:
-            mod = load_script_content(params.teardown_code, str(uuid.uuid4()), params={"zero": zero})
-        if mod:
-            del mod
+        # zero = Zero()
+        # if params.setup_code:
+        #     mod = load_script_content(params.setup_code, str(uuid.uuid4()), params={"zero": zero})
+        # if params.teardown_code:
+        #     mod = load_script_content(params.teardown_code, str(uuid.uuid4()), params={"zero": zero})
+        # if mod:
+        #     del mod
 
         if params.id:
             api_info = await ApiInfo.get(params.id)
