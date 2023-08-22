@@ -191,6 +191,8 @@ def run_api_request(runner: SessionRunner,
                 zero.variables.get_variables(), merge_variable
             )
             step.variables.update(parsed_zero_variables)
+            # code  执行完成后重新合并变量
+            merge_variable = runner.get_merge_variable(step)
 
         # teardown hooks
         if step.teardown_hooks:
@@ -201,6 +203,8 @@ def run_api_request(runner: SessionRunner,
                        hook_msg="teardown_hooks",
                        parent_step_result=step_result)
             runner.set_run_log(f"{step_result.name} teardown hooks end~~~")
+            # code teardown 执行完成后重新合并变量
+            merge_variable = runner.get_merge_variable(step)
 
         def log_req_resp_details():
             err_msg = "\n{} DETAILED REQUEST & RESPONSE {}\n".format("*" * 32, "*" * 32)
