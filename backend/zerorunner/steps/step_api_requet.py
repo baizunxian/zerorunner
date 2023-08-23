@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
+import copy
 import traceback
 import typing
 import uuid
@@ -87,6 +88,10 @@ def run_api_request(runner: SessionRunner,
                     parent_step_result: StepResult = None):
     step_result = runner.get_step_result(step, step_tag=step_tag)
     runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
+    # update headers
+    merge_headers = copy.deepcopy(runner.config.headers)
+    merge_headers.update(step.request.headers)
+    step.request.headers = merge_headers
     # parse
     upload_variables = prepare_upload_step(step, runner.config.functions)
     request_dict = step.request.dict()
@@ -173,7 +178,7 @@ def run_api_request(runner: SessionRunner,
         # teardown code
         if step.teardown_code:
             zero = Zero(parsed_request_dict['headers'])
-            load_script_content(step.setup_code, str(uuid.uuid4()), params={"zero": zero, "requests": requests})
+            load_script_content(step.teardown_code, str(uuid.uuid4()), params={"zero": zero, "requests": requests})
             parsed_zero_headers = runner.parser.parse_data(
                 zero.headers.get_headers(), merge_variable
             )
@@ -186,6 +191,8 @@ def run_api_request(runner: SessionRunner,
                 zero.variables.get_variables(), merge_variable
             )
             step.variables.update(parsed_zero_variables)
+            # code  执行完成后重新合并变量
+            merge_variable = runner.get_merge_variable(step)
 
         # teardown hooks
         if step.teardown_hooks:
@@ -196,6 +203,8 @@ def run_api_request(runner: SessionRunner,
                        hook_msg="teardown_hooks",
                        parent_step_result=step_result)
             runner.set_run_log(f"{step_result.name} teardown hooks end~~~")
+            # code teardown 执行完成后重新合并变量
+            merge_variable = runner.get_merge_variable(step)
 
         def log_req_resp_details():
             err_msg = "\n{} DETAILED REQUEST & RESPONSE {}\n".format("*" * 32, "*" * 32)

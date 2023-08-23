@@ -238,7 +238,7 @@ class SessionRunner(object):
         """
 
         # 合并用例变量
-        merge_variable = merge_variables(self.config.env_variables, self.config.variables)
+        merge_variable = merge_variables(self.config.variables, self.config.env_variables)
         # 合并提取变量
         merge_variable = merge_variables(self.extracted_variables, merge_variable)
         # 合并会话变量
