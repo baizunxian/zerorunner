@@ -43,7 +43,7 @@
 
 
       <z-splitpanes class="default-theme h100">
-        <z-pane :size="20">
+        <z-pane :size="25">
           <div style="padding: 0 10px 0 0">
 
             <el-form
@@ -99,8 +99,21 @@
 
               <el-form-item label="步骤依赖：">
                 <el-radio-group v-model="state.form.step_rely">
-                  <el-radio :label="1" size="small" border>是</el-radio>
-                  <el-radio :label="0" size="small" border>否</el-radio>
+                  <el-radio :label="1" size="small" border>是
+                    <el-tooltip content="用例顺序执行，上个用例提取的用例后面的用例都能使用" placement="top">
+                      <el-icon class="statistics-comparison__text">
+                        <ele-InfoFilled></ele-InfoFilled>
+                      </el-icon>
+                    </el-tooltip>
+                  </el-radio>
+
+                  <el-radio :label="0" size="small" border>否
+                    <el-tooltip content="用例随机执行，并且上个用例提取的结果后面的用例获取不到" placement="top">
+                      <el-icon class="statistics-comparison__text">
+                        <ele-InfoFilled></ele-InfoFilled>
+                      </el-icon>
+                    </el-tooltip>
+                  </el-radio>
                 </el-radio-group>
               </el-form-item>
               <el-form-item label="步骤总数：">
@@ -206,7 +219,7 @@ import 'splitpanes/dist/splitpanes.css';
 import {handleEmpty} from "/@/utils/other";
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
 import {getStepTypesByUse, getStepTypeInfo} from "/@/utils/case";
-import {ArrowDown} from "@element-plus/icons-vue";
+import {ArrowDown, InfoFilled} from "@element-plus/icons-vue";
 
 const createForm = () => {
   return {

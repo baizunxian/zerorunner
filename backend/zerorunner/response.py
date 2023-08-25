@@ -9,6 +9,7 @@ import jmespath
 from jmespath.exceptions import JMESPathError
 from jsonpath import jsonpath
 from loguru import logger
+from requests import Response
 
 from zerorunner import exceptions
 from zerorunner.exceptions import ValidationFailure, ParamsError
@@ -128,7 +129,14 @@ def uniform_validator(validator):
 
 class ResponseObjectBase(object):
 
-    def __init__(self, resp_obj, parser: Parser = Parser()):
+
+    def __copy__(self):
+        pass
+
+    def __deepcopy__(self, memo):
+        pass
+
+    def __init__(self, resp_obj: Response, parser: Parser = Parser()):
         """初始化
         Args:
             resp_obj (instance): requests.Response instance
@@ -262,6 +270,12 @@ class ResponseObjectBase(object):
                 check_item = self.parser.parse_data(check_item, variables_mapping)
                 check_item = parse_string_value(check_item)
                 check_value = check_item
+            # elif check_mode == CheckModeEnum.RequestHeaders.value:
+            #     check_item = self.resp_obj.headers.get(check_item, None)
+            #     check_value = check_item
+            elif check_mode == CheckModeEnum.ResponseHeaders.value:
+                check_item = self.resp_obj.headers.get(check_item, None)
+                check_value = check_item
             else:
                 # variable or function evaluation result is "" or not text
                 check_value = check_item
@@ -322,6 +336,13 @@ class ResponseObjectBase(object):
 
 
 class ResponseObject(ResponseObjectBase):
+
+    def __copy__(self):
+        pass
+
+    def __deepcopy__(self, memo):
+        pass
+
     def __init__(self, resp_obj, parser: Parser = Parser()):
         """ 使用 requests.Response 初始化 ResponseObject
 

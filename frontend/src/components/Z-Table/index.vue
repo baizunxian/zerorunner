@@ -91,7 +91,7 @@
           <!-- render函数 (START) 使用内置的component组件可以支持h函数渲染和txs语法-->
           <component v-else-if="col.render"
                      :is="col.render"
-                     v-model="scope.row[col.key]"
+                     v-model.lazy="scope.row[col.key]"
                      :row="scope.row"
                      :index="scope.$index"
                      v-bind="scope"/>
