@@ -44,47 +44,29 @@ const getStatus = () => {
 }
 
 // updateHeader {key: "Content-Type", value: "application/json"} //更新请求头
-const updateContentType = (mode: string, language: string, remove: any) => {
-  let headerValue = ""
-  switch (mode) {
-    case "form-data":
-      headerValue = ""
-      break
-    case "x-www-form-urlencoded":
-      headerValue = "application/x-www-form-urlencoded"
-      break
-    case "raw":
-      language = language.toLowerCase()
-      if (language == "json") {
-        headerValue = "application/json"
-      } else if (language == "xml") {
-        headerValue = "application/xml"
-      } else if (language == "html") {
-        headerValue = "text/html"
-      } else if (language == "text") {
-        headerValue = "text/plain"
+const updateHeader = (headerData: any, remove: any = false) => {
+  let headerInfo = state.headers.find(e => headerData?.key && headerData.key.toLowerCase() === e.key.toLowerCase())
+  if (headerInfo) {
+    state.headers.forEach((e: any, index: number) => {
+      if (headerData?.key && headerData.key.toLowerCase() === e.key.toLowerCase()) {
+        state.headers.splice(index, 1)
+        if (!remove) {
+          state.headers.unshift(headerData)
+        }
       }
-      break
-  }
-  let contentType = state.headers.find(e => e.key.toLowerCase() === "content-type")
-  if (contentType) {
-    if (contentType.value.toLowerCase() !== headerValue.toLowerCase()) {
-      contentType.value = headerValue
-    }
+    })
   } else {
-    if (headerValue) {
-      state.headers.unshift({key: "Content-Type", value: headerValue, remarks: ""})
+    if (!remove) {
+      state.headers.unshift(headerData)
     }
   }
-  if (remove) {
-    state.headers = state.headers.filter(e => e.key.toLowerCase() !== "content-type")
-  }
+
 }
 
 defineExpose({
   setData,
   getData,
-  updateContentType,
+  updateHeader,
   getDataLength,
 })
 

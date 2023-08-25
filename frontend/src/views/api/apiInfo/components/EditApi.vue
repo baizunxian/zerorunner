@@ -29,16 +29,14 @@
                       <span class="ui-badge-status-dot" v-show="getDataLength('body')"></span>
                     </template>
                     <div class="case-tabs">
-                      <ApiRequestBody ref="ApiRequestBodyRef" @updateContentType="updateContentType"/>
+                      <ApiRequestBody ref="ApiRequestBodyRef" @updateHeader="updateHeader"/>
                     </div>
                   </el-tab-pane>
 
                   <el-tab-pane name='ApiRequestHeaders'>
                     <template #label>
                       <strong>请求头</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('header')">{{
-                          getDataLength('header')
-                        }}</span>
+                      <span class="ui-badge-circle" v-show="getDataLength('header')">{{ getDataLength('header') }}</span>
                     </template>
                     <div class="case-tabs">
                       <ApiRequestHeaders ref="ApiRequestHeadersRef"/>
@@ -48,9 +46,7 @@
                   <el-tab-pane name='ApiVariables'>
                     <template #label>
                       <strong>变量</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('variables')">{{
-                          getDataLength('variables')
-                        }}</span>
+                      <span class="ui-badge-circle" v-show="getDataLength('variables')">{{ getDataLength('variables') }}</span>
                     </template>
                     <div class="case-tabs">
                       <ApiVariables ref="ApiVariablesRef"/>
@@ -60,9 +56,7 @@
                   <el-tab-pane name='extracts' class="h100">
                     <template #label>
                       <strong>提取</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('extracts')">{{
-                          getDataLength('extracts')
-                        }}</span>
+                      <span class="ui-badge-circle" v-show="getDataLength('extracts')">{{ getDataLength('extracts') }}</span>
                     </template>
                     <div class="case-tabs">
                       <ApiExtracts ref="ApiExtractsRef"/>
@@ -117,9 +111,7 @@
                   <el-tab-pane name='assertController' class="h100">
                     <template #label>
                       <strong>断言规则</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('validators')">{{
-                          getDataLength('validators')
-                        }}</span>
+                      <span class="ui-badge-circle" v-show="getDataLength('validators')">{{ getDataLength('validators') }}</span>
                     </template>
                     <div class="case-tabs">
                       <ApiValidators ref="ApiValidatorsRef"/>
@@ -171,7 +163,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditApiInfo">
+<script lang="ts" setup name="ApiSaveOrUpdate">
 import {defineProps, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from "vue-router"
 import {useApiInfoApi} from '/@/api/useAutoApi/apiInfo'
@@ -349,7 +341,7 @@ const initApi = () => {
           let apiCaseData = res.data
           ApiInfoRef.value.setData(apiCaseData)
           ApiRequestBodyRef.value.setData(apiCaseData.request)
-          ApiRequestHeadersRef.value.setData(apiCaseData.request.headers)
+          ApiRequestHeadersRef.value.setData(apiCaseData.headers)
           ApiVariablesRef.value.setData(apiCaseData.variables)
           ApiExtractsRef.value.setData(apiCaseData.extracts)
           ApiValidatorsRef.value.setData(apiCaseData.validators)
@@ -401,9 +393,9 @@ const getDataLength = (ref: string) => {
   }
 }
 
-// updateContentType
-const updateContentType = (mode: string, language: string, remove: any) => {
-  ApiRequestHeadersRef.value.updateContentType(mode, language, remove)
+// updateHeader
+const updateHeader = (headerData: any, remove: any) => {
+  ApiRequestHeadersRef.value.updateHeader(headerData, remove)
 }
 
 const toResponse = () => {
