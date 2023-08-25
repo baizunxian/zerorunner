@@ -109,7 +109,6 @@ class TConfig(BaseModel):
     case_id: typing.Union[str, int, None] = None
     name: Name
     verify: Verify = False
-    verify: Verify = False
     base_url: BaseUrl = ""
     # 脚本函数
     functions: FunctionsMapping = {}  # TestCase 脚本函数

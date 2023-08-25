@@ -23,7 +23,7 @@ class CrontabService:
 
         cron = celery_crontab(*params.crontab.split(" "))
         crontab_query_params = {
-            'minute': cron._orig_minute,
+            'minute': cron._orig_hour,
             'hour': cron._orig_hour,
             'day_of_week': cron._orig_day_of_week,
             'day_of_month': cron._orig_day_of_month,
@@ -150,9 +150,6 @@ class TimedTasksService:
         """
         删除定时任务
         """
-        timed_task = await TimedTask.get(params.id)
-        if timed_task and timed_task.enabled:
-            raise ParameterError("定时任务运行中，请先停止后再删除！")
         rowcount = await TimedTask.delete(params.id)
         return rowcount
 

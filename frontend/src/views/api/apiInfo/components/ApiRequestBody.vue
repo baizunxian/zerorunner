@@ -206,10 +206,11 @@
 <script lang="ts" setup name="requestBody">
 import {reactive, ref, watch} from "vue";
 import {useFileApi} from '/@/api/useSystemApi/file'
+import {ElMessage} from "element-plus";
 import {handleEmpty} from "/@/utils/other";
 import {ArrowDown} from '@element-plus/icons-vue'
 
-const emit = defineEmits(["updateContentType"])
+const emit = defineEmits(["updateHeader"])
 
 interface StateData {
   mode: string,
@@ -258,22 +259,19 @@ const initData = () => {
 // 初始化表单
 const setData = (data: any) => {
   initData()
-  if (!data) return
-
-  let mode = state.mode = data.mode
-  switch (mode) {
-    case 'form_data':
-      state.formData = data.data ? data.data : []
-      break
-    case 'raw':
-      state.rawData = data.data.replace('/\\n/g', "\n")
-      state.language = data.language
-      break
-    case 'params':
-      break
-    default:
-      break
+  if (!data) {
+    return
   }
+
+  let mode = data.mode
+  state.mode = mode
+  if (mode === 'form_data') {
+    state.formData = data.data ? data.form_data : []
+  } else if (mode === 'raw') {
+    state.rawData = data.data.replace('/\\n/g', "\n")
+    state.language = data.language
+  }
+
 }
 
 // 获取是否填写状态
@@ -306,7 +304,7 @@ const getData = () => {
 const radioChange = (value: any) => {
   state.mode = value
   state.popoverOpen = false
-  updateContentType(value === 'none' || value === 'form_data')
+  handleHeader()
 }
 
 // 处理raw 语言
@@ -314,13 +312,26 @@ const handleLanguage = (language: any) => {
   state.popoverOpen = !state.popoverOpen
   // rawPopoverRef.value.hide()
   state.language = language
-  updateContentType()
+  handleHeader()
 }
 
 // 处理头信息
-const updateContentType = (remove: any = false) => {
-  console.log(state.mode, state.language, remove, '111111111111')
-  emit('updateContentType', state.mode, state.language, remove)
+const handleHeader = (remove: any = false) => {
+  let headerData: any
+  if (state.mode === 'raw') {
+    if (state.language.toLowerCase() === 'text') {
+      headerData = {key: "Content-Type", value: "text/plain"}
+    } else if (state.language.toLowerCase() === 'json') {
+      headerData = {key: "Content-Type", value: "application/json"}
+    }
+  } else if (state.mode === "form_data") {
+    remove = true
+    headerData = {key: "Content-Type"}
+    formDataBlur()
+  }
+  if (headerData) {
+    emit('updateHeader', headerData, remove)
+  }
 }
 
 // 打开语言选择面板
@@ -355,7 +366,9 @@ const deleteFormData = (index: number) => {
 const formDataBlur = () => {
   if (state.formData.length > 0) {
     let endData = state.formData[state.formData.length - 1]
-    if (!endData || (endData.key !== "" || endData.value !== "")) {
+    if (!endData) {
+      addFormData()
+    } else if (endData.key !== "" || endData.value !== "") {
       addFormData()
     }
   } else {
@@ -412,9 +425,9 @@ watch(
     () => state.rawData,
     (val) => {
       if (val) {
-        updateContentType()
+        handleHeader()
       } else {
-        updateContentType(true)
+        handleHeader(true)
       }
     }, {
       deep: true
@@ -433,9 +446,9 @@ watch(
 const getDataLength = () => {
   let dataLength = 0
   if (state.mode === 'form_data') {
-    dataLength = state.formData?.length || 0
+    dataLength = state.formData.length
   } else if (state.mode === 'raw') {
-    dataLength = state.rawData.length || 0
+    dataLength = state.rawData.length
   } else if (state.mode === 'none') {
     dataLength = 0
   }

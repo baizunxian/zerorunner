@@ -45,12 +45,13 @@
 </template>
 
 <script setup lang="ts" name="cropper">
-import {reactive, nextTick} from 'vue';
+import {reactive, nextTick, ref} from 'vue';
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
 
 const emit = defineEmits(['updateAvatar'])
 
+const AvatarRef = ref()
 // 定义变量内容
 const state = reactive({
   isShowDialog: false,
@@ -88,6 +89,7 @@ const onSubmit = () => {
 // 初始化cropperjs图片裁剪
 const initCropper = () => {
   const letImg = <HTMLImageElement>document.getElementById("AvatarRef");
+  console.log(letImg, 'letImg')
   state.cropper = new Cropper(letImg, {
     viewMode: 1,
     dragMode: 'none',
@@ -95,7 +97,7 @@ const initCropper = () => {
     aspectRatio: 1,
     preview: '.cropper-warp-right-value',
     background: false,
-    autoCropArea: 1,
+    autoCropArea: 0.6,
     zoomOnWheel: true,
     crop: () => {
       // preview()
@@ -108,11 +110,18 @@ const preview = () => {
   state.cropperImgBase64 = state.cropper.getCroppedCanvas().toDataURL('image/jpeg');
 }
 
-const beforeUpload = (file: Blob) => {
+const beforeUpload = (file) => {
+  console.log("file", file)
   const reader = new FileReader()
   reader.readAsDataURL(file)
-  reader.onload = () => {
+  console.log("reader", reader.result)
+  // state.cropperImg = reader.result
+  reader.onload = (event) => {
+    console.log("event", event)
     state.cropper.replace(URL.createObjectURL(file))
+    // openDialog(URL.createObjectURL(file))
+    console.log("previews", state.cropperImg)
+
   }
   return false
 }
