@@ -1,7 +1,7 @@
 import typing
 
 from sqlalchemy import Column, Boolean, DateTime, Integer, func, select, update, delete, insert, Select, \
-    Executable, Result, String, ClauseList
+    Executable, Result, String, ClauseList, BigInteger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative
 from autotest.corelibs import g
@@ -10,6 +10,7 @@ from autotest.db.session import provide_session
 from autotest.exceptions.exceptions import AccessTokenFail
 from autotest.utils.current_user import current_user
 from autotest.corelibs.serialize import unwrap_scalars
+from autotest.utils.snowflake import IDCenter
 
 
 @as_declarative()
@@ -31,21 +32,23 @@ class Base:
     #     """将类名小写并转化为表名 __tablename__"""
     #     return cls.__name__.lower()
 
-    id = Column(Integer(), nullable=False, primary_key=True, autoincrement=True)
+    id = Column(BigInteger(), nullable=False, primary_key=True, autoincrement=True, comment='主键')
     creation_date = Column(DateTime(), default=func.now(), comment='创建时间')
-    created_by = Column(Integer, nullable=True, comment='创建人ID')
+    created_by = Column(BigInteger, nullable=True, comment='创建人ID')
     updation_date = Column(DateTime(), default=func.now(), onupdate=func.now(), nullable=True, comment='更新时间')
-    updated_by = Column(Integer, nullable=True, comment='更新人ID')
+    updated_by = Column(BigInteger, nullable=True, comment='更新人ID')
     enabled_flag = Column(Boolean(), default=1, nullable=False, comment='是否删除, 0 删除 1 非删除')
     trace_id = Column(String(255), nullable=True, comment="trace_id")
 
     @classmethod
-    async def get(cls, id: typing.Union[int, str], to_dict=False) -> typing.Union["Base", typing.Dict]:
+    async def get(cls, id: typing.Union[int, str], to_dict=False) -> typing.Union["Base", typing.Dict, None]:
         """
         :param id: 查询id
         :param to_dict: 转字典
         :return: 模型对象 <models...>
         """
+        if not id:
+            return None
         sql = select(cls).where(cls.id == id, cls.enabled_flag == 1)
         result = await cls.execute(sql)
         data = result.scalar()
@@ -70,7 +73,10 @@ class Base:
         params = {key: value for key, value in params.items() if hasattr(cls, key)}
         id = params.get("id", None)
         params = await cls.handle_params(params)
-        if id:
+        exist_data = await cls.get(id)
+        # if not id:
+        #     params["id"] = IDCenter.get_id()
+        if exist_data:
             stmt = update(cls).where(cls.id == id).values(**params)
         else:
             stmt = insert(cls).values(**params)

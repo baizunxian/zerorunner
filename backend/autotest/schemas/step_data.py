@@ -22,7 +22,8 @@ class ApiBodyFileDataSchema(BaseSchema):
 
 class TRequestData(TRequest):
     mode: str = Field("", description="模式 raw  form-data 等")
-    data: typing.Union[str, typing.List[ApiBodyFileDataSchema]] = Field(None, description="数据json 数据 或者form-data数据等")
+    data: typing.Union[str, typing.List[ApiBodyFileDataSchema]] = Field(None,
+                                                                        description="数据json 数据 或者form-data数据等")
     language: str = Field("", description="raw 中包含json text 等")
     upload: typing.Dict = Field({}, description="上传文件的数据")
     headers: typing.List[typing.Any] = Field([], description="请求头")

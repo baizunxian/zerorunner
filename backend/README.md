@@ -42,7 +42,7 @@ python main.py
 # 异步任务依赖 job 启动命令
 
 #  windows 启动，只能单线程 zerorunner/backend 目录下执行
-job -A celery_worker.worker.job worker --pool=solo -l INFO 
+elery -A celery_worker.worker.job worker --pool=solo -l INFO 
 
 # linux 启动
 elery -A celery_worker.worker.job worker --loglevel=INFO -c 10 -P solo -n zerorunner-job-worker

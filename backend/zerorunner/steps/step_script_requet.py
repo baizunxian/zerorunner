@@ -29,7 +29,7 @@ def run_script_request(runner: SessionRunner,
         with open(base_script_path, 'r', encoding='utf8') as f:
             base_script = f.read()
         script = f"{base_script}\n\n{step.script_request.script_content}"
-        script_module = load_script_content(script, f"script_{module_name}")
+        script_module, _ = load_script_content(script, f"script_{module_name}")
         headers = script_module.zero.headers.get_headers()
         variables = script_module.zero.environment.get_environment()
         for key, value in headers.items():

@@ -11,7 +11,7 @@
   </el-row>
 </template>
 
-<script lang="ts" setup name="LoopHeader">
+<script lang="ts" setup name="StepNode">
 import {PropType, reactive} from 'vue';
 import {getMethodColor} from "/@/utils/case";
 

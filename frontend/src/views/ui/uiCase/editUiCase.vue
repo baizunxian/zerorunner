@@ -15,20 +15,23 @@
                   @debug-ui-case="debugUiCase"
       ></UiCaseInfo>
       <el-card>
-        <div style="padding: 8px 0">
-          <el-card>
-            <div style="display: flex">
-              <div class="el-form-item">
+        <template #header>
+          <div style="display: flex">
+              <div class="">
                 <span>测试步骤：</span>
                 <span>{{ state.uiStepDataList.length }}</span>
               </div>
-              <div class="el-form-item">
+              <div class="">
                 <span>场景变量：</span>
                 <span>{{ state.uiStepDataList.length }}</span>
               </div>
             </div>
-          </el-card>
-        </div>
+        </template>
+<!--        <div style="padding: 8px 0">-->
+<!--          <el-card>-->
+<!--            -->
+<!--          </el-card>-->
+<!--        </div>-->
         <UiStepInfo ref="UiCaseStepRef" :step-data-list="state.uiStepDataList"></UiStepInfo>
       </el-card>
     </el-card>

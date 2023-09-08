@@ -55,7 +55,7 @@ class SessionRunner(object):
         self.__start_at = 0
         self.__duration = 0
 
-        self.case_id = self.case_id or str(uuid.uuid4())
+        self.case_id = self.config.case_id or str(uuid.uuid4())
         self.__step_results = []
         self.session = self.session or HttpSession()
         self.parser = self.parser or Parser(self.config.functions)
@@ -135,6 +135,8 @@ class SessionRunner(object):
                 msg = ""
             step_result.log += f"{log_header}{msg}\n"
             self.__log__ += f"{log_header}{msg}\n"
+        else:
+            self.__log__ += f"{log_header}{message}\n"
 
     def set_step_result_status(self, step_result: StepResult, status: TStepResultStatusEnum, msg: str = ""):
         """设置步骤状态"""
@@ -307,7 +309,7 @@ class SessionRunner(object):
             case_id=self.config.case_id,
             start_time=self.__start_time,
             start_time_iso_format=start_at_iso_format,
-            duration=self.__duration,
+            duration=round(self.__duration, 3),
             in_out=TestCaseInOut(
                 config_vars=self.config.variables,
                 # export_vars=self.get_export_variables(),

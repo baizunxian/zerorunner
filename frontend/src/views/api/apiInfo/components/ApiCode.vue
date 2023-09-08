@@ -4,12 +4,12 @@
       <el-col :span="12">
         <div>
           <div class="tip">前置code</div>
-          <ScriptController v-model:code-content="state.setup_code"></ScriptController>
+          <ScriptController v-model:code-content="state.setup_code" use-type="setup"></ScriptController>
         </div>
       </el-col>
       <el-col :span="12">
         <div class="tip">后置code</div>
-        <ScriptController v-model:code-content="state.teardown_code"></ScriptController>
+        <ScriptController v-model:code-content="state.teardown_code" use-type="teardown"></ScriptController>
       </el-col>
     </el-row>
   </div>

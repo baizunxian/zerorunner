@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydantic import BaseSettings, AnyHttpUrl, Field
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 project_desc = """
     🎉 zerorunner 管理员接口汇总 🎉
@@ -83,6 +83,16 @@ class Configs(BaseSettings):
 
     # job beat
     beat_db_uri: str = Field(..., env="CELERY_BEAT_DB_URL")
+
+    # jacoco service
+    JACOCO_SERVICE_URL: str = Field(None, env="JACOCO_SERVICE_URL")
+
+    # gitlab
+    GITLAB_URL: str = Field(None, env="GITLAB_URL")
+    GITLAB_TOKEN: str = Field(None, env="GITLAB_TOKEN")
+    GITLAB_USER: str = Field(None, env="GITLAB_USER_ID")
+    GITLAB_PASSWORD: str = Field(None, env="GITLAB_PASSWORD")
+
 
     class Config:
         case_sensitive = True  # 区分大小写

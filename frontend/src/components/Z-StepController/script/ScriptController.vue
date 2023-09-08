@@ -15,23 +15,8 @@
       <el-col :span="6">
         <div style="padding: 8px;">
           <div>代码片段</div>
-          <div>
-            <el-button type="primary" link @click="headers('get')">获取请求头</el-button>
-          </div>
-          <div>
-            <el-button type="primary" link @click="environment('get')">获取环境变量</el-button>
-          </div>
-          <div>
-            <el-button type="primary" link @click="variables('get')">获取变量</el-button>
-          </div>
-          <div>
-            <el-button type="primary" link @click="headers('set')">设置请求头</el-button>
-          </div>
-          <div>
-            <el-button type="primary" link @click="environment('set')">设置环境变量</el-button>
-          </div>
-          <div>
-            <el-button type="primary" link @click="variables('set')">设置变量</el-button>
+          <div v-for="menu in sideMenu" :key="menu.label">
+            <el-button type="primary" link @click="handlerCode(menu)">{{ menu.label }}</el-button>
           </div>
         </div>
       </el-col>
@@ -46,6 +31,12 @@ import {computed, reactive} from "vue";
 const emit = defineEmits(['update:codeContent'])
 
 const props = defineProps({
+  useType: {
+    type: String,
+    default: () => {
+      return "setup"
+    }
+  },
   codeContent: {
     type: String,
     default: () => {
@@ -65,45 +56,37 @@ const o_content = computed({
 )
 
 const state = reactive({
-  content: o_content.value
+  content: o_content.value,
+  setupMenu: [
+    {label: "获取请求头", content: "zero.request.headers.get('key')"},
+    {label: "获取环境变量", content: "zero.environment.get('key')"},
+    {label: "获取变量", content: "zero.variables.get('key')"},
+    {label: "设置请求头", content: "zero.request.headers.set('key', 'value')"},
+    {label: "设置环境变量", content: "zero.environment.set('key', 'value')"},
+    {label: "设置变量", content: "zero.variables.set('key', 'value')"},
+    {label: "打印日志", content: "logger.info('logger')"},
+  ],
+  teardownMenu: [
+    {label: "获取请求头", content: "zero.headers.get('key')"},
+    {label: "获取环境变量", content: "zero.environment.get('key')"},
+    {label: "获取变量", content: "zero.variables.get('key')"},
+    {label: "设置请求头", content: "zero.request.headers.set('key', 'value')"},
+    {label: "设置环境变量", content: "zero.environment.set('key', 'value')"},
+    {label: "设置变量", content: "zero.variables.set('key', 'value')"},
+    {label: "打印日志", content: "logger.info('logger')"},
+  ],
+
 })
 
+const sideMenu = computed(() => {
+  return props.useType === "setup" ? state.setupMenu : state.teardownMenu
+})
 
-const headers = (type: string) => {
-  let content: string
-  let setContent = o_content.value ? '\nzero.headers.set("key", "value")' : 'zero.headers.set("key", "value")'
-  let getContent = o_content.value ? '\nzero.headers.get("key")' : 'zero.headers.get("key")'
-  content = type == "set" ? setContent : getContent
-  o_content.value = o_content.value + content
-  console.log(props.codeContent, "codeContent")
-  console.log(o_content.value, "o_content")
+// 处理code
+const handlerCode = (row: any) => {
+  o_content.value = o_content.value ? o_content.value + `\n${row.content}` : row.content
 }
 
-// 设置环境变量
-const environment = (type: string) => {
-  let content: string
-  let setContent = o_content.value ? '\nzero.environment.set("key", "value")' : 'zero.environment.set("key", "value")'
-  let getContent = o_content.value ? '\nzero.environment.get("key")' : 'zero.environment.get("key")'
-  content = type == "set" ? setContent : getContent
-  o_content.value += content
-}
-
-const variables = (type: string) => {
-  let content: string
-  let setContent = o_content.value ? '\nzero.variables.set("key", "value")' : 'zero.variables.set("key", "value")'
-  let getContent = o_content.value ? '\nzero.variables.get("key")' : 'zero.variables.get("key")'
-  content = type == "set" ? setContent : getContent
-  o_content.value += content
-}
-
-
-// onMounted(() => {
-//   if (!props.data.script_request) {
-//     props.data.script_request = {
-//       script_content: ""
-//     }
-//   }
-// })
 </script>
 
 <style lang="scss" scoped>

@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from autotest.apis.api import project, module, api_info, api_case, api_report, data_source, env, functions, timed_tasks
 from autotest.apis.system import user, menu, roles, lookup, id_center, file, statistics
 from autotest.apis.ui import ui_page, ui_element, ui_case, ui_report
+from autotest.apis.coverage import coverage_report, repository_manager
 from autotest.apis.websocket import websocket
 from autotest.apis.websocket.ui import web_ui_case
 from autotest.apis.job import task_record
@@ -37,6 +38,11 @@ app_router.include_router(roles.router, prefix="/roles", tags=["roles"])
 app_router.include_router(lookup.router, prefix="/lookup", tags=["lookup"])
 app_router.include_router(id_center.router, prefix="/idCenter", tags=["idCenter"])
 app_router.include_router(file.router, prefix="/file", tags=["file"])
+
+# coverage
+app_router.include_router(coverage_report.router, prefix="/coverage/report", tags=["coverage"])
+app_router.include_router(repository_manager.router, prefix="/coverage/repository", tags=["repository"])
+
 
 # job
 app_router.include_router(task_record.router, prefix="/job", tags=["job"])

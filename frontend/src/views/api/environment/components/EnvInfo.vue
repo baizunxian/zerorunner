@@ -7,7 +7,7 @@
     <el-row :gutter="24">
       <el-col :span="10">
         <el-form-item label="环境名称" prop="name">
-          <el-input v-model.trim="state.data.name" style="width: 100%;" placeholder="请输入用例名称"></el-input>
+          <el-input v-model.trim="state.data.name" style="width: 100%;" placeholder="请输入环境名称"></el-input>
         </el-form-item>
       </el-col>
     </el-row>
@@ -30,7 +30,7 @@ const state = reactive({
   // 表单及校验
   data: createData(),
   rules: {
-    name: [{required: true, message: '请输入用例名', trigger: 'blur'}],
+    name: [{required: true, message: '请输入环境名称', trigger: 'blur'}],
   },
 
 

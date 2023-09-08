@@ -6,6 +6,8 @@ import unittest
 import uuid
 
 from loguru import logger
+
+from autotest.utils.async_converter import AsyncIOPool
 from zerorunner import exceptions
 from zerorunner.model import step_model
 from zerorunner.model.result_model import TestCaseSummary
@@ -49,7 +51,7 @@ class ZeroRunner(object):
         testcase_list = []
 
         # 用例依赖时公用一个 SessionRunner 获取提交变量等数据
-        if testcase.config.step_rely:
+        if testcase.config.step_rely and not self.session_runner:
             self.session_runner = SessionRunner()
 
         for index, step in enumerate(testcase.teststeps):
@@ -149,6 +151,7 @@ class ZeroRunner(object):
                     summary.run_err_count += 1
                 elif step_status == "skip":
                     summary.run_skip_count += 1
+                step.duration = round(step.duration, 3)
                 summary.duration += step.duration
                 summary.step_results.append(step)
             for step in testcase_summary.step_results:

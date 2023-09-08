@@ -217,15 +217,15 @@ const getAddData = (optType: string) => {
     }
 
   }
-    // else if (optType === "extract") {
-    //   data = {
-    //     id: id,
-    //     name: name,
-    //     value: null,
-    //     json_path_list: [],
-    //     step_type: "extract",
-    //     enable: true
-    //   }
+      // else if (optType === "extract") {
+      //   data = {
+      //     id: id,
+      //     name: name,
+      //     value: null,
+      //     json_path_list: [],
+      //     step_type: "extract",
+      //     enable: true
+      //   }
   // }
   else if (optType === "if") {
     data.if_request = {
@@ -297,6 +297,16 @@ const copyNode = (data: any) => {
 const clickBlank = () => {
   stepTreeRef.value?.setCurrentKey(null)
 }
+
+watch(
+    () => props.data,
+    (value) => {
+      computeDataIndex(value)
+    },
+    {
+      deep: true
+    }
+)
 
 onMounted(() => {
   initFabMenu(null)

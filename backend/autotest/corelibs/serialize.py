@@ -53,6 +53,8 @@ def unwrap_scalars(items: typing.Union[typing.Sequence[Row], Row]) -> typing.Uni
 def default_serialize(obj):
     """默认序序列化"""
     try:
+        if isinstance(obj, int) and len(str(obj)) > 15:
+            return str(obj)
         if isinstance(obj, datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
         if isinstance(obj, Row):

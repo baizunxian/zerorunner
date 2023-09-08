@@ -209,8 +209,8 @@ class Lookup(Base):
                       u.nickname.label("created_by_name"),
                       User.nickname.label("updated_by_name")) \
             .where(*q) \
-            .join(u, u.id == cls.created_by) \
-            .join(User, User.id == cls.updated_by) \
+            .outerjoin(u, u.id == cls.created_by) \
+            .outerjoin(User, User.id == cls.updated_by) \
             .order_by(cls.id.desc())
 
         return await cls.pagination(stmt)
@@ -244,9 +244,9 @@ class LookupValue(Base):
                       u.nickname.label('created_by_name'),
                       User.nickname.label('updated_by_name')) \
             .where(*q) \
-            .join(Lookup, cls.lookup_id == Lookup.id) \
-            .join(User, cls.created_by == User.id) \
-            .join(u, cls.updated_by == u.id) \
+            .outerjoin(Lookup, cls.lookup_id == Lookup.id) \
+            .outerjoin(User, cls.created_by == User.id) \
+            .outerjoin(u, cls.updated_by == u.id) \
             .order_by(cls.display_sequence)
         return await cls.get_result(stmt)
 

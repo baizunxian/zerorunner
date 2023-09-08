@@ -85,7 +85,8 @@
           </template>
           <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
             <el-form-item label="菜单排序">
-              <el-input-number v-model="state.form.sort" controls-position="right" placeholder="请输入排序" class="w100"/>
+              <el-input-number v-model="state.form.sort" controls-position="right" placeholder="请输入排序"
+                               class="w100"/>
             </el-form-item>
           </el-col>
           <template v-if="state.form.menu_type === 10">
@@ -175,7 +176,7 @@ const createMenuForm = () => {
     isKeepAlive: 1, // 是否缓存
     isAffix: 0, // 是否固定
     isLink: 0, // 外链/内嵌时链接地址（http:xxx.com），开启外链条件，`1、isLink:true 2、链接地址不为空`
-    isIframe: 1, // 是否内嵌，开启条件，`1、isIframe:true 2、链接地址不为空`
+    isIframe: 0, // 是否内嵌，开启条件，`1、isIframe:true 2、链接地址不为空`
     roles: '', // 权限标识，取角色管理
     btnPower: '', // 菜单类型为按钮时，权限标识
   }
@@ -229,12 +230,10 @@ const saveOrUpdate = () => {
         emit('getList')
         closeDialog(); // 关闭弹窗
       })
-  console.log(state.form, 'state.menuForm')
   // setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
 };
 // 页面加载时
 onMounted(() => {
-  console.log(props.allMenuList,11111111)
   // getMenuData();
 });
 

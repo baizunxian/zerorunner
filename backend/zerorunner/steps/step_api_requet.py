@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import copy
+import time
 import traceback
 import typing
-import uuid
+
 import requests
 from loguru import logger
+
+from autotest.corelibs import g
 from zerorunner import exceptions, utils
 from zerorunner.ext.uploader import prepare_upload_step
 from zerorunner.loader import load_script_content
-from zerorunner.model.step_model import VariablesMapping, TRequest, MethodEnum
-from zerorunner.model.step_model import TStep
 from zerorunner.model.base import TStepLogType, TStepResultStatusEnum, Hooks
 from zerorunner.model.result_model import StepResult
+from zerorunner.model.step_model import TStep
+from zerorunner.model.step_model import VariablesMapping, TRequest, MethodEnum
 from zerorunner.parser import parse_variables_mapping, build_url, Parser
 from zerorunner.response import ResponseObject
 from zerorunner.runner_new import SessionRunner
 from zerorunner.script_code import Zero
 from zerorunner.steps.base import IStep
-import time
 
 
 def call_hooks(
@@ -111,23 +113,28 @@ def run_api_request(runner: SessionRunner,
         )
         # setup hooks
         if step.setup_hooks:
-            runner.set_run_log(f"{step_result.name} setup hooks start~~~")
+            runner.set_run_log(f"{step_result.name} 前置hook开始~~~")
             call_hooks(runner=runner,
                        hooks=step.setup_hooks,
                        step_variables=merge_variable,
                        hook_msg="setup_hooks",
                        parent_step_result=step_result)
-            runner.set_run_log(f"{step_result.name} setup hooks end~~~")
+            runner.set_run_log(f"{step_result.name} 前置hook结束~~~")
         # setup code
         if step.setup_code:
-            zero = Zero(headers=request_dict['headers'],
+            runner.set_run_log(f"{step_result.name} 前置code开始  ~~~")
+            zero = Zero(request=request_dict,
                         environment=runner.config.env_variables,
                         variables=step.variables)
-            load_script_content(step.setup_code, str(uuid.uuid4()), params={"zero": zero, "requests": requests})
-            parsed_zero_headers = runner.parser.parse_data(
-                zero.headers.get_headers(), merge_variable
-            )
-            request_dict["headers"].update(parsed_zero_headers)
+            _, captured_output = load_script_content(step.setup_code,
+                                                     f"{runner.config.case_id}_setup_code",
+                                                     params={"zero": zero, "requests": requests})
+            if captured_output:
+                runner.set_run_log("前置code输出: \n" + captured_output)
+            # parsed_zero_headers = runner.parser.parse_data(
+            #     zero.request.headers.get(""), merge_variable
+            # )
+            # request_dict["headers"].update(parsed_zero_headers)
             parsed_zero_environment = runner.parser.parse_data(
                 zero.environment.get_environment(), merge_variable
             )
@@ -136,6 +143,7 @@ def run_api_request(runner: SessionRunner,
                 zero.variables.get_variables(), merge_variable
             )
             step.variables.update(parsed_zero_variables)
+            runner.set_run_log(f"{step_result.name} 前置code结束  ~~~")
 
         # 前置步骤后再执行下合并 避免前置步骤中复制变量获取不到
         merge_variable = runner.get_merge_variable(step)
@@ -150,10 +158,8 @@ def run_api_request(runner: SessionRunner,
             request_dict, merge_variable
         )
 
-        parsed_request_dict["headers"].setdefault(
-            "Request-ID",
-            f"{runner.case_id}-{str(int(time.time() * 1000))[-6:]}",
-        )
+        parsed_request_dict["headers"].setdefault("Z-Case-Id", runner.case_id)
+        parsed_request_dict["headers"].setdefault("Z-Request-Id", f"{g.trace_id}")
         step.variables["request"] = parsed_request_dict
 
         # prepare arguments
@@ -161,7 +167,7 @@ def run_api_request(runner: SessionRunner,
         url_path = parsed_request_dict.pop("url")
         url = build_url(runner.config.base_url, url_path)
         parsed_request_dict["verify"] = runner.config.verify
-        parsed_request_dict["json"] = parsed_request_dict.pop("req_json", {})
+        # parsed_request_dict["json"] = parsed_request_dict.pop("req_json", {})
         # 更新会话请求头
         # self.__session_headers = parse_data(
         #     self.__session_headers,
@@ -177,8 +183,17 @@ def run_api_request(runner: SessionRunner,
 
         # teardown code
         if step.teardown_code:
-            zero = Zero(parsed_request_dict['headers'])
-            load_script_content(step.teardown_code, str(uuid.uuid4()), params={"zero": zero, "requests": requests})
+            runner.set_run_log(f"{step_result.name} 后置code开始  ~~~")
+            zero = Zero(request=request_dict,
+                        response=resp_obj,
+                        environment=runner.config.env_variables,
+                        variables=step.variables
+                        )
+            _, captured_output = load_script_content(step.teardown_code,
+                                                     f"{runner.config.case_id}_teardown_code",
+                                                     params={"zero": zero, "requests": requests})
+            if captured_output:
+                runner.set_run_log("后置code输出: \n" + captured_output)
             parsed_zero_headers = runner.parser.parse_data(
                 zero.headers.get_headers(), merge_variable
             )
@@ -193,21 +208,22 @@ def run_api_request(runner: SessionRunner,
             step.variables.update(parsed_zero_variables)
             # code  执行完成后重新合并变量
             merge_variable = runner.get_merge_variable(step)
+            runner.set_run_log(f"{step_result.name} 后置code结束~~~")
 
         # teardown hooks
         if step.teardown_hooks:
-            runner.set_run_log(f"{step_result.name} teardown hooks start~~~")
+            runner.set_run_log(f"{step_result.name} 后置hook开始~~~")
             call_hooks(runner=runner,
                        hooks=step.teardown_hooks,
                        step_variables=merge_variable,
                        hook_msg="teardown_hooks",
                        parent_step_result=step_result)
-            runner.set_run_log(f"{step_result.name} teardown hooks end~~~")
+            runner.set_run_log(f"{step_result.name} 后置hook结束~~~")
             # code teardown 执行完成后重新合并变量
             merge_variable = runner.get_merge_variable(step)
 
         def log_req_resp_details():
-            err_msg = "\n{} DETAILED REQUEST & RESPONSE {}\n".format("*" * 32, "*" * 32)
+            err_msg = "\n{:*^64}\n".format("DETAILED REQUEST & RESPONSE")
 
             # log request
             err_msg += "====== request details ======\n"

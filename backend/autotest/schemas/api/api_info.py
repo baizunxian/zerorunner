@@ -67,19 +67,20 @@ class ApiRunSchema(BaseModel):
     ids: typing.List[int] = Field(None, description="ids")
     env_id: str = Field(None, description="环境id")
     name: str = Field(None, description="名称")
-    run_type: int = Field(None, description="运行类型 10 同步， 20 异步")
-    run_mode: str = Field(None, description="运行模式")
+    run_type: str = Field("api", description="运行模式")
+    run_mode: int = Field(None, description="运行类型 10 同步， 20 异步")
     number_of_run: int = Field(None, description="运行次数")
     exec_user_id: int = Field(None, description="执行人id")
     exec_user_name: str = Field(None, description="执行人")
+    api_run_mode: str = Field(None, description="api运行模式  one 单个， batch 批量")
 
-    @root_validator
-    def root_validator(cls, data):
-        if not data.get("base_url"):
-            data['base_url'] = ""
-        if not data.get("id"):
-            raise ParameterError("请选择用例!")
-        return data
+
+class ApiBatchRunSchema(BaseModel):
+    """批量运行api"""
+
+    ids: typing.List[int] = Field(None, description="ids")
+    env_id: str = Field(None, description="环境id")
+    name: str = Field(None, description="名称")
 
 
 class ApiRunBatchSchema(BaseModel):

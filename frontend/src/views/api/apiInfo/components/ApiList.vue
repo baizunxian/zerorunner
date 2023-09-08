@@ -25,6 +25,20 @@
         <el-checkbox v-model="state.oneSelf" @change="oneSelfChange">
           只看自己创建
         </el-checkbox>
+
+
+        <el-button type="primary"
+                   link
+                   class="ml5"
+                   :disabled="state.selectionData.length === 0"
+                   style="vertical-align: text-bottom"
+                   @click="onOpenBatchRunPage">
+          <el-icon>
+            <ele-CaretRight/>
+          </el-icon>
+          批量执行
+        </el-button>
+
       </div>
       <!--      list    -->
       <div>
@@ -54,8 +68,8 @@
           label-width="70px"
 
       >
-        <el-form-item label="运行模式" prop="run_type">
-          <el-select v-model="state.runForm.run_type" placeholder="选择运行模式" filterable style="width:100%">
+        <el-form-item label="运行模式" prop="run_mode">
+          <el-select v-model="state.runForm.run_mode" placeholder="选择运行模式" filterable style="width:100%">
             <el-option :value="10" label="同步运行(同步执行,等待执行结果)"></el-option>
             <el-option :value="20" label="异步运行(异步执行用例,后台运行,执行结束后报告列表查看)"></el-option>
           </el-select>
@@ -76,8 +90,8 @@
       </el-form>
       <template #footer>
             <span class="dialog-footer">
-              <el-button @click="state.showRunPage = !state.showRunPage">取消</el-button>
-              <el-button type="primary" :loading="state.runApiLoading" @click="runApi">运行</el-button>
+              <el-button @click="state.showRunPage = !state.showRunPage">取 消</el-button>
+              <el-button type="primary" :loading="state.runApiLoading" @click="runApi">运 行</el-button>
             </span>
       </template>
     </el-dialog>
@@ -259,9 +273,11 @@ const state = reactive({
   envList: [],
   runForm: {
     id: null,
-    env_id: 0,
-    run_type: 10,
-    run_mode: "case",
+    ids: [],
+    env_id: null,
+    run_type: "api",
+    run_mode: 10,
+    api_run_mode: "one",  // one, batch
   },
   // report
   reportInfo: {},
@@ -305,12 +321,12 @@ const state = reactive({
 const getList = () => {
   tableRef.value.openLoading()
   useApiInfoApi().getList(state.listQuery)
-    .then(res => {
-      state.listData = res.data.rows
-      state.total = res.data.rowTotal
-      tableRef.value.closeLoading()
-    }).catch(()  =>{
+      .then(res => {
+        state.listData = res.data.rows
+        state.total = res.data.rowTotal
         tableRef.value.closeLoading()
+      }).catch(() => {
+    tableRef.value.closeLoading()
   })
 };
 
@@ -338,50 +354,59 @@ const deleted = (row: any) => {
     cancelButtonText: '取消',
     type: 'warning',
   })
-    .then(() => {
-      useApiInfoApi().deleted({id: row.id})
-        .then(() => {
-          ElMessage.success('删除成功');
-          getList()
-        })
-    })
-    .catch(() => {
-    });
+      .then(() => {
+        useApiInfoApi().deleted({id: row.id})
+            .then(() => {
+              ElMessage.success('删除成功');
+              getList()
+            })
+      })
+      .catch(() => {
+      });
 };
 
 // 打开运行页面
 const onOpenRunPage = (row: any) => {
   state.showRunPage = true;
+  state.runForm.api_run_mode = 'one'
   state.runForm.id = row.id;
+  getEnvList();
+};
+
+// 打开运行页面
+const onOpenBatchRunPage = () => {
+  state.showRunPage = true;
+  state.runForm.api_run_mode = 'batch'
+  state.runForm.ids = state.selectionData.map((item: any) => item.id);
   getEnvList();
 };
 // 获取环境信息
 const getEnvList = () => {
   useEnvApi().getList({page: 1, pageSize: 1000})  // 请求数据写死，后面优化
-    .then(res => {
-      state.envList = res.data.rows
-    })
+      .then(res => {
+        state.envList = res.data.rows
+      })
 }
 // 运行测试用例
 const runApi = () => {
   state.runApiLoading = !state.runApiLoading;
   useApiInfoApi().runApi(state.runForm)
-    .then((res: any) => {
-      if (state.runForm.run_type === 10) {
-        ElMessage.success('运行成功');
-        state.reportInfo = res.data
-        reportDetailRef.value.showReport()
-        state.showRunPage = !state.showRunPage;
-      } else {
-        ElMessage.success(res.msg);
-        state.showRunPage = !state.showRunPage;
-      }
-      state.runApiLoading = !state.runApiLoading;
-    })
-    .catch((err: any) => {
-      ElMessage.error(err.message);
-      state.runApiLoading = !state.runApiLoading;
-    })
+      .then((res: any) => {
+        if (state.runForm.run_mode === 10 && state.runForm.api_run_mode === 'one') {
+          ElMessage.success('运行成功');
+          state.reportInfo = res.data
+          reportDetailRef.value.showReport()
+          state.showRunPage = !state.showRunPage;
+        } else {
+          ElMessage.success("执行成功~");
+          state.showRunPage = !state.showRunPage;
+        }
+        state.runApiLoading = !state.runApiLoading;
+      })
+      .catch((err: any) => {
+        ElMessage.error(err.message);
+        state.runApiLoading = !state.runApiLoading;
+      })
 }
 
 // import
@@ -399,9 +424,9 @@ const openImportPage = () => {
 // 获取项目列表
 const getProjectList = () => {
   useProjectApi().getList(state.projectQuery) // 请求数据写死，后面优化
-    .then(res => {
-      state.projectList = res.data.rows
-    })
+      .then(res => {
+        state.projectList = res.data.rows
+      })
 }
 // 选择项目
 const selectProject = (project_id: any) => {
@@ -415,9 +440,9 @@ const selectProject = (project_id: any) => {
 // 获取模块列表
 const getModuleList = () => {
   useModuleApi().getList(state.moduleQuery) // 请求数据写死，后面优化
-    .then(res => {
-      state.moduleList = res.data.rows
-    })
+      .then(res => {
+        state.moduleList = res.data.rows
+      })
 }
 
 // 只看自己

@@ -40,11 +40,12 @@
 
 <script setup lang="ts" name="apiReport">
 import {useReportApi} from '/@/api/useAutoApi/report';
-import {h, onMounted, reactive, ref} from 'vue';
+import {h, onMounted, reactive, ref, watch} from 'vue';
+import {useRoute} from "vue-router";
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus'
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue";
 
-
+const route = useRoute()
 const reportDetailRef = ref()
 const tableRef = ref()
 const state = reactive({
@@ -120,6 +121,8 @@ const state = reactive({
     exec_user_name: null,
     status: null,
     ids: [],
+    case_id: null,
+    api_id: null
   },
   // report
   reportInfo: {},
@@ -162,6 +165,16 @@ const onOpenReport = (row: any) => {
   state.reportInfo = row
   reportDetailRef.value.showReport()
 }
+
+// watch(
+//     () => route.query,
+//     (query: any) => {
+//       state.listQuery.case_id = query.case_id ? query.case_id : null
+//       state.listQuery.api_id = query.api_id ? query.api_id : null
+//       getList()
+//     },
+//     {deep: true}
+// )
 
 // 获取列表
 onMounted(() => {

@@ -6,6 +6,15 @@
     >
       <div class="step-header">
 
+        <div class="step-header__index el-step__icon is-text el-tag--small"
+             :style="{
+          color: getStepTypeInfo(data.step_type, 'color'),
+          backgroundColor: getStepTypeInfo(data.step_type, 'background')
+        }"
+        >
+          <div class="el-step__icon-inner">{{ data.index }}</div>
+        </div>
+
         <div class="step-header__tag">
           <i :class="getStepTypeInfo(data.step_type, 'icon')"
              style="padding: 0 5px 0 5px; font-size: 18px"
@@ -198,7 +207,7 @@ const shouDetailIcon = (step_type: string) => {
     }
 
     .el-step__icon {
-      top: 2px;
+      top: 5px;
       width: 20px;
       height: 20px;
     }

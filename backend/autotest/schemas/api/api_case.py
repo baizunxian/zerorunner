@@ -71,6 +71,7 @@ class ApiCaseIn(BaseModel):
     step_data: typing.List[TCaseStepData] = Field(None, description="步骤类容")
     headers: typing.List[ApiBaseSchema] = Field(None, description="请求头参数")
     variables: typing.List[ApiBaseSchema] = Field(None, description="变量参数")
+    version: int = Field(None, description="")
 
 
 class TestCaseRun(BaseModel):
@@ -93,3 +94,17 @@ class ApiCaseId(BaseSchema):
 class ApiTestCaseRun(BaseSchema):
     id: int = Field(..., description="用例id")
     env_id: int = Field(None, description="环境id")
+
+
+class ApiCaseStepDataSchema(BaseModel):
+    id: int = Field(None, description="id")
+    api_id: int = Field(None, description="api_id")
+    step_id: int = Field(None, description="步骤id")
+    parent_id: int = Field(None, description="父步骤id")
+    name: str = Field(None, description="名称")
+    step_type: str = Field(None, description="步骤类型")
+    case_id: int = Field(None, description="用例id")
+    index: int = Field(None, description="排序")
+    enable: int = Field(None, description="是否禁用")
+    step_data: dict = Field(None, description="是否禁用")
+    version: int = Field(None, description="版本")

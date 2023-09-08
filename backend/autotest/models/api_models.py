@@ -45,8 +45,8 @@ class ProjectInfo(Base):
                       u.nickname.label('updated_by_name'),
                       User.nickname.label('created_by_name')) \
             .where(*q) \
-            .join(u, u.id == cls.updated_by) \
-            .join(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .outerjoin(User, User.id == cls.created_by) \
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
@@ -136,9 +136,9 @@ class ModuleInfo(Base):
                       User.nickname.label('created_by_name'),
                       u.nickname.label('updated_by_name'),
                       ProjectInfo.name.label('project_name')).where(*q) \
-            .join(ProjectInfo, and_(cls.project_id == ProjectInfo.id, ProjectInfo.enabled_flag == 1)) \
-            .join(User, User.id == cls.created_by) \
-            .join(u, u.id == cls.updated_by) \
+            .outerjoin(ProjectInfo, and_(cls.project_id == ProjectInfo.id, ProjectInfo.enabled_flag == 1)) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(ApiInfo, and_(cls.id == ApiInfo.module_id, ApiInfo.enabled_flag == 1)) \
             .group_by(cls.id).order_by(text(order_by))
         return await cls.pagination(stmt)
@@ -327,7 +327,7 @@ class ApiInfo(Base):
         stmt = select(func.count(cls.id).label('count')).where(cls.enabled_flag == 1,
                                                                cls.created_by == user_id)
         return await cls.get_result(stmt, first=True)
-    
+
     @classmethod
     def get_api_by_time(cls, start_time, end_time):
         return cls.query.filter(cls.creation_date.between(start_time, end_time), cls.enabled_flag == 1)
@@ -361,12 +361,13 @@ class ApiCase(Base):
     __tablename__ = 'api_case'
 
     name = Column(String(64), nullable=False, comment='名称', index=True)
-    project_id = Column(Integer, nullable=False, comment='所属项目')
+    project_id = Column(BigInteger, nullable=False, comment='所属项目')
     remarks = Column(String(255), nullable=False, comment='备注')
     headers = Column(JSON, nullable=False, comment='场景请求头')
     variables = Column(JSON, nullable=False, comment='场景变量')
     step_data = Column(JSON, nullable=False, comment='场景步骤')
     step_rely = Column(Integer, nullable=False, comment='步骤依赖  1依赖， 0 不依赖')
+    version = Column(Integer(), nullable=False, comment='版本', default=0)
 
     # todo 目前步骤详情都冗余在单表，后面会拆为独立的表管理
 
@@ -398,12 +399,15 @@ class ApiCase(Base):
                       cls.updated_by,
                       cls.updation_date,
                       cls.enabled_flag,
+                      func.count(distinct(ApiCaseStep.id)).label('step_count'),
                       User.nickname.label('created_by_name'),
                       u.nickname.label('updated_by_name'),
                       ProjectInfo.name.label('project_name')).where(*q) \
+            .outerjoin(ApiCaseStep, and_(ApiCaseStep.case_id == cls.id, cls.version == ApiCaseStep.version)) \
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
+            .group_by(cls.id) \
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
@@ -452,14 +456,16 @@ class ApiCaseStep(Base):
     __tablename__ = 'api_case_step'
 
     name = Column(String(64), nullable=False, comment='名称', index=True)
-    parent_id = Column(Integer, nullable=False, comment='父级id')
-    suite_id = Column(Integer, nullable=False, comment='套件id')
+    case_id = Column(BigInteger, nullable=False, comment='case_id')
     step_type = Column(String(255), nullable=False, comment='步骤类型')
-    case_id = Column(Integer, nullable=False, comment='case_id')
-    value = Column(JSON, nullable=False, comment='步骤参数')
+    api_id = Column(BigInteger, nullable=False, comment='api_id')
+    step_id = Column(BigInteger, nullable=False, comment='步骤级id')
+    parent_id = Column(BigInteger, nullable=False, comment='父级步骤id')
+    step_data = Column(JSON, nullable=False, comment='步骤数据')
     enable = Column(Integer, nullable=False, comment='是否生效')
     index = Column(Integer, nullable=False, comment='顺序')
     node_id = Column(String(255), nullable=False, comment='节点id')
+    version = Column(Integer, nullable=False, comment='版本', default=0)
 
     @classmethod
     def get_list(cls, name=None, user_ids=None, project_id=None, created_by=None, suite_type=None,
@@ -501,6 +507,17 @@ class ApiCaseStep(Base):
                            ProjectInfo.name.label('project_name')) \
             .order_by(cls.creation_date.desc())
 
+    @classmethod
+    async def get_step_by_case_id(cls, case_id: int, version: int):
+        stmt = (select(cls.get_table_columns(),
+                       ApiInfo.name.label('api_name'),
+                       ApiInfo.method.label('api_method'),
+                       )
+                .outerjoin(ApiInfo, and_(ApiInfo.id == cls.api_id, ApiInfo.enabled_flag == 1))
+                .where(cls.case_id == case_id, cls.version == version,
+                       cls.enabled_flag == 1).order_by(cls.index.asc()))
+        return await cls.get_result(stmt)
+
 
 class ApiTestReport(Base):
     """报告表"""
@@ -520,8 +537,8 @@ class ApiTestReport(Base):
     run_skip_count = Column(Integer, nullable=True, comment='运行跳过数')
     run_err_count = Column(Integer, nullable=True, comment='运行错误数')
     run_log = Column(Text, nullable=True, comment='运行日志')
-    project_id = Column(Integer, nullable=True, comment='项目id')
-    module_id = Column(Integer, nullable=True, comment='模块id')
+    project_id = Column(BigInteger, nullable=True, comment='项目id')
+    module_id = Column(BigInteger, nullable=True, comment='模块id')
     env_id = Column(Integer, nullable=True, comment='运行环境')
     exec_user_id = Column(Integer, nullable=True, comment='执行人id')
     exec_user_name = Column(String(255), nullable=True, comment='执行人昵称')
@@ -549,6 +566,8 @@ class ApiTestReport(Base):
             q.append(cls.creation_date.between(*params.min_and_max))
         if params.exec_user_name:
             q.append(cls.exec_user_name.like('%{}%'.format(params.exec_user_name)))
+        if params.case_id:
+            q.append(cls.case_id == params.case_id)
         stmt = select(cls.get_table_columns()).where(*q).order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
@@ -775,8 +794,8 @@ class Env(Base):
                       cls.updation_date,
                       User.nickname.label('created_by_name'),
                       u.nickname.label('updated_by_name'), ).where(*q) \
-            .join(u, u.id == cls.updated_by) \
-            .join(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .outerjoin(User, User.id == cls.created_by) \
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
 

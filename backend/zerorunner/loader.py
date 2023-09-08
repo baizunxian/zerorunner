@@ -2,7 +2,7 @@
 # @project: zerorunner
 # @author: xiaobai
 # @create time: 2022/9/9 14:53
-
+import contextlib
 import csv
 import importlib
 import os
@@ -10,6 +10,9 @@ import sys
 import traceback
 import types
 import typing
+from io import StringIO
+
+from loguru import logger
 
 from zerorunner import exceptions
 from zerorunner import builtin
@@ -102,13 +105,32 @@ def load_func_content(content: str, module_name: str) -> typing.Dict[str, typing
     return load_module_functions(imported_module)
 
 
-def load_script_content(content: str, module_name: str, params: dict = None) -> types.ModuleType:
+def load_script_content(content: str, module_name: str, params: dict = None) -> [types.ModuleType, StringIO]:
+    """执行脚本"""
     mod = sys.modules.setdefault(module_name, types.ModuleType(module_name))
+    output_buffer = StringIO()
+    log_handler = CapturingLogHandler(output_buffer)
+    logger.add(log_handler)
+    new_content = "from loguru import logger\n\n" + content
     if params:
         mod.__dict__.update(params)
     try:
-        code = compile(content, module_name, 'exec')
-        exec(code, mod.__dict__)
-        return mod
+        code = compile(new_content, module_name, 'exec')
+        with contextlib.redirect_stdout(output_buffer):
+            exec(code, mod.__dict__)
+        captured_output = output_buffer.getvalue()
+        return mod, captured_output
     except IndentationError:
         raise IndentationError(f"脚本格式错误，请检查！\n {traceback.format_exc()}")
+
+    finally:
+        logger.remove()
+        output_buffer.close()
+
+
+class CapturingLogHandler:
+    def __init__(self, output_buffer):
+        self.output_buffer = output_buffer
+
+    def write(self, message):
+        self.output_buffer.write(message)

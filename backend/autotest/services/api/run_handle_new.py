@@ -78,9 +78,10 @@ class HandleConfig(object):
 
     async def init(self,
                    env_id: typing.Union[int, str],
+                   case_id: typing.Union[int, str] = None,
                    headers: typing.List[ApiBaseSchema] = None,
                    variables: typing.List[ApiBaseSchema] = None) -> "HandleConfig":
-        self.config = TConfig(name="")
+        self.config = TConfig(name="", case_id=case_id)
         await self.init_env(env_id)
         await self.init_functions()
         if headers:
@@ -306,7 +307,7 @@ class HandelRunApiStep(object):
         return self
 
     async def init_config(self):
-        config_info = await HandleConfig().init(self.api_info.env_id)
+        config_info = await HandleConfig().init(self.api_info.env_id, self.api_info.id)
         self.config = config_info.config
         self.config.name = self.api_info.name
 
@@ -341,6 +342,7 @@ class HandelTestCase(object):
 
     async def init_config(self):
         config_info = await HandleConfig().init(self.api_case.env_id,
+                                                self.api_case.id,
                                                 self.api_case.headers,
                                                 self.api_case.variables)
         self.config = config_info.config

@@ -89,8 +89,8 @@ class UiElement(Base):
                       u.nickname.label('updated_by_name'),
                       User.nickname.label('created_by_name')) \
             .where(*q) \
-            .join(u, u.id == cls.updated_by) \
-            .join(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .outerjoin(User, User.id == cls.created_by) \
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
 

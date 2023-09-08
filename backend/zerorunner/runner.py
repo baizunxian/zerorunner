@@ -247,12 +247,12 @@ class SessionRunner(object):
 
             # setup hooks
             if step.setup_hooks:
-                self.set_run_log(f"{step_result.name} setup hooks start~~~")
+                self.set_run_log("{:~^50}".format("前置hooks开始"))
                 self.__call_hooks(hooks=step.setup_hooks,
                                   step_variables=merge_variable,
                                   hook_msg="setup_hooks",
                                   parent_step_result=step_result)
-                self.set_run_log(f"{step_result.name} setup hooks end~~~")
+                self.set_run_log(f"{step_result.name} 前置hooks结束~~~")
 
             parsed_request_dict = parse_data(
                 request_dict, merge_variable, self.config.functions
@@ -269,7 +269,7 @@ class SessionRunner(object):
             url_path = parsed_request_dict.pop("url")
             url = build_url(self.config.base_url, url_path)
             parsed_request_dict["verify"] = self.config.verify
-            parsed_request_dict["json"] = parsed_request_dict.pop("req_json", {})
+            # parsed_request_dict["json"] = parsed_request_dict.pop("req_json", {})
             # 更新会话请求头
             # self.__session_headers = parse_data(
             #     self.__session_headers,
@@ -429,7 +429,7 @@ class SessionRunner(object):
             with open(base_script_path, 'r', encoding='utf8') as f:
                 base_script = f.read()
             script = f"{base_script}\n\n{step.value}"
-            script_module = load_script_content(script, f"script_{module_name}")
+            script_module, _ = load_script_content(script, f"script_{module_name}")
             headers = script_module.zero.headers.get_headers()
             variables = script_module.zero.environment.get_environment()
             for key, value in headers.items():

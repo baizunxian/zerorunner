@@ -43,6 +43,13 @@ export function useApiInfoApi() {
         data,
       });
     },
+    batchRunApi: (data?: object) => {
+      return request({
+        url: `${BaseApiPath}/batchRunApi`,
+        method: 'POST',
+        data,
+      });
+    },
     debugApi: (data?: object) => {
       return request({
         url: `${BaseApiPath}/debugApi`,

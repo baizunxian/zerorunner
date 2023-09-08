@@ -6,7 +6,7 @@ import monacoEditorPlugin from "vite-plugin-monaco-editor"
 
 // import MonacoEditorNlsPlugin, {esbuildPluginMonacoEditorNls, Languages,} from '/@/components/monaco/nls';
 
-const zh_CN = require('/@/components/monaco/nls/zh-hans.json')
+// const zh_CN = require('/@/components/monaco/nls/zh-hans.json')
 
 
 const pathResolve = (dir: string) => {
@@ -79,6 +79,9 @@ const viteConfig = defineConfig((mode: ConfigEnv) => {
           // }),
         ],
       },
+    },
+    esbuild: {
+      drop: ["console", "debugger"],
     },
     root: process.cwd(),
     resolve: {alias},

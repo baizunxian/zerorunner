@@ -25,7 +25,7 @@ async def get_case_by_ids(params: ApiCaseIdsQuery):
 @router.post('/saveOrUpdate', description="更新保存用例")
 async def save_or_update(params: ApiCaseIn):
     data = await ApiCaseService.save_or_update(params)
-    return partner_success(data.get("id"))
+    return partner_success(data)
 
 
 @router.post('/runTestCase', description="运行用例")

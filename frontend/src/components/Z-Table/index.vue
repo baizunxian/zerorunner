@@ -42,6 +42,7 @@
       <!---图片 (START)-->
       <el-table-column
           v-else
+          :key="index"
           v-bind="col"
           :render-header="col.renderHeader"
           :show-overflow-tooltip="col.show"

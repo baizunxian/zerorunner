@@ -114,7 +114,6 @@ router.beforeEach(async (to, from, next) => {
       NProgress.done();
     } else {
       const storesRoutesList = useRoutesList(pinia);
-      console.log(storesRoutesList, 'storesRoutesList')
       const {routesList, isGet} = storeToRefs(storesRoutesList);
       if (routesList.value.length === 0 && !isGet.value) {
         if (isRequestRoutes) {

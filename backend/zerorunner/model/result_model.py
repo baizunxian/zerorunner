@@ -113,6 +113,7 @@ class TestCaseSummary(BaseModel):
     name: str = Field(..., description="报告名称")
     success: bool = Field(..., description="是否成功")
     case_id: typing.Union[str, int] = Field(None, description="用例id")
+    source_id: typing.Union[str, int] = Field(None, description="来源id")
     start_time: typing.Union[float, str] = Field(0, description="开始时间")
     response_time: float = Field(0, description="请求时间")
     duration: float = Field(0, description="耗时")

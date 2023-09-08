@@ -329,8 +329,7 @@ const stepData = computed({
     return props.stepDataList
   },
   set(val) {
-    console.log(val, 'val111111111')
-    emit('update:stepDataList', val)
+    emit('update:stepDataList', {...val})
   }
 })
 
