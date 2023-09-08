@@ -18,7 +18,7 @@ r_lock = Lock()
 t_lock = Lock()
 
 
-# @celery.task
+@celery.task
 async def async_run_ui(ui_id: typing.Union[str, int], report_id: [str, int] = None, **kwargs: typing.Any):
     """
     运行测试用例

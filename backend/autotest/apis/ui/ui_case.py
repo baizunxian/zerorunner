@@ -37,8 +37,8 @@ async def run_ui_case_by_id(params: UiTestCaseRun):
                   env_id=params.env_id,
                   exec_user_id=exec_user_id,
                   exec_user_name=exec_user_name)
-    # async_run_ui.apply_async(kwargs=kwargs, __business_id=params.id)
-    await async_run_ui(**kwargs)
+    async_run_ui.apply_async(kwargs=kwargs, __business_id=params.id)
+    # await async_run_ui(**kwargs)
 
     return partner_success(msg="用例异步运行， 请稍后再测试报告列表查看 😊")
 
