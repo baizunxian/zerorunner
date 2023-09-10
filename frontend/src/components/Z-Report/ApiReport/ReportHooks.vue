@@ -37,6 +37,9 @@
               </div>
 
             </template>
+            <div v-if="step.step_type === 'sql'">
+              {{ step.sql_session_data?.sql }}
+            </div>
             {{ step.message }}
           </el-collapse-item>
         </el-collapse>
@@ -79,6 +82,9 @@
               </div>
 
             </template>
+            <div v-if="step.step_type === 'sql'">
+              {{ step.sql_session_data?.sql }}
+            </div>
             {{ step.message }}
           </el-collapse-item>
         </el-collapse>

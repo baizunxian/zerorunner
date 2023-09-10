@@ -14,14 +14,14 @@ from loguru import logger
 from zerorunner import exceptions
 from zerorunner.client import HttpSession
 from zerorunner.exceptions import ValidationFailure
+from zerorunner.ext.zero_driver.driver import ZeroDriver
 from zerorunner.model.base import TStepResultStatusEnum, VariablesMapping, FunctionsMapping, TStepControllerDict, \
     TStepLogType
 from zerorunner.model.result_model import StepResult, TestCaseSummary, TestCaseInOut
 from zerorunner.model.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
-    Parser
+    Parser, parse_variables_mapping
 from zerorunner.response import uniform_validator
-from zerorunner.ext.zero_driver.driver import ZeroDriver
 from zerorunner.utils import merge_variables
 
 
@@ -40,6 +40,7 @@ class SessionRunner(object):
     __export: typing.List[str] = []
     __step_results: typing.List[StepResult] = []
     __session_variables: VariablesMapping = {}
+    __merge_variable_pool: VariablesMapping = {}
     # time
     __start_time: float = 0
     __duration: float = 0
@@ -51,6 +52,7 @@ class SessionRunner(object):
     def __init(self):
         self.__config = self.config
         self.__session_variables = self.__session_variables or {}
+        self.__merge_variable_pool = self.__merge_variable_pool or {}
         self.extracted_variables = self.extracted_variables or {}
         self.__start_at = 0
         self.__duration = 0
@@ -228,6 +230,9 @@ class SessionRunner(object):
 
         return validator_dict
 
+    def get_merge_variable_pool(self):
+        return self.__merge_variable_pool
+
     def get_merge_variable(self, step: TStep = None):
         """
         获取合并的变量
@@ -236,19 +241,25 @@ class SessionRunner(object):
          __session_variables(会话变量) >
         extracted_variables(提取变量) >
         config.variables(用例变量) >
-        config.env_variables(环境变量)
+        config.env_variables(环境变量)>
+        merge_variable_pool(合并后的变量池)
         """
-
+        merge_variable_pool = merge_variables(self.config.env_variables, self.__merge_variable_pool)
         # 合并用例变量
-        merge_variable = merge_variables(self.config.variables, self.config.env_variables)
+        merge_variable_pool = merge_variables(self.config.variables, merge_variable_pool)
         # 合并提取变量
-        merge_variable = merge_variables(self.extracted_variables, merge_variable)
+        merge_variable_pool = merge_variables(self.extracted_variables, merge_variable_pool)
         # 合并会话变量
-        merge_variable = merge_variables(self.__session_variables, merge_variable)
+        merge_variable_pool = merge_variables(self.__session_variables, merge_variable_pool)
         # 合并用例变量
         if step:
-            merge_variable = merge_variables(step.variables, merge_variable)
-        return merge_variable
+            merge_variable_pool = merge_variables(step.variables, merge_variable_pool)
+
+        parse_variables_mapping(
+            merge_variable_pool, self.parser.functions_mapping
+        )
+        self.__merge_variable_pool = merge_variable_pool
+        return self.__merge_variable_pool
 
     def __parse_config(self, param: typing.Dict = None):
         """解析配置"""

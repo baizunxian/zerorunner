@@ -2,33 +2,52 @@
 # @author: xiaobai
 import typing
 
+from zerorunner.model.step_model import TStep
 from zerorunner.response import ResponseObject
+from zerorunner.runner_new import SessionRunner
 
 
 class Zero:
-    def __init__(self, request: dict = None, response: ResponseObject = None, environment: dict = None,
+    def __init__(self, runner: SessionRunner,
+                 step: TStep,
+                 request: dict = None,
+                 response: ResponseObject = None,
+                 environment: dict = None,
                  variables: dict = None):
-        self.request = self.Request(request)
-        self.response = self.Response(response)
-        self.environment = self.Environment(environment)
-        self.variables = self.Variables(variables)
+        self._runner = runner
+        self._step = step
+        self._request = request
+        self._response = response
+        self._environment = environment
+        self._variables = variables
 
-    def __getattr__(self, item: str):
-        if item == "request":
-            return self.request
-        if item == "response":
-            return self.response
-        elif item == "environment":
-            return self.environment
-        elif item == "variables":
-            return self.variables
-        else:
-            raise AttributeError(f"{item} not found")
+    @property
+    def runner(self) -> SessionRunner:
+        return self._runner
+
+    @property
+    def step(self):
+        return self._step
+
+    @property
+    def request(self):
+        return self.Request(self._request)
+
+    @property
+    def response(self):
+        return self.Response(self._response)
+
+    @property
+    def environment(self):
+        return self.Environment(self._environment)
+
+    @property
+    def variables(self):
+        return self.Variables(self._variables)
 
     class Request:
         """请求处理"""
 
-        # {}.get()
         def __init__(self, request: dict = None):
             self.request = request if request else {}
 
@@ -52,6 +71,12 @@ class Zero:
 
         def get_request(self):
             return self.request
+
+        def get_headers(self):
+            return self.request.get("headers")
+
+        def get_json(self):
+            return self.request.get("json")
 
     class Response:
         """响应处理"""

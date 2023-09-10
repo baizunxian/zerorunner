@@ -16,7 +16,7 @@ from zerorunner.model.base import TStepLogType, TStepResultStatusEnum, Hooks
 from zerorunner.model.result_model import StepResult
 from zerorunner.model.step_model import TStep
 from zerorunner.model.step_model import VariablesMapping, TRequest, MethodEnum
-from zerorunner.parser import parse_variables_mapping, build_url, Parser
+from zerorunner.parser import build_url, Parser
 from zerorunner.response import ResponseObject
 from zerorunner.runner_new import SessionRunner
 from zerorunner.script_code import Zero
@@ -107,10 +107,6 @@ def run_api_request(runner: SessionRunner,
         # 合并变量
         merge_variable = runner.get_merge_variable(step)
 
-        # parse variables
-        merge_variable = parse_variables_mapping(
-            merge_variable, runner.parser.functions_mapping
-        )
         # setup hooks
         if step.setup_hooks:
             runner.set_run_log(f"{step_result.name} 前置hook开始~~~")
@@ -122,8 +118,10 @@ def run_api_request(runner: SessionRunner,
             runner.set_run_log(f"{step_result.name} 前置hook结束~~~")
         # setup code
         if step.setup_code:
-            runner.set_run_log(f"{step_result.name} 前置code开始  ~~~")
-            zero = Zero(request=request_dict,
+            runner.set_run_log(f"{step_result.name} 前置code开始~~~")
+            zero = Zero(runner=runner,
+                        step=step,
+                        request=request_dict,
                         environment=runner.config.env_variables,
                         variables=step.variables)
             _, captured_output = load_script_content(step.setup_code,
@@ -139,6 +137,7 @@ def run_api_request(runner: SessionRunner,
                 zero.environment.get_environment(), merge_variable
             )
             runner.config.env_variables.update(parsed_zero_environment)
+
             parsed_zero_variables = runner.parser.parse_data(
                 zero.variables.get_variables(), merge_variable
             )
@@ -149,10 +148,6 @@ def run_api_request(runner: SessionRunner,
         merge_variable = runner.get_merge_variable(step)
         if upload_variables:
             merge_variable.update(upload_variables)
-        # parse variables
-        merge_variable = parse_variables_mapping(
-            merge_variable, runner.parser.functions_mapping
-        )
 
         parsed_request_dict = runner.parser.parse_data(
             request_dict, merge_variable
@@ -181,47 +176,6 @@ def run_api_request(runner: SessionRunner,
         resp_obj = ResponseObject(resp, parser=Parser(functions_mapping=runner.config.functions))
         step.variables["response"] = resp_obj
 
-        # teardown code
-        if step.teardown_code:
-            runner.set_run_log(f"{step_result.name} 后置code开始  ~~~")
-            zero = Zero(request=request_dict,
-                        response=resp_obj,
-                        environment=runner.config.env_variables,
-                        variables=step.variables
-                        )
-            _, captured_output = load_script_content(step.teardown_code,
-                                                     f"{runner.config.case_id}_teardown_code",
-                                                     params={"zero": zero, "requests": requests})
-            if captured_output:
-                runner.set_run_log("后置code输出: \n" + captured_output)
-            parsed_zero_headers = runner.parser.parse_data(
-                zero.headers.get_headers(), merge_variable
-            )
-            parsed_request_dict['headers'].update(parsed_zero_headers)
-            parsed_zero_environment = runner.parser.parse_data(
-                zero.environment.get_environment(), merge_variable
-            )
-            runner.config.env_variables.update(parsed_zero_environment)
-            parsed_zero_variables = runner.parser.parse_data(
-                zero.variables.get_variables(), merge_variable
-            )
-            step.variables.update(parsed_zero_variables)
-            # code  执行完成后重新合并变量
-            merge_variable = runner.get_merge_variable(step)
-            runner.set_run_log(f"{step_result.name} 后置code结束~~~")
-
-        # teardown hooks
-        if step.teardown_hooks:
-            runner.set_run_log(f"{step_result.name} 后置hook开始~~~")
-            call_hooks(runner=runner,
-                       hooks=step.teardown_hooks,
-                       step_variables=merge_variable,
-                       hook_msg="teardown_hooks",
-                       parent_step_result=step_result)
-            runner.set_run_log(f"{step_result.name} 后置hook结束~~~")
-            # code teardown 执行完成后重新合并变量
-            merge_variable = runner.get_merge_variable(step)
-
         def log_req_resp_details():
             err_msg = "\n{:*^64}\n".format("DETAILED REQUEST & RESPONSE")
 
@@ -244,14 +198,54 @@ def run_api_request(runner: SessionRunner,
             err_msg += f"body: {repr(resp)}\n"
             logger.error(err_msg)
 
-        # variables_mapping = step.variables
-
         # extract
         extractors = step.extracts
         extract_mapping = resp_obj.extract(extractors, step.variables, runner.config.functions)
         step_result.export_vars = extract_mapping
-
         merge_variable.update(extract_mapping)
+
+        # teardown code
+        if step.teardown_code:
+            runner.set_run_log(f"{step_result.name} 后置code开始  ~~~")
+            zero = Zero(runner=runner,
+                        step=step,
+                        request=request_dict,
+                        response=resp_obj,
+                        environment=runner.config.env_variables,
+                        variables=step.variables
+                        )
+            _, captured_output = load_script_content(step.teardown_code,
+                                                     f"{runner.config.case_id}_teardown_code",
+                                                     params={"zero": zero, "requests": requests})
+            if captured_output:
+                runner.set_run_log("后置code输出: \n" + captured_output)
+            # parsed_zero_headers = runner.parser.parse_data(
+            #     zero.request.get_headers(), merge_variable
+            # )
+            # parsed_request_dict['headers'].update(parsed_zero_headers)
+            # parsed_zero_environment = runner.parser.parse_data(
+            #     zero.environment.get_environment(), merge_variable
+            # )
+            # runner.config.env_variables.update(parsed_zero_environment)
+            parsed_zero_variables = runner.parser.parse_data(
+                zero.variables.get_variables(), merge_variable
+            )
+            step.variables.update(parsed_zero_variables)
+            # code  执行完成后重新合并变量
+            merge_variable = runner.get_merge_variable(step)
+            runner.set_run_log(f"{step_result.name} 后置code结束~~~")
+
+        # teardown hooks
+        if step.teardown_hooks:
+            runner.set_run_log(f"{step_result.name} 后置hook开始~~~")
+            call_hooks(runner=runner,
+                       hooks=step.teardown_hooks,
+                       step_variables=merge_variable,
+                       hook_msg="teardown_hooks",
+                       parent_step_result=step_result)
+            runner.set_run_log(f"{step_result.name} 后置hook结束~~~")
+            # code teardown 执行完成后重新合并变量
+            merge_variable = runner.get_merge_variable(step)
 
         # validate
         validators = step.validators
@@ -268,6 +262,7 @@ def run_api_request(runner: SessionRunner,
             log_req_resp_details()
             # log testcase duration before raise ValidationFailure
             raise
+
     except exceptions.MyBaseError as err:
         runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
         raise

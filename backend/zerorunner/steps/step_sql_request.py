@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import time
-import traceback
 import typing
 
 from loguru import logger
+
 from zerorunner.database.engine import DBEngine
+from zerorunner.model.result_model import SqlSessionData
 from zerorunner.model.step_model import TStep, TSqlRequest
 from zerorunner.models import TStepLogType, StepResult, TStepResultStatusEnum
-from zerorunner.runner import SessionRunner
+from zerorunner.runner_new import SessionRunner
 from zerorunner.steps.base import IStep
 
 
@@ -19,11 +20,14 @@ def run_sql_request(runner: SessionRunner,
     step_result = runner.get_step_result(step, step_tag)
     runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
     start_time = time.time()
-    step_variables = runner.get_merge_variable(step)
-    request_dict = step.sql_request.dict()
-    parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
-    step.sql_request = TSqlRequest(**parsed_request_dict)
     try:
+        step_variables = runner.get_merge_variable(step)
+        request_dict = step.sql_request.dict()
+        # 合并变量
+        parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
+        step.sql_request = TSqlRequest(**parsed_request_dict)
+        step_result.sql_session_data = SqlSessionData(**step.sql_request.dict(exclude={'password'}))
+
         db_engine = DBEngine(
             f'mysql+pymysql://{step.sql_request.user}:'
             f'{step.sql_request.password}@{step.sql_request.host}:'
@@ -39,8 +43,11 @@ def run_sql_request(runner: SessionRunner,
         runner.set_run_log(f"SQL查询-> 设置变量:{step.sql_request.variable_name}, 设置变量值：{data}")
         runner.set_step_result_status(step_result, TStepResultStatusEnum.success)
         runner.with_session_variables(variables)
+        step_result.sql_session_data.execution_result = data
+        step_result.sql_session_data.success = True
     except Exception as err:
         runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.sql_session_data.success = False
         raise
     finally:
         step_result.duration = time.time() - start_time
