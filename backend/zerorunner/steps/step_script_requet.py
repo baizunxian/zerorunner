@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# @author: xiaobai
+# @author: xiao bai
 import os
 import time
 import uuid
@@ -10,14 +10,15 @@ from zerorunner.model.result_model import StepResult
 from zerorunner.model.step_model import TStep, TScriptRequest
 from zerorunner.runner_new import SessionRunner
 from zerorunner.steps.base import IStep
+from zerorunner.steps.step_result import TStepResult
 
 
 def run_script_request(runner: SessionRunner,
                        step: TStep,
                        step_tag: str = None,
                        parent_step_result: StepResult = None):
-    step_result = runner.get_step_result(step, step_tag)
-    runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
+    step_result = TStepResult(step, step_tag=step_tag)
+    step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
     request_dict = step.script_request.dict()
@@ -33,16 +34,17 @@ def run_script_request(runner: SessionRunner,
         headers = script_module.zero.headers.get_headers()
         variables = script_module.zero.environment.get_environment()
         for key, value in headers.items():
-            runner.set_run_log(f"✏️设置请求头-> key:{key} value: {value}")
+            step_result.set_step_log(f"✏️设置请求头-> key:{key} value: {value}")
         for key, value in variables.items():
-            runner.set_run_log(f"✏️设置请变量-> key:{key} value: {value}")
-        # self.with_headers(headers)
+            step_result.set_step_log(f"✏️设置请变量-> key:{key} value: {value}")
         runner.with_variables(variables)
         functions = load_module_functions(script_module)
         runner.with_functions(functions)
     except Exception as err:
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.set_step_result_status(TStepResultStatusEnum.err)
     finally:
+        step_result.end_log()
+        step_result = step_result.get_step_result()
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         runner.set_run_log(step_result=step_result, log_type=TStepLogType.end)

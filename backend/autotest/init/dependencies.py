@@ -1,15 +1,8 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-from fastapi import Request, Depends
-from fastapi import Security
-from fastapi.security.api_key import APIKeyHeader
+from fastapi import Request
 
-from autotest.corelibs import g
-from autotest.corelibs.codes import CodeEnum
-from autotest.corelibs.consts import TEST_USER_INFO, CACHE_DAY
-from autotest.corelibs.http_response import partner_success
-from autotest.exceptions.exceptions import AccessTokenFail
-from config import config
+from autotest.utils.local import g
 
 
 async def set_global_request(request: Request):

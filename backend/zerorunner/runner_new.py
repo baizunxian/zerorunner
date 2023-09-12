@@ -106,40 +106,6 @@ class SessionRunner(object):
     def get_session_variables(self):
         return self.__session_variables
 
-    def set_run_log(self, message: str = None, step_result: StepResult = None, log_type: TStepLogType = None):
-        """
-        args :
-            message: 日志内容
-            log_type: 内容类型 start end  success fail skip err 等
-        """
-        log_header = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}:"
-        if step_result and log_type:
-            content = f"{TStepControllerDict[step_result.step_type]} -> {step_result.name} {log_type}"
-            if log_type == TStepLogType.start:
-                msg = f"▶️ {content}"
-            elif log_type == TStepLogType.end:
-                msg = f"⏹️ {content}"
-            elif log_type == TStepLogType.success:
-                msg = f"✔️ {content}"
-            elif log_type == TStepLogType.fail:
-                msg = f"❌ {content}"
-            elif log_type == TStepLogType.skip:
-                msg = f"⏭️ {content}"
-            elif log_type == TStepLogType.wait:
-                msg = f"⏱️ {content}"
-            elif log_type == TStepLogType.loop:
-                msg = f"🔄 {content}"
-            elif log_type == TStepLogType.condition:
-                msg = f"{content}"
-            elif log_type == TStepLogType.err:
-                msg = f"❗ {content} -> {message}"
-            else:
-                msg = ""
-            step_result.log += f"{log_header}{msg}\n"
-            self.__log__ += f"{log_header}{msg}\n"
-        else:
-            self.__log__ += f"{log_header}{message}\n"
-
     def set_step_result_status(self, step_result: StepResult, status: TStepResultStatusEnum, msg: str = ""):
         """设置步骤状态"""
 
@@ -255,7 +221,7 @@ class SessionRunner(object):
         if step:
             merge_variable_pool = merge_variables(step.variables, merge_variable_pool)
 
-        parse_variables_mapping(
+        merge_variable_pool = parse_variables_mapping(
             merge_variable_pool, self.parser.functions_mapping
         )
         self.__merge_variable_pool = merge_variable_pool
@@ -340,7 +306,6 @@ class SessionRunner(object):
         self.__init()
         # run step
         logger.info(f"run step begin: {step.name} >>>>>>")
-        self.set_run_log(f"执行步骤->{step.name} >>>>>>")
         if not self.__start_time:
             self.__start_time = time.time()
         for i in range(step.retry_times + 1):
@@ -360,12 +325,7 @@ class SessionRunner(object):
             except Exception:
                 logger.error(f"步骤执行错误:\n{traceback.format_exc()}")
 
-        # # save extracted variables to session variables
-        # self.__session_variables.update(step_result.export_vars)
-        # # update testcase summary
-        # self.__step_results.append(step_result)
         logger.info(f"run step end: {step.name} <<<<<<\n")
-        self.set_run_log(f"步骤执行完成->{step.name} <<<<<<")
 
     def execute_loop(self,
                      steps: typing.List[object],

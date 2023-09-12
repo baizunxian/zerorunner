@@ -5,10 +5,10 @@ import typing
 from starlette import status
 from starlette.responses import Response, JSONResponse
 
-from autotest.corelibs import g
-from autotest.corelibs.codes import CodeEnum
+from autotest.utils.local import g
+from autotest.utils.response.codes import CodeEnum
 from loguru import logger
-from autotest.corelibs.serialize import default_serialize
+from autotest.utils.serialize import default_serialize
 import orjson
 
 
@@ -27,7 +27,7 @@ def partner_success(data=None,
                     code=CodeEnum.PARTNER_CODE_OK.code,
                     msg=CodeEnum.PARTNER_CODE_OK.msg,
                     http_code=status.HTTP_200_OK,
-                    headers={}):
+                    headers=None):
     """
     通用结果返回
     :param data: 返回数据

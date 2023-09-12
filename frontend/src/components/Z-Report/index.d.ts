@@ -44,6 +44,8 @@ declare interface StepResult {
   step_type: string
   success: boolean
   variables: object
+  env_variables: object
+  log:string
 }
 
 

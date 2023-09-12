@@ -2,7 +2,7 @@
 # @author: xiaobai
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.ui.ui_page import UiPageQuery, UiPageIn, UiPageId
 from autotest.services.ui.ui_page import UiPageServer
 

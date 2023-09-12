@@ -148,7 +148,7 @@ const initData = () => {
   state.success = step_result.success
   state.step_type = step_result.step_type
   state.message = step_result.message
-  state.log = props.reportData.log
+  state.log = step_result.log
   if (state.step_type == 'api') {
     state.activeName = "ResponseInfo"
     state.stat = step_result.session_data.stat

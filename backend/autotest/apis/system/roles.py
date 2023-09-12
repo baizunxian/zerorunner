@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.system.roles import RoleQuery, RoleIn, RoleDel
 from autotest.services.system.role import RolesService
 

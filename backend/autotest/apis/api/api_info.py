@@ -1,13 +1,11 @@
 import json
 
 from fastapi import APIRouter
-from loguru import logger
 
-from autotest.corelibs.http_response import partner_success
-from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema, ApiBatchRunSchema
+from autotest.utils.response.http_response import partner_success
+from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
 from autotest.services.api.api_info import ApiInfoService
 from autotest.utils import current_user
-from celery_worker.tasks.test_case import async_run_api
 
 router = APIRouter()
 

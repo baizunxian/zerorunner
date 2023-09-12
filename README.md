@@ -7,7 +7,6 @@
 - python version 3.9.6
 - mysql version 5.7.43
 - redis version 6.0.9
-- node version 18.15.0
 
 #### 前端
 
@@ -84,7 +83,7 @@ celery -A celery_worker.worker.celery beat  -l INFO
 ```bash
 # node 版本
 node -v 
-v18.15.0
+v16.22.0
 ```
 
 - 复制代码(桌面 cmd 运行) `npm install -g cnpm --registry=https://registry.npm.taobao.org`
@@ -97,19 +96,13 @@ git clone https://github.com/baizunxian/zerorunner.git
 # 进入项目
 cd zerorunner/frontend
 
-# 安装依赖
-cnpm install 
 # 或者
-yarn insatll
+yarn install
 
 # 运行项目
-cnpm run dev
-# 或者 
 yarn dev
 
 # 打包发布
-cnpm run build
-# 或者 
 yarn build
 ```
 

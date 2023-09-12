@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.api_report import TestReportQuery, TestReportDetailQuery, TestReportId
 from autotest.services.api.api_report import ReportService
 

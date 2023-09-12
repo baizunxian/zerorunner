@@ -13,6 +13,7 @@ from zerorunner.model.result_model import StepResult
 from zerorunner.model.step_model import TStep, TLoopRequest
 from zerorunner.runner_new import SessionRunner
 from zerorunner.steps.base import IStep
+from zerorunner.steps.step_result import TStepResult
 
 
 def run_loop_request(runner: SessionRunner,
@@ -21,8 +22,8 @@ def run_loop_request(runner: SessionRunner,
                      parent_step_result: StepResult = None):
     """循环控制器"""
     step.name = "循环控制器"
-    step_result = runner.get_step_result(step, step_tag)
-    runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
+    step_result = TStepResult(step, step_tag=step_tag)
+    step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
     request_dict = step.loop_request.dict()
@@ -31,18 +32,18 @@ def run_loop_request(runner: SessionRunner,
     try:
         # 次数循环
         if step.loop_request.loop_type.lower() == LoopTypeEnum.Count.value:
-            runner.set_run_log(f"🔄次数循环---> 开始")
+            step_result.set_step_log("🔄次数循环---> 开始")
             for i in range(min(step.loop_request.count_number, 100)):
                 try:
                     runner.execute_loop(step.loop_request.teststeps,
                                         step_tag=f"Loop {i + 1}",
-                                        parent_step_result=step_result)
-                    runner.set_run_log(f"次数循环---> 第{i + 1}次")
+                                        parent_step_result=step_result.get_step_result())
+                    step_result.set_step_log(f"次数循环---> 第{i + 1}次")
                     time.sleep(step.loop_request.count_sleep_time)
                 except Exception as err:
                     logger.error(err)
                     continue
-            runner.set_run_log(f"次数循环---> 结束")
+            step_result.set_step_log("次数循环---> 结束")
 
         # for 循环
         elif step.loop_request.loop_type.lower() == LoopTypeEnum.For.value:
@@ -50,9 +51,9 @@ def run_loop_request(runner: SessionRunner,
             merge_variable = runner.get_merge_variable()
             iterable_obj = runner.parser.parse_data(step.loop_request.for_variable, merge_variable)
             if not isinstance(iterable_obj, typing.Iterable):
-                runner.set_run_log(f"for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
+                step_result.set_step_log(f"for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
                 raise ValueError("for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
-            runner.set_run_log(f"🔄for循环---> 开始")
+            step_result.set_step_log("🔄for循环---> 开始")
             for for_variable_value in iterable_obj:
                 try:
                     # 设置变量
@@ -60,53 +61,55 @@ def run_loop_request(runner: SessionRunner,
                     # 执行循环
                     runner.execute_loop(steps=step.loop_request.teststeps,
                                         step_tag=f"For {for_variable_value}",
-                                        parent_step_result=step_result)
+                                        parent_step_result=step_result.get_step_result())
                     time.sleep(step.loop_request.for_sleep_time)
                 except Exception as err:
                     logger.error(err)
                     continue
-            runner.set_run_log(f"🔄for循环---> 结束")
+            step_result.set_step_log("🔄for循环---> 结束")
 
         # while 循环  最大循环次数 100
         elif step.loop_request.loop_type.lower() == LoopTypeEnum.While.value:
             # todo 循环超时时间待实现
             run_number = 0
-            runner.set_run_log(f"🔄while循环---> 开始")
+            step_result.set_step_log("🔄while循环---> 开始")
             while True:
                 c_result = runner.comparators(step.loop_request.while_variable,
                                               step.loop_request.while_value,
                                               step.loop_request.while_comparator)
                 check_value = c_result.get("check_value", "")
                 if c_result.get("check_result", "fail") == "success":
-                    runner.set_run_log(f"条件符合退出while循环 ---> {c_result}")
+                    step_result.set_step_log(f"条件符合退出while循环 ---> {c_result}")
                     break
-                runner.set_run_log(f"条件不满足继续while循环 ---> {c_result}")
+                step_result.set_step_log(f"条件不满足继续while循环 ---> {c_result}")
                 try:
                     runner.execute_loop(steps=step.loop_request.teststeps,
                                         step_tag=f"while {check_value}",
-                                        parent_step_result=step_result)
-                    runner.set_step_result_status(step_result, TStepResultStatusEnum.success)
+                                        parent_step_result=step_result.get_step_result())
+                    step_result.set_step_result_status(TStepResultStatusEnum.success)
                 except Exception as err:
                     # 执行for循环错误
-                    runner.set_run_log(f"执行for循环错误:{str(err)}", step_result=step_result)
+                    step_result.set_step_log(f"执行for循环错误:{str(err)}")
                     logger.error(traceback.format_exc())
                     continue
                 run_number += 1
                 if run_number > 100:
-                    runner.set_run_log(f"循环次数大于100退出while循环")
+                    step_result.set_step_log("循环次数大于100退出while循环")
                     break
                 time.sleep(step.loop_request.while_sleep_time)
-            runner.set_run_log(f"🔄while循环---> 结束")
+            step_result.set_step_log(f"🔄while循环---> 结束")
         else:
             raise exceptions.LoopNotFound("请确认循环类型是否为 count for while ")
 
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.success)
+        step_result.set_step_result_status(TStepResultStatusEnum.success)
 
     except Exception as err:
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.set_step_result_status(TStepResultStatusEnum.err)
         raise
 
     finally:
+        step_result.end_log()
+        step_result = step_result.get_step_result()
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         # 将数据平铺出来
@@ -114,7 +117,6 @@ def run_loop_request(runner: SessionRunner,
             for sub_step_result in step_result.step_result:
                 runner.append_step_result(sub_step_result)
         step_result.step_result = []
-        runner.set_run_log(step_result=step_result, log_type=TStepLogType.end)
 
 
 class IFWithOptionalArgs(IStep):

@@ -4,11 +4,12 @@ from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiCase, ApiCaseStep
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
     ApiTestCaseRun, TCaseStepData, ApiCaseStepDataSchema
+from autotest.schemas.step_data import TStepData
 from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.api.api_report import ReportService
 from autotest.utils import current_user
-from autotest.corelibs.serialize import default_serialize
+from autotest.utils.serialize import default_serialize
 from autotest.utils.async_converter import sync_to_async
 from zerorunner.snowflake import id_center
 from zerorunner.testcase_new import ZeroRunner
@@ -51,7 +52,8 @@ class ApiCaseService:
         return data
 
     @staticmethod
-    async def get_step_data_tree(step_list: typing.List[typing.Dict], parent_id: int = None):
+    async def get_step_data_tree(step_list: typing.List[typing.Dict], parent_id: int = None) -> typing.List[
+        TCaseStepData]:
         step_tree = []
         if not step_list:
             return step_tree

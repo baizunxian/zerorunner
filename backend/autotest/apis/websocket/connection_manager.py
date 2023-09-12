@@ -6,8 +6,8 @@ from uuid import uuid4
 from fastapi import WebSocket
 from loguru import logger
 
-from autotest.corelibs import g
-from autotest.db.redis import init_redis_pool
+from autotest.utils.local import g
+from autotest.init.redis_init import init_redis_pool
 
 
 class ConnectionManager:

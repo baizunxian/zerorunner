@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.env import EnvQuery, EnvId, EnvIn, BindingDataSourceIn, EnvIdIn, BindingFuncIn
 from autotest.services.api.env import EnvService, EnvDataSourceService, EnvFuncService
 

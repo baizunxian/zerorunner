@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.ui.ui_report import UiReportQuery, UiReportId, UiReportDetailQuery
 from autotest.services.ui.ui_report import UiReportService
 

@@ -1,6 +1,6 @@
 import typing
 
-from autotest.corelibs.codes import CodeEnum
+from autotest.utils.response.codes import CodeEnum
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ModuleInfo, ApiInfo
 from autotest.schemas.api.module import ModuleQuery, ModuleIn, ModuleId

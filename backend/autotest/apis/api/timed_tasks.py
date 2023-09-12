@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, TimedTasksInSchema, TimedTasksId, CrontabSaveSchema
 from autotest.services.api.timed_task import TimedTasksService, CrontabService
 

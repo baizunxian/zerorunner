@@ -4,7 +4,7 @@ import typing
 from celery.schedules import crontab as celery_crontab
 from loguru import logger
 
-from autotest.corelibs.codes import CodeEnum
+from autotest.utils.response.codes import CodeEnum
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.celery_beat_models import TimedTask, Crontab, IntervalSchedule, PeriodicTaskChanged
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, CrontabSaveSchema, TimedTasksInSchema, TimedTasksId, \

@@ -3,17 +3,17 @@ from datetime import datetime
 import traceback
 import uuid
 
-from autotest.corelibs import g
+from autotest.utils.local import g
 from loguru import logger
-from autotest.corelibs.codes import CodeEnum
-from autotest.corelibs.consts import TEST_USER_INFO, CACHE_DAY
+from autotest.utils.response.codes import CodeEnum
+from autotest.utils.consts import TEST_USER_INFO, CACHE_DAY
 from autotest.models.system_models import User, Menu, Roles, UserLoginRecord
 from autotest.schemas.system.user import UserLogin, UserIn, UserResetPwd, UserDel, UserQuery, \
     UserLoginRecordIn, UserLoginRecordQuery
 from autotest.services.system.menu import MenuService
 from autotest.utils.current_user import current_user
 from autotest.utils.des import encrypt_rsa_password, decrypt_rsa_password
-from autotest.corelibs.serialize import default_serialize
+from autotest.utils.serialize import default_serialize
 
 
 class UserService:

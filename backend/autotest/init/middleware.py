@@ -3,12 +3,11 @@
 import time
 
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from config import config
-from autotest.corelibs import g
-from autotest.corelibs.consts import TEST_USER_INFO, CACHE_DAY
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.local import g
+from autotest.utils.consts import TEST_USER_INFO, CACHE_DAY
+from autotest.utils.response.http_response import partner_success
 from autotest.exceptions.exceptions import AccessTokenFail
 from autotest.utils.common import get_str_uuid
 

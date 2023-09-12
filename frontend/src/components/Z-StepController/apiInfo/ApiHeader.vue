@@ -2,7 +2,7 @@
   <el-row>
     <el-col :span="24" class="com-padding">
       <div style="display: flex">
-        <span style="margin: 0px 8px 0px 4px;font-size: 14px;"
+        <span style="margin: 0 8px 0 4px;font-size: 14px;"
               :style="{color: getMethodColor(data.request.method)}"
         >{{ data.request.method }}</span>
         <div>{{ data.request.name }}</div>

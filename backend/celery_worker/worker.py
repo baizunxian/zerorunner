@@ -12,10 +12,10 @@ from celery._state import _task_stack
 from celery.signals import setup_logging, task_prerun
 from celery.worker.request import Request
 
-from autotest.config import config
-from autotest.corelibs.local import g
-from autotest.corelibs.logger import InterceptHandler, logger
-from autotest.db.redis import init_redis_pool
+from config import config
+from autotest.utils.local import g
+from autotest.init.logger_init import InterceptHandler, logger
+from autotest.init.redis_init import init_redis_pool
 from autotest.schemas.job.task_record import TaskRecordIn
 from autotest.services.job.task_record import TaskRecordServer
 from autotest.utils.async_converter import AsyncIOPool

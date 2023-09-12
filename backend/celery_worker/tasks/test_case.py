@@ -6,11 +6,11 @@ import typing
 
 from autotest.services.api.api_case import ApiCaseService
 from celery_worker.worker import celery
-from autotest.config import config
-from autotest.corelibs.local import g
+from config import config
+from autotest.utils.local import g
 from loguru import logger
-from autotest.corelibs.consts import TEST_EXECUTE_SET, TEST_EXECUTE_STATS, CACHE_WEEK, TEST_EXECUTE_TASK
-from autotest.db.redis import MyRedis
+from autotest.utils.consts import TEST_EXECUTE_SET, TEST_EXECUTE_STATS, CACHE_WEEK, TEST_EXECUTE_TASK
+from autotest.init.redis_init import MyRedis
 from autotest.models.api_models import ApiCase, ApiTestReport
 from autotest.schemas.api.api_case import TestCaseRun
 from autotest.schemas.api.api_info import ApiRunSchema
@@ -18,7 +18,6 @@ from autotest.schemas.api.api_report import TestReportSaveSchema
 from autotest.services.api import api_info
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.api.api_report import ReportService
-from autotest.corelibs.serialize import default_serialize
 from zerorunner.model.step_model import TestCase
 from zerorunner.testcase_new import ZeroRunner
 

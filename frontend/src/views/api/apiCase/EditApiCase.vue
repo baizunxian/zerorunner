@@ -266,6 +266,8 @@ const initData = async () => {
   if (route.query.id) {
     let {data} = await useApiCaseApi().getCaseInfo({id: route.query.id})
     state.form = data
+  } else {
+    state.form = createForm()
   }
 }
 

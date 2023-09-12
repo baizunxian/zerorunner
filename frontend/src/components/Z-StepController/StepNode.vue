@@ -15,6 +15,22 @@
           <div class="el-step__icon-inner">{{ data.index }}</div>
         </div>
 
+<!--        <span v-if="!data.edit">-->
+<!--            <svgIcon name="ele-EditPen" @click.stop="editeName(data)" style="margin-right: 5px; top:2px"></svgIcon>-->
+<!--          &lt;!&ndash;            <i class="ele-EditPen"&ndash;&gt;-->
+<!--          &lt;!&ndash;               @click.stop="editeName(data)"&ndash;&gt;-->
+<!--          &lt;!&ndash;               style="margin-right: 5px">&ndash;&gt;-->
+<!--          &lt;!&ndash;            </i>&ndash;&gt;-->
+<!--            <span>{{ data.name }}</span>-->
+<!--          </span>-->
+<!--        <el-input v-else-->
+<!--                  :id="`editeName_${data.index}`"-->
+<!--                  v-model="data.name"-->
+<!--                  style="width: 200px;"-->
+<!--                  @click.stop.native=""-->
+<!--                  @blur="nameEditBlur(data)">-->
+<!--        </el-input>-->
+
         <div class="step-header__tag">
           <i :class="getStepTypeInfo(data.step_type, 'icon')"
              style="padding: 0 5px 0 5px; font-size: 18px"
@@ -50,6 +66,7 @@
             <span>{{ data.name }}</span>
           </template>
         </div>
+
 
         <!--              操作-->
         <div class="step-header__right header-right">

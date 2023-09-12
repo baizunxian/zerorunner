@@ -2,7 +2,7 @@ import typing
 
 from loguru import logger
 
-from autotest.corelibs.serialize import default_serialize
+from autotest.utils.serialize import default_serialize
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiInfo
 from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema

@@ -3,8 +3,8 @@ import traceback
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
 import typing
-from autotest.corelibs import g
-from autotest.corelibs.codes import CodeEnum
+from autotest.utils.local import g
+from autotest.utils.response.codes import CodeEnum
 from autotest.models.system_models import Menu
 from autotest.schemas.system.menu import MenuIn, MenuDel, MenuViews
 from autotest.utils import current_user

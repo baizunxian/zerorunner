@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.system.lookup import LookupIn, LookupValueQuery, LookupValueIn, LookupQuery, LookupId
 from autotest.services.system.lookup import LookupValueService, LookupService
 

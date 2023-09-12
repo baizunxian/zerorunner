@@ -2,7 +2,7 @@
 # @author: xiaobai
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.ui.ui_case import UiCaseQuery, UiCaseId, UiCaseIn, UiTestCaseRun
 from autotest.services.ui.ui_case import UiCaseServer
 from autotest.utils import current_user

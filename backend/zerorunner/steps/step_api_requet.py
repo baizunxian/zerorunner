@@ -8,19 +8,20 @@ import typing
 import requests
 from loguru import logger
 
-from autotest.corelibs import g
+from autotest.utils.local import g
 from zerorunner import exceptions, utils
 from zerorunner.ext.uploader import prepare_upload_step
 from zerorunner.loader import load_script_content
-from zerorunner.model.base import TStepLogType, TStepResultStatusEnum, Hooks
+from zerorunner.model.base import TStepResultStatusEnum, Hooks
 from zerorunner.model.result_model import StepResult
 from zerorunner.model.step_model import TStep
 from zerorunner.model.step_model import VariablesMapping, TRequest, MethodEnum
-from zerorunner.parser import build_url, Parser
+from zerorunner.parser import build_url, Parser, parse_variables_mapping
 from zerorunner.response import ResponseObject
 from zerorunner.runner_new import SessionRunner
 from zerorunner.script_code import Zero
 from zerorunner.steps.base import IStep
+from zerorunner.steps.step_result import TStepResult
 
 
 def call_hooks(
@@ -88,8 +89,8 @@ def run_api_request(runner: SessionRunner,
                     step: TStep,
                     step_tag: str = None,
                     parent_step_result: StepResult = None):
-    step_result = runner.get_step_result(step, step_tag=step_tag)
-    runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
+    step_result = TStepResult(step, step_tag=step_tag)
+    step_result.start_log()
     # update headers
     merge_headers = copy.deepcopy(runner.config.headers)
     merge_headers.update(step.request.headers)
@@ -109,16 +110,16 @@ def run_api_request(runner: SessionRunner,
 
         # setup hooks
         if step.setup_hooks:
-            runner.set_run_log(f"{step_result.name} 前置hook开始~~~")
+            step_result.set_step_log("前置hook开始~~~")
             call_hooks(runner=runner,
                        hooks=step.setup_hooks,
                        step_variables=merge_variable,
                        hook_msg="setup_hooks",
-                       parent_step_result=step_result)
-            runner.set_run_log(f"{step_result.name} 前置hook结束~~~")
+                       parent_step_result=step_result.get_step_result())
+            step_result.set_step_log("前置hook结束~~~")
         # setup code
         if step.setup_code:
-            runner.set_run_log(f"{step_result.name} 前置code开始~~~")
+            step_result.set_step_log("前置code开始~~~")
             zero = Zero(runner=runner,
                         step=step,
                         request=request_dict,
@@ -128,7 +129,7 @@ def run_api_request(runner: SessionRunner,
                                                      f"{runner.config.case_id}_setup_code",
                                                      params={"zero": zero, "requests": requests})
             if captured_output:
-                runner.set_run_log("前置code输出: \n" + captured_output)
+                step_result.set_step_log("前置code输出: \n" + captured_output)
             # parsed_zero_headers = runner.parser.parse_data(
             #     zero.request.headers.get(""), merge_variable
             # )
@@ -142,11 +143,14 @@ def run_api_request(runner: SessionRunner,
                 zero.variables.get_variables(), merge_variable
             )
             step.variables.update(parsed_zero_variables)
-            runner.set_run_log(f"{step_result.name} 前置code结束  ~~~")
+            step_result.set_step_log(f"前置code结束  ~~~")
 
         # 前置步骤后再执行下合并 避免前置步骤中复制变量获取不到
         merge_variable = runner.get_merge_variable(step)
         if upload_variables:
+            upload_variables = parse_variables_mapping(
+                upload_variables, runner.parser.functions_mapping
+            )
             merge_variable.update(upload_variables)
 
         parsed_request_dict = runner.parser.parse_data(
@@ -206,7 +210,7 @@ def run_api_request(runner: SessionRunner,
 
         # teardown code
         if step.teardown_code:
-            runner.set_run_log(f"{step_result.name} 后置code开始  ~~~")
+            step_result.set_step_log(f"后置code开始  ~~~")
             zero = Zero(runner=runner,
                         step=step,
                         request=request_dict,
@@ -218,7 +222,7 @@ def run_api_request(runner: SessionRunner,
                                                      f"{runner.config.case_id}_teardown_code",
                                                      params={"zero": zero, "requests": requests})
             if captured_output:
-                runner.set_run_log("后置code输出: \n" + captured_output)
+                step_result.set_step_log("后置code输出: \n" + captured_output)
             # parsed_zero_headers = runner.parser.parse_data(
             #     zero.request.get_headers(), merge_variable
             # )
@@ -233,17 +237,17 @@ def run_api_request(runner: SessionRunner,
             step.variables.update(parsed_zero_variables)
             # code  执行完成后重新合并变量
             merge_variable = runner.get_merge_variable(step)
-            runner.set_run_log(f"{step_result.name} 后置code结束~~~")
+            step_result.set_step_log("后置code结束~~~")
 
         # teardown hooks
         if step.teardown_hooks:
-            runner.set_run_log(f"{step_result.name} 后置hook开始~~~")
+            step_result.set_step_log("后置hook开始~~~")
             call_hooks(runner=runner,
                        hooks=step.teardown_hooks,
                        step_variables=merge_variable,
                        hook_msg="teardown_hooks",
-                       parent_step_result=step_result)
-            runner.set_run_log(f"{step_result.name} 后置hook结束~~~")
+                       parent_step_result=step_result.get_step_result())
+            step_result.set_step_log("后置hook结束~~~")
             # code teardown 执行完成后重新合并变量
             merge_variable = runner.get_merge_variable(step)
 
@@ -255,23 +259,25 @@ def run_api_request(runner: SessionRunner,
                 validators, merge_variable
             )
             session_success = True
-            runner.set_step_result_status(step_result=step_result, status=TStepResultStatusEnum.success)
+            step_result.set_step_result_status(TStepResultStatusEnum.success)
         except exceptions.ValidationFailure as err:
             session_success = False
-            runner.set_step_result_status(step_result, TStepResultStatusEnum.fail, str(err))
+            step_result.set_step_result_status(TStepResultStatusEnum.fail)
             log_req_resp_details()
             # log testcase duration before raise ValidationFailure
             raise
 
     except exceptions.MyBaseError as err:
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.set_step_result_status(TStepResultStatusEnum.err)
         raise
 
     except Exception as err:
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.set_step_result_status(TStepResultStatusEnum.err)
         raise
 
     finally:
+        step_result.end_log()
+        step_result = step_result.get_step_result()
         step_result.env_variables = runner.config.env_variables
         step_result.case_variables = runner.config.variables
         step_result.variables = step.variables
@@ -290,7 +296,6 @@ def run_api_request(runner: SessionRunner,
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         runner.extracted_variables.update(extract_mapping)
         runner.with_session_variables(runner.extracted_variables)
-        runner.set_run_log(step_result=step_result, log_type=TStepLogType.end)
 
 
 class StepRequestValidation(IStep):

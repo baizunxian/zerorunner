@@ -5,8 +5,8 @@ import sys
 import logging
 from loguru import logger
 
-from autotest.config import config
-from autotest.corelibs.local import g
+from config import config
+from autotest.utils.local import g
 from autotest.utils import create_dir
 
 # 创建日志文件名

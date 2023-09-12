@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.system.file import FileId
 from autotest.services.system.file import FileService
 

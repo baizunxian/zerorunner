@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.coverage.coverage_report import CoverageReportQuery, CoverageListQuery, JacocoReportIn
 from autotest.services.coverage.coverage_report import CoverageReportService
 

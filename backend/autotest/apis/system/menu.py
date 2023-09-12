@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.system.menu import MenuIn, MenuDel, MenuViews
 from autotest.services.system.menu import MenuService
 
