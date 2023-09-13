@@ -46,7 +46,7 @@ const router = useRouter();
 const state = reactive({
   columns: [
     {label: '序号', columnType: 'index', width: 'auto', show: true},
-    {key: 'task_name', label: '执行方法', width: '', align: 'center', show: true},
+    // {key: 'task_name', label: '执行方法', width: '', align: 'center', show: true},
     {key: 'task_id', label: '任务id', width: '', align: 'center', show: true},
     {key: 'status', label: '状态', width: '', align: 'center', show: true},
     {key: 'result', label: '结果', width: '', align: 'center', show: true},

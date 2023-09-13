@@ -102,6 +102,18 @@ def create_celery():
     :return:
     """
 
+    class NewCelery(Celery):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+        def send_task(self, *args, **kwargs):
+            headers = {"headers": {"trace_id": g.trace_id}}
+            if kwargs:
+                kwargs.update(headers)
+            else:
+                kwargs = headers
+            return super().send_task(*args, **kwargs)
+
     class ContextTask(Task, ABC):
         Request = TaskRequest
 
@@ -119,6 +131,9 @@ def create_celery():
                 options = headers
             return super(ContextTask, self).apply_async(args, kwargs, task_id, producer, link, link_error,
                                                         shadow, **options)
+
+        def send_task(self):
+            ...
 
         def on_success(self, retval, task_id, args, kwargs):
             """任务成功时回调"""
@@ -167,7 +182,7 @@ def create_celery():
                 self.pop_request()
                 _task_stack.pop()
 
-    _celery_: Celery = Celery("zerorunner-job-worker", task_cls=ContextTask)
+    _celery_: Celery = NewCelery("zerorunner-job-worker", task_cls=ContextTask)
     _celery_.config_from_object(config)
 
     return _celery_

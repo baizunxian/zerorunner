@@ -3,7 +3,7 @@
 import datetime as dt
 import typing
 
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, insert, update, select, Text, func
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, insert, update, select, Text, func, BigInteger
 from sqlalchemy.orm import aliased
 
 from autotest.models.api_models import ModuleInfo, ProjectInfo
@@ -39,12 +39,12 @@ class TimedTask(Base):
     interval_every = Column(Integer, comment='间隔时间')
     interval_period = Column(String(24), comment='间隔类型')
     task_type = Column(String(255), nullable=False, comment="crontab interval")
-    project_id = Column(Integer, nullable=True, comment='项目id')
-    module_id = Column(Integer, nullable=False, comment='模块id')
+    project_id = Column(BigInteger, nullable=True, comment='项目id')
+    module_id = Column(BigInteger, nullable=False, comment='模块id')
     suite_id = Column(Integer, nullable=False, comment='套件id')
-    case_env_id = Column(Integer, nullable=False, comment='case_env_id 用例环境')
+    case_env_id = Column(BigInteger, nullable=False, comment='case_env_id 用例环境')
     case_ids = Column(String(255), nullable=False, comment='用例集合')
-    ui_env_id = Column(Integer, nullable=False, comment='case_env_id 用例环境')
+    ui_env_id = Column(BigInteger, nullable=False, comment='case_env_id 用例环境')
     ui_ids = Column(String(255), nullable=False, comment='ui用例集合')
     script_ids = Column(String(255), nullable=False, comment='脚本id')
     task_tags = Column(String(255), nullable=False, comment='任务标签')
@@ -165,7 +165,7 @@ class CeleryTaskRecord(Base):
     end_time = Column(DateTime, nullable=False, comment='结束时间')
     duration = Column(String(255), nullable=False, comment='耗时')
     traceback = Column(Text, nullable=False, comment='异常信息')
-    business_id = Column(Integer(), nullable=False, comment='业务id')
+    business_id = Column(BigInteger(), nullable=False, comment='业务id')
     args = Column(Text, nullable=False, comment='业务参数')
     kwargs = Column(Text, nullable=False, comment='业务参数')
 

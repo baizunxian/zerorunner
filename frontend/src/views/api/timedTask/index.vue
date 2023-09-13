@@ -93,8 +93,17 @@ const state = reactive({
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
-      label: '操作', columnType: 'string', fixed: 'right', width: '250', align: 'center',
+      label: '操作', columnType: 'string', fixed: 'right', width: '340', align: 'center',
       render: ({row}: any) => h("div", null, [
+
+        h(ElButton, {
+          type: "",
+          color:"#626aef",
+          onClick: () => {
+            runOnceJob(row)
+          }
+        }, () => "手动执行"),
+
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -142,13 +151,13 @@ const state = reactive({
 const getList = () => {
   tableRef.value.openLoading()
   useTimedTasksApi().getList(state.listQuery)
-    .then(res => {
-      state.listData = res.data.rows
-      state.total = res.data.rowTotal
-    })
-    .finally(() => {
-      tableRef.value.closeLoading()
-    })
+      .then(res => {
+        state.listData = res.data.rows
+        state.total = res.data.rowTotal
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
+      })
 };
 
 // 新增或修改
@@ -164,10 +173,10 @@ const taskSwitch = (row: any) => {
     type: 'warning',
   }).then(() => {
     useTimedTasksApi().taskSwitch({id: row.id})
-      .then(() => {
-        ElMessage.success('操作成功！');
-        getList()
-      })
+        .then(() => {
+          ElMessage.success('操作成功！');
+          getList()
+        })
   })
 
 };
@@ -179,16 +188,22 @@ const deleted = (row: any) => {
     cancelButtonText: '取消',
     type: 'warning',
   })
-    .then(() => {
-      useTimedTasksApi().deleted({id: row.id})
-        .then(() => {
-          ElMessage.success('删除成功');
-          getList()
-        })
-    })
-    .catch(() => {
-    });
+      .then(() => {
+        useTimedTasksApi().deleted({id: row.id})
+            .then(() => {
+              ElMessage.success('删除成功');
+              getList()
+            })
+      })
+      .catch(() => {
+      });
 };
+
+const runOnceJob = (row: any) => {
+  useTimedTasksApi().runOnceJob({id: row.id}).then(() => {
+    ElMessage.success("执行成功！")
+  })
+}
 
 const handleTaskType = (row: any) => {
   if (row.task_type === 'crontab') {
@@ -213,18 +228,18 @@ onMounted(() => {
 <style>
 
 .stop {
-    background-color: #c1bfc7;
+  background-color: #c1bfc7;
 }
 
 .start {
-    background-color: #0cbb52;
+  background-color: #0cbb52;
 }
 
 .request-editor-tabs-badge {
-    display: inline-flex;
-    width: 8px;
-    height: 8px;
-    margin-right: 5px;
-    border-radius: 8px;
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 8px;
 }
 </style>

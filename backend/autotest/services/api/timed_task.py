@@ -1,16 +1,18 @@
+import json
 import traceback
 import typing
 
-from celery import Celery
 from celery.schedules import crontab as celery_crontab
 from loguru import logger
 
+from autotest.utils.local import g
 from autotest.utils.response.codes import CodeEnum
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.celery_beat_models import TimedTask, Crontab, IntervalSchedule, PeriodicTaskChanged
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, CrontabSaveSchema, TimedTasksInSchema, TimedTasksId, \
     TaskKwargsIn, IntervalIn
 from autotest.utils import current_user
+from celery_worker.worker import celery
 
 
 class CrontabService:
@@ -191,5 +193,14 @@ class TimedTasksService:
             return count_info.get("count", 0)
 
     @staticmethod
-    async def run_once_job():
-        Celery.send_task()
+    async def run_once_job(params: TimedTasksId):
+        task_info = await TimedTask.get(params.id)
+        if task_info:
+            kwargs = json.loads(task_info.kwargs) if task_info.kwargs else None
+            args = json.loads(task_info.args) if task_info.args else None
+            celery.send_task(name=task_info.task,
+                             args=args,
+                             kwargs=kwargs,
+                             queue=task_info.queue,
+                             __task_type=20,
+                             __business_id=task_info.id)

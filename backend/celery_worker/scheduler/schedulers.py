@@ -15,7 +15,7 @@ from celery.utils.log import get_logger
 from celery.utils.time import maybe_make_aware
 from kombu.utils.json import dumps, loads
 
-from autotest.config import config
+from config import config
 from .session import session_cleanup
 from .session import SessionManager
 from .models import (

@@ -35,3 +35,9 @@ async def deleted_tasks(params: TimedTasksId):
 async def check_crontab(params: CrontabSaveSchema):
     data = await CrontabService.check_crontab(params.crontab)
     return partner_success(data)
+
+
+@router.post('/runOnceJob', description="运行一次任务")
+async def run_once_job(params: TimedTasksId):
+    data = await TimedTasksService.run_once_job(params)
+    return partner_success(data)

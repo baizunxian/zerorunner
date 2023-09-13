@@ -42,5 +42,12 @@ export function useTimedTasksApi() {
         data,
       });
     },
+    runOnceJob: (data?: object) => {
+      return request({
+        url: '/timedTasks/runOnceJob',
+        method: 'POST',
+        data,
+      });
+    },
   };
 }
