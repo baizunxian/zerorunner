@@ -19,7 +19,7 @@ from autotest.services.api import api_info
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.api.api_report import ReportService
 from zerorunner.model.step_model import TestCase
-from zerorunner.testcase_new import ZeroRunner
+from zerorunner.testcase import ZeroRunner
 
 r_lock = Lock()
 t_lock = Lock()

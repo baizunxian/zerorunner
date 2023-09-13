@@ -3,27 +3,33 @@
 import time
 import typing
 import unittest
+import uuid
 
 from loguru import logger
-from zerorunner import models, exceptions
-from zerorunner.models import TestCaseSummary
+
+from autotest.utils.async_converter import AsyncIOPool
+from zerorunner import exceptions
+from zerorunner.model import step_model
+from zerorunner.model.result_model import TestCaseSummary
 from zerorunner.reports import HtmlTestResult
-from zerorunner import runner
+from zerorunner.runner import SessionRunner
 from zerorunner.report.stringify import stringify_summary
+from zerorunner.steps.step import Step
 
 
 class ZeroRunner(object):
-    def __init__(self, failfast: bool = False):
+    def __init__(self, failfast: bool = False, session_runner: SessionRunner = None):
         self.exception_stage = "initialize ZeroRunner()"
         kwargs = {"failfast": failfast, "resultclass": HtmlTestResult}
         self.unittest_runner = unittest.TextTestRunner(**kwargs)
         self.test_loader = unittest.TestLoader()
         self._summary = None
         self.report_id = None
+        self.session_runner = session_runner
 
-    def add_tests(self, testcase: models.TestCase) -> typing.List[unittest.TestSuite]:
+    def add_tests(self, testcase: step_model.TestCase) -> typing.List[unittest.TestSuite]:
 
-        def _add_test(test_runner: runner.SessionRunner, test_step: models.TController):
+        def _add_test(test_runner: SessionRunner, test_step: Step):
             """
             test_runner : Runner
             test_step : TController
@@ -31,21 +37,25 @@ class ZeroRunner(object):
 
             def test(self):
                 try:
-                    test_runner.run_testcase(test_step)
+                    test_runner.run_step(test_step)
                 except exceptions.MyBaseFailure as ex:
                     self.fail(str(ex))
                 finally:
                     self.summary = test_runner.get_summary()
 
-            test.__doc__ = test_step.name
+            test.__doc__ = test_step.name if test_step.name else str(uuid.uuid4())
 
             return test
 
         # test_suite = unittest.TestSuite()
         testcase_list = []
 
+        # 用例依赖时公用一个 SessionRunner 获取提交变量等数据
+        if testcase.config.step_rely and not self.session_runner:
+            self.session_runner = SessionRunner()
+
         for index, step in enumerate(testcase.teststeps):
-            test_runner = runner.SessionRunner()
+            test_runner = self.session_runner if self.session_runner else SessionRunner()
             test_runner.with_config(testcase.config)
             test_method_name = "test_{:04}".format(index)
             test_method = _add_test(test_runner, step)
@@ -93,7 +103,7 @@ class ZeroRunner(object):
 
         return tests_results
 
-    def run_tests(self, testcase: models.TestCase):
+    def run_tests(self, testcase: step_model.TestCase):
         """run testcase/testsuite data"""
 
         self.exception_stage = "添加用例到套件"
@@ -117,10 +127,9 @@ class ZeroRunner(object):
 
         """
 
-        summary = TestCaseSummary(name="", success=True, case_id=0)
+        summary = TestCaseSummary(name="", success=True, case_id=None)
 
         for index, tests_result in enumerate(tests_results):
-
             testcase, result = tests_result
             testcase_summary: TestCaseSummary = result.summary
             if index == 0:
@@ -142,9 +151,12 @@ class ZeroRunner(object):
                     summary.run_err_count += 1
                 elif step_status == "skip":
                     summary.run_skip_count += 1
-                if step_status != "success" and summary.success:
-                    summary.success = False
+                step.duration = round(step.duration, 3)
                 summary.duration += step.duration
                 summary.step_results.append(step)
-        summary.start_time = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime(summary.start_time))
+            for step in testcase_summary.step_results:
+                if not step.success:
+                    summary.success = False
+                    break
+        summary.start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(summary.start_time))
         return summary

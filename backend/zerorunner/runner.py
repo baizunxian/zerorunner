@@ -2,7 +2,6 @@
 # @project: zerorunner
 # @author: xiaobai
 # @create time: 2022/9/9 14:53
-import os
 import sys
 import time
 import traceback
@@ -12,29 +11,17 @@ from datetime import datetime
 
 from loguru import logger
 
-from zerorunner import utils, exceptions
+from zerorunner import exceptions
 from zerorunner.client import HttpSession
-from zerorunner.ext.db import DB
-from zerorunner.ext.uploader import prepare_upload_step
-from zerorunner.loader import load_script_content, load_module_functions
-from zerorunner.model.step_model import TStep
-from zerorunner.models import (
-    TConfig,
-    TApiController,
-    VariablesMapping,
-    StepResult,
-    TestCaseSummary,
-    TestCaseInOut,
-    TestCase,
-    Hooks, FunctionsMapping, TController,
-    TSqlController,
-    TWaitController,
-    TScriptController, TIFController, TLoopController, LoopTypeEnum, TStepResultStatusEnum, TStepLogType,
-    TStepControllerDict, )
-from zerorunner.parser import parse_variables_mapping, parse_data, build_url, get_mapping_function, \
-    parse_string_value, Parser
-from zerorunner.response import ResponseObject, uniform_validator
-from zerorunner.snowflake import id_center
+from zerorunner.exceptions import ValidationFailure
+from zerorunner.ext.zero_driver.driver import ZeroDriver
+from zerorunner.model.base import TStepResultStatusEnum, VariablesMapping, FunctionsMapping, TStepControllerDict, \
+    TStepLogType
+from zerorunner.model.result_model import StepResult, TestCaseSummary, TestCaseInOut
+from zerorunner.model.step_model import TStep, TConfig
+from zerorunner.parser import parse_data, get_mapping_function, \
+    Parser, parse_variables_mapping
+from zerorunner.response import uniform_validator
 from zerorunner.utils import merge_variables
 
 
@@ -53,36 +40,27 @@ class SessionRunner(object):
     __export: typing.List[str] = []
     __step_results: typing.List[StepResult] = []
     __session_variables: VariablesMapping = {}
-    # __session_headers: Headers = {}
+    __merge_variable_pool: VariablesMapping = {}
     # time
     __start_time: float = 0
     __duration: float = 0
+    # ui 驱动
+    zero_driver: ZeroDriver = None
     # log
     __log__: str = ""
 
     def __init(self):
         self.__config = self.config
         self.__session_variables = self.__session_variables or {}
+        self.__merge_variable_pool = self.__merge_variable_pool or {}
+        self.extracted_variables = self.extracted_variables or {}
         self.__start_at = 0
         self.__duration = 0
 
-        self.case_id = self.case_id or str(uuid.uuid4())
-        self.__step_results = self.__step_results or []
+        self.case_id = self.config.case_id or str(uuid.uuid4())
+        self.__step_results = []
         self.session = self.session or HttpSession()
         self.parser = self.parser or Parser(self.config.functions)
-
-    def __init_tests__(self):
-        # 参数初始化
-        self.__teststeps = []
-        self.message = ""
-        self.__start_time = time.time()
-        self.__duration = 0
-        # self.__session = self.__session or HttpSession()
-        self.__session = HttpSession()
-        self.__session_variables = {}
-        self.__step_results: typing.List[StepResult] = []
-        self.__log__ = ""
-        # self.extracted_variables: VariablesMapping = {}
 
     def with_config(self, config: TConfig) -> "SessionRunner":
         self.config = config
@@ -128,405 +106,6 @@ class SessionRunner(object):
     def get_session_variables(self):
         return self.__session_variables
 
-    def __call_hooks(
-            self,
-            hooks: Hooks,
-            step_variables: VariablesMapping,
-            hook_msg: str,
-            parent_step_result: StepResult
-    ) -> typing.Union[typing.List[StepResult], typing.Any]:
-        """ 调用钩子.
-
-        Args:
-            hooks (list): 包含可能是字符串，控制器.
-
-                format1 (str): 执行单个函数.
-                    ${func()}
-                format2 (dict): dict格式 执行函数并赋值给变量
-                    {"var": "${func()}"}
-
-            parent_step.variables: current step variables to call hook, include two special variables
-
-                request: parsed request dict
-                response: ResponseObject for current response
-
-            hook_type: pre 前置  post后置
-
-        """
-        logger.info(f"call hook actions: {hook_msg}")
-
-        if not isinstance(hooks, typing.List):
-            logger.error(f"Invalid hooks format: {hooks}")
-            return
-
-        for hook in hooks:
-            if isinstance(hook, str):
-                # format 1: ["${func()}"]
-                logger.debug(f"call hook function: {hook}")
-                parse_data(hook, step_variables, self.config.functions)
-            elif isinstance(hook, typing.Dict) and len(hook) == 1:
-                # format 2: {"var": "${func()}"}
-                var_name, hook_content = list(hook.items())[0]
-                hook_content_eval = parse_data(
-                    hook_content, step_variables, self.config.functions
-                )
-                logger.debug(
-                    f"call hook function: {hook_content}, got value: {hook_content_eval}"
-                )
-                logger.debug(f"assign variable: {var_name} = {hook_content_eval}")
-                step_variables[var_name] = hook_content_eval
-            elif isinstance(hook, (TApiController,
-                                   TScriptController,
-                                   TSqlController,
-                                   TWaitController,
-                                   TLoopController,
-                                   TIFController,
-                                   TestCase)):
-                try:
-                    self.run_step(hook, step_tag=hook_msg, parent_step_result=parent_step_result)
-                except Exception:
-                    continue
-            else:
-                logger.error(f"Invalid hook format: {hook}")
-
-    def __run_step_request(self, step: TApiController, step_tag=None, parent_step_result: StepResult = None):
-        """执行用例请求"""
-
-        step_result = self.get_step_result(step, step_tag=step_tag)
-        self.set_run_log(step_result=step_result, log_type=TStepLogType.start)
-        # parse
-        prepare_upload_step(step, self.config.functions)
-        request_dict = step.request.dict()
-        request_dict.pop("upload", None)
-        session_success = False
-        extract_mapping = {}
-        # 初始化resp_obj
-        resp_obj = None
-        # 捕获异常
-        try:
-            # 合并变量
-            merge_variable = self.get_merge_variable(step)
-
-            # parse variables
-            merge_variable = parse_variables_mapping(
-                merge_variable, self.config.functions
-            )
-            # self.__session_variables = merge_variable
-
-            # setup hooks
-            if step.setup_hooks:
-                self.set_run_log("{:~^50}".format("前置hooks开始"))
-                self.__call_hooks(hooks=step.setup_hooks,
-                                  step_variables=merge_variable,
-                                  hook_msg="setup_hooks",
-                                  parent_step_result=step_result)
-                self.set_run_log(f"{step_result.name} 前置hooks结束~~~")
-
-            parsed_request_dict = parse_data(
-                request_dict, merge_variable, self.config.functions
-            )
-
-            parsed_request_dict["headers"].setdefault(
-                "Request-ID",
-                f"{self.case_id}-{str(int(time.time() * 1000))[-6:]}",
-            )
-            step.variables["request"] = parsed_request_dict
-
-            # prepare arguments
-            method = parsed_request_dict.pop("method")
-            url_path = parsed_request_dict.pop("url")
-            url = build_url(self.config.base_url, url_path)
-            parsed_request_dict["verify"] = self.config.verify
-            # parsed_request_dict["json"] = parsed_request_dict.pop("req_json", {})
-            # 更新会话请求头
-            # self.__session_headers = parse_data(
-            #     self.__session_headers,
-            #     merge_variable | self.__session_variables,
-            #     self.config.functions
-            # )
-            # parsed_request_dict["headers"].update(self.__session_headers)
-
-            # request
-            resp = self.__session.request(method, url, **parsed_request_dict)
-            resp_obj = ResponseObject(resp, parser=Parser(functions_mapping=self.config.functions))
-            step.variables["response"] = resp_obj
-
-            # teardown hooks
-            if step.teardown_hooks:
-                self.set_run_log(f"{step_result.name} teardown hooks start~~~")
-                self.__call_hooks(hooks=step.teardown_hooks,
-                                  step_variables=merge_variable,
-                                  hook_msg="teardown_hooks",
-                                  parent_step_result=step_result)
-                self.set_run_log(f"{step_result.name} teardown hooks end~~~")
-
-            def log_req_resp_details():
-                err_msg = "\n{} DETAILED REQUEST & RESPONSE {}\n".format("*" * 32, "*" * 32)
-
-                # log request
-                err_msg += "====== request details ======\n"
-                err_msg += f"url: {url}\n"
-                err_msg += f"method: {method}\n"
-                headers = parsed_request_dict.pop("headers", {})
-                err_msg += f"headers: {headers}\n"
-                for k, v in parsed_request_dict.items():
-                    v = utils.omit_long_data(v)
-                    err_msg += f"{k}: {repr(v)}\n"
-
-                err_msg += "\n"
-
-                # log response
-                err_msg += "====== response details ======\n"
-                err_msg += f"status_code: {resp.status_code}\n"
-                err_msg += f"headers: {resp.headers}\n"
-                err_msg += f"body: {repr(resp.text)}\n"
-                logger.error(err_msg)
-
-            # variables_mapping = step.variables
-
-            # extract
-            extractors = step.extracts
-            extract_mapping = resp_obj.extract(extractors, step.variables, self.config.functions)
-            step_result.export_vars = extract_mapping
-
-            merge_variable.update(extract_mapping)
-
-            # validate
-            validators = step.validators
-
-            try:
-                resp_obj.validate(validators=validators, variables_mapping=merge_variable)
-                session_success = True
-                self.set_step_result_status(step_result, TStepResultStatusEnum.success)
-            except exceptions.ValidationFailure as err:
-                session_success = False
-                self.set_step_result_status(step_result, TStepResultStatusEnum.fail, str(err))
-                log_req_resp_details()
-                # log testcase duration before raise ValidationFailure
-                raise
-        except exceptions.MyBaseError as err:
-            self.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
-            raise
-
-        except Exception as err:
-            self.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
-            raise
-
-        finally:
-            step_result.env_variables = self.config.env_variables
-            step_result.case_variables = self.config.variables
-            step_result.variables = step.variables
-            step_result.session_data = self.__session_variables
-            step_result.case_id = step.case_id
-            step_result.duration = time.time() - step_result.start_time
-
-            if hasattr(self.__session, "data"):
-                # ZeroRunner.client.HttpSession, not locust.clients.HttpSession
-                # save request & response meta data
-                self.__session.data.success = session_success
-                self.__session.data.validators = resp_obj.validation_results if resp_obj else {}
-
-                # save step data
-                step_result.session_data = self.__session.data
-            self.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-            self.extracted_variables.update(extract_mapping)
-            self.__session_variables.update(self.extracted_variables)
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.end)
-
-    def __run_step_sql(self, step: TSqlController, step_tag: str = None, parent_step_result: StepResult = None):
-        """执行sql控制器"""
-        step_result = self.get_step_result(step, step_tag)
-        start_time = time.time()
-        self.set_run_log(step_result=step_result, log_type=TStepLogType.start)
-        try:
-            db_info = DB(
-                host=step.host,
-                port=step.port,
-                user=step.user,
-                password=step.password,
-                database=None
-            )
-            data = db_info.execute(step.value)
-            variables = {step.variable_name: data}
-            self.with_variables(variables)
-            step_result.export_vars.update(variables)
-            logger.info(f"SQL查询---> {step.value}")
-            self.set_run_log(f"SQL查询-> 设置变量:{step.variable_name}, 设置变量值：{data}")
-            self.set_step_result_status(step_result, TStepResultStatusEnum.success)
-        except Exception as err:
-            self.set_step_result_status(step_result, TStepResultStatusEnum.err, traceback.format_exc())
-            raise
-        finally:
-            step_result.duration = time.time() - start_time
-            self.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.end)
-
-    def __run_step_wait(self, step: TWaitController, step_tag: str = None, parent_step_result: StepResult = None):
-        """等待控制器"""
-        step.name = "等待控制器"
-        step_result = self.get_step_result(step)
-        start_time = time.time()
-        try:
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.start)
-            if step.value or step.value == 0:
-                time.sleep(step.value)
-                logger.info(f"等待控制器---> {step.value}m")
-                self.set_run_log(f"等待控制器---> {step.value}m")
-                step_result.step_tag = f"wait[{step.value}]m]"
-                self.set_step_result_status(step_result, TStepResultStatusEnum.success)
-
-            else:
-                raise ValueError("等待时间不能为空！")
-        except Exception as err:
-            self.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
-            raise
-        finally:
-            step_result.duration = time.time() - start_time
-            self.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.end)
-
-    def __run_step_script(self, step: TScriptController, step_tag: str = None, parent_step_result: StepResult = None):
-        """执行脚本控制器"""
-
-        step_result = self.get_step_result(step, step_tag)
-        start_time = time.time()
-        self.set_run_log(step_result=step_result, log_type=TStepLogType.start)
-        try:
-            module_name = uuid.uuid4().hex
-            base_script_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "script_code.py")
-            with open(base_script_path, 'r', encoding='utf8') as f:
-                base_script = f.read()
-            script = f"{base_script}\n\n{step.value}"
-            script_module, _ = load_script_content(script, f"script_{module_name}")
-            headers = script_module.zero.headers.get_headers()
-            variables = script_module.zero.environment.get_environment()
-            for key, value in headers.items():
-                self.set_run_log(f"✏️设置请求头-> key:{key} value: {value}")
-            for key, value in variables.items():
-                self.set_run_log(f"✏️设置请变量-> key:{key} value: {value}")
-            # self.with_headers(headers)
-            self.with_variables(variables)
-            functions = load_module_functions(script_module)
-            self.with_functions(functions)
-        except Exception as err:
-            self.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
-        finally:
-            step_result.duration = time.time() - start_time
-            self.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.end)
-
-    def __run_step_if(self, step: TIFController, step_tag: str = None, parent_step_result: StepResult = None):
-        """条件控制器"""
-        step.name = "条件控制器"
-        step_result = self.get_step_result(step, step_tag)
-        start_time = time.time()
-        self.set_run_log(step_result=step_result, log_type=TStepLogType.start)
-        try:
-            if not step.comparator:
-                raise ValueError("条件控制器--> 条件不能为空！")
-            c_result = self.__comparators(step.check, step.expect, step.comparator)
-            check_value = c_result.get("check_value", "")
-            if c_result.get("check_result", "fail") != "success":
-                self.set_run_log(f"条件不符---> {c_result.get('validate_msg', '')}")
-                raise exceptions.ValidationFailure(f"条件不符---> {c_result.get('validate_msg', '')}")
-            try:
-                self.__execute_loop(step.teststeps, step_tag=f"IF {check_value}")
-            except Exception as err:
-                pass
-
-            self.set_step_result_status(step_result, TStepResultStatusEnum.success)
-        except exceptions.VariableNotFound as err:
-            self.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
-            raise
-        except Exception as err:
-            self.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
-            raise
-
-        finally:
-            step_result.duration = time.time() - start_time
-            self.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.end)
-
-    def __run_step_loop(self, step: TLoopController, step_tag: str = None, parent_step_result: StepResult = None):
-        """循环控制器"""
-        step.name = "循环控制器"
-        step_result = self.get_step_result(step, step_tag)
-        start_time = time.time()
-        try:
-            # 次数循环
-            if step.loop_type.lower() == LoopTypeEnum.Count.value:
-                self.set_run_log(f"🔄次数循环---> 开始")
-                for i in range(min(step.count_number, 100)):
-                    try:
-                        self.__execute_loop(step.teststeps, step_tag=f"Loop {i + 1}")
-                        self.set_run_log(f"次数循环---> 第{i + 1}次")
-                        time.sleep(step.count_sleep_time)
-                    except Exception as err:
-                        logger.error(err)
-                        continue
-                self.set_run_log(f"次数循环---> 结束")
-
-            # for 循环
-            elif step.loop_type.lower() == LoopTypeEnum.For.value:
-                for_variable_name = step.for_variable_name
-                merge_variable = self.get_merge_variable()
-                iterable_obj = parse_data(step.for_variable, merge_variable, self.config.functions)
-                if not isinstance(iterable_obj, typing.Iterable):
-                    self.set_run_log(f"for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
-                    raise ValueError("for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
-                self.set_run_log(f"🔄for循环---> 开始")
-                for for_variable_value in iterable_obj:
-                    try:
-                        self.with_variables({for_variable_name: for_variable_value})
-                        self.__execute_loop(step.teststeps, step_tag=f"For {for_variable_value}")
-                        time.sleep(step.for_sleep_time)
-                    except Exception as err:
-                        logger.error(err)
-                        continue
-                self.set_run_log(f"🔄for循环---> 结束")
-
-            # while 循环  最大循环次数 100
-            elif step.loop_type.lower() == LoopTypeEnum.While.value:
-                # todo 循环超时时间待实现
-                run_number = 0
-                self.set_run_log(f"🔄while循环---> 开始")
-                while True:
-                    c_result = self.__comparators(step.while_variable, step.while_value, step.while_comparator)
-                    check_value = c_result.get("check_value", "")
-                    if c_result.get("check_result", "fail") == "success":
-                        self.set_run_log(f"条件符合退出while循环 ---> {c_result}")
-                        break
-                    self.set_run_log(f"条件不满足继续while循环 ---> {c_result}")
-                    try:
-                        self.__execute_loop(step.teststeps, step_tag=f"while {check_value}")
-                    except Exception as err:
-                        logger.error(err)
-                        continue
-                    run_number += 1
-                    if run_number > 100:
-                        self.set_run_log(f"循环次数大于100退出while循环")
-                        break
-                    time.sleep(step.while_sleep_time)
-                self.set_run_log(f"🔄while循环---> 结束")
-            else:
-                raise exceptions.LoopNotFound("请确认循环类型是否为 count for while ")
-
-        except Exception as err:
-            self.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
-            raise
-
-        finally:
-            step_result.duration = time.time() - start_time
-            self.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.end)
-
-    def __execute_loop(self, teststeps: typing.List[TController], step_tag=None, parent_step_result: StepResult = None):
-        """执行循环"""
-        for teststep in teststeps:
-            # 循环会导致 循环下的步骤的step_id 一致，这里重新赋值，保证step_id唯一
-            teststep.step_id = id_center.get_id()
-            self.run_step(teststep, step_tag=step_tag, parent_step_result=parent_step_result)
-
     def set_step_result_status(self, step_result: StepResult, status: TStepResultStatusEnum, msg: str = ""):
         """设置步骤状态"""
 
@@ -554,22 +133,23 @@ class SessionRunner(object):
             step_result.message = msg
             self.set_run_log(message=traceback.format_exc(), step_result=step_result, log_type=TStepLogType.err)
 
-    def append_step_result(self, step_result: StepResult, step_tag: str, parent_step_result: StepResult):
+    def append_step_result(self, step_result: StepResult, step_tag: str = None, parent_step_result: StepResult = None):
         """setup_hooks teardown_hooks"""
         if parent_step_result:
             if step_tag and step_tag == "setup_hooks":
-                parent_step_result.setup_hook_data.append(step_result)
+                parent_step_result.setup_hook_results.append(step_result)
             elif step_tag and step_tag == "teardown_hooks":
-                parent_step_result.teardown_hook_data.append(step_result)
+                parent_step_result.teardown_hook_results.append(step_result)
             else:
                 parent_step_result.step_result.append(step_result)
         else:
             self.__step_results.append(step_result)
 
     @staticmethod
-    def get_step_result(step: TStep, step_tag: str = None):
+    def get_step_result(step: TStep, step_tag: str = None) -> StepResult:
         """步初始化骤结果对象"""
         step_result = StepResult(name=step.name,
+                                 index=step.index,
                                  step_type=step.step_type,
                                  start_time=time.time(),
                                  step_tag=step_tag,
@@ -578,33 +158,7 @@ class SessionRunner(object):
             step_result.case_id = step.case_id
         return step_result
 
-    def run_step(self, step: TController, step_tag=None, parent_step_result: StepResult = None):
-        """运行步骤，可能是用例，可能是步骤控制器"""
-        logger.info(f"run step begin: {step.name} >>>>>>")
-        self.set_run_log(f"执行步骤->{step.name} >>>>>>")
-
-        if isinstance(step, TApiController):
-            self.__run_step_request(step, step_tag=step_tag, parent_step_result=parent_step_result)
-        elif isinstance(step, TWaitController):
-            self.__run_step_wait(step, step_tag=step_tag, parent_step_result=parent_step_result)
-        elif isinstance(step, TSqlController):
-            self.__run_step_sql(step, step_tag=step_tag, parent_step_result=parent_step_result)
-        elif isinstance(step, TScriptController):
-            self.__run_step_script(step, step_tag=step_tag, parent_step_result=parent_step_result)
-        elif isinstance(step, TIFController):
-            self.__run_step_if(step, step_tag=step_tag, parent_step_result=parent_step_result)
-        elif isinstance(step, TLoopController):
-            self.__run_step_loop(step, step_tag=step_tag, parent_step_result=parent_step_result)
-        else:
-            raise exceptions.ParamsError(
-                f"不是正确的步骤 😅: {step.dict()}"
-            )
-        # step_result = self.__run_step_controller(step, parent_step_result, "controller")
-        # self.__run_count += 1
-        logger.info(f"run step end: {step.name} <<<<<<\n")
-        self.set_run_log(f"步骤执行完成->{step.name} <<<<<<")
-
-    def __comparators(self, check: str, expect: str, comparator: str) -> typing.Dict[str, typing.Any]:
+    def comparators(self, check: str, expect: str, comparator: str) -> typing.Dict[str, typing.Any]:
         """
         结果比较
         """
@@ -612,9 +166,6 @@ class SessionRunner(object):
 
         check_value = parse_data(check, merge_variable, self.config.functions)
         expect_value = parse_data(expect, merge_variable, self.config.functions)
-        expect_value = parse_string_value(expect_value)
-        # check_value = parse_string_value(check_value)
-        # expect_value = parse_string_value(expect_value)
         u_validator = uniform_validator({"check": check_value, "expect": expect_value, "comparator": comparator})
         assert_method = u_validator["assert"]
         assert_func = get_mapping_function(assert_method, self.config.functions)
@@ -645,87 +196,62 @@ class SessionRunner(object):
 
         return validator_dict
 
+    def get_merge_variable_pool(self):
+        return self.__merge_variable_pool
+
     def get_merge_variable(self, step: TStep = None):
         """
         获取合并的变量
         优先级
-        __session_variables(会话变量)
-                V
-        extracted_variables(提取变量)
-                V
-        step.variables(用例变量)
-                V
-        config.env_variables(环境变量)
-
+        step.variables(用例变量) >
+         __session_variables(会话变量) >
+        extracted_variables(提取变量) >
+        config.variables(用例变量) >
+        config.env_variables(环境变量)>
+        merge_variable_pool(合并后的变量池)
         """
-
+        merge_variable_pool = merge_variables(self.config.env_variables, self.__merge_variable_pool)
         # 合并用例变量
-        merge_variable = merge_variables(self.config.env_variables, self.config.variables)
+        merge_variable_pool = merge_variables(self.config.variables, merge_variable_pool)
+        # 合并提取变量
+        merge_variable_pool = merge_variables(self.extracted_variables, merge_variable_pool)
+        # 合并会话变量
+        merge_variable_pool = merge_variables(self.__session_variables, merge_variable_pool)
         # 合并用例变量
         if step:
-            merge_variable = merge_variables(step.variables, merge_variable)
-        merge_variable = merge_variables(self.__session_variables, merge_variable)
-        # 合并提取变量
-        merge_variable = merge_variables(self.extracted_variables, merge_variable)
-        return merge_variable
+            merge_variable_pool = merge_variables(step.variables, merge_variable_pool)
 
-    def __parse_config(self, config: TConfig):
+        merge_variable_pool = parse_variables_mapping(
+            merge_variable_pool, self.parser.functions_mapping
+        )
+        self.__merge_variable_pool = merge_variable_pool
+        return self.__merge_variable_pool
+
+    def __parse_config(self, param: typing.Dict = None):
         """解析配置"""
-        config.variables.update(self.__session_variables)
-        config.variables = parse_variables_mapping(config.variables, self.config.functions)
-        config.name = parse_data(config.name, config.variables, self.config.functions)
-        config.base_url = parse_data(config.base_url, config.variables, self.config.functions)
-        # self.with_case_id(config.case_id)
+        # parse config variables
+        self.__config.variables.update(self.__session_variables)
+        if param:
+            self.__config.variables.update(param)
+        self.__config.variables = self.parser.parse_variables(self.__config.variables)
 
-    def run_testcase(self, testcase: typing.Union[TestCase, TController]) -> "SessionRunner":
-        """run specified testcase
+        # parse config name
+        self.__config.name = self.parser.parse_data(
+            self.__config.name, self.__config.variables
+        )
 
-        Examples:
-            >>> testcase_obj = TestCase(config=TConfig(...), teststeps=[TApiController(...)])
-            >>> SessionRunner().run_testcase(testcase_obj)
-
-        """
-        logger.info("用例开始执行 🚀")
-
-        self.__init_tests__()
-
-        if isinstance(testcase, TestCase):
-            self.config = testcase.config
-            self.__parse_config(self.config)
-            self.__teststeps = testcase.teststeps
-
-            # run teststeps
-            for index, step in enumerate(self.__teststeps):
-                # 运行步骤
-                if not step.enable:
-                    logger.debug(f"禁用步骤跳过---> {step.name}")
-                    continue
-                self.run_step(step)
-        elif isinstance(testcase, (TApiController,
-                                   TScriptController,
-                                   TSqlController,
-                                   TWaitController,
-                                   TLoopController,
-                                   TIFController,)):
-            self.run_step(testcase)
-        else:
-            raise
-        #     # 保存提取的变量
-        #     self.extracted_variables.update(extract_mapping)
-        #
-        # self.__session_variables.update(self.extracted_variables)
-        self.__duration = time.time() - self.__start_time
-        return self
-
-    def run(self) -> "Runner":
-        """ 运行用例"""
-        # self.__init_tests__()
-        testcase_obj = TestCase(config=self.config, teststeps=self.teststeps)
-        return self.run_testcase(testcase_obj)
+        # parse config base url
+        self.__config.base_url = self.parser.parse_data(
+            self.__config.base_url, self.__config.variables
+        )
 
     def get_step_results(self) -> typing.List[StepResult]:
         """获取步骤"""
         return self.__step_results
+
+    def clear_step_results(self):
+        """清空步骤结果"""
+        self.__step_results.clear()
 
     def get_export_variables(self) -> typing.Dict:
         """获取导出的变量"""
@@ -760,7 +286,7 @@ class SessionRunner(object):
             case_id=self.config.case_id,
             start_time=self.__start_time,
             start_time_iso_format=start_at_iso_format,
-            duration=self.__duration,
+            duration=round(self.__duration, 3),
             in_out=TestCaseInOut(
                 config_vars=self.config.variables,
                 # export_vars=self.get_export_variables(),
@@ -770,29 +296,69 @@ class SessionRunner(object):
         )
         return testcase_summary
 
+    def run_step(self, step, step_tag: str = None, parent_step_result: StepResult = None):
+        """运行步骤，可以运行实现IStep run 方法的任何步骤
+        Args:
+            step (Step): obj IStep
+            step_tag (str): 步骤标签
+            parent_step_result (StepResult): 父级结构
+        """
+        self.__init()
+        # run step
+        logger.info(f"run step begin: {step.name} >>>>>>")
+        if not self.__start_time:
+            self.__start_time = time.time()
+        for i in range(step.retry_times + 1):
+            try:
+                step.run(self, step_tag=step_tag, parent_step_result=parent_step_result)
+            except ValidationFailure:
+                if i == step.retry_times:
+                    raise
+                else:
+                    logger.warning(
+                        f"运行步骤 {step.name()} 校验失败,等待 {step.retry_interval} 秒后重试"
+                    )
+                    time.sleep(step.retry_interval)
+                    logger.info(
+                        f"运行步骤重试 ({i + 1}/{step.retry_times} time): {step.name()} >>>>>>"
+                    )
+            except Exception:
+                logger.error(f"步骤执行错误:\n{traceback.format_exc()}")
+
+        logger.info(f"run step end: {step.name} <<<<<<\n")
+
+    def execute_loop(self,
+                     steps: typing.List[object],
+                     step_tag=None,
+                     parent_step_result: StepResult = None):
+        """
+        执行循环
+        :param steps: 步骤
+        :param step_tag: 步骤标签
+        :param parent_step_result: 父级步骤结果
+        :return:
+        """
+        for step in steps:
+            self.run_step(step, step_tag=step_tag, parent_step_result=parent_step_result)
+
     def test_start(self, param: typing.Dict = None) -> "SessionRunner":
-        """主入口"""
-        self.__init_tests__()
+        """
+        开始测试
+        :param param: 参数
+        :return:
+        """
+        self.__init()
+        self.__parse_config(param)
         self.case_id = self.case_id or str(uuid.uuid4())
-
         log_handler = logger.add(sys.stdin, level="INFO")
-
-        # parse config name
-        config_variables = self.config.variables
-        if param:
-            config_variables.update(param)
-        config_variables.update(self.__session_variables)
-        self.config.name = parse_data(
-            self.config.name, config_variables, self.config.functions
-        )
-
         logger.info(
             f"Start to run testcase: {self.config.name}, TestCase ID: {self.case_id}"
         )
 
         try:
-            return self.run_testcase(
-                TestCase(config=self.config, teststeps=self.__teststeps)
-            )
+            for step in self.teststeps:
+                self.run_step(step)
+
         finally:
             logger.remove(log_handler)
+        return self

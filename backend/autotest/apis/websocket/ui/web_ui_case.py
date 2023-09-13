@@ -11,7 +11,7 @@ from autotest.services.ui.ui_case import UiCaseServer
 from zerorunner.ext.zero_driver.driver import DriverSetting, ZeroDriver
 from zerorunner.model.step_model import TConfig
 from zerorunner.models import StepResult
-from zerorunner.runner_new import SessionRunner
+from zerorunner.runner import SessionRunner
 
 router = APIRouter()
 

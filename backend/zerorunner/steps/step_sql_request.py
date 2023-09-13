@@ -9,7 +9,7 @@ from zerorunner.database.engine import DBEngine
 from zerorunner.model.result_model import SqlSessionData
 from zerorunner.model.step_model import TStep, TSqlRequest
 from zerorunner.models import TStepLogType, StepResult, TStepResultStatusEnum
-from zerorunner.runner_new import SessionRunner
+from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
 from zerorunner.steps.step_result import TStepResult
 

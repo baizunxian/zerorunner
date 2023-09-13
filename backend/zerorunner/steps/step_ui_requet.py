@@ -8,7 +8,7 @@ from loguru import logger
 from zerorunner.model.base import TStepLogType, TStepResultStatusEnum
 from zerorunner.model.result_model import StepResult, UiSessionData
 from zerorunner.model.step_model import TStep, TUiRequest
-from zerorunner.runner_new import SessionRunner
+from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
 from zerorunner.ext.zero_driver.keywords.web import WebAction
 from zerorunner.steps.step_result import TStepResult

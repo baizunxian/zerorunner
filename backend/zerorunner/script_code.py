@@ -4,7 +4,7 @@ import typing
 
 from zerorunner.model.step_model import TStep
 from zerorunner.response import ResponseObject
-from zerorunner.runner_new import SessionRunner
+from zerorunner.runner import SessionRunner
 
 
 class Zero:

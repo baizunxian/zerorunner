@@ -2,7 +2,7 @@
 # @author: xiaobai
 from zerorunner.model.step_model import TStep, TUiRequest
 from zerorunner.models import TConfig
-from zerorunner.runner_new import SessionRunner
+from zerorunner.runner import SessionRunner
 from zerorunner.steps.step import Step
 from zerorunner.steps.step_ui_requet import RunUiStep
 from zerorunner.ext.zero_driver.driver import DriverSetting, ZeroDriver

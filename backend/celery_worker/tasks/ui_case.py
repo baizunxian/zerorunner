@@ -11,8 +11,8 @@ from autotest.services.ui.ui_case import UiCaseServer
 from autotest.services.ui.ui_report import UiReportService
 from celery_worker.worker import celery
 from zerorunner.ext.zero_driver.driver import DriverSetting, ZeroDriver
-from zerorunner.runner_new import SessionRunner
-from zerorunner.testcase_new import ZeroRunner
+from zerorunner.runner import SessionRunner
+from zerorunner.testcase import ZeroRunner
 
 r_lock = Lock()
 t_lock = Lock()

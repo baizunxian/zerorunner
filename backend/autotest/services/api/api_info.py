@@ -10,7 +10,7 @@ from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle_new import HandelRunApiStep
 from autotest.utils import current_user
 from celery_worker.tasks import test_case
-from zerorunner.testcase_new import ZeroRunner
+from zerorunner.testcase import ZeroRunner
 
 
 class ApiInfoService:

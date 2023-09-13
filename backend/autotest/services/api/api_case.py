@@ -4,15 +4,14 @@ from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiCase, ApiCaseStep
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
     ApiTestCaseRun, TCaseStepData, ApiCaseStepDataSchema
-from autotest.schemas.step_data import TStepData
+from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
-from autotest.services.api.api_report import ReportService
 from autotest.utils import current_user
-from autotest.utils.serialize import default_serialize
 from autotest.utils.async_converter import sync_to_async
-from zerorunner.snowflake import id_center
-from zerorunner.testcase_new import ZeroRunner
+from autotest.utils.serialize import default_serialize
+from autotest.utils.snowflake import IDCenter
+from zerorunner.testcase import ZeroRunner
 
 
 class ApiCaseService:
@@ -82,7 +81,7 @@ class ApiCaseService:
             step_ = ApiCaseStepDataSchema(**step.dict())
             step_.case_id = case_id
             step_.version = version
-            step_.step_id = id_center.get_id()
+            step_.step_id = IDCenter.get_id()
             step_.parent_id = parent_step_id
             if step.request:
                 step_.api_id = step.request.api_id
