@@ -43,7 +43,6 @@ def run_wait_request(runner: SessionRunner,
         step_result = step_result.get_step_result()
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-        runner.set_run_log(step_result=step_result, log_type=TStepLogType.end)
 
 
 class WaitWithOptionalArgs(IStep):

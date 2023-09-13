@@ -57,7 +57,6 @@ def run_if_request(runner: SessionRunner,
             for sub_step_result in step_result.step_result:
                 runner.append_step_result(sub_step_result)
         step_result.step_result = []
-        runner.set_run_log(step_result=step_result, log_type=TStepLogType.end)
 
 
 class IFWithOptionalArgs(IStep):

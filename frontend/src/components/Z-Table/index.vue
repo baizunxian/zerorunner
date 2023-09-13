@@ -4,7 +4,7 @@
       :size="size"
       :tree-props="treeProps"
       :row-key="rowKey"
-      v-bind="options"
+      v-bind="attrs"
       :load="load"
       :border="border"
       v-loading="tableLoading"
@@ -122,7 +122,10 @@
 </template>
 <script setup lang="ts" name="z-table">
 import {computed, reactive} from 'vue'
+import {useAttrs} from "vue";
 import {formatLookup} from '/@/utils/lookup'
+
+const attrs = useAttrs()
 
 const props = defineProps({
   // 列表

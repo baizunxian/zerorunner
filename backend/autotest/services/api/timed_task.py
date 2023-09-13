@@ -1,6 +1,7 @@
 import traceback
 import typing
 
+from celery import Celery
 from celery.schedules import crontab as celery_crontab
 from loguru import logger
 
@@ -188,3 +189,7 @@ class TimedTasksService:
             return 0
         if count_info:
             return count_info.get("count", 0)
+
+    @staticmethod
+    async def run_once_job():
+        Celery.send_task()

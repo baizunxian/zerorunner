@@ -135,6 +135,7 @@
             v-model:long="state.long"
         ></z-monaco-editor>
       </div>
+
     </div>
     <!---------------------------params------------------------------------>
     <div v-if="state.mode === 'params'">
@@ -319,7 +320,6 @@ const handleLanguage = (language: any) => {
 
 // 处理头信息
 const updateContentType = (remove: any = false) => {
-  console.log(state.mode, state.language, remove, '111111111111')
   emit('updateContentType', state.mode, state.language, remove)
 }
 
