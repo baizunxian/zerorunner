@@ -78,13 +78,6 @@ class SessionRunner(object):
         self.case_id = case_id
         return self
 
-    def with_variables(self, variables: VariablesMapping, cover=False) -> "SessionRunner":
-        if cover:
-            self.__session_variables = variables
-        else:
-            self.__session_variables.update(variables)
-        return self
-
     def with_session_variables(self, variables: VariablesMapping, cover=False) -> "SessionRunner":
         if cover:
             self.__session_variables = variables
@@ -92,46 +85,12 @@ class SessionRunner(object):
             self.__session_variables.update(variables)
         return self
 
-    # def with_headers(self, headers: Headers, cover=False) -> "SessionRunner":
-    #     if cover:
-    #         self.__session_headers.update(headers)
-    #     else:
-    #         self.__session_headers = headers
-    #     return self
-
     def with_export(self, export: typing.List[str]) -> "SessionRunner":
         self.__export = export
         return self
 
     def get_session_variables(self):
         return self.__session_variables
-
-    def set_step_result_status(self, step_result: StepResult, status: TStepResultStatusEnum, msg: str = ""):
-        """设置步骤状态"""
-
-        if status == TStepResultStatusEnum.success:
-            step_result.success = True
-            step_result.status = TStepResultStatusEnum.success.value
-            step_result.message = msg
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.success)
-
-        if status == TStepResultStatusEnum.fail:
-            step_result.success = False
-            step_result.status = TStepResultStatusEnum.fail.value
-            step_result.message = msg
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.fail)
-
-        if status == TStepResultStatusEnum.skip:
-            step_result.success = True
-            step_result.status = TStepResultStatusEnum.skip.value
-            step_result.message = msg if msg else "跳过"
-            self.set_run_log(step_result=step_result, log_type=TStepLogType.skip)
-
-        if status == TStepResultStatusEnum.err:
-            step_result.success = False
-            step_result.status = TStepResultStatusEnum.err.value
-            step_result.message = msg
-            self.set_run_log(message=traceback.format_exc(), step_result=step_result, log_type=TStepLogType.err)
 
     def append_step_result(self, step_result: StepResult, step_tag: str = None, parent_step_result: StepResult = None):
         """setup_hooks teardown_hooks"""

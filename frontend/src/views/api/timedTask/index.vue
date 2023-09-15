@@ -98,7 +98,7 @@ const state = reactive({
 
         h(ElButton, {
           type: "",
-          color:"#626aef",
+          color: "#626aef",
           onClick: () => {
             runOnceJob(row)
           }
@@ -200,8 +200,14 @@ const deleted = (row: any) => {
 };
 
 const runOnceJob = (row: any) => {
-  useTimedTasksApi().runOnceJob({id: row.id}).then(() => {
-    ElMessage.success("执行成功！")
+  ElMessageBox.confirm("即将手动调度任务, 是否继续？", '提示', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    useTimedTasksApi().runOnceJob({id: row.id}).then(() => {
+      ElMessage.success("执行成功！")
+    })
   })
 }
 

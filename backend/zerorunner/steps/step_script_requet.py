@@ -37,7 +37,7 @@ def run_script_request(runner: SessionRunner,
             step_result.set_step_log(f"✏️设置请求头-> key:{key} value: {value}")
         for key, value in variables.items():
             step_result.set_step_log(f"✏️设置请变量-> key:{key} value: {value}")
-        runner.with_variables(variables)
+        runner.with_session_variables(variables)
         functions = load_module_functions(script_module)
         runner.with_functions(functions)
     except Exception as err:

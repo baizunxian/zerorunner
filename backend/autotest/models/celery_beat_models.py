@@ -184,6 +184,8 @@ class CeleryTaskRecord(Base):
             q.append(cls.end_time <= params.end_time)
         if params.task_id:
             q.append(cls.task_id == params.task_id)
+        if params.trace_id:
+            q.append(cls.trace_id == params.trace_id)
         if params.business_id:
             q.append(cls.business_id == params.business_id)
         stmt = select(cls.get_table_columns()).where(*q).order_by(cls.id.desc())

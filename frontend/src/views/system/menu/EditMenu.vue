@@ -9,16 +9,15 @@
         <el-row :gutter="35">
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="上级菜单" prop="parent_id">
-              <el-select v-model="state.form.parent_id" clearable placeholder="Select">
-                <el-option :value="0" label="根目录"></el-option>
-                <el-option
-                    v-for="item in allMenuList"
-                    :key="item.id"
-                    :label="item.title"
-                    :value="item.id"
-                >
-                </el-option>
-              </el-select>
+
+              <el-tree-select
+                  ref="menuTreeRef"
+                  v-model="state.form.parent_id"
+                  :data="menuTree"
+                  :props="{label: 'title', value: 'id'}"
+                  check-strictly
+                  :render-after-expand="false"
+              />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
@@ -144,10 +143,12 @@
 </template>
 
 <script lang="ts" setup name="SaveOrUpdateMenu">
-import {onMounted, reactive} from 'vue';
+import {computed, onMounted, reactive, ref} from 'vue';
 import IconSelector from '/@/components/iconSelector/index.vue';
 import {useMenuApi} from "/@/api/useSystemApi/menu";
 import {ElMessage} from "element-plus";
+
+const menuTreeRef = ref()
 
 const emit = defineEmits(['getList'])
 const props = defineProps({
@@ -156,7 +157,13 @@ const props = defineProps({
   },
   menuList: {
     type: Array,
+    default: () => []
   }
+})
+
+const menuTree = computed(() => {
+
+  return [{title: '根目录', id: 0, children: [...props.menuList]}]
 })
 
 const createMenuForm = () => {
@@ -208,6 +215,7 @@ const openDialog = (editType: string, row: any) => {
     state.form = createMenuForm()
   }
   state.isShowDialog = true;
+  menuTreeRef.value.setCurrentKey(row.id)
 };
 // 关闭弹窗
 const closeDialog = () => {
@@ -232,6 +240,7 @@ const saveOrUpdate = () => {
       })
   // setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
 };
+
 // 页面加载时
 onMounted(() => {
   // getMenuData();

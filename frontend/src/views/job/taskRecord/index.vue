@@ -2,11 +2,12 @@
   <div class="app-container">
     <el-card>
       <div class="mb15">
-        <el-input v-model="state.listQuery.name" placeholder="请输入名称" style="max-width: 180px"></el-input>
+        <el-input class="ml10" v-model="state.listQuery.task_id" clearable placeholder="任务id查询" style="max-width: 180px"></el-input>
+        <el-input class="ml10" v-model="state.listQuery.trace_id" clearable placeholder="trace_id查询" style="max-width: 180px"></el-input>
         <el-button type="primary" class="ml10" @click="search">查询
         </el-button>
-        <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增
-        </el-button>
+<!--        <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增-->
+<!--        </el-button>-->
       </div>
       <z-table
           :columns="state.columns"
@@ -62,8 +63,9 @@ const state = reactive({
     page: 1,
     pageSize: 20,
     business_id: '',
-    task_type: '',
-    name: '',
+    task_type: null,
+    task_id: '',
+    trace_id: '',
   },
 });
 

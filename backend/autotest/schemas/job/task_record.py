@@ -9,6 +9,7 @@ from pydantic.main import BaseModel, Field
 class TaskRecordQuery(BaseModel):
     task_name: str = Field(None, description="任务名称")
     task_id: str = Field(None, description="任务ID")
+    trace_id: str = Field(None, description="trace_id")
     status: str = Field(None, description="任务状态")
     start_time: str = Field(None, description="任务开始时间")
     end_time: str = Field(None, description="任务结束时间")

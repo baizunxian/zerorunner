@@ -148,7 +148,8 @@ def __stringify_response(response_data: ResponseData):
             try:
                 encoding = response_data.encoding
                 if not encoding or encoding == "None":
-                    setattr(response_data, "encoding", detect_encoding(value))
+                    encoding = detect_encoding(value)
+                    setattr(response_data, "encoding", encoding)
 
                 if key == "body" and "image" in response_data.content_type:
                     # display image

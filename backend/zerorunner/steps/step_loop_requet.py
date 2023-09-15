@@ -57,7 +57,7 @@ def run_loop_request(runner: SessionRunner,
             for for_variable_value in iterable_obj:
                 try:
                     # 设置变量
-                    runner.with_variables({for_variable_name: for_variable_value})
+                    runner.with_session_variables({for_variable_name: for_variable_value})
                     # 执行循环
                     runner.execute_loop(steps=step.loop_request.teststeps,
                                         step_tag=f"For {for_variable_value}",

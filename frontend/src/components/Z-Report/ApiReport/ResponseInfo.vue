@@ -36,6 +36,15 @@
             v-model:value="state.body"
             long="json"
         ></z-monaco-editor>
+        <el-image
+            v-else-if="state.content_type.includes('image')"
+            style="width: 300px; height: 300px"
+            :src="state.response.body"
+            :zoom-rate="1.2"
+            :preview-src-list="[state.response.body]"
+            :initial-index="4"
+            fit="cover"
+        />
         <pre v-else>{{ state.response.body }}</pre>
       </el-collapse-item>
 
@@ -108,7 +117,7 @@ watch(
 onMounted(() => {
 
   nextTick(() => {
-      initData()
+    initData()
   })
 })
 

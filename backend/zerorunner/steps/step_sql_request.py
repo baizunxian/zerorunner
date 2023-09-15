@@ -38,7 +38,7 @@ def run_sql_request(runner: SessionRunner,
 
         data = db_engine.fetchall(step.sql_request.sql)
         variables = {step.sql_request.variable_name: data}
-        runner.with_variables(variables)
+        runner.with_session_variables(variables)
         step_result.result.export_vars.update(variables)
         logger.info(f"SQL查询---> {step.sql_request.sql}")
         step_result.start_log(f"SQL查询-> 设置变量:{step.sql_request.variable_name}, 设置变量值：{data}")
