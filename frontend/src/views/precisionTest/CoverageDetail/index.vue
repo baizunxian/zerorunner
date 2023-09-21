@@ -34,7 +34,7 @@
 
 <script setup lang="ts" name="CoverageDetail">
 import {computed, h, nextTick, onMounted, reactive, ref, watch} from 'vue';
-import {ArrowRight} from '@element-plus/icons-vue';
+import {ArrowRight} from '@element-plus/icons';
 import {ElButton} from 'element-plus';
 import packageGif from "/@/theme/jacoco/package.gif";
 import classGif from "/@/theme/jacoco/class.gif";

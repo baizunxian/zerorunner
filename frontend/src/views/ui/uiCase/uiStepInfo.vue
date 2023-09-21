@@ -8,7 +8,7 @@
       ref="tableRef">
 
     <el-table-column width="40" align="center">
-      <template #default="{row}">
+      <template #default="">
         <div class="move" style="cursor: all-scroll">
           <el-icon class="step-rank">
             <Rank></Rank>
@@ -112,7 +112,7 @@
       </template>
     </el-table-column>
 
-    <el-table-column prop="data" label="" width="250">
+    <el-table-column prop="data" label="" width="250px">
       <template #header>
         <div v-if="!useType">
           <el-button type="primary" @click="handelAddUiCase" round :icon="CirclePlus">引用用例</el-button>
@@ -145,9 +145,9 @@
 
 <script setup lang="ts" name="EditPage">
 import {ElButton, ElCascader, ElCheckbox, ElInput} from "element-plus";
-import {h, nextTick, onMounted, reactive, ref, watch} from "vue";
+import {h, nextTick, onMounted, reactive, ref} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
-import {Bottom, CirclePlus, Rank, RefreshLeft, Top} from "@element-plus/icons-vue"
+import {Bottom, CirclePlus, Rank, RefreshLeft, Top} from "@element-plus/icons"
 import MonacoEditor from "/@/components/monaco/index.vue";
 import Sortable from "sortablejs";
 import useVModel from "/@/utils/useVModel";
@@ -441,29 +441,6 @@ onMounted(() => {
   getAllPageElement()
   createSortable()
 })
-
-// watch(
-//     () => props.data,
-//     (val) => {
-//       let newData = JSON.parse(JSON.stringify(val))
-//       newData.project_module = [newData.project_id, newData.module_id]
-//       state.form = newData
-//     },
-//     {
-//       deep: true,
-//     }
-// );
-
-// watch(
-//     () => stepData.value,
-//     (val) => {
-//       console.log(val, 'stepDataList111')
-//       computeDataIndex(stepData.value)
-//     },
-//     {
-//       deep: true,
-//     }
-// );
 
 </script>
 

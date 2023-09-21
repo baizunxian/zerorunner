@@ -41,9 +41,7 @@
 
 <script lang="ts" setup name="StepNode1">
 import VueDraggableNext from 'vuedraggable'
-// import {VueDraggableNext} from 'vue-draggable-next';
-import {computed} from 'vue';
-import {Rank} from "@element-plus/icons-vue"
+import {Rank} from "@element-plus/icons"
 
 
 const emit = defineEmits(['copy-node', 'deleted-node', "onUpdate:data"])
@@ -61,31 +59,13 @@ const props = defineProps({
   },
 })
 
-const stepData = computed({
-  get() {
-    return props.data || []
-  },
-  set(val) {
-    console.log(val, '----------')
-    emit("update:data", [...props.data])
-  }
-})
 
 const onMove = () => {
   return true
 }
 
 const checkPull = (e) => {
-  console.log(e, "2222")
   return true
-}
-
-const stepDataChange = (val) => {
-  console.log(val, "22222222 ")
-}
-
-const test = () => {
-  console.log(stepData.value)
 }
 
 </script>

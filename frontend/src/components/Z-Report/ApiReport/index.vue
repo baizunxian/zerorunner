@@ -89,7 +89,7 @@
 
 <script lang="ts" setup name="ApiReport">
 import {computed, onMounted, PropType, reactive, ref, watch} from 'vue';
-import {CircleCheck} from "@element-plus/icons-vue";
+import {CircleCheck} from "@element-plus/icons";
 import ResponseInfo from "./ResponseInfo.vue";
 import RequestInfo from "./RequestInfo.vue";
 import ReportValidators from "./ReportValidators.vue";

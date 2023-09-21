@@ -13,6 +13,7 @@ from autotest.init.exception import init_exception
 from autotest.init.middleware import init_middleware
 from autotest.init.mount import init_mount
 from autotest.init.routers import init_router
+import click
 
 app = FastAPI(title="zerorunner",
               description=config.PROJECT_DESC,
@@ -39,6 +40,7 @@ async def init_app():
 
 @app.on_event("startup")
 async def startup():
+    click.echo(config.PROJECT_BANNER)
     await init_app()  # 加载注册中心
     # from autotest.models import init_db
     # await init_db()  # 初始化表

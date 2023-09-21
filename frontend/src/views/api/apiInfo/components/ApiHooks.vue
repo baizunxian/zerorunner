@@ -85,7 +85,7 @@
 <script lang="ts" setup name="preOperation">
 import {reactive, ref} from 'vue';
 import {handleEmpty} from "/@/utils/other";
-import {ArrowDown} from "@element-plus/icons-vue";
+import {ArrowDown} from "@element-plus/icons";
 import {getStepTypesByUse, getStepTypeInfo} from "/@/utils/case";
 
 const setupHooksRef = ref()

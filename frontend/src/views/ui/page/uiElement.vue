@@ -18,7 +18,7 @@
 import {ElButton, ElInput, ElMessage, ElMessageBox, ElOption, ElSelect} from "element-plus";
 import {h, reactive, watch} from "vue";
 import {useUiElementApi} from "/@/api/useUiApi/uiElement";
-import {RefreshLeft, Edit, CirclePlus} from "@element-plus/icons-vue"
+import {RefreshLeft, Edit, CirclePlus} from "@element-plus/icons"
 
 
 const props = defineProps({

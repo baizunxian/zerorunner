@@ -107,7 +107,7 @@ import {storeToRefs} from 'pinia';
 import {useThemeConfig} from '/@/stores/themeConfig';
 import {useUserInfo} from '/@/stores/userInfo';
 import {useTagsViewRoutes} from '/@/stores/tagsViewRoutes';
-import {InfoFilled, Top, Bottom} from '@element-plus/icons-vue';
+import {InfoFilled, Top, Bottom} from '@element-plus/icons';
 import {usesStatisticsApi} from "/@/api/useAutoApi/statistics";
 
 // 定义变量内容

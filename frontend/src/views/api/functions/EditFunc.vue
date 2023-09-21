@@ -145,7 +145,7 @@ onMounted(() => {
   height: calc(100% - 114px);
 
   .el-dialog__body {
-    height: 100%;
+    height: calc(100% - 60px);
   }
 }
 

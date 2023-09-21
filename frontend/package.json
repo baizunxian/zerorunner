@@ -28,6 +28,7 @@
 		"vuedraggable": "^4.1.0"
 	},
 	"devDependencies": {
+		"@element-plus/icons": "^0.0.11",
 		"@types/node": "^18.11.13",
 		"@types/nprogress": "^0.2.0",
 		"@typescript-eslint/eslint-plugin": "^5.46.0",

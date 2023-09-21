@@ -85,7 +85,6 @@ import {useRouter} from "vue-router"
 import {useUiReportApi} from "/@/api/useUiApi/uiReport";
 import {getStatusTag} from "/@/utils/case"
 import ReportStatistics from "./uiReportStatistics.vue"
-import {Promotion} from "@element-plus/icons-vue"
 import {useUserInfo} from '/@/stores/userInfo';
 import {storeToRefs} from "pinia";
 import config from "/@/config/config"
@@ -162,15 +161,15 @@ const state = reactive({
       width: '',
       show: true,
       render: ({row}: any) => h(ElImage, {
-        src: `${config.url}/${row.screenshot_url}`,
-        fit: "contain",
-        previewSrcList: state.screenshotUrlList,
-        previewTeleported: true,
-        style: {
-          width: "auto",
-          height: "50px",
-        }
-      })
+            src: `${config.url}/${row.screenshot_url}`,
+            fit: "contain",
+            previewSrcList: state.screenshotUrlList,
+            previewTeleported: true,
+            style: {
+              width: "60px",
+              height: "50px",
+            }
+          })
     },
     {
       label: '操作', columnType: 'string', fixed: 'right', align: '', width: '200',

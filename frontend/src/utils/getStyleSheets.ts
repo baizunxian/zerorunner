@@ -1,4 +1,4 @@
-import { nextTick } from 'vue';
+import {nextTick} from 'vue';
 import * as svg from '@element-plus/icons-vue';
 
 // 获取阿里字体图标
@@ -6,7 +6,7 @@ const getAlicdnIconfont = () => {
 	return new Promise((resolve, reject) => {
 		nextTick(() => {
 			const styles: any = document.styleSheets;
-			let sheetsList = [];
+			let sheetsList: any = [];
 			let sheetsIconList = [];
 			for (let i = 0; i < styles.length; i++) {
 				if (styles[i].href && styles[i].href.indexOf('at.alicdn.com') > -1) {
@@ -16,8 +16,8 @@ const getAlicdnIconfont = () => {
 			for (let i = 0; i < sheetsList.length; i++) {
 				for (let j = 0; j < sheetsList[i].cssRules.length; j++) {
 					if (sheetsList[i].cssRules[j].selectorText && sheetsList[i].cssRules[j].selectorText.indexOf('.icon-') > -1) {
-						sheetsIconList.push(
-							`${sheetsList[i].cssRules[j].selectorText.substring(1, sheetsList[i].cssRules[j].selectorText.length).replace(/\:\:before/gi, '')}`
+						// @ts-ignore
+						sheetsIconList.push(`${sheetsList[i].cssRules[j].selectorText.substring(1, sheetsList[i].cssRules[j].selectorText.length).replace(/\:\:before/gi, '')}`
 						);
 					}
 				}
@@ -33,7 +33,7 @@ const getElementPlusIconfont = () => {
 	return new Promise((resolve, reject) => {
 		nextTick(() => {
 			const icons = svg as any;
-			const sheetsIconList = [];
+			const sheetsIconList: any = [];
 			for (const i in icons) {
 				sheetsIconList.push(`ele-${icons[i].name}`);
 			}
@@ -48,10 +48,11 @@ const getAwesomeIconfont = () => {
 	return new Promise((resolve, reject) => {
 		nextTick(() => {
 			const styles: any = document.styleSheets;
-			let sheetsList = [];
-			let sheetsIconList = [];
+			let sheetsList: any = [];
+			let sheetsIconList: any = [];
 			for (let i = 0; i < styles.length; i++) {
 				if (styles[i].href && styles[i].href.indexOf('netdna.bootstrapcdn.com') > -1) {
+					// @ts-ignore
 					sheetsList.push(styles[i]);
 				}
 			}
@@ -63,8 +64,7 @@ const getAwesomeIconfont = () => {
 						sheetsList[i].cssRules[j].selectorText.indexOf(',') === -1
 					) {
 						if (/::before/.test(sheetsList[i].cssRules[j].selectorText)) {
-							sheetsIconList.push(
-								`${sheetsList[i].cssRules[j].selectorText.substring(1, sheetsList[i].cssRules[j].selectorText.length).replace(/\:\:before/gi, '')}`
+							sheetsIconList.push(`${sheetsList[i].cssRules[j].selectorText.substring(1, sheetsList[i].cssRules[j].selectorText.length).replace(/\:\:before/gi, '')}`
 							);
 						}
 					}

@@ -219,7 +219,7 @@ import 'splitpanes/dist/splitpanes.css';
 import {handleEmpty} from "/@/utils/other";
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
 import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
-import {ArrowDown} from "@element-plus/icons-vue";
+import {ArrowDown} from "@element-plus/icons";
 
 const createForm = () => {
   return {

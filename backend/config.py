@@ -6,6 +6,14 @@ from pathlib import Path
 
 from pydantic import BaseSettings, AnyHttpUrl, Field
 
+project_banner = """
+███████╗███████╗██████╗  ██████╗ ██████╗ ██╗   ██╗███╗   ██╗███╗   ██╗███████╗██████╗
+╚══███╔╝██╔════╝██╔══██╗██╔═══██╗██╔══██╗██║   ██║████╗  ██║████╗  ██║██╔════╝██╔══██╗
+  ███╔╝ █████╗  ██████╔╝██║   ██║██████╔╝██║   ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██████╔╝
+ ███╔╝  ██╔══╝  ██╔══██╗██║   ██║██╔══██╗██║   ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██╔══██╗
+███████╗███████╗██║  ██║╚██████╔╝██║  ██║╚██████╔╝██║ ╚████║██║ ╚████║███████╗██║  ██║
+╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝
+"""
 __version__ = "2.1.1"
 
 project_desc = """
@@ -15,6 +23,7 @@ project_desc = """
 
 class Configs(BaseSettings):
     PROJECT_DESC: str = project_desc  # 描述
+    PROJECT_BANNER: str = project_banner  # 描述
     PROJECT_VERSION: typing.Union[int, str] = __version__  # 版本
     BASE_URL: AnyHttpUrl = "http://127.0.0.1:8100"  # 开发环境
 
@@ -92,7 +101,6 @@ class Configs(BaseSettings):
     GITLAB_TOKEN: str = Field(None, env="GITLAB_TOKEN")
     GITLAB_USER: str = Field(None, env="GITLAB_USER_ID")
     GITLAB_PASSWORD: str = Field(None, env="GITLAB_PASSWORD")
-
 
     class Config:
         case_sensitive = True  # 区分大小写
