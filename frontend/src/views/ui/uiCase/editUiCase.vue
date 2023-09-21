@@ -21,10 +21,10 @@
                 <span>测试步骤：</span>
                 <span>{{ state.uiStepDataList.length }}</span>
               </div>
-              <div class="">
-                <span>场景变量：</span>
-                <span>{{ state.uiStepDataList.length }}</span>
-              </div>
+<!--              <div class="">-->
+<!--                <span>场景变量：</span>-->
+<!--                <span>{{ state.uiStepDataList.length }}</span>-->
+<!--              </div>-->
             </div>
         </template>
 <!--        <div style="padding: 8px 0">-->
