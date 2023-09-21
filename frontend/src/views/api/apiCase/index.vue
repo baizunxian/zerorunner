@@ -87,7 +87,7 @@ const state = reactive({
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
-      label: '操作', columnType: 'string', fixed: 'right', width: '300', align: 'center',
+      label: '操作', columnType: 'string', fixed: 'right', width: '200', align: 'center',
       render: ({row}: any) => h("div", null, [
         h(ElButton, {
           type: "success",
@@ -103,12 +103,12 @@ const state = reactive({
           }
         }, () => '编辑'),
 
-        h(ElButton, {
-          type: "warning",
-          onClick: () => {
-            toViewReport(row)
-          }
-        }, () => '查看报告'),
+        // h(ElButton, {
+        //   type: "warning",
+        //   onClick: () => {
+        //     toViewReport(row)
+        //   }
+        // }, () => '查看报告'),
 
         h(ElButton, {
           type: "danger",
