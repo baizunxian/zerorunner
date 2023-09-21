@@ -15,7 +15,7 @@
           :style="{height: state.height + 'px'}"
           :dbs="state.dbs"
           v-model:value="state.sql"
-          v-model:long="state.long"
+          v-model:lang="state.lang"
           :executeHandle="execute"
       ></z-monaco-editor>
     </div>
@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts" setup name="ContainerTop">
-import {computed, onBeforeMount, onUnmounted, reactive, ref} from 'vue';
+import {onBeforeMount, onUnmounted, reactive, ref} from 'vue';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import {ElMessage} from "element-plus/es";
 import {ElLoading} from "element-plus";
@@ -32,7 +32,7 @@ import mittBus from '/@/utils/mitt';
 const monacoEditRef = ref()
 
 const state = reactive({
-  long: 'sql',
+  lang: 'sql',
   height: 300,
   // db
   dbs: [],

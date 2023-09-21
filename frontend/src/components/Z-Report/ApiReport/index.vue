@@ -16,23 +16,6 @@
           <RequestInfo :data="state.requestInfo"></RequestInfo>
         </el-tab-pane>
 
-        <el-tab-pane name="ReportValidators">
-          <template #label>
-            <strong>结果断言</strong>
-            <el-icon v-show="getValidatorsResultStatus !== null">
-              <ele-CircleCheck v-if="getValidatorsResultStatus" style="color: #0cbb52"/>
-              <ele-CircleClose v-else style="color: red"/>
-            </el-icon>
-          </template>
-          <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
-        </el-tab-pane>
-
-        <el-tab-pane name="extracts">
-          <template #label>
-            <strong>参数提取</strong>
-          </template>
-          <ReportExtracts :data="state.extracts"></ReportExtracts>
-        </el-tab-pane>
 
         <!--      <el-tab-pane label="异常信息" name="message">-->
         <!--        <request-content :data="data.req_resps[0].request"></request-content>-->
@@ -45,16 +28,36 @@
           <ReportVariables :data="state.variables" ref=""></ReportVariables>
         </el-tab-pane>
 
+         <el-tab-pane name="extracts">
+          <template #label>
+            <strong>参数提取</strong>
+          </template>
+          <ReportExtracts :data="state.extracts"></ReportExtracts>
+        </el-tab-pane>
+
+        <el-tab-pane name="ReportValidators">
+          <template #label>
+            <strong>
+              结果断言
+              <el-icon v-show="getValidatorsResultStatus !== null">
+                <CircleCheck :style="{color: getValidatorsResultStatus? '#0cbb52': 'red'}">
+                </CircleCheck>
+              </el-icon>
+            </strong>
+
+          </template>
+          <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
+        </el-tab-pane>
 
         <el-tab-pane name="preHookData">
           <template #label>
-            <strong>Hook</strong>
-            <el-icon v-show="getHookResultStatus !==null">
-              <ele-CircleCheck
-                  v-if="getHookResultStatus"
-                  style="color: #0cbb52"/>
-              <ele-CircleClose v-else style="color: red"/>
-            </el-icon>
+            <strong>Hook
+              <el-icon v-show="getHookResultStatus !==null">
+                <CircleCheck :style="{color: getHookResultStatus? '#0cbb52': 'red'}">
+                </CircleCheck>
+              </el-icon>
+            </strong>
+
           </template>
           <ReportHooks
               :setup-hook-results="state.setup_hook_results"
@@ -74,7 +77,7 @@
         <template #label>
           <strong>错误信息</strong>
           <el-icon v-if="state.message !== ''">
-            <ele-CircleClose style="color: red"/>
+            <CircleCheck style="color: red"></CircleCheck>
           </el-icon>
         </template>
         <ReportLog :data="state.message"></ReportLog>
@@ -86,6 +89,7 @@
 
 <script lang="ts" setup name="ApiReport">
 import {computed, onMounted, PropType, reactive, ref, watch} from 'vue';
+import {CircleCheck} from "@element-plus/icons-vue";
 import ResponseInfo from "./ResponseInfo.vue";
 import RequestInfo from "./RequestInfo.vue";
 import ReportValidators from "./ReportValidators.vue";

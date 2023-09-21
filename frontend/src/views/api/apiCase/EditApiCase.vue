@@ -140,7 +140,7 @@
               ref="stepControllerRef"
               use_type="case"
               style="margin-bottom: 10px"
-              v-model:data="state.form.step_data">
+              v-model:steps="state.form.step_data">
           </z-step-controller>
         </z-pane>
       </z-splitpanes>
@@ -218,8 +218,8 @@ import {useProjectApi} from "/@/api/useAutoApi/project";
 import 'splitpanes/dist/splitpanes.css';
 import {handleEmpty} from "/@/utils/other";
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
-import {getStepTypesByUse, getStepTypeInfo} from "/@/utils/case";
-import {ArrowDown, InfoFilled} from "@element-plus/icons-vue";
+import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
+import {ArrowDown} from "@element-plus/icons-vue";
 
 const createForm = () => {
   return {

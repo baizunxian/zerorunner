@@ -34,7 +34,7 @@
             ref="monacoEditRef"
             :options="{readOnly: true}"
             v-model:value="state.body"
-            long="json"
+            lang="json"
         ></z-monaco-editor>
         <el-image
             v-else-if="state.content_type.includes('image')"

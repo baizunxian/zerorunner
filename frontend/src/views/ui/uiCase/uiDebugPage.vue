@@ -36,7 +36,7 @@
             ref="monacoEditRef"
             :options="{readOnly: true}"
             v-model:value="state.log"
-            long="text"
+            lang="text"
         ></z-monaco-editor>
       </el-col>
     </el-row>

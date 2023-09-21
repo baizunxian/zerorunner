@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# @author: xiaobai
-from sqlalchemy import Column, String, Integer, DECIMAL, Text, select, func, text, BigInteger
-from sqlalchemy.orm import aliased
+# @author: xiao bai
+from sqlalchemy import String, Integer, Text, select, func, BigInteger
+from sqlalchemy.orm import aliased, mapped_column
 
 from autotest.models import Base
 from autotest.models.system_models import User
@@ -13,10 +13,10 @@ class RepositoryManager(Base):
     """仓库管理"""
     __tablename__ = 'repository_manager'
 
-    name = Column(String(64), nullable=False, comment='仓库名称', index=True)
-    url = Column(String(255), nullable=False, comment='仓库地址')
-    username = Column(String(64), nullable=False, comment='用户名')
-    password = Column(String(64), nullable=False, comment='密码')
+    name = mapped_column(String(64), nullable=False,  comment='仓库名称', index=True)
+    url = mapped_column(String(255),  comment='仓库地址')
+    username = mapped_column(String(64),  comment='用户名')
+    password = mapped_column(String(64),  comment='密码')
 
     @classmethod
     async def get_list(cls, params: RepositoryListQuery):
@@ -40,16 +40,16 @@ class CoverageBackendReport(Base):
     """后端覆盖率报告"""
     __tablename__ = 'coverage_backend_report'
 
-    name = Column(String(64), nullable=False, comment='仓库名称', index=True)
-    report_type = Column(BigInteger(), nullable=False, comment='10 full 全量， 20 diff 增量')
-    new_branches = Column(String(255), nullable=False, comment='新分支或者md5')
-    new_last_commit_id = Column(String(255), nullable=False, comment='新分支最后提交id')
-    old_branches = Column(String(255), nullable=True, comment='比对分支或者md5')
-    old_last_commit_id = Column(String(255), nullable=True, comment='旧分支最后提交id')
-    package_count = Column(String(255), nullable=False, comment='包数量')
-    class_count = Column(String(255), nullable=False, comment='类数据')
-    method_count = Column(String(255), nullable=False, comment='方法数据')
-    coverage_rate = Column(String(255), nullable=False, comment='覆盖率')
+    name = mapped_column(String(64), nullable=False,  comment='仓库名称', index=True)
+    report_type = mapped_column(BigInteger(),  comment='10 full 全量， 20 diff 增量')
+    new_branches = mapped_column(String(255),  comment='新分支或者md5')
+    new_last_commit_id = mapped_column(String(255),  comment='新分支最后提交id')
+    old_branches = mapped_column(String(255), nullable=True, comment='比对分支或者md5')
+    old_last_commit_id = mapped_column(String(255), nullable=True, comment='旧分支最后提交id')
+    package_count = mapped_column(String(255),  comment='包数量')
+    class_count = mapped_column(String(255),  comment='类数据')
+    method_count = mapped_column(String(255),  comment='方法数据')
+    coverage_rate = mapped_column(String(255),  comment='覆盖率')
 
     @classmethod
     async def get_list(cls, params: CoverageListQuery):
@@ -72,24 +72,24 @@ class CoverageBackendReport(Base):
 class CoverageClassDetail(Base):
     __tablename__ = 'coverage_class_detail'
 
-    report_id = Column(BigInteger(), nullable=False, comment='报告id')
-    package_name = Column(String(255), nullable=False, comment='包名')
-    class_name = Column(String(255), nullable=False, comment='类名')
-    class_file_content = Column(Text, nullable=False, comment='class文件内容')
-    class_source_path = Column(String(255), nullable=False, comment='class 源码路径')
-    class_md5 = Column(String(255), nullable=False, comment='class文件md5')
-    # branch_missed = Column(Integer(), nullable=False, comment='未覆盖分支', default=0)
-    # branch_covered = Column(Integer(), nullable=False, comment='覆盖分支', default=0)
-    # instruction_missed = Column(Integer(), nullable=False, comment='未覆盖指令', default=0)
-    # instruction_covered = Column(Integer(), nullable=False, comment='覆盖指令', default=0)
-    # line_missed = Column(Integer(), nullable=False, comment='未覆盖行', default=0)
-    # line_covered = Column(Integer(), nullable=False, comment='覆盖行', default=0)
-    # complexity_missed = Column(Integer(), nullable=False, comment='未覆盖复杂度', default=0)
-    # complexity_covered = Column(Integer(), nullable=False, comment='覆盖复杂度', default=0)
-    # method_missed = Column(Integer(), nullable=False, comment='未覆盖方法', default=0)
-    # method_covered = Column(Integer(), nullable=False, comment='覆盖方法', default=0)
-    class_missed = Column(Integer(), nullable=False, comment='未覆盖类', default=0)
-    class_covered = Column(Integer(), nullable=False, comment='覆盖类', default=0)
+    report_id = mapped_column(BigInteger(),  nullable=False, comment='报告id')
+    package_name = mapped_column(String(255),  comment='包名')
+    class_name = mapped_column(String(255),  comment='类名')
+    class_file_content = mapped_column(Text,  comment='class文件内容')
+    class_source_path = mapped_column(String(255),  comment='class 源码路径')
+    class_md5 = mapped_column(String(255),  comment='class文件md5')
+    # branch_missed = mapped_column(Integer(),  comment='未覆盖分支', default=0)
+    # branch_covered = mapped_column(Integer(),  comment='覆盖分支', default=0)
+    # instruction_missed = mapped_column(Integer(),  comment='未覆盖指令', default=0)
+    # instruction_covered = mapped_column(Integer(),  comment='覆盖指令', default=0)
+    # line_missed = mapped_column(Integer(),  comment='未覆盖行', default=0)
+    # line_covered = mapped_column(Integer(),  comment='覆盖行', default=0)
+    # complexity_missed = mapped_column(Integer(),  comment='未覆盖复杂度', default=0)
+    # complexity_covered = mapped_column(Integer(),  comment='覆盖复杂度', default=0)
+    # method_missed = mapped_column(Integer(),  comment='未覆盖方法', default=0)
+    # method_covered = mapped_column(Integer(),  comment='覆盖方法', default=0)
+    class_missed = mapped_column(Integer(),  comment='未覆盖类', default=0)
+    class_covered = mapped_column(Integer(),  comment='覆盖类', default=0)
 
     @classmethod
     async def get_detail_by_report(cls, params: CoverageReportQuery):
@@ -163,23 +163,23 @@ class CoverageClassDetail(Base):
 class CoverageMethodDetail(Base):
     __tablename__ = 'coverage_method_detail'
 
-    report_id = Column(BigInteger(), nullable=False, comment='报告id')
-    name = Column(String(255), nullable=False, comment='包名')
-    method_md5 = Column(String(255), nullable=False, comment='类名')
-    class_id = Column(Integer, nullable=False, comment='类id')
-    params_string = Column(Text, nullable=False, comment='参数')
-    offset = Column(Integer(), nullable=False, comment='偏移量')
-    lines_covered_status = Column(Text, nullable=False, comment='行覆盖状态')
-    branch_missed = Column(Integer(), nullable=False, comment='未覆盖分支', default=0)
-    branch_covered = Column(Integer(), nullable=False, comment='覆盖分支', default=0)
-    instruction_missed = Column(Integer(), nullable=False, comment='未覆盖指令', default=0)
-    instruction_covered = Column(Integer(), nullable=False, comment='覆盖指令', default=0)
-    line_missed = Column(Integer(), nullable=False, comment='未覆盖行', default=0)
-    line_covered = Column(Integer(), nullable=False, comment='覆盖行', default=0)
-    complexity_missed = Column(Integer(), nullable=False, comment='未覆盖复杂度', default=0)
-    complexity_covered = Column(Integer(), nullable=False, comment='覆盖复杂度', default=0)
-    method_missed = Column(Integer(), nullable=False, comment='未覆盖方法', default=0)
-    method_covered = Column(Integer(), nullable=False, comment='覆盖方法', default=0)
+    report_id = mapped_column(BigInteger(), nullable=False, comment='报告id')
+    name = mapped_column(String(255),nullable=False,  comment='包名')
+    method_md5 = mapped_column(String(255),  comment='类名')
+    class_id = mapped_column(Integer,  comment='类id')
+    params_string = mapped_column(Text,  comment='参数')
+    offset = mapped_column(Integer(),  comment='偏移量')
+    lines_covered_status = mapped_column(Text,  comment='行覆盖状态')
+    branch_missed = mapped_column(Integer(),  comment='未覆盖分支', default=0)
+    branch_covered = mapped_column(Integer(),  comment='覆盖分支', default=0)
+    instruction_missed = mapped_column(Integer(),  comment='未覆盖指令', default=0)
+    instruction_covered = mapped_column(Integer(),  comment='覆盖指令', default=0)
+    line_missed = mapped_column(Integer(),  comment='未覆盖行', default=0)
+    line_covered = mapped_column(Integer(),  comment='覆盖行', default=0)
+    complexity_missed = mapped_column(Integer(),  comment='未覆盖复杂度', default=0)
+    complexity_covered = mapped_column(Integer(),  comment='覆盖复杂度', default=0)
+    method_missed = mapped_column(Integer(),  comment='未覆盖方法', default=0)
+    method_covered = mapped_column(Integer(),  comment='覆盖方法', default=0)
 
     @classmethod
     async def get_detail_by_class(cls, params: CoverageReportQuery):

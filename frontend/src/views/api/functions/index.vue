@@ -140,7 +140,7 @@
                 :options="state.options"
                 style="height: 300px;"
                 v-model:value="state.debugFuncResult"
-                v-model:long="state.long"
+                v-model:lang="state.lang"
             />
           </el-descriptions-item>
         </el-descriptions>
@@ -236,7 +236,7 @@ const state = reactive({
       enabled: false
     }
   },
-  long: "python",
+  lang: "python",
   // 选中数据
   selectChangeList: [],
 

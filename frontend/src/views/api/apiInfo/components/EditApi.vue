@@ -295,6 +295,7 @@ const saveOrUpdateOrDebug = (type: string) => {
           .then(res => {
             ElMessage.success('保存成功！')
             state.api_id = res.data.id
+            ApiInfoRef.value.setData(res.data)
           })
     } else {
       // testCaseData.type = type
@@ -332,8 +333,7 @@ const saveOrUpdateOrDebug = (type: string) => {
   }
 }
 
-const initApi = () => {
-  let api_id: any
+const initApi = (api_id: any) => {
   if (props.api_id) {
     api_id = props.api_id
     state.reportData = null

@@ -1,6 +1,6 @@
 <template>
   <div class="step-details">
-    <z-step-controller use_type="pre" :data="state.preSteps" :case_id="state.case_id"></z-step-controller>
+    <z-step-controller use_type="pre" :steps="state.preSteps" :case_id="state.case_id"></z-step-controller>
   </div>
 </template>
 

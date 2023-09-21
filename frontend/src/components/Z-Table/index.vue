@@ -3,7 +3,7 @@
       :data="data"
       :size="size"
       :tree-props="treeProps"
-      :row-key="rowKey"
+      :row-key="rowKey || ''"
       v-bind="attrs"
       :load="load"
       :border="border"
@@ -14,9 +14,10 @@
       @row-click="handleRowClick"
       @cell-click="handleCellClick"
       @sort-change="handleSortChange">
-    <template v-for="(col, index) in columns" :key="index">
+    <template v-for="(col, index) in columns">
       <!---复选框, 序号 (START)-->
       <el-table-column
+          :key="index"
           class-name="index-class"
           v-if="col.columnType === 'index' || col.columnType === 'selection' || col.columnType === 'expand'"
           :sortable="col.sortable"
@@ -42,7 +43,7 @@
       <!---图片 (START)-->
       <el-table-column
           v-else
-          :key="index"
+          :key="index + 1"
           v-bind="col"
           :render-header="col.renderHeader"
           :show-overflow-tooltip="col.show"
@@ -155,7 +156,7 @@ const props = defineProps({
   rowKey: {
     type: String,
     default() {
-      return ""
+      return undefined
     }
   },
   border: {

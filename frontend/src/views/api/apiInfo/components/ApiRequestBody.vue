@@ -132,7 +132,7 @@
             style="height: 420px"
             ref="monacoEditRef"
             v-model:value="state.rawData"
-            v-model:long="state.long"
+            v-model:lang="state.lang"
         ></z-monaco-editor>
       </div>
 
@@ -224,7 +224,7 @@ interface StateData {
   formData: Array<any>,
   formDatatypeOptions: Array<string>,
   fileData: object,
-  long: string,
+  lang: string,
 }
 
 const monacoEditRef = ref()
@@ -245,7 +245,7 @@ const state = reactive<StateData>({
   fileData: {},
 
   //monaco
-  long: 'json',
+  lang: 'json',
 });
 
 // 初始化数据
@@ -258,6 +258,7 @@ const initData = () => {
 }
 // 初始化表单
 const setData = (data: any) => {
+  console.log("data,", data)
   initData()
   if (!data) return
 
@@ -267,7 +268,7 @@ const setData = (data: any) => {
       state.formData = data.data ? data.data : []
       break
     case 'raw':
-      state.rawData = data.data.replace('/\\n/g', "\n")
+      state.rawData = data.data
       state.language = data.language
       break
     case 'params':
@@ -321,11 +322,6 @@ const handleLanguage = (language: any) => {
 // 处理头信息
 const updateContentType = (remove: any = false) => {
   emit('updateContentType', state.mode, state.language, remove)
-}
-
-// 打开语言选择面板
-const showPopover = () => {
-  state.popoverOpen = !state.popoverOpen
 }
 
 // bodyData
@@ -400,10 +396,10 @@ watch(
     () => state.language,
     (val) => {
       if (val.toLowerCase() == 'text') {
-        state.long = 'plaintext'
+        state.lang = 'plaintext'
       }
       if (val.toLowerCase() == 'json') {
-        state.long = 'json'
+        state.lang = 'json'
       }
     }
 );

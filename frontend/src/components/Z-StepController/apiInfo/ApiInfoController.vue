@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup name="apiInfoController">
-import {defineAsyncComponent, PropType, reactive} from 'vue';
+import {defineAsyncComponent, reactive} from 'vue';
 
 const ApiInfo = defineAsyncComponent(() => import("/@/views/api/apiInfo/components/EditApi.vue"))
 

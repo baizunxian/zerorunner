@@ -2,15 +2,18 @@
   <el-table
       v-if="state.showStepTable"
       class="ui-case-step"
-      :data="stepData"
+      v-model:data="stepData"
       rowKey="index"
+      key="ui-step-info-key"
       ref="tableRef">
 
     <el-table-column width="40" align="center">
       <template #default="{row}">
-        <span class="move">
-        <el-icon class="step-rank"><Rank></Rank></el-icon>
-          </span>
+        <div class="move" style="cursor: all-scroll">
+          <el-icon class="step-rank">
+            <Rank></Rank>
+          </el-icon>
+        </div>
       </template>
     </el-table-column>
 
@@ -18,7 +21,7 @@
       <template #default="{row}">
         <div style="padding: 0 30px">
           <z-monaco-editor style="height: 200px"
-                           long="python"
+                           lang="python"
                            v-model:value="row.script">
           </z-monaco-editor>
         </div>
@@ -141,12 +144,13 @@
 </template>
 
 <script setup lang="ts" name="EditPage">
-import {ElButton, ElCascader, ElInput, ElCheckbox} from "element-plus";
-import {computed, h, nextTick, onMounted, reactive, ref, watch} from "vue";
+import {ElButton, ElCascader, ElCheckbox, ElInput} from "element-plus";
+import {h, nextTick, onMounted, reactive, ref, watch} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
-import {CirclePlus, RefreshLeft, Top, Bottom, Rank} from "@element-plus/icons-vue"
+import {Bottom, CirclePlus, Rank, RefreshLeft, Top} from "@element-plus/icons-vue"
 import MonacoEditor from "/@/components/monaco/index.vue";
 import Sortable from "sortablejs";
+import useVModel from "/@/utils/useVModel";
 
 const tableRef = ref()
 
@@ -175,14 +179,13 @@ const state = reactive({
       key: 'script', prop: 'script', label: '', columnType: 'expand', width: '30', show: true,
       render: ({row}: any) => h(MonacoEditor, {
         value: row.script,
-        language: 'python',
+        lang: 'python',
         style: {
           height: '200px',
           width: '100%',
           margin: '0 30px',
         },
         "onUpdate:value": (val: any) => {
-          console.log(val, 'val')
           row.script = val
         },
         options: {
@@ -324,14 +327,8 @@ const state = reactive({
   showStepTable: true,
 });
 
-const stepData = computed({
-  get() {
-    return props.stepDataList
-  },
-  set(val) {
-    emit('update:stepDataList', {...val})
-  }
-})
+const stepData = useVModel(props, 'stepDataList', emit)
+
 
 const getAllPageElement = () => {
   useUiPageApi().getAllPageElement({})
@@ -407,7 +404,7 @@ const pageElementChange = (value: any, row: any) => {
 // 移动数据
 const moveStep = (index: number, type: string) => {
   let deleteData = stepData.value.splice(index, 1)   //截取数组里的一个数据
-  let start = null
+  let start: number | null = null
   if (type === 'up') {
     start = index === 0 ? 0 : index - 1
   } else {
@@ -417,73 +414,56 @@ const moveStep = (index: number, type: string) => {
 }
 
 const createSortable = () => {
-  // let tableList = tableRef.value.$el.querySelector('.ui-case-step .el-table__body-wrapper tbody')
-  // console.log(tableList, 'tableList')
-  // let el
-  // if (tableList && tableList.length > 0) {
-  //   el = tableList[0].querySelector('tbody')
-  // }
-  // console.log(11111111111)
-  // console.log(el, 'el')
-  // if (el) {
-  Sortable.create(tableRef.value.$el.querySelector('.ui-case-step .el-table__body-wrapper tbody')), {
-    animation: 150,
-    sort: true,
-    handle: ".move",
-    // draggable: '.icon-step-rank', // 设置可拖拽行的类名(el-table自带的类名)
-    forceFallback: true,
-    onStart: () => {
-      console.log("开始拖动");
-    },
-    onEnd: onEndFunc
-    // }
+  const el = tableRef.value.$el.querySelector('.ui-case-step .el-table__body-wrapper tbody')
+  if (el) {
+    Sortable.create(el, {
+      animation: 200,
+      sort: true,
+      handle: ".move",
+      fallbackClass: "custom-fallback-class",
+      forceFallback: true,
+      onEnd: ({newIndex, oldIndex}: any) => {
+        let newStepData = stepData.value
+        const currRow = newStepData.splice(oldIndex, 1)[0]
+        newStepData.splice(newIndex, 0, currRow)
+        nextTick(() => {
+          stepData.value = [...newStepData]
+          computeDataIndex(stepData.value)
+        })
+      }
+    });
+
   }
+
 }
-
-const onEndFunc = ({newIndex, oldIndex}: any) => {
-
-  console.log(stepData.value, 'stepDataList')
-  console.log(newIndex, 'newIndex')
-  stepData.value.splice(newIndex, 0, stepData.value.splice(oldIndex, 1)[0])
-  // state.showStepTable = false
-  // nextTick(() => {
-  //   state.showStepTable = true
-  //   nextTick(() => {
-  //     createSortable()
-  //   })
-  // })
-}
-
 
 onMounted(() => {
   getAllPageElement()
-  nextTick(() => {
-    createSortable()
-  })
+  createSortable()
 })
 
-watch(
-    () => props.data,
-    (val) => {
-      let newData = JSON.parse(JSON.stringify(val))
-      newData.project_module = [newData.project_id, newData.module_id]
-      state.form = newData
-    },
-    {
-      deep: true,
-    }
-);
+// watch(
+//     () => props.data,
+//     (val) => {
+//       let newData = JSON.parse(JSON.stringify(val))
+//       newData.project_module = [newData.project_id, newData.module_id]
+//       state.form = newData
+//     },
+//     {
+//       deep: true,
+//     }
+// );
 
-watch(
-    () => stepData.value,
-    (val) => {
-      console.log(val, 'stepDataList111')
-      computeDataIndex(stepData.value)
-    },
-    {
-      deep: true,
-    }
-);
+// watch(
+//     () => stepData.value,
+//     (val) => {
+//       console.log(val, 'stepDataList111')
+//       computeDataIndex(stepData.value)
+//     },
+//     {
+//       deep: true,
+//     }
+// );
 
 </script>
 
@@ -514,4 +494,41 @@ watch(
   cursor: pointer;
 }
 
+</style>
+
+<style>
+
+@-webkit-keyframes drag-custom-fallback-class {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes drag-custom-fallback-class {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+/* 定义自定义fallbackClass的样式 */
+.custom-fallback-class {
+  -webkit-animation: drag-custom-fallback-class 0.7s infinite;
+  animation: drag-custom-fallback-class 0.7s infinite;
+  background-color: lightyellow; /* 背景颜色为淡黄色 */
+  border: 2px dashed orange; /* 边框为橙色虚线 */
+  opacity: 0.5; /* 透明度为50% */
+  cursor: grab; /* 光标为手型 */
+}
 </style>

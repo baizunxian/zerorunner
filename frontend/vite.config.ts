@@ -39,6 +39,7 @@ const viteConfig = defineConfig((mode: ConfigEnv) => {
         '@vueuse/core',
         'pinia',
         'axios',
+        'monaco-editor',
         'element-plus/es',
         'element-plus/es/components/form/style/index',
         'element-plus/es/components/radio-group/style/index',

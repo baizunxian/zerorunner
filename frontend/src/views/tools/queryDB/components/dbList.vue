@@ -82,7 +82,7 @@
           :style="{height: '500px'}"
           ref="monacoEditRef"
           v-model:value="state.createTableContent"
-          long="sql"
+          lang="sql"
       ></z-monaco-editor>
     </el-dialog>
 

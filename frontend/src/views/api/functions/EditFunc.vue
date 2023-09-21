@@ -30,7 +30,7 @@
         <!--      展示-->
         <z-monaco-editor
             v-model:value="state.funcFrom.content"
-            v-model:long="state.long"
+            v-model:lang="state.lang"
         />
       </div>
 
@@ -62,7 +62,7 @@
             :isDiff="true"
             v-model:oldString="state.originalFuncContent"
             v-model:value="state.funcFrom.content"
-            v-model:long="state.long"
+            v-model:long="state.lang"
         />
       </div>
 
@@ -89,7 +89,7 @@ const state = reactive({
     remarks: ''
   },
 
-  long: 'python',
+  lang: 'python',
 
   // diff
   showDiff: false,

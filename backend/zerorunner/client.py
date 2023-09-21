@@ -190,8 +190,6 @@ class HttpSession(requests.Session):
 
         # set stream to True, in order to get client/server IP/Port
         kwargs["stream"] = True
-        # if kwargs["data"]:
-        #     kwargs["data"] = kwargs["data"].encode("utf-8")
 
         start_timestamp = time.time()
         response = self._send_request_safe_mode(method, url, **kwargs)
@@ -214,7 +212,7 @@ class HttpSession(requests.Session):
             pass
 
         # get length of the response content
-        content_size = int(response.headers.get("content-length", 0))
+        content_size = response.content.__len__() or int(response.headers.get("content-length", 0))
 
         # record the consumed time
         self.data.stat.response_time_ms = response_time_ms

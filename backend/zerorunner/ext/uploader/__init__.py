@@ -10,7 +10,7 @@ Then you can write upload test db_script as below:
     - test:
         name: upload file
         request:
-            url: http://httpbin.org/upload
+            url: http://xxx.org/upload
             method: POST
             headers:
                 Cookie: session=AAA-BBB-CCC
@@ -31,7 +31,7 @@ For compatibility, you can also write upload test db_script in old way:
             field2: "value2"
             m_encoder: ${multipart_encoder(file=$file, field1=$field1, field2=$field2)}
         request:
-            url: http://httpbin.org/upload
+            url: http://xxx.org/upload
             method: POST
             headers:
                 Content-Type: ${multipart_content_type($m_encoder)}
@@ -68,9 +68,6 @@ def ensure_upload_ready():
     uploader extension dependencies uninstalled, install first and try again.
     install with pip:
     $ pip install requests_toolbelt filetype
-
-    or you can install zerorunner with optional upload dependencies:
-    $ pip install "zerorunner[upload]"
     """
     logger.error(msg)
     sys.exit(1)
@@ -120,7 +117,7 @@ def prepare_upload_step(step: TStep, functions: FunctionsMapping):
     # parse variables
     step.variables = parse_variables_mapping(step.variables, functions)
 
-    step.request.headers["Content-Type"] = "${multipart_content_type($m_encoder)}"
+    step.request.headers["Content-Type"] = "${multipart_content_type(${m_encoder})}"
 
     step.request.data = "$m_encoder"
     return upload_variables

@@ -51,8 +51,8 @@ class ApiInfoService:
             if api_info.name != params.name:
                 if existing_data:
                     raise ParameterError("用例名重复!")
-
-        return await ApiInfo.create_or_update(params.dict())
+        await ApiInfo.create_or_update(params.dict())
+        return await ApiInfo.get(params.id)
 
     @staticmethod
     async def set_api_status(**kwargs: typing.Any):

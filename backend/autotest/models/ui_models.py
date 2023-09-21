@@ -1,12 +1,11 @@
 import typing
 
-from sqlalchemy import Column, String, Integer, JSON, select, func, Text, DateTime, text, DECIMAL
-from sqlalchemy.orm import aliased
+from sqlalchemy import String, Integer, JSON, select, func, Text, DateTime, text, DECIMAL
+from sqlalchemy.orm import aliased, mapped_column
 
 from autotest.models.api_models import ProjectInfo, ModuleInfo
 from autotest.models.base import Base
 from autotest.models.system_models import User, FileInfo
-from autotest.schemas.api.api_report import TestReportQuery
 from autotest.schemas.ui.ui_case import UiCaseQuery
 from autotest.schemas.ui.ui_element import UiElementQuery
 from autotest.schemas.ui.ui_page import UiPageQuery
@@ -17,12 +16,12 @@ class UiPage(Base):
     """页面表"""
     __tablename__ = 'ui_page'
 
-    name = Column(String(255), nullable=False, comment='页面名称', index=True)
-    url = Column(String(255), nullable=False, comment='url')
-    project_id = Column(Integer, nullable=True, comment='项目id')
-    module_id = Column(Integer, nullable=True, comment='模块id')
-    tags = Column(JSON, nullable=False, comment='标签')
-    remarks = Column(String(255), nullable=True, comment='备注')
+    name = mapped_column(String(255), nullable=False, comment='页面名称', index=True)
+    url = mapped_column(String(255), comment='url')
+    project_id = mapped_column(Integer, comment='项目id')
+    module_id = mapped_column(Integer, comment='模块id')
+    tags = mapped_column(JSON, comment='标签')
+    remarks = mapped_column(String(255), comment='备注')
 
     @classmethod
     async def get_list(cls, params: UiPageQuery):
@@ -71,11 +70,11 @@ class UiElement(Base):
     """元素表"""
     __tablename__ = 'ui_element'
 
-    name = Column(String(255), nullable=False, comment='元素名称', index=True)
-    location_method = Column(String(255), nullable=True, comment='定位类型')
-    location_value = Column(String(255), nullable=True, comment='定位元素值')
-    page_id = Column(Integer, nullable=False, comment='关联页面', index=True)
-    remarks = Column(String(255), nullable=True, comment='备注')
+    name = mapped_column(String(255), nullable=False, comment='元素名称', index=True)
+    location_method = mapped_column(String(255), comment='定位类型')
+    location_value = mapped_column(String(255), comment='定位元素值')
+    page_id = mapped_column(Integer, comment='关联页面', index=True)
+    remarks = mapped_column(String(255), comment='备注')
 
     @classmethod
     async def get_list(cls, params: UiElementQuery):
@@ -112,16 +111,16 @@ class UiCase(Base):
     """ui 用例表"""
     __tablename__ = 'ui_case'
 
-    name = Column(String(255), nullable=False, comment='用例名', index=True)
-    tags = Column(JSON, nullable=True, comment='自动化标记')
-    project_id = Column(Integer, nullable=True, comment='项目id')
-    module_id = Column(Integer, nullable=True, comment='模块id')
-    steps = Column(JSON, nullable=True, comment='运行步骤')
-    setup_hooks = Column(JSON, nullable=True, comment='前置操作')
-    teardown_hooks = Column(JSON, nullable=True, comment='后置操作')
-    variables = Column(JSON, nullable=True, comment='变量')
-    version = Column(String(255), nullable=False, comment='版本')
-    remarks = Column(String(255), nullable=True, comment='备注')
+    name = mapped_column(String(255), nullable=False, comment='用例名', index=True)
+    tags = mapped_column(JSON, comment='自动化标记')
+    project_id = mapped_column(Integer, comment='项目id')
+    module_id = mapped_column(Integer, comment='模块id')
+    steps = mapped_column(JSON, comment='运行步骤')
+    setup_hooks = mapped_column(JSON, comment='前置操作')
+    teardown_hooks = mapped_column(JSON, comment='后置操作')
+    variables = mapped_column(JSON, comment='变量')
+    version = mapped_column(String(255), comment='版本')
+    remarks = mapped_column(String(255), comment='备注')
 
     @classmethod
     async def get_list(cls, params: UiCaseQuery):
@@ -168,38 +167,38 @@ class UiSteps(Base):
     """步骤表"""
     __tablename__ = 'ui_steps'
 
-    index = Column(Integer, nullable=False, comment='步骤排序', index=True)
-    operation = Column(String(255), nullable=True, comment='操作')
-    input_data = Column(String(255), nullable=True, comment='输入数据')
-    location_method = Column(String(255), nullable=True, comment='定位元素方式')
-    location_value = Column(String(255), nullable=True, comment='定位元素值')
-    output = Column(String(255), nullable=True, comment='输出')
-    remarks = Column(String(255), nullable=True, comment='备注')
-    case_id = Column(Integer, nullable=True, comment='关联ui测试用例')
-    version = Column(String(255), nullable=False, comment='版本')
+    index = mapped_column(Integer, nullable=False, comment='步骤排序', index=True)
+    operation = mapped_column(String(255), comment='操作')
+    input_data = mapped_column(String(255), comment='输入数据')
+    location_method = mapped_column(String(255), comment='定位元素方式')
+    location_value = mapped_column(String(255), comment='定位元素值')
+    output = mapped_column(String(255), comment='输出')
+    remarks = mapped_column(String(255), comment='备注')
+    case_id = mapped_column(Integer, comment='关联ui测试用例')
+    version = mapped_column(String(255), comment='版本')
 
 
 class UiReports(Base):
     """报告表"""
     __tablename__ = 'ui_reports'
 
-    name = Column(String(255), nullable=False, comment='报告名', index=True)
-    start_time = Column(DateTime, nullable=True, comment='执行时间')
-    duration = Column(DECIMAL(), nullable=True, comment='执行耗时')
-    case_id = Column(Integer(), nullable=True, comment='用例id', index=True)
-    run_type = Column(Integer, nullable=True, comment='运行类型， 10 同步， 20 异步，30 定时任务')
-    success = Column(Integer(), nullable=True, comment='是否成功')
-    run_count = Column(Integer, nullable=True, comment='运行步骤数')
-    run_success_count = Column(Integer, nullable=True, comment='运行成功数')
-    run_fail_count = Column(Integer, nullable=True, comment='运行失败数')
-    run_skip_count = Column(Integer, nullable=True, comment='运行跳过数')
-    run_err_count = Column(Integer, nullable=True, comment='运行错误数')
-    run_log = Column(Text, nullable=True, comment='运行日志')
-    project_id = Column(String(255), nullable=True, comment='项目id')
-    module_id = Column(String(255), nullable=True, comment='模块id')
-    env_id = Column(Integer, nullable=True, comment='运行环境')
-    exec_user_id = Column(Integer, nullable=True, comment='执行人id')
-    exec_user_name = Column(String(255), nullable=True, comment='执行人昵称')
+    name = mapped_column(String(255), nullable=False, comment='报告名', index=True)
+    start_time = mapped_column(DateTime, comment='执行时间')
+    duration = mapped_column(DECIMAL(), comment='执行耗时')
+    case_id = mapped_column(Integer(), comment='用例id', index=True)
+    run_type = mapped_column(Integer, comment='运行类型， 10 同步， 20 异步，30 定时任务')
+    success = mapped_column(Integer(), comment='是否成功')
+    run_count = mapped_column(Integer, comment='运行步骤数')
+    run_success_count = mapped_column(Integer, comment='运行成功数')
+    run_fail_count = mapped_column(Integer, comment='运行失败数')
+    run_skip_count = mapped_column(Integer, comment='运行跳过数')
+    run_err_count = mapped_column(Integer, comment='运行错误数')
+    run_log = mapped_column(Text, comment='运行日志')
+    project_id = mapped_column(String(255), comment='项目id')
+    module_id = mapped_column(String(255), comment='模块id')
+    env_id = mapped_column(Integer, comment='运行环境')
+    exec_user_id = mapped_column(Integer, comment='执行人id')
+    exec_user_name = mapped_column(String(255), comment='执行人昵称')
 
     @classmethod
     async def get_list(cls, params: UiReportQuery):
@@ -301,27 +300,27 @@ class UiReportDetail:
                 __name__ = class_name,
                 __tablename__ = class_name
 
-                name = Column(String(255), nullable=False, comment='报告名', index=True)
-                index = Column(Integer, nullable=False, comment='步骤顺序')
-                variables = Column(JSON, nullable=True, comment='步骤变量')
-                data = Column(String(500), nullable=True, comment='步骤数据')
-                action = Column(String(255), nullable=True, comment='步骤动作')
-                location_method = Column(String(255), nullable=True, comment='定位方式')
-                location_value = Column(String(255), nullable=True, comment='定位值')
-                report_id = Column(Integer, nullable=False, comment='报告id', index=True)
-                success = Column(Integer(), nullable=True, comment='是否成功')
-                status = Column(String(255), nullable=True, comment='状态')
-                case_id = Column(Integer(), nullable=True, comment='用例id', index=True)
-                step_id = Column(Integer(), nullable=True, comment='步骤id', index=True)
-                remarks = Column(String(255), nullable=True, comment='备注')
-                start_time = Column(DateTime, nullable=True, comment='开始时间')
-                duration = Column(DECIMAL(), nullable=True, comment='耗时')
-                setup_hook_results = Column(JSON, nullable=True, comment='前置hook结果')
-                teardown_hook_results = Column(JSON, nullable=True, comment='后置hook结果')
-                validator_results = Column(JSON, nullable=True, comment='断言结果')
-                screenshot_file_id = Column(String(255), nullable=True, comment='截图文件id')
-                log = Column(Text, nullable=True, comment='运行日志')
-                message = Column(Text, nullable=True, comment='运行信息')
+                name = mapped_column(String(255), nullable=False, comment='报告名', index=True)
+                index = mapped_column(Integer, comment='步骤顺序')
+                variables = mapped_column(JSON, comment='步骤变量')
+                data = mapped_column(String(500), comment='步骤数据')
+                action = mapped_column(String(255), comment='步骤动作')
+                location_method = mapped_column(String(255), comment='定位方式')
+                location_value = mapped_column(String(255), comment='定位值')
+                report_id = mapped_column(Integer, comment='报告id', index=True)
+                success = mapped_column(Integer(), comment='是否成功')
+                status = mapped_column(String(255), comment='状态')
+                case_id = mapped_column(Integer(), comment='用例id', index=True)
+                step_id = mapped_column(Integer(), comment='步骤id', index=True)
+                remarks = mapped_column(String(255), comment='备注')
+                start_time = mapped_column(DateTime, comment='开始时间')
+                duration = mapped_column(DECIMAL(), comment='耗时')
+                setup_hook_results = mapped_column(JSON, comment='前置hook结果')
+                teardown_hook_results = mapped_column(JSON, comment='后置hook结果')
+                validator_results = mapped_column(JSON, comment='断言结果')
+                screenshot_file_id = mapped_column(String(255), comment='截图文件id')
+                log = mapped_column(Text, comment='运行日志')
+                message = mapped_column(Text, comment='运行信息')
 
                 @classmethod
                 async def get_list(cls, params: UiReportDetailQuery):

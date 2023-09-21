@@ -1,5 +1,5 @@
 <template>
-  <ExtractController :data="state.extracts"></ExtractController>
+  <ExtractController :extracts="state.extracts"></ExtractController>
 </template>
 
 <script setup lang="ts" name="extracts">

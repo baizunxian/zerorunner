@@ -134,6 +134,7 @@ def run_api_request(runner: SessionRunner,
             #     zero.request.headers.get(""), merge_variable
             # )
             # request_dict["headers"].update(parsed_zero_headers)
+
             parsed_zero_environment = runner.parser.parse_data(
                 zero.environment.get_environment(), merge_variable
             )

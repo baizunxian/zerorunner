@@ -24,7 +24,8 @@
 		"sortablejs": "^1.15.0",
 		"vue": "^3.2.45",
 		"vue-clipboard3": "^2.0.0",
-		"vue-router": "^4.1.6"
+		"vue-router": "^4.1.6",
+		"vuedraggable": "^4.1.0"
 	},
 	"devDependencies": {
 		"@types/node": "^18.11.13",
@@ -45,7 +46,6 @@
 		"vite-plugin-monaco-editor": "1.0.5",
 		"vite-plugin-vue-setup-extend": "^0.4.0",
 		"vue-eslint-parser": "^9.1.0",
-		"vuedraggable": "^4.1.0",
 		"xterm": "^5.1.0",
 		"xterm-addon-fit": "^0.7.0"
 	},

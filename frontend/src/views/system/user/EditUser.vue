@@ -122,7 +122,6 @@ const state = reactive({
 const openDialog = (editType: string, row: any) => {
   state.editType = editType
   if (row) {
-    console.log(row)
     state.form = JSON.parse(JSON.stringify(row));
   } else {
     state.form = createForm()

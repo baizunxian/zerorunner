@@ -1,30 +1,6 @@
 <template>
   <div class="h100" id="stepController" style="overflow-y: auto">
-    <el-backtop :right="200" :bottom="200" :visibility-height="10" target="#stepController"/>
     <div class="h100" style="overflow-y: auto;">
-      <!--      <el-dropdown style="padding-left: 33px">-->
-      <!--        <el-button type="primary">-->
-      <!--          {{ `添加${use_type === 'case' ? '步骤' : 'Hook'}` }}-->
-      <!--          <el-icon class="el-icon&#45;&#45;right">-->
-      <!--            <arrowDown/>-->
-      <!--          </el-icon>-->
-      <!--        </el-button>-->
-      <!--        <template #dropdown>-->
-      <!--          <el-dropdown-menu>-->
-      <!--            <el-dropdown-item v-for="(value, key)  in state.optTypes"-->
-      <!--                              :key="key"-->
-      <!--                              style="margin: 5px 0"-->
-      <!--                              :style="{ color: getStepTypeInfo(key,'color')}"-->
-      <!--                              @click="handleAddData(key)">-->
-      <!--              <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"-->
-      <!--                 :style="{color:getStepTypeInfo(key,'color')}"></i>-->
-      <!--              {{ value }}-->
-      <!--            </el-dropdown-item>-->
-
-      <!--          </el-dropdown-menu>-->
-      <!--        </template>-->
-      <!--      </el-dropdown>-->
-
       <el-tree
           ref="stepTreeRef"
           draggable
@@ -35,9 +11,9 @@
           @node-drag-start="handleDrop"
           :expand-on-click-node="false"
           :props="{children: 'sub_steps'}"
-          :data="data">
+          :data="steps">
         <template #default="{ node }">
-          <StepNode v-model:data="node.data"
+          <StepNode v-model:step="node.data"
                     :node="node"
                     :class="[node.data.step_type ==='case'?'treeCaseStep':'']"
                     :opt-type="state.optTypes"
@@ -57,17 +33,13 @@
 
 <script lang="ts" setup name="stepController">
 import type {PropType} from 'vue'
-import {nextTick, onMounted, reactive, ref, watch} from 'vue';
-import {useRoute, useRouter} from "vue-router"
+import {reactive, ref, watch} from 'vue';
 import StepNode from "/@/components/Z-StepController/StepNode.vue";
 import SelectCase from "/@/components/Z-StepController/apiInfo/SelectApi.vue";
-import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
-import {ArrowDown} from '@element-plus/icons-vue'
 import ApiInfoController from "./apiInfo/ApiInfoController.vue"
+import useVModel from "/@/utils/useVModel";
 
-
-const emit = defineEmits([])
-
+const emit = defineEmits(['update:steps'])
 const props = defineProps({
   use_type: {
     type: String,
@@ -75,7 +47,7 @@ const props = defineProps({
       return 'pre'   // pre 前置  post 候置  case 用例
     }
   },
-  data: {
+  steps: {
     type: Array,
     default: () => []
   },
@@ -87,9 +59,10 @@ const props = defineProps({
   }
 })
 
+const steps = useVModel(props, 'steps', emit) as any
+
+
 const ApiInfoControllerRef = ref()
-const route = useRoute()
-const router = useRouter()
 const selectApiRef = ref()
 const stepTreeRef = ref()
 
@@ -101,11 +74,6 @@ const state = reactive({
   showApioInfo: false,
 
 });
-
-
-const initFabMenu = (stepType: string | null) => {
-  state.optTypes = getStepTypesByUse(props.use_type)
-}
 
 // 拖动处理
 const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
@@ -120,6 +88,9 @@ const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
 
 // 节点拖动完成重新计算顺序
 const handleDrop = (node: any, event: any) => {
+  console.log(node, event, "node, event")
+  // event.preventDefault()
+  // event.stopPropagation()
   // return false
 }
 
@@ -159,12 +130,8 @@ const appendTreeDate = (data: any) => {
     if (!parentNode.sub_steps) {
       parentNode.sub_steps = []
     }
-    // parentNode.teststeps.push(data)
-    // emit("update:data", [...props.data])
-    // props.data = [...props.data]
     stepTreeRef.value.append(data, parentNode.id)
   } else {
-    // props.data.push(data)
     stepTreeRef.value.append(data, null)
   }
 }
@@ -190,6 +157,7 @@ const getStepData = () => {
     wait_request: null,
     script_request: null,
     showDetail: false,
+    ui_request: null,
   }
   return stepData
 }
@@ -216,18 +184,7 @@ const getAddData = (optType: string) => {
       wait_time: 0
     }
 
-  }
-      // else if (optType === "extract") {
-      //   data = {
-      //     id: id,
-      //     name: name,
-      //     value: null,
-      //     json_path_list: [],
-      //     step_type: "extract",
-      //     enable: true
-      //   }
-  // }
-  else if (optType === "if") {
+  } else if (optType === "if") {
     data.if_request = {
       check: "",
       comparator: "",
@@ -291,15 +248,11 @@ const deletedNode = (node: any) => {
   // props.data.splice(index, 1)
 }
 const copyNode = (data: any) => {
-  props.data.push(JSON.parse(JSON.stringify(data)))
-}
-
-const clickBlank = () => {
-  stepTreeRef.value?.setCurrentKey(null)
+  steps.value.push(JSON.parse(JSON.stringify(data)))
 }
 
 watch(
-    () => props.data,
+    () => steps.value,
     (value) => {
       computeDataIndex(value)
     },
@@ -307,10 +260,6 @@ watch(
       deep: true
     }
 )
-
-onMounted(() => {
-  initFabMenu(null)
-})
 
 defineExpose({
   handleAddData,

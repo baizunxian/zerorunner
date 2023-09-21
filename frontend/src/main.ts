@@ -10,8 +10,8 @@ import 'element-plus/dist/index.css';
 import '/@/theme/index.scss';
 
 const app = createApp(App);
-
 directive(app);
 other.apiPublicAssembly(app)
 
 app.use(pinia).use(router).use(ElementPlus).mount('#app');
+

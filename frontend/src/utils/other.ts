@@ -211,10 +211,12 @@ export function handleEmpty(list: EmptyArrayType) {
   for (const i in list) {
     const d = [];
     for (const j in list[i]) {
+       // @ts-ignore
       d.push(list[i][j]);
     }
     const leng = d.filter((item) => item === '').length;
     if (leng !== d.length) {
+      // @ts-ignore
       arr.push(list[i]);
     }
   }

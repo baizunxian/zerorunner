@@ -104,6 +104,7 @@ pre {
     // 内层 el-scrollbar样式，用于界面高度自适应（main.vue）
     .layout-main-scroll {
       @extend .layout-flex;
+       height: 100%;
 
       .layout-parent {
         @extend .layout-flex;

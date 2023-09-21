@@ -34,7 +34,7 @@
           <div class="step-details">
             <z-step-controller ref="setupHooksRef"
                                use_type="pre"
-                               :data="state.setup_hooks"
+                               :steps="state.setup_hooks"
                                :case_id="state.case_id">
             </z-step-controller>
           </div>
@@ -72,7 +72,7 @@
           <div class="step-details">
             <z-step-controller ref="teardownHookRef"
                                use_type="post"
-                               :data="state.teardown_hooks"
+                               :steps="state.teardown_hooks"
                                :case_id="state.case_id">
             </z-step-controller>
           </div>
