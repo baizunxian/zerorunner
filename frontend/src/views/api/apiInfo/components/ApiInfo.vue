@@ -173,7 +173,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="apiInfo">
+<script setup name="apiInfo">
 import {useProjectApi} from '/@/api/useAutoApi/project'
 import {useModuleApi} from '/@/api/useAutoApi/module'
 import {nextTick, onMounted, reactive, ref} from "vue";
@@ -245,7 +245,7 @@ const state = reactive({
 
 });
 // 初始化表单
-const setData = (formData: any) => {
+const setData = (formData) => {
   state.form = createForm()
   if (formData) {
     state.form = {...state.form, ...formData}
@@ -272,7 +272,7 @@ const getProjectTree = () => {
     })
 }
 // 选择项目
-const selectProject = (project_id: any) => {
+const selectProject = (project_id) => {
   state.form.module_id = null
   state.moduleList = []
   state.moduleQuery.project_id = project_id
@@ -297,14 +297,14 @@ const getEnvList = () => {
 };
 
 // methodChange
-const methodChange = (method: string) => {
+const methodChange = (method) => {
   let selectInputEl = methodRef.value.$el.getElementsByTagName("input")
   if (selectInputEl.length > 0) selectInputEl[0].style.color = getMethodColor(method)
 }
 
 // handlePojectModuleChange
 
-const projectModuleChange = (value: any) => {
+const projectModuleChange = (value) => {
   state.form.project_id = value[0]
   state.form.module_id = value[1]
 }
@@ -313,7 +313,7 @@ const projectModuleChange = (value: any) => {
 const showEditTag = () => {
   state.editTag = true
   nextTick(() => {
-    caseTagInputRef.value!.input!.focus()
+    caseTagInputRef.value?.input.focus()
   })
 }
 
@@ -325,7 +325,7 @@ const addTag = () => {
   state.editTag = false
   state.tagValue = ''
 }
-const removeTag = (tag: string) => {
+const removeTag = (tag) => {
   state.form.tags.splice(state.form.tags.indexOf(tag), 1)
 }
 
@@ -335,7 +335,7 @@ const handleDebug = () => {
 }
 
 // 保存，或调试用例
-const saveOrUpdateOrDebug = (handleType: string = 'save') => {
+const saveOrUpdateOrDebug = (handleType = 'save') => {
   if (!state.form.url) {
     ElMessage.warning('请填写请求地址信息!');
     return
@@ -344,7 +344,7 @@ const saveOrUpdateOrDebug = (handleType: string = 'save') => {
     ElMessage.warning('请选择请求方式！');
     return
   }
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
       if (handleType === 'save') {
         emit('saveOrUpdateOrDebug', 'save')

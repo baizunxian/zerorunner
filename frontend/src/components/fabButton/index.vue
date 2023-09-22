@@ -30,7 +30,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="z-fab">
+<script setup name="z-fab">
 import {reactive} from "vue";
 
 const props = defineProps({

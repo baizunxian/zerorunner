@@ -451,3 +451,6 @@ class DatabaseScheduler(Scheduler):
         """override"""
         # return infomation about Schedule
         return '    . db -> {self.db_uri}'.format(self=self)
+
+if __name__ == '__main__':
+    print(1)

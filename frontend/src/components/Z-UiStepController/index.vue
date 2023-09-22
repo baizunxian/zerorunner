@@ -26,15 +26,13 @@
       <el-backtop target=".el-tree"/>
     </div>
 
-        <UiInfoController ref="UiInfoDetailRef"></UiInfoController>
+    <UiInfoController ref="UiInfoDetailRef"></UiInfoController>
 
   </div>
 </template>
 
-<script lang="ts" setup name="uiStepController">
-import type {PropType} from 'vue'
+<script setup name="uiStepController">
 import {onMounted, reactive, ref} from 'vue';
-import {useRoute, useRouter} from "vue-router"
 import StepNode from "./StepNode.vue";
 import UiInfoController from "/@/components/Z-UiStepController/uiStepInfo/UiInfoController.vue";
 
@@ -53,7 +51,7 @@ const props = defineProps({
     default: () => []
   },
   case_id: {
-    type: [Number, String, null] as PropType<Number | String | null>,
+    type: [Number, String, null],
     default: () => {
       return null
     }
@@ -61,8 +59,6 @@ const props = defineProps({
 })
 
 const UiInfoDetailRef = ref()
-const route = useRoute()
-const router = useRouter()
 // const selectApiRef = ref()
 const stepTreeRef = ref()
 
@@ -77,7 +73,7 @@ const state = reactive({
 
 
 // 拖动处理
-const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
+const allowDrop = (draggingNode, dropNode, type) => {
   // if (dropNode.data.step_type === 'if' && type === 'inner') {
   //   return true
   // } else if (dropNode.data.step_type === 'loop' && type === 'inner') {
@@ -88,18 +84,18 @@ const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
 }
 
 // 节点拖动完成重新计算顺序
-const handleDrop = (node: any, event: any) => {
+const handleDrop = (node, event) => {
   // return false
 }
 
-const nodeClick = (data: any, node: any) => {
+const nodeClick = (data, node) => {
   UiInfoDetailRef.value.onOpenApiInfoPage(data)
 }
 
 // 计算index，保持拖动后顺序
-const computeDataIndex = (data: any) => {
+const computeDataIndex = (data) => {
   if (data) {
-    data.forEach((data: any, index: number) => {
+    data.forEach((data, index) => {
       data.index = index + 1
       if (data.sub_steps) {
         computeDataIndex(data.sub_steps)
@@ -120,7 +116,7 @@ const addData = () => {
 }
 
 const getStepData = () => {
-  let stepData: TStepDataStat = {
+  let stepData = {
     id: null,
     name: "",
     case_id: null,
@@ -152,11 +148,11 @@ const getStepData = () => {
   return stepData
 }
 
-const deletedNode = (node: any) => {
+const deletedNode = (node) => {
   stepTreeRef.value.remove(node)
   // props.data.splice(index, 1)
 }
-const copyNode = (data: any) => {
+const copyNode = (data) => {
   props.data.push(JSON.parse(JSON.stringify(data)))
 }
 

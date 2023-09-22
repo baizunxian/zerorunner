@@ -8,7 +8,7 @@
   <i v-else :class="getIconName" :style="setIconSvgStyle"/>
 </template>
 
-<script setup lang="ts" name="svgIcon">
+<script setup name="svgIcon">
 import {computed} from 'vue';
 
 // 定义父组件传过来的值
@@ -53,8 +53,8 @@ const setIconImgOutStyle = computed(() => {
 });
 // 设置图片样式
 const setIconSvgInsStyle = computed(() => {
-  const filterStyle: string[] = [];
-  const compatibles: string[] = ['-webkit', '-ms', '-o', '-moz'];
+  const filterStyle = [];
+  const compatibles = ['-webkit', '-ms', '-o', '-moz'];
   compatibles.forEach((j) => filterStyle.push(`${j}-filter: drop-shadow(${props.color} 30px 0);`));
   return `width: ${props.size}px;height: ${props.size}px;left: -${props.size}px;${filterStyle.join('')}`;
   // return `width: ${props.size}px;height: ${props.size}px;position: relative;left: -${props.size}px;${filterStyle.join('')}`;

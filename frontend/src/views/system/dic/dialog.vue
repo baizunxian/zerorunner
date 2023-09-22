@@ -63,7 +63,7 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="systemDicDialog">
+<script setup name="systemDicDialog">
 import { reactive, ref } from 'vue';
 
 // 定义子组件向父组件传值/事件
@@ -76,7 +76,7 @@ const state = reactive({
 		dicName: '', // 字典名称
 		fieldName: '', // 字段名
 		status: true, // 字典状态
-		list: [] as ListType[], // 子集字段 + 属性值
+		list: [], // 子集字段 + 属性值
 		describe: '', // 字典描述
 	},
 	dialog: {
@@ -88,7 +88,7 @@ const state = reactive({
 });
 
 // 打开弹窗
-const openDialog = (type: string, row: RowDicType) => {
+const openDialog = (type, row) => {
 	if (type === 'edit') {
 		if (row.fieldName === 'SYS_UERINFO') {
 			row.list = [
@@ -139,7 +139,7 @@ const onAddRow = () => {
 	});
 };
 // 删除行
-const onDelRow = (k: number) => {
+const onDelRow = (k) => {
 	state.ruleForm.list.splice(k, 1);
 };
 

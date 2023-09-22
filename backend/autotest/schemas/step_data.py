@@ -8,6 +8,19 @@ from autotest.schemas.base import BaseSchema
 from zerorunner.model.step_model import TStep, ValidatorData, TSqlRequest, TIFRequest, TLoopRequest
 from zerorunner.models import TRequest
 
+from enum import Enum
+
+
+class RequestMode(Enum):
+    """请求模式"""
+    RAW = "raw"
+    FORM_DATA = "form_data"
+    FILE = "file"
+    FORM_URLENCODED = "form-urlencoded"
+    none = "none"
+    JSON = "json"
+    TEXT = "text"
+
 
 class ApiBodyFileValueSchema(BaseSchema):
     id: str = Field("", description="文件id")

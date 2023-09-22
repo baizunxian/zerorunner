@@ -34,7 +34,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ApiEnv">
+<script setup name="ApiEnv">
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useEnvApi} from "/@/api/useAutoApi/env";
@@ -43,13 +43,12 @@ import EditEnv from './components/EditEnv.vue';
 
 const EditEnvRef = ref();
 const tableRef = ref();
-const router = useRouter();
 const state = reactive({
   columns: [
     {label: '序号', columnType: 'index', width: 'auto', align: 'center', show: true},
     {
       key: 'name', label: '环境名称', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -65,7 +64,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -116,7 +115,7 @@ const search = () => {
 }
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any | null) => {
+const onOpenSaveOrUpdate = (editType, row) => {
   state.editType = editType
   if (row && row.id) {
     state.env_id = row.id
@@ -133,7 +132,7 @@ const saveOrUpdate = () => {
 };
 
 // 删除角色
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

@@ -1,7 +1,7 @@
 <template>
   <div class="monaco-editor" ref="monacoEditorRef"></div>
 </template>
-<script lang="ts" setup name="monacoEditor">
+<script setup name="monacoEditor">
 import * as monaco from 'monaco-editor'
 import {onMounted, onUnmounted, reactive, ref, toRaw, watch} from 'vue'
 
@@ -76,11 +76,11 @@ const props = defineProps({
 
 const emit = defineEmits(["on-cursor-change", "update:value"])
 
-const editor: any = ref(null)
+const editor = ref(null)
 const monacoEditorRef = ref()
-const originalEditor: any = ref(null)
-const modifiedEditor: any = ref(null)
-const state = reactive<MonacoStateData>({
+const originalEditor = ref(null)
+const modifiedEditor = ref(null)
+const state = reactive({
   sqlSnippets: null,
   contentBackup: null,
   isSettingContent: false,
@@ -93,7 +93,7 @@ const state = reactive<MonacoStateData>({
     tabCompletion: 'on',
     cursorSmoothCaretAnimation: true,
     formatOnPaste: false,
-    mouseWheelZoom: function (e: any) {
+    mouseWheelZoom: function (e) {
       const editor = e.target;
       const isAtBottom = editor.getScrollTop() >= editor.getScrollHeight() - editor.getLayoutInfo().height;
       if (isAtBottom) {
@@ -124,13 +124,13 @@ const initEditor = () => {
       props.lang,
       {
         async provideCompletionItems(model, position) {
-          let suggestions: any = []
+          let suggestions = []
           switch (props.lang) {
             case "sql":
               return await state.sqlSnippets.provideCompletionItems(model, position)
             default:
               // language = pythonLanguage
-              // language.keywords.forEach((item: any) => {
+              // language.keywords.forEach((item) => {
               //   suggestions.push({
               //     label: item,
               //     kind: monaco.languages.CompletionItemKind.Keyword,
@@ -147,7 +147,7 @@ const initEditor = () => {
         triggerCharacters: ['.'],
       }
   )
-  let modEditor: any
+  let modEditor
   if (props.isDiff) {
     editor.value = monaco.editor.createDiffEditor(monacoEditorRef.value, options)
     originalEditor.value = monaco.editor.createModel(props.oldString, props.lang)
@@ -181,10 +181,10 @@ const getValue = () => {
   return toRaw(editor.value).getValue()
 }
 
-const setValue = (val: any) => {
+const setValue = (val) => {
   toRaw(editor.value).setValue(val)
 }
-// const setTheme = (val: any) => {
+// const setTheme = (val) => {
 //   monaco.editor.setTheme(val);
 // }
 const getSelectionValue = () => {
@@ -195,8 +195,8 @@ const getMode = () => {
   return toRaw(editor.value).getModel()
 }
 
-const registerCustomEvent = (editor: any) => {
-  if (props.lang == 'json') {
+const registerCustomEvent = (editor) => {
+  if (props.lang === 'json') {
     editor.addAction({
       id: 'json-path', // action unique id
       label: '复制 JsonPath', // action 在右键时展示的名称
@@ -211,7 +211,7 @@ const registerCustomEvent = (editor: any) => {
     })
   }
 
-  if (props.lang == 'sql') {
+  if (props.lang === 'sql') {
     editor.addAction({
       id: 'executeSql', // action unique id
       label: '执行', // action 在右键时展示的名称
@@ -225,7 +225,7 @@ const registerCustomEvent = (editor: any) => {
 
   }
 
-  editor.onDidChangeCursorPosition((event: any) => {
+  editor.onDidChangeCursorPosition((event) => {
     let value = getValue()
     let offSet = toRaw(getMode()).getOffsetAt(event.position)
     let language = props.lang;
@@ -233,13 +233,13 @@ const registerCustomEvent = (editor: any) => {
     if (props.value !== value && language === 'json') {
       emit('on-cursor-change', {offSet: offSet})
     }
-    if (language == 'json' && offSet !== 0) {
+    if (language === 'json' && offSet !== 0) {
       state.jsonPath = getJsonPath(value, offSet)
       // emit('on-jsonpath-change', {jsonPath: state.jsonPath})
     }
   })
 
-  editor.onMouseWheel((e: any) => {
+  editor.onMouseWheel((e) => {
     const scrollTop = editor.getScrollTop();
     const scrollHeight = editor.getScrollHeight();
     const clientHeight = editor.getLayoutInfo().height;

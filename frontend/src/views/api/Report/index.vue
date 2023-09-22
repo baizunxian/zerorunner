@@ -38,14 +38,13 @@
   </div>
 </template>
 
-<script setup lang="ts" name="apiReport">
+<script setup name="apiReport">
 import {useReportApi} from '/@/api/useAutoApi/report';
-import {h, onMounted, reactive, ref, watch} from 'vue';
+import {h, onMounted, reactive, ref} from 'vue';
 import {useRoute} from "vue-router";
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus'
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue";
 
-const route = useRoute()
 const reportDetailRef = ref()
 const tableRef = ref()
 const state = reactive({
@@ -53,7 +52,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
     {
       key: 'name', label: '报告名称', align: 'center', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -63,7 +62,7 @@ const state = reactive({
     },
     {
       key: 'status', label: '运行结果', align: 'center', width: '', show: true,
-      render: ({row}: any) => h(ElTag, {
+      render: ({row}) => h(ElTag, {
         type: row.success ? "success" : "danger",
       }, () => row.success ? "通过" : "不通过",)
     },
@@ -91,7 +90,7 @@ const state = reactive({
     {key: 'exec_user_name', label: '执行人', align: 'center', width: '', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -148,7 +147,7 @@ const search = () => {
 }
 
 // 删除报告
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -161,7 +160,7 @@ const deleted = (row: any) => {
   })
 }
 
-const onOpenReport = (row: any) => {
+const onOpenReport = (row) => {
   state.reportInfo = row
   reportDetailRef.value.showReport()
 }

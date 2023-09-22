@@ -11,13 +11,13 @@
   </el-row>
 </template>
 
-<script lang="ts" setup name="StepNode">
-import {PropType, reactive} from 'vue';
+<script setup name="StepNode">
+import {reactive} from 'vue';
 import {getMethodColor} from "/@/utils/case";
 
 const props = defineProps({
   data: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     default: () => {
       return {}
     }

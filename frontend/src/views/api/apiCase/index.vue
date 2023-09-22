@@ -57,7 +57,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="apiCase">
+<script setup name="apiCase">
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
@@ -71,7 +71,7 @@ const state = reactive({
     {key: 'id', label: 'ID', width: '55', align: 'center', show: true},
     {
       key: 'name', label: '用例名称', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -88,7 +88,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', width: '200', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -159,8 +159,8 @@ const search = () => {
 }
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (editType, row) => {
+  let query = {}
   query.editType = editType
   if (row) query.id = row.id
   router.push({name: 'EditApiCase', query: query})
@@ -172,7 +172,7 @@ const toViewReport = (row) => {
 }
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -190,7 +190,7 @@ const deleted = (row: any) => {
 };
 
 // 打开运行页面
-const onOpenRunPage = (row: any) => {
+const onOpenRunPage = (row) => {
   state.showRunPage = true;
   state.runForm.id = row.id;
   getEnvList();

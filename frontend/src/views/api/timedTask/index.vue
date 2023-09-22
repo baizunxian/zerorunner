@@ -45,7 +45,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="TimedTask">
+<script setup name="TimedTask">
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import EditTimedTask from './EditTimedTask.vue';
@@ -59,7 +59,7 @@ const state = reactive({
   columns: [
     {
       key: 'name', label: '任务名称', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         type: "primary",
         link: true,
         onClick: () => {
@@ -73,7 +73,7 @@ const state = reactive({
       width: '',
       align: 'center',
       show: true,
-      render: ({row}: any) => handleTaskType(row)
+      render: ({row}) => handleTaskType(row)
     },
     {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
     {
@@ -82,7 +82,7 @@ const state = reactive({
       width: '',
       align: 'center',
       show: true,
-      render: ({row}: any) => {
+      render: ({row}) => {
         let value = formatLookup("api_timed_task_status", row.enabled)
         return h("span", {style: {color: row.enabled ? '#0cbb52' : '#e6a23c'}}, value)
       }
@@ -94,7 +94,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', width: '340', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
 
         h(ElButton, {
           type: "",
@@ -161,12 +161,12 @@ const getList = () => {
 };
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
+const onOpenSaveOrUpdate = (editType, row) => {
   saveOrUpdateRef.value.openDialog(editType, row);
 };
 
 // 新增或修改
-const taskSwitch = (row: any) => {
+const taskSwitch = (row) => {
   ElMessageBox.confirm(`${row.enabled ? '停止' : '启动'}当前任务, 是否继续?`, '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -182,7 +182,7 @@ const taskSwitch = (row: any) => {
 };
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -199,7 +199,7 @@ const deleted = (row: any) => {
       });
 };
 
-const runOnceJob = (row: any) => {
+const runOnceJob = (row) => {
   ElMessageBox.confirm("即将手动调度任务, 是否继续？", '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -211,7 +211,7 @@ const runOnceJob = (row: any) => {
   })
 }
 
-const handleTaskType = (row: any) => {
+const handleTaskType = (row) => {
   if (row.task_type === 'crontab') {
     return `${row.task_type}[${row.crontab}]`
   } else if (row.task_type === 'interval') {
@@ -219,7 +219,7 @@ const handleTaskType = (row: any) => {
   }
 }
 
-const viewRunLog = (row: any) => {
+const viewRunLog = (row) => {
   state.business_id = row.id
   state.showRunLogPage = true
 }

@@ -117,13 +117,13 @@
 
 </template>
 
-<script lang="ts" setup name="ValidatorsController">
-import {PropType, reactive} from 'vue';
+<script setup name="ValidatorsController">
+import {reactive} from 'vue';
 import {getComparators, getModeTypeObj, getPlaceholder} from "/@/utils/case";
 
 const props = defineProps({
   data: {
-    type: Array  as PropType<Array<ValidatorData>>,
+    type: Array,
     default: () => []
   },
 })
@@ -146,11 +146,11 @@ const add = () => {
   })
 }
 
-const deleted = (index: number) => {
+const deleted = (index) => {
   props.data.splice(index, 1)
 }
 
-const selectMode = (data: ValidatorData) => {
+const selectMode = (data) => {
   if (data.mode === 'JsonPath' && !data.continue_index) {
     data.continue_index = 0
   }

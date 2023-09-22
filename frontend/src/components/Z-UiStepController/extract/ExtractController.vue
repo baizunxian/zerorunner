@@ -106,7 +106,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ExtractController">
+<script setup name="ExtractController">
 import {reactive} from 'vue';
 import commonFunction from '/@/utils/commonFunction';
 import {getModeTypeObj, getPlaceholder} from "/@/utils/case";
@@ -134,7 +134,7 @@ const state = reactive({
 
 // add JsonPathList
 const add = () => {
-  let data: any
+  let data
   data = {name: "", path: "", extract_type: "jmespath"}
   if (props.data) {
     props.data?.push(data)
@@ -143,7 +143,7 @@ const add = () => {
   }
 }
 
-const deleted = (index: number) => {
+const deleted = (index) => {
   props.data.splice(index, 1)
 }
 

@@ -76,13 +76,12 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ResponseInfo">
-import {nextTick, onMounted, PropType, reactive, watch} from 'vue';
-import JsonViews from "/@/components/Z-JsonViews/index.vue";
+<script setup name="ResponseInfo">
+import {nextTick, onMounted, reactive, watch} from 'vue';
 import {formatSizeUnits} from "/@/utils/case"
 
 const props = defineProps({
-  data: Object as PropType<ResponseData>,
+  data: Object,
   stat: Object,
 })
 

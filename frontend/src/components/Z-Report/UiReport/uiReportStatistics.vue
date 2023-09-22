@@ -124,34 +124,14 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ReportStatistics">
+<script setup name="ReportStatistics">
 import * as ECharts from 'echarts'
 import {nextTick, onMounted, onUnmounted, PropType, reactive, ref, watch} from "vue";
 
-interface StatisticsData {
-  count_step: number,
-  count_step_success: number,
-  count_step_failure: number,
-  count_step_skip: number,
-  count_step_error: number,
-  avg_request_time: number,
-  count_request_time: number,
-  count_case: number,
-  count_case_success: number,
-  count_case_fail: number,
-  case_pass_rate: number
-  step_pass_rate: number
-}
-
-interface stateData {
-  stepECharts: any
-  caseECharts: any
-  requestTimeECharts: any
-}
 
 const props = defineProps({
   data: {
-    type: Object as PropType<StatisticsData>
+    type: Object
   },
   start_time: {
     type: String
@@ -165,7 +145,7 @@ const props = defineProps({
 const requestTime = ref()
 const apiTestCase = ref()
 const apiTestStep = ref()
-const state = reactive<stateData>({
+const state = reactive({
   requestTimeECharts: null,
   stepECharts: null,
   caseECharts: null,
@@ -198,7 +178,7 @@ const initEcharts = () => {
   initApiTestStep()
 }
 
-const getOption = (value: any) => {
+const getOption = (value) => {
   return {
     // tooltip: {
     //

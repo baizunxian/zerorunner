@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="RepositoryManager">
+<script setup name="RepositoryManager">
 import {h, onMounted, reactive, ref} from 'vue';
 import {useRoute, useRouter} from "vue-router";
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
@@ -30,8 +30,6 @@ import {useRepositoryApi} from "/@/api/useCoverageApi/repository";
 import CoverageInfo from "/@/views/precisionTest/RepositoryManager/coverageInfo.vue";
 import {useCoverageReportApi} from "/@/api/useCoverageApi/coverage";
 
-const route = useRoute()
-const router = useRouter()
 // 自定义数据
 const tableRef = ref();
 const CoverageInfoRef = ref();
@@ -40,7 +38,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
     {
       key: 'name', label: '仓库名称', align: 'center', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         // onClick: () => {
@@ -52,7 +50,7 @@ const state = reactive({
 
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -98,12 +96,12 @@ const search = () => {
 }
 
 // 新增或修改角色
-const onOpenCoveragePage = (row: any) => {
+const onOpenCoveragePage = (row) => {
   CoverageInfoRef.value.openDialog(row)
 };
 
 // 删除角色
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

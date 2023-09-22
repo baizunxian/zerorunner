@@ -31,8 +31,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="stepController">
-import type {PropType} from 'vue'
+<script setup name="stepController">
 import {reactive, ref, watch} from 'vue';
 import StepNode from "/@/components/Z-StepController/StepNode.vue";
 import SelectCase from "/@/components/Z-StepController/apiInfo/SelectApi.vue";
@@ -52,14 +51,14 @@ const props = defineProps({
     default: () => []
   },
   case_id: {
-    type: [Number, String, null] as PropType<Number | String | null>,
+    type: [Number, String, null],
     default: () => {
       return null
     }
   }
 })
 
-const steps = useVModel(props, 'steps', emit) as any
+const steps = useVModel(props, 'steps', emit)
 
 
 const ApiInfoControllerRef = ref()
@@ -76,7 +75,7 @@ const state = reactive({
 });
 
 // 拖动处理
-const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
+const allowDrop = (draggingNode, dropNode, type) => {
   if (dropNode.data.step_type === 'if' && type === 'inner') {
     return true
   } else if (dropNode.data.step_type === 'loop' && type === 'inner') {
@@ -87,15 +86,15 @@ const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
 }
 
 // 节点拖动完成重新计算顺序
-const handleDrop = (node: any, event: any) => {
+const handleDrop = (node, event) => {
   console.log(node, event, "node, event")
   // event.preventDefault()
   // event.stopPropagation()
   // return false
 }
 
-const nodeClick = (data: any, node: any) => {
-  if (data.step_type == "api") {
+const nodeClick = (data, node) => {
+  if (data.step_type === "api") {
     ApiInfoControllerRef.value.onOpenApiInfoPage(data)
   } else {
     data.showDetail = !data.showDetail
@@ -103,9 +102,9 @@ const nodeClick = (data: any, node: any) => {
 }
 
 // 计算index，保持拖动后顺序
-const computeDataIndex = (data: any) => {
+const computeDataIndex = (data) => {
   if (data) {
-    data.forEach((data: any, index: number) => {
+    data.forEach((data, index) => {
       data.index = index + 1
       if (data.sub_steps) {
         computeDataIndex(data.sub_steps)
@@ -114,7 +113,7 @@ const computeDataIndex = (data: any) => {
   }
 }
 // handleAddData
-const handleAddData = async (optType: string) => {
+const handleAddData = async (optType) => {
   if (optType !== 'api') {
     let stepData = await getAddData(optType)
     appendTreeDate(stepData)
@@ -124,7 +123,7 @@ const handleAddData = async (optType: string) => {
 }
 
 // 添加tree data
-const appendTreeDate = (data: any) => {
+const appendTreeDate = (data) => {
   let parentNode = stepTreeRef.value?.getCurrentNode()
   if (parentNode && props.use_type === "case") {
     if (!parentNode.sub_steps) {
@@ -137,7 +136,7 @@ const appendTreeDate = (data: any) => {
 }
 
 const getStepData = () => {
-  let stepData: TStepDataStat = {
+  let stepData = {
     id: null,
     name: "",
     case_id: null,
@@ -163,7 +162,7 @@ const getStepData = () => {
 }
 
 // 获取步骤
-const getAddData = (optType: string) => {
+const getAddData = (optType) => {
   let data = getStepData()
   data.name = `${optType}_${getRandomStr()}`
   data.step_type = optType
@@ -220,7 +219,7 @@ const getAddData = (optType: string) => {
 const addApiStep = () => {
   let selectApiData = selectApiRef.value.getSelectionData()
   if (selectApiData) {
-    selectApiData.forEach((apiInfo: any) => {
+    selectApiData.forEach((apiInfo) => {
       // if (state.optType === "case" && caseInfo.id === parseInt(props.case_id)) {
       //   ElMessage.warning('不能引用用例自己！');
       // } else {
@@ -243,11 +242,11 @@ const getRandomStr = () => {
   return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
 }
 
-const deletedNode = (node: any) => {
+const deletedNode = (node) => {
   stepTreeRef.value.remove(node)
   // props.data.splice(index, 1)
 }
-const copyNode = (data: any) => {
+const copyNode = (data) => {
   steps.value.push(JSON.parse(JSON.stringify(data)))
 }
 

@@ -41,7 +41,7 @@
 
 </template>
 
-<script lang="ts" setup name="TaskCaseInfo">
+<script setup name="TaskCaseInfo">
 import SelectCase from "/@/components/Z-StepController/caseInfo/SelectCase.vue"
 
 
@@ -73,7 +73,7 @@ const state = reactive({
     {key: 'remarks', label: '用例描述', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', width: '80', align: 'center',
-      render: (row: any, index: number) => h("div", null, [
+      render: (row, index) => h("div", null, [
         //
         // h(ElButton, {
         //   type: "primary",
@@ -122,9 +122,9 @@ const getEnvList = () => {
 const addCase = () => {
   let selectCaseData = selectCaseRef.value.getSelectionData()
   if (selectCaseData) {
-    selectCaseData.forEach((caseInfo: any) => {
+    selectCaseData.forEach((caseInfo) => {
       if (state.caseList) {
-        let existCaseInfo = state.caseList.find((e: any) => e.id == caseInfo.id)
+        let existCaseInfo = state.caseList.find((e) => e.id == caseInfo.id)
         if (!existCaseInfo) {
           state.caseList.push(caseInfo)
         }
@@ -134,7 +134,7 @@ const addCase = () => {
   state.showCasePage = false
 }
 /*删除用例*/
-const deletedCase = (index: number) => {
+const deletedCase = (index) => {
   state.caseList.splice(index, 1)
 }
 
@@ -144,8 +144,8 @@ const getCaseEnvId = () => {
 
 
 const getCaseIds = () => {
-  let caseIds: number[] = []
-  state.caseList.forEach((c: any) => {
+  let caseIds = []
+  state.caseList.forEach((c) => {
     caseIds.push(c.id)
   })
   return caseIds

@@ -161,7 +161,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ApiSaveOrUpdate">
+<script setup name="ApiSaveOrUpdate">
 import {defineProps, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from "vue-router"
 import {useApiInfoApi} from '/@/api/useAutoApi/apiInfo'
@@ -172,8 +172,6 @@ import ApiInfo from './ApiInfo.vue'
 import ApiRequestBody from './ApiRequestBody.vue'
 import ApiRequestHeaders from './ApiRequestHeaders.vue'
 import ApiVariables from './ApiVariables.vue'
-import ApiPreSteps from './ApiPreSteps.vue'
-import ApiPostSteps from './ApiPostSteps.vue'
 import ApiValidators from './ApiValidators.vue'
 import ApiExtracts from './ApiExtracts.vue'
 
@@ -226,7 +224,7 @@ const state = reactive({
 });
 
 
-const saveOrUpdateOrDebug = (type: string) => {
+const saveOrUpdateOrDebug = (type) => {
   // if (!store.state.env?.envId) {
   //   console.log("store.state.env", store.state.env)
   //   showDriver()
@@ -303,7 +301,7 @@ const saveOrUpdateOrDebug = (type: string) => {
             loading.close()
           })
     }
-  } catch (err: any) {
+  } catch (err) {
     console.log(err)
     ElMessage.info(err || '信息表单填写不完整')
 
@@ -354,7 +352,7 @@ const goBack = () => {
   router.push({name: 'apiInfo'})
 }
 
-const getDataLength = (ref: string) => {
+const getDataLength = (ref) => {
   switch (ref) {
     case "header":
       return ApiRequestHeadersRef?.value.getData().length
@@ -375,7 +373,7 @@ const getDataLength = (ref: string) => {
 }
 
 // updateHeader
-const updateHeader = (headerData: any, remove: any) => {
+const updateHeader = (headerData, remove) => {
   ApiRequestHeadersRef.value.updateHeader(headerData, remove)
 }
 

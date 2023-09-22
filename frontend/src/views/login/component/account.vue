@@ -53,14 +53,12 @@
   </el-form>
 </template>
 
-<script setup lang="ts" name="loginAccount">
-import {reactive, computed} from 'vue';
+<script setup name="loginAccount">
+import {computed, reactive} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {ElMessage} from 'element-plus';
-import Cookies from 'js-cookie';
 import {storeToRefs} from 'pinia';
 import {useThemeConfig} from '/@/stores/themeConfig';
-import {initFrontEndControlRoutes} from '/@/router/frontEnd';
 import {initBackEndControlRoutes} from '/@/router/backEnd';
 import {Session} from '/@/utils/storage';
 import {formatAxis} from '/@/utils/formatTime';
@@ -101,7 +99,7 @@ const onSignIn = async () => {
         // await initFrontEndControlRoutes();
         signInSuccess(false);
       })
-      .catch((e: any) => {
+      .catch((e) => {
         console.log('错误信息： ', e)
         state.loading.signIn = false;
       })
@@ -122,7 +120,7 @@ const onSignIn = async () => {
   // }
 };
 // 登录成功后的跳转
-const signInSuccess = (isNoPower: boolean | undefined) => {
+const signInSuccess = (isNoPower) => {
   if (isNoPower) {
     ElMessage.warning('抱歉，您没有登录权限');
     Session.clear();
@@ -133,8 +131,8 @@ const signInSuccess = (isNoPower: boolean | undefined) => {
     // 如果是复制粘贴的路径，非首页/登录页，那么登录成功后重定向到对应的路径中
     if (route.query?.redirect) {
       router.push({
-        path: <string>route.query?.redirect,
-        query: Object.keys(<string>route.query?.params).length > 0 ? JSON.parse(<string>route.query?.params) : '',
+        path: route.query?.redirect,
+        query: Object.keys(route.query?.params).length > 0 ? JSON.parse(route.query?.params) : '',
       });
     } else {
       router.push('/home');

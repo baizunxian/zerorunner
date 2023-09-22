@@ -57,7 +57,7 @@
       <template #dropdown>
         <el-dropdown-menu>
 
-<!--          <el-dropdown-item command="/home">首页</el-dropdown-item>-->
+          <!--          <el-dropdown-item command="/home">首页</el-dropdown-item>-->
           <el-dropdown-item command="/system/personal">个人中心</el-dropdown-item>
           <el-dropdown-item command="logOut">退出登录</el-dropdown-item>
         </el-dropdown-menu>
@@ -67,16 +67,16 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutBreadcrumbUser">
-import {defineAsyncComponent, ref, computed, reactive, onMounted} from 'vue';
+<script setup name="layoutBreadcrumbUser">
+import {computed, defineAsyncComponent, onMounted, reactive, ref} from 'vue';
 import {useRouter} from 'vue-router';
-import {ElMessageBox, ElMessage} from 'element-plus';
+import {ElMessage, ElMessageBox} from 'element-plus';
 import screenfull from 'screenfull';
 import {storeToRefs} from 'pinia';
 import {useUserInfo} from '/@/stores/userInfo';
 import {useThemeConfig} from '/@/stores/themeConfig';
 import mittBus from '/@/utils/mitt';
-import {Session, Local} from '/@/utils/storage';
+import {Local, Session} from '/@/utils/storage';
 import {useUserApi} from "/@/api/useSystemApi/user";
 
 // 引入组件
@@ -97,9 +97,9 @@ const state = reactive({
 
 // 设置分割样式
 const layoutUserFlexNum = computed(() => {
-  let num: string | number = '';
+  let num = '';
   const {layout, isClassicSplitMenu} = themeConfig.value;
-  const layoutArr: string[] = ['defaults', 'columns'];
+  const layoutArr = ['defaults', 'columns'];
   if (layoutArr.includes(layout) || (layout === 'classic' && !isClassicSplitMenu)) num = '1';
   else num = '';
   return num;
@@ -121,7 +121,7 @@ const onLayoutSetingClick = () => {
   mittBus.emit('openSetingsDrawer');
 };
 // 下拉菜单点击时
-const onHandleCommandClick = (path: string) => {
+const onHandleCommandClick = (path) => {
   if (path === 'logOut') {
     ElMessageBox({
       closeOnClickModal: false,
@@ -167,7 +167,7 @@ const onWareHouse = () => {
   window.open('https://github.com/baizunxian/zerorunner');
 }
 // 组件大小改变
-const onComponentSizeChange = (size: string) => {
+const onComponentSizeChange = (size) => {
   Local.remove('themeConfig');
   themeConfig.value.globalComponentSize = size;
   Local.set('themeConfig', themeConfig.value);
@@ -175,7 +175,7 @@ const onComponentSizeChange = (size: string) => {
   window.location.reload();
 };
 // 初始化组件大小/i18n
-const initI18nOrSize = (value: string, attr: string) => {
+const initI18nOrSize = (value, attr) => {
   state[attr] = Local.get('themeConfig')[value];
 };
 // 页面加载时

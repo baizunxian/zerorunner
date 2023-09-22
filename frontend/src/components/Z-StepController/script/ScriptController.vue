@@ -24,7 +24,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ScriptController">
+<script setup name="ScriptController">
 
 import {computed, reactive} from "vue";
 
@@ -49,7 +49,7 @@ const o_content = computed({
       get() {
         return props.codeContent
       },
-      set(val: any) {
+      set(val) {
         emit("update:codeContent", val)
       }
     }
@@ -83,7 +83,7 @@ const sideMenu = computed(() => {
 })
 
 // 处理code
-const handlerCode = (row: any) => {
+const handlerCode = (row) => {
   o_content.value = o_content.value ? o_content.value + `\n${row.content}` : row.content
 }
 

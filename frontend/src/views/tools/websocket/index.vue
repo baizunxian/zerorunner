@@ -5,6 +5,6 @@
 
 </template>
 
-<script lang="ts" setup name="websocket">
+<script setup name="websocket">
 import Terminal from "/@/components/terminal/index.vue"
 </script>

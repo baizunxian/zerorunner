@@ -23,7 +23,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="uiCase">
+<script setup name="uiCase">
 import {ElButton, ElMessage, ElMessageBox} from "element-plus";
 import {onMounted, reactive, ref} from "vue";
 import {useUiCaseApi} from "/@/api/useUiApi/uiCase";
@@ -83,7 +83,7 @@ const getList = () => {
   }
   tableRef.value.openLoading()
   useTaskRecordApi().getTaskList(state.listQuery)
-    .then((res: any) => {
+    .then((res) => {
       state.listData = res.data.rows;
       state.total = res.data.rowTotal;
 
@@ -94,15 +94,15 @@ const getList = () => {
 };
 
 // 运行
-const runUiCase = (row: any) => {
+const runUiCase = (row) => {
   useUiCaseApi().runUiCaseById({id: row.id}).then((res => {
     ElMessage.success('运行成功');
   }))
 };
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (editType, row) => {
+  let query = {}
   query.editType = editType
   if (row) query.id = row.id
   router.push({name: 'editUiCase', query: query})
@@ -110,7 +110,7 @@ const onOpenSaveOrUpdate = (editType: string, row: any) => {
 
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

@@ -92,7 +92,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="JsonViews">
+<script setup name="JsonViews">
 import {computed, onMounted, reactive, watch} from 'vue';
 
 const props = defineProps({
@@ -184,7 +184,7 @@ const prefix = computed(() => {
 const items = computed(() => {
   const json = props.data
   if (isArray.value) {
-    return json.map((item: any) => {
+    return json.map((item) => {
       const isJSON = isObjectOrArray(item)
       return {
         value: item,
@@ -219,18 +219,18 @@ const iconColors = computed(() => {
   }
 })
 
-const formatValue = (data: any) => {
+const formatValue = (data) => {
   if (data && data._isBigNumber) {
     return data.toString(10)
   }
   return data;
 }
 
-const getDataType = (data: any) => {
+const getDataType = (data) => {
   return data && data._isBigNumber ? 'number' : Object.prototype.toString.call(data).slice(8, -1).toLowerCase()
 }
 
-const isObjectOrArray = (source: any) => {
+const isObjectOrArray = (source) => {
   return ['array', 'object'].includes(getDataType(source))
 }
 
@@ -249,7 +249,7 @@ const isClose = () => {
   return state.templateDeep + 1 > props.deep
 }
 
-const isEmptyArrayOrObject = (data: any) => {
+const isEmptyArrayOrObject = (data) => {
   return [{}, []].map(item => JSON.stringify(item)).includes(JSON.stringify(data))
 }
 

@@ -51,7 +51,7 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="systemDept">
+<script setup name="systemDept">
 import { defineAsyncComponent, ref, reactive, onMounted } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 
@@ -108,15 +108,15 @@ const getTableData = () => {
 	}, 500);
 };
 // 打开新增菜单弹窗
-const onOpenAddDept = (type: string) => {
+const onOpenAddDept = (type) => {
 	deptDialogRef.value.openDialog(type);
 };
 // 打开编辑菜单弹窗
-const onOpenEditDept = (type: string, row: DeptTreeType) => {
+const onOpenEditDept = (type, row) => {
 	deptDialogRef.value.openDialog(type, row);
 };
 // 删除当前行
-const onTabelRowDel = (row: DeptTreeType) => {
+const onTabelRowDel = (row) => {
 	ElMessageBox.confirm(`此操作将永久删除部门：${row.deptName}, 是否继续?`, '提示', {
 		confirmButtonText: '删除',
 		cancelButtonText: '取消',

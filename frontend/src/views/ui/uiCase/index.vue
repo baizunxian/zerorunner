@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="uiCase">
+<script setup name="uiCase">
 import {ElButton, ElMessage, ElMessageBox} from "element-plus";
 import {h, onMounted, reactive, ref} from "vue";
 import {useUiCaseApi} from "/@/api/useUiApi/uiCase";
@@ -36,7 +36,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {
       key: 'name', label: '用例名称', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -53,7 +53,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', fixed: 'right', width: '200', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -94,7 +94,7 @@ const search = () => {
 const getList = () => {
   tableRef.value.openLoading()
   useUiCaseApi().getList(state.listQuery)
-    .then((res: any) => {
+    .then((res) => {
       state.listData = res.data.rows;
       state.total = res.data.rowTotal;
 
@@ -105,15 +105,15 @@ const getList = () => {
 };
 
 // 运行
-const runUiCase = (row: any) => {
+const runUiCase = (row) => {
   useUiCaseApi().runUiCaseById({id: row.id}).then((res => {
     ElMessage.success('运行成功');
   }))
 };
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (editType, row) => {
+  let query = {}
   query.editType = editType
   if (row) query.id = row.id
   router.push({name: 'editUiCase', query: query})
@@ -121,7 +121,7 @@ const onOpenSaveOrUpdate = (editType: string, row: any) => {
 
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

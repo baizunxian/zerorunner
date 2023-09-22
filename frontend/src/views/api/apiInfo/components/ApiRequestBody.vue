@@ -204,7 +204,7 @@
   </el-form>
 </template>
 
-<script lang="ts" setup name="requestBody">
+<script setup name="requestBody">
 import {reactive, ref, watch} from "vue";
 import {useFileApi} from '/@/api/useSystemApi/file'
 import {handleEmpty} from "/@/utils/other";
@@ -212,24 +212,9 @@ import {ArrowDown} from '@element-plus/icons'
 
 const emit = defineEmits(["updateContentType"])
 
-interface StateData {
-  mode: string,
-  language: string,
-  languageList: Array<string>,
-  popoverOpen: boolean,
-  bodyData: Array<any>,
-  rawData: string,
-  paramsData: Array<any>,
-  dataTypeOptions: Array<string>,
-  formData: Array<any>,
-  formDatatypeOptions: Array<string>,
-  fileData: object,
-  lang: string,
-}
-
 const monacoEditRef = ref()
 
-const state = reactive<StateData>({
+const state = reactive({
   mode: 'raw',
   language: 'JSON',
   languageList: ['JSON', 'Text'],
@@ -257,8 +242,7 @@ const initData = () => {
   state.fileData = {}
 }
 // 初始化表单
-const setData = (data: any) => {
-  console.log("data,", data)
+const setData = (data) => {
   initData()
   if (!data) return
 
@@ -280,7 +264,7 @@ const setData = (data: any) => {
 
 // 获取是否填写状态
 const getStatus = () => {
-  let formDataList: Array<any> = handleEmpty(state.formData)
+  let formDataList = handleEmpty(state.formData)
   switch (state.mode) {
     case 'form_data':
       return formDataList.length > 0
@@ -291,13 +275,13 @@ const getStatus = () => {
 
 // 获取表单数据
 const getData = () => {
-  let requestData: any = {}
+  let requestData = {}
   requestData.mode = state.mode
   if (state.mode === 'raw') {
     requestData.data = state.rawData
     requestData.language = state.language
   } else if (state.mode === 'form_data') {
-    requestData.data = state.formData.filter((e: any) => e.key !== "" || e.value !== "")
+    requestData.data = state.formData.filter((e) => e.key !== "" || e.value !== "")
   } else if (state.mode === 'none') {
     requestData.data = null
   }
@@ -305,14 +289,14 @@ const getData = () => {
 }
 
 // 参数类型变更
-const radioChange = (value: any) => {
+const radioChange = (value) => {
   state.mode = value
   state.popoverOpen = false
   updateContentType(value === 'none' || value === 'form_data')
 }
 
 // 处理raw 语言
-const handleLanguage = (language: any) => {
+const handleLanguage = (language) => {
   state.popoverOpen = !state.popoverOpen
   // rawPopoverRef.value.hide()
   state.language = language
@@ -320,7 +304,7 @@ const handleLanguage = (language: any) => {
 }
 
 // 处理头信息
-const updateContentType = (remove: any = false) => {
+const updateContentType = (remove = false) => {
   emit('updateContentType', state.mode, state.language, remove)
 }
 
@@ -328,7 +312,7 @@ const updateContentType = (remove: any = false) => {
 const addData = () => {
   state.bodyData.push({key: '', type: 'string', value: ''})
 }
-const deleteData = (index: number) => {
+const deleteData = (index) => {
   state.bodyData.splice(index, 1)
 }
 
@@ -336,7 +320,7 @@ const deleteData = (index: number) => {
 const addParams = () => {
   state.paramsData.push({key: '', type: 'string', value: ''})
 }
-const deleteParams = (index: number) => {
+const deleteParams = (index) => {
   state.paramsData.splice(index, 1)
 }
 
@@ -345,7 +329,7 @@ const addFormData = () => {
   state.formData.push({key: '', type: 'text', value: ''})
 }
 // 删除
-const deleteFormData = (index: number) => {
+const deleteFormData = (index) => {
   state.formData.splice(index, 1)
 }
 const formDataBlur = () => {
@@ -360,33 +344,33 @@ const formDataBlur = () => {
 }
 
 // 选择文件时触发，上传文件，回写地址
-const fileChange = (e: any, row: any, index: number) => {
+const fileChange = (e, row, index) => {
   state.fileData = e.target.files[0]
-  let file: any = e.target.files[0]
+  let file = e.target.files[0]
   let formData = new FormData
   // formData.append('name', file.name)
   formData.append('file', file)
   useFileApi().upload(formData)
-      .then((res: any) => {
+      .then((res) => {
         row.value = res.data
       })
       .catch(() => {
-        let fileRef: any = document.getElementById('selectFile' + index)
+        let fileRef = document.getElementById('selectFile' + index)
         if (fileRef) fileRef.value = ''
         row.value = ""
       })
 
 }
 // 删除文件处理
-const deletedFile = (row: any, index: number) => {
-  let fileRef: any = document.getElementById('selectFile' + index)
+const deletedFile = (row, index) => {
+  let fileRef = document.getElementById('selectFile' + index)
   useFileApi().deleted({name: row.value.name})
   row.value = {}
   if (fileRef) fileRef.value = ''
 }
 
 // 选择文件
-const selectFile = (index: number) => {
+const selectFile = (index) => {
   let fileRef = document.getElementById('selectFile' + index)
   if (fileRef) fileRef.click()
 }

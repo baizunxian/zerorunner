@@ -96,7 +96,7 @@
       <div class="step-details" draggable="true" @dragstart="stepDetailsDrag">
         <ScriptController v-if="step.step_type === 'script'" :data="step"/>
         <SqlController v-if="step.step_type === 'sql'" :step="step"/>
-<!--        <ExtractController v-if="step.step_type === 'extract'" :extracts="step"/>-->
+        <!--        <ExtractController v-if="step.step_type === 'extract'" :extracts="step"/>-->
         <!--        <ApiInfoController v-if="data.step_type === 'api'" :data="data"/>-->
         <LoopController v-if="step.step_type === 'loop'" :step="step"/>
       </div>
@@ -106,8 +106,7 @@
 
 </template>
 
-<script lang="ts" setup name="StepNode">
-import {PropType} from 'vue';
+<script setup name="StepNode">
 import ScriptController from "/@/components/Z-StepController/script/ScriptController.vue";
 import SqlController from "/@/components/Z-StepController/sql/SqlController.vue";
 import WaitHeader from "/@/components/Z-StepController/wait/WaitHeader.vue";
@@ -122,11 +121,11 @@ const emit = defineEmits(['copy-node', 'deleted-node'])
 
 const props = defineProps({
   step: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     required: true
   },
   node: {
-    type: Object as any,
+    type: Object,
     required: true
   },
   optType: {
@@ -135,7 +134,7 @@ const props = defineProps({
   },
 })
 
-const step: TStepDataStat = useVModel(props, 'step', emit) as any
+const step = useVModel(props, 'step', emit)
 
 // const editeName = (data: any) => {
 //   data.edit = true
@@ -150,7 +149,7 @@ const step: TStepDataStat = useVModel(props, 'step', emit) as any
 //   data.edit = false
 // }
 
-const copyNode = (data: any) => {
+const copyNode = (data) => {
   emit("copy-node", data)
 }
 
@@ -159,11 +158,11 @@ const deletedNode = () => {
 }
 
 // 是否展示展开图标
-const shouDetailIcon = (step_type: string) => {
+const shouDetailIcon = (step_type) => {
   let noneType = ["wait", "if"]
   return noneType.indexOf(step_type) === -1
 }
-const stepDetailsDrag = (event: any) => {
+const stepDetailsDrag = (event) => {
   event.stopPropagation();
   event.preventDefault()
 }

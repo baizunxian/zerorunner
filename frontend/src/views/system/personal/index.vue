@@ -188,7 +188,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="personal">
+<script setup name="personal">
 import {computed, defineAsyncComponent, nextTick, onMounted, reactive, ref} from 'vue';
 import {formatAxis} from '/@/utils/formatTime';
 import {useUserInfo} from "/@/stores/userInfo";
@@ -245,11 +245,11 @@ const onCropperDialogOpen = () => {
 const showEditTag = () => {
   state.editTag = true
   nextTick(() => {
-    UserTagInputRef.value!.input!.focus()
+    UserTagInputRef.value?.input.focus()
   })
 }
 
-const removeTag = (tag: string) => {
+const removeTag = (tag) => {
   state.personalForm.tags.splice(state.personalForm.tags.indexOf(tag), 1)
 }
 
@@ -269,7 +269,7 @@ const save = async () => {
   ElMessage.success("更新成功!")
 }
 
-const updateAvatar = (img: String) => {
+const updateAvatar = (img) => {
   state.personalForm.avatar = img
   save()
 }

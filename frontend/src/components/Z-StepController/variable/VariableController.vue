@@ -51,7 +51,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="VariableController">
+<script setup name="VariableController">
 import {watch} from "vue";
 const props = defineProps({
   data: {
@@ -66,7 +66,7 @@ const props = defineProps({
 const addVariables = () => {
   props.data.push({key: '', value: '', remarks: ''})
 }
-const deleteVariables = (index: number) => {
+const deleteVariables = (index) => {
   props.data.splice(index, 1)
 }
 

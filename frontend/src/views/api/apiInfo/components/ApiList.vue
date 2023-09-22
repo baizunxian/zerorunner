@@ -180,7 +180,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="apiInfoList">
+<script setup name="apiInfoList">
 import {defineAsyncComponent, h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
 import {useApiInfoApi} from "/@/api/useAutoApi/apiInfo";
@@ -207,7 +207,7 @@ const state = reactive({
     {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
     {
       key: 'name', label: '用例名', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -217,7 +217,7 @@ const state = reactive({
     },
     {
       key: 'method', label: '请求方式', width: '', show: true,
-      render: ({row}: any) => h(ElTag, {
+      render: ({row}) => h(ElTag, {
         type: "",
         style: {"background": getMethodColor(row.method), color: "#ffffff",}
       }, () => row.method)
@@ -232,7 +232,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: 'auto', show: true},
     {
       label: '操作', fixed: 'right', width: '200', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -331,7 +331,7 @@ const getList = () => {
 };
 
 // 选择用例
-const selectionChange = (val: any) => {
+const selectionChange = (val) => {
   state.selectionData = val
 }
 // 获取选中用例
@@ -339,8 +339,8 @@ const getSelectionData = () => {
   return state.selectionData
 }
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any | null) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (editType, row) => {
+  let query = {}
   query.editType = editType
   if (row) query.id = row.id
   router.push({name: 'EditApiInfo', query: query})
@@ -348,7 +348,7 @@ const onOpenSaveOrUpdate = (editType: string, row: any | null) => {
 };
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -366,7 +366,7 @@ const deleted = (row: any) => {
 };
 
 // 打开运行页面
-const onOpenRunPage = (row: any) => {
+const onOpenRunPage = (row) => {
   state.showRunPage = true;
   state.runForm.api_run_mode = 'one'
   state.runForm.id = row.id;
@@ -377,7 +377,7 @@ const onOpenRunPage = (row: any) => {
 const onOpenBatchRunPage = () => {
   state.showRunPage = true;
   state.runForm.api_run_mode = 'batch'
-  state.runForm.ids = state.selectionData.map((item: any) => item.id);
+  state.runForm.ids = state.selectionData.map((item) => item.id);
   getEnvList();
 };
 // 获取环境信息
@@ -391,7 +391,7 @@ const getEnvList = () => {
 const runApi = () => {
   state.runApiLoading = !state.runApiLoading;
   useApiInfoApi().runApi(state.runForm)
-      .then((res: any) => {
+      .then((res) => {
         if (state.runForm.run_mode === 10 && state.runForm.api_run_mode === 'one') {
           ElMessage.success('运行成功');
           state.reportInfo = res.data
@@ -403,7 +403,7 @@ const runApi = () => {
         }
         state.runApiLoading = !state.runApiLoading;
       })
-      .catch((err: any) => {
+      .catch((err) => {
         ElMessage.error(err.message);
         state.runApiLoading = !state.runApiLoading;
       })
@@ -429,7 +429,7 @@ const getProjectList = () => {
       })
 }
 // 选择项目
-const selectProject = (project_id: any) => {
+const selectProject = (project_id) => {
   state.moduleQuery.project_id = project_id
   state.moduleList = []
   state.importForm.module_id = ''
@@ -446,7 +446,7 @@ const getModuleList = () => {
 }
 
 // 只看自己
-const oneSelfChange = (val: boolean) => {
+const oneSelfChange = (val) => {
   state.listQuery.created_by = val ? userInfoStore.userInfos.id : null
   getList()
 }

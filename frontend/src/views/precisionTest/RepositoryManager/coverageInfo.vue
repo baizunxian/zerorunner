@@ -106,7 +106,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="saveOrUpdateProject">
+<script setup name="saveOrUpdateProject">
 import {reactive, ref} from 'vue';
 import {ElMessage} from "element-plus";
 import {useRepositoryApi} from "/@/api/useCoverageApi/repository";
@@ -139,7 +139,7 @@ const state = reactive({
 
 
 // 打开弹窗
-const openDialog = (row: any) => {
+const openDialog = (row) => {
   state.form = createForm()
   if (row) {
     state.form.name = row.name
@@ -150,7 +150,7 @@ const openDialog = (row: any) => {
 };
 
 
-const getBranches = (row: any) => {
+const getBranches = (row) => {
   useRepositoryApi().getBranches({id: row.id})
       .then(res => {
         state.branches = res.data
@@ -170,12 +170,12 @@ const onCancel = () => {
 
 const coverageStart = () => {
   useCoverageReportApi().coverageStart(state.form)
-      .then((res: any) => {
+      .then((res) => {
         ElMessage.success('覆盖率开始执行');
       })
 }
 
-const getCommitId = (val: string, type: string) => {
+const getCommitId = (val, type) => {
   let branches = state.branches.find(item => item.name === val)
   if (branches) {
     if (type === 'new') {

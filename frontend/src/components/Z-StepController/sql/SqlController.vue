@@ -85,21 +85,25 @@
 
 </template>
 
-<script lang="ts" setup name="SqlController">
-import {nextTick, onMounted, PropType, reactive} from 'vue';
+<script setup name="SqlController">
+import {nextTick, onMounted, reactive} from 'vue';
 import {useEnvApi} from "/@/api/useAutoApi/env";
 import commonFunction from '/@/utils/commonFunction';
+import useVModel from "/@/utils/useVModel";
 
 const {copyText} = commonFunction()
 
 const props = defineProps({
   step: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     required: true
   }
 
 })
 
+const emit = defineEmits(['update:step'])
+
+const step = useVModel(props, 'step', emit)
 const state = reactive({
   // sourceList
   sourceList: [],
@@ -118,12 +122,12 @@ const state = reactive({
 });
 
 // selectEnv
-const selectEnv = (env_id: number) => {
+const selectEnv = (env_id) => {
   if (env_id) {
     state.dataSourceQuery.env_id = env_id
     getDataSourceList()
   }
-  props.step.sql_request.source_id = null
+  step.value.sql_request.source_id = null
 }
 
 // 初始化env
@@ -146,7 +150,7 @@ onMounted(() => {
   getEnvList()
   nextTick(() => {
     if (props.step.sql_request?.env_id) {
-      state.dataSourceQuery.env_id = props.step.sql_request.env_id
+      state.dataSourceQuery.env_id = step.value.sql_request.env_id
       getDataSourceList()
     }
   })

@@ -13,7 +13,7 @@ from autotest.models.api_models import Env, DataSource, ApiInfo, EnvFunc
 from autotest.models.system_models import FileInfo
 from autotest.schemas.api.api_case import TestCaseRun, TCaseStepData
 from autotest.schemas.api.api_info import ApiBaseSchema, ApiInfoIn
-from autotest.schemas.step_data import TStepData
+from autotest.schemas.step_data import TStepData, RequestMode
 from autotest.utils.des import decrypt_rsa_password
 from config import config
 from zerorunner.loader import load_module_functions, load_func_content
@@ -175,8 +175,8 @@ class HandleStepData(object):
     async def __init_api_step(self) -> Step:
         self.step.request = TRequest(method=self.api_info.request.method, url=self.api_info.request.url)
         request_mode = self.api_info.request.mode.lower()
-        if request_mode == 'raw':
-            if self.api_info.request.language.lower() == "json":
+        if request_mode == RequestMode.RAW.value.lower():
+            if self.api_info.request.language.lower() == RequestMode.JSON.value:
                 try:
                     self.step.request.req_json = json.loads(self.api_info.request.data)
                 except Exception:
@@ -184,11 +184,10 @@ class HandleStepData(object):
                     self.step.request.data = self.api_info.request.data
             else:
                 self.step.request.data = self.api_info.request.data
-        elif request_mode == 'form_data':
-            from_data_list = self.api_info.request.data
+        elif request_mode == RequestMode.FORM_DATA.value:
             upload_dict = {}
-            for data in from_data_list:
-                if data.type == "file":
+            for data in self.api_info.request.data:
+                if data.type == RequestMode.FILE.value:
                     file_value_info = data.value
                     file_info = await FileInfo.get(file_value_info.id)
                     if not file_info:
@@ -203,7 +202,7 @@ class HandleStepData(object):
                     upload_dict[data.key] = data.value
             self.step.request.upload = upload_dict
 
-        elif request_mode == 'none':
+        elif request_mode == RequestMode.none.value.lower():
             self.step.request.data = None
         return Step(RunRequestStep(self.step))
 

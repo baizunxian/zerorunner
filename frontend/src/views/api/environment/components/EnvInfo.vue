@@ -14,7 +14,7 @@
   </el-form>
 </template>
 
-<script lang="ts" setup name="EnvInfo">
+<script setup name="EnvInfo">
 import {onMounted, reactive, ref} from "vue";
 
 const formRef = ref()
@@ -41,13 +41,13 @@ const getData = () => {
 }
 
 // 初始化表单
-const setData = (data: any) => {
+const setData = (data) => {
   state.data = createData()
   if (data) state.data = data
 }
 
 // 回填id
-const setId = (id: any) => {
+const setId = (id) => {
   state.data.id = id
 }
 

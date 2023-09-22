@@ -2,7 +2,7 @@
   <pre>{{ data }}</pre>
 </template>
 
-<script lang="ts" setup name="ReportLog">
+<script setup name="ReportLog">
 import {nextTick, onMounted, reactive, watch} from 'vue';
 
 const props = defineProps({

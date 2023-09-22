@@ -123,8 +123,8 @@
   </el-collapse-transition>
 </template>
 
-<script lang="ts" setup name="LoopController">
-import {PropType, reactive} from 'vue';
+<script setup name="LoopController">
+import {reactive} from 'vue';
 import commonFunction from '/@/utils/commonFunction';
 import useVModel from "/@/utils/useVModel";
 
@@ -134,7 +134,7 @@ const emit = defineEmits(['update:step'])
 
 const props = defineProps({
   step: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     required: true,
     default: () => {
       return {}
@@ -142,7 +142,7 @@ const props = defineProps({
   }
 })
 
-const step: TStepDataStat = useVModel(props, 'step', emit) as any
+const step = useVModel(props, 'step', emit)
 
 const state = reactive({
   // data

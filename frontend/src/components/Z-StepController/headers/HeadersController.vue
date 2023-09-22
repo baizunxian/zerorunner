@@ -45,13 +45,9 @@
   </div>
 </template>
 
-<script lang="ts" setup name="HeadersController">
-import {reactive, ref, watch} from 'vue';
+<script setup name="HeadersController">
+import {reactive, watch} from 'vue';
 
-
-interface state {
-  headersBulk: string,
-}
 
 const emit = defineEmits(["update:data"])
 
@@ -64,10 +60,8 @@ const props = defineProps({
   },
 })
 
-const formRef = ref()
-const state = reactive<state>({
+const state = reactive({
   headersBulk: '',  // bulk内容
-
 });
 
 // bulk 转换
@@ -75,15 +69,15 @@ const bulkEdit = () => {
   keyValueToBulk()
 }
 
-const bulkToKeyValue = (headersBulk: string) => {
+const bulkToKeyValue = (headersBulk => {
   if (headersBulk.length > 0) {
     let snsArr = headersBulk.split(/[(\r\n|\n|\r)]+/)
-    let headers: any = []
+    let headers = []
     if (snsArr.length > 0) {
       snsArr.forEach(data => {
         let keyValue = data.split(':')
         if (keyValue.length > 0 && keyValue[0] !== "") {
-          let head: any = {}
+          let head = {}
           head.key = keyValue[0]
           head.value = keyValue.length > 1 ? keyValue[1] : ""
           headers.push({key: head.key, value: head.value, remarks: ""})
@@ -92,13 +86,13 @@ const bulkToKeyValue = (headersBulk: string) => {
     }
     emit("update:data", headers)
   }
-}
+})
 
 const keyValueToBulk = () => {
   let bulk = ''
   if (props.data.length > 0) {
-    props.data.forEach((data: any) => {
-      if (data.key != '') {
+    props.data.forEach((data) => {
+      if (data.key !== '') {
         bulk += `${data.key}:${data.value}\r\n`
       }
     })
@@ -112,7 +106,7 @@ const addHeaders = () => {
 
 
 }
-const deleteHeaders = (index: number) => {
+const deleteHeaders = (index) => {
   props.data.splice(index, 1)
 }
 

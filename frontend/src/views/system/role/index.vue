@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemRole">
+<script setup name="SystemRole">
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
 import SaveOrUpdateRole from '/@/views/system/role/EditRole.vue';
@@ -35,7 +35,7 @@ const state = reactive({
   columns: [
     {
       key: 'name', label: '角色名称', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -46,7 +46,7 @@ const state = reactive({
     {key: 'role_type', label: '权限类型', width: '', align: 'center', show: true},
     {
       key: 'status', label: '角色状态', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElTag, {
+      render: ({row}) => h(ElTag, {
         type: row.status == 10 ? "success" : "info",
       }, () => row.status == 10 ? "启用" : "禁用",)
     },
@@ -58,7 +58,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -105,12 +105,12 @@ const search = () => {
 }
 
 // 新增或修改角色
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
+const onOpenSaveOrUpdate = (editType, row) => {
   SaveOrUpdateRoleRef.value.openDialog(editType, row);
 };
 
 // 删除角色
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

@@ -235,18 +235,18 @@
       </el-table-column>
 
       <el-table-column prop="key" header-align='center'>
-        <template slot="header">
+        <template #header>
           <strong style="font-size: 14px;">校验参数</strong>
         </template>
-        <template slot-scope="{row}">
+        <template #default="{row}">
           <el-input v-model="row.check"></el-input>
         </template>
       </el-table-column>
       <el-table-column prop="Comparator" width="120" header-align='center'>
-        <template slot="header">
+        <template #header>
           <strong style="font-size: 14px;">对比规则</strong>
         </template>
-        <template slot-scope="{row}">
+        <template #default="{row}">
           <el-select v-model="row.comparator" placeholder="请选择">
             <el-option
                 v-for="item in comparatorOptions"
@@ -259,10 +259,10 @@
       </el-table-column>
 
       <el-table-column prop="type" width="120" header-align='center'>
-        <template slot="header">
+        <template #header>
           <strong style="font-size: 14px;">类型</strong>
         </template>
-        <template slot-scope="{row}">
+        <template #default="{row}">
           <el-select v-model="row.type" placeholder="请选择">
             <el-option
                 v-for="item in typeOptions"
@@ -275,10 +275,10 @@
       </el-table-column>
 
       <el-table-column prop="Expected" label="Expected" header-align='center'>
-        <template slot="header">
+        <template #header>
           <strong style="font-size: 14px;">校验值</strong>
         </template>
-        <template slot-scope="{row}">
+        <template #default="{row}">
           <el-input v-model="row.expected"></el-input>
         </template>
       </el-table-column>
@@ -312,18 +312,18 @@
           width="55">
       </el-table-column>
       <el-table-column header-align='center'>
-        <template slot="header">
+        <template #header>
           <strong style="font-size: 14px;">变量名</strong>
         </template>
-        <template slot-scope="{row}">
+        <template #default="{row}">
           <el-input v-model="row.key"></el-input>
         </template>
       </el-table-column>
       <el-table-column prop="value" header-align='center'>
-        <template slot="header">
+        <template #header>
           <strong style="font-size: 14px;">提取值</strong>
         </template>
-        <template slot-scope="{row}">
+        <template #default="{row}">
           <el-input v-model="row.value"></el-input>
         </template>
       </el-table-column>

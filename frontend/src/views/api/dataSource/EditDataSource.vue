@@ -75,7 +75,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditDataSource">
+<script setup name="EditDataSource">
 import {reactive, ref, watch} from 'vue';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import {ElMessage} from "element-plus";
@@ -119,7 +119,7 @@ const state = reactive({
 });
 
 // 打开弹窗
-const openDialog = (type: string, row: any) => {
+const openDialog = (type, row) => {
   // 获取项目列表
   state.editType = type
   state.isTestConnect = false
@@ -137,9 +137,9 @@ const onDialog = () => {
 };
 // 测试数据源连接
 const testConnect = () => {
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
-      useQueryDBApi().testConnect(state.form).then((res: any) => {
+      useQueryDBApi().testConnect(state.form).then((res) => {
         let {data} = res
         if (data) {
           state.isTestConnect = true
@@ -153,7 +153,7 @@ const testConnect = () => {
 }
 // 新增
 const saveOrUpdate = () => {
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
       useQueryDBApi().saveOrUpdate(state.form)
         .then(() => {

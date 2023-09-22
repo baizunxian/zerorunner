@@ -21,20 +21,19 @@
   </el-table>
 </template>
 
-<script lang="ts" setup name="ReportValidators">
-import {PropType} from 'vue';
+<script setup name="ReportValidators">
 
 
 const props = defineProps({
   data: {
-    type: Object as PropType<ValidateExtractor>,
+    type: Object,
     default: () => {
       return {}
     }
   },
 },)
 
-const getJson2Str = (value: string) => {
+const getJson2Str = (value) => {
   try {
     return JSON.stringify(value)
   } catch (e) {

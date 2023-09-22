@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ContainerTop">
+<script setup name="ContainerTop">
 import {onBeforeMount, onUnmounted, reactive, ref} from 'vue';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import {ElMessage} from "element-plus/es";
@@ -45,18 +45,18 @@ const state = reactive({
   }
 });
 
-const setMonacoHeHeight = (height: number) => {
+const setMonacoHeHeight = (height) => {
   state.height = height
 }
 
-const setData = (data: any) => {
+const setData = (data) => {
   state.dbs = data.dbs
   state.executeForm.source_id = data.source_id
   state.executeForm.database = data.database
 }
 
 
-const setSql = (sql: string) => {
+const setSql = (sql) => {
   if (state.sql === "") {
     state.sql = sql
   } else {
@@ -69,7 +69,7 @@ const execute = () => {
     ElMessage.warning("请输入sql语句查询！")
     return;
   }
-  if (state.executeForm.source_id == "") {
+  if (state.executeForm.source_id === "") {
     ElMessage.warning('请选择对应数据源！');
     return
   }
@@ -81,7 +81,7 @@ const execute = () => {
     } else {
       state.executeForm.sql = state.sql
     }
-    useQueryDBApi().execute(state.executeForm).then((res: any) => {
+    useQueryDBApi().execute(state.executeForm).then((res) => {
       mittBus.emit("setExecuteResult", res.data)
     })
 
@@ -106,10 +106,10 @@ const execute = () => {
 //   return []
 // }
 onBeforeMount(() => {
-  mittBus.on('setSourceInfo', (data: any) => {
+  mittBus.on('setSourceInfo', (data) => {
     setData(data)
   })
-  mittBus.on('setSql', (data: any) => {
+  mittBus.on('setSql', (data) => {
     setSql(data)
   })
 })

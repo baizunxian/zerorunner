@@ -15,7 +15,7 @@
   </el-row>
 </template>
 
-<script lang="ts" setup name="ReportVariables">
+<script setup name="ReportVariables">
 import {nextTick, onMounted, reactive, watch} from 'vue';
 import JsonViews from "/@/components/Z-JsonViews/index.vue";
 

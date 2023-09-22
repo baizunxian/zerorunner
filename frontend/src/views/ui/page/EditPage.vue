@@ -18,15 +18,14 @@
   </div>
 </template>
 
-<script setup lang="ts" name="EditPage">
-import {onMounted, reactive, ref} from "vue";
+<script setup name="EditPage">
+import {onMounted, reactive} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
 import UiPageInfo from "/@/views/ui/page/uiPageInfo.vue";
 import UiElement from "/@/views/ui/page/uiElement.vue";
 import {useRoute} from "vue-router";
 
 const route = useRoute()
-const tableRef = ref()
 
 const state = reactive({
 //

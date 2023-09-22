@@ -15,7 +15,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="apiCode">
+<script setup name="apiCode">
 import {reactive} from 'vue';
 import ScriptController from "/@/components/Z-StepController/script/ScriptController.vue"
 
@@ -25,7 +25,7 @@ const state = reactive({
 });
 
 // init code
-const setData = (setup_code: any, teardown_code: any) => {
+const setData = (setup_code, teardown_code) => {
   state.setup_code = setup_code ? setup_code : ""
   state.teardown_code = teardown_code ? teardown_code : ""
 }
