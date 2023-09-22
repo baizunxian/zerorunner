@@ -130,11 +130,6 @@ def run_api_request(runner: SessionRunner,
                                                      params={"zero": zero, "requests": requests})
             if captured_output:
                 step_result.set_step_log("前置code输出: \n" + captured_output)
-            # parsed_zero_headers = runner.parser.parse_data(
-            #     zero.request.headers.get(""), merge_variable
-            # )
-            # request_dict["headers"].update(parsed_zero_headers)
-
             parsed_zero_environment = runner.parser.parse_data(
                 zero.environment.get_environment(), merge_variable
             )
@@ -167,15 +162,6 @@ def run_api_request(runner: SessionRunner,
         url_path = parsed_request_dict.pop("url")
         url = build_url(runner.config.base_url, url_path)
         parsed_request_dict["verify"] = runner.config.verify
-        # parsed_request_dict["json"] = parsed_request_dict.pop("req_json", {})
-        # 更新会话请求头
-        # self.__session_headers = parse_data(
-        #     self.__session_headers,
-        #     merge_variable | self.__session_variables,
-        #     self.config.functions
-        # )
-        # parsed_request_dict["headers"].update(self.__session_headers)
-
         # request
         resp = runner.session.request(method, url, **parsed_request_dict)
         resp_obj = ResponseObject(resp, parser=Parser(functions_mapping=runner.config.functions))
@@ -221,17 +207,9 @@ def run_api_request(runner: SessionRunner,
                         )
             _, captured_output = load_script_content(step.teardown_code,
                                                      f"{runner.config.case_id}_teardown_code",
-                                                     params={"zero": zero, "requests": requests})
+                                                     params={"zero": zero, "requests": requests, 'res': resp_obj})
             if captured_output:
                 step_result.set_step_log("后置code输出: \n" + captured_output)
-            # parsed_zero_headers = runner.parser.parse_data(
-            #     zero.request.get_headers(), merge_variable
-            # )
-            # parsed_request_dict['headers'].update(parsed_zero_headers)
-            # parsed_zero_environment = runner.parser.parse_data(
-            #     zero.environment.get_environment(), merge_variable
-            # )
-            # runner.config.env_variables.update(parsed_zero_environment)
             parsed_zero_variables = runner.parser.parse_data(
                 zero.variables.get_variables(), merge_variable
             )
