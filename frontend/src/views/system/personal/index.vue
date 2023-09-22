@@ -204,7 +204,7 @@ const userStores = useUserInfo()
 
 
 // 定义变量内容
-const state = reactive<PersonalState>({
+const state = reactive({
   newsInfoList: [],
   recommendList: [],
   personalForm: {
