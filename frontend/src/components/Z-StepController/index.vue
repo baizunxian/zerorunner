@@ -317,13 +317,13 @@ defineExpose({
 :deep(.el-tree-node__expand-icon) {
   // 更换图标库
   font-family: "iconfont" !important;
+  color: #1f1f1f;
 
   svg {
     display: none;
   }
 
   font-style: normal;
-  color: #1f1f1f;
 }
 
 </style>
