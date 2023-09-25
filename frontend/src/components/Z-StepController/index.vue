@@ -295,15 +295,6 @@ defineExpose({
   background: transparent !important;
 }
 
-:deep(.el-tree-node__expand-icon) {
-  // 更换图标库
-  font-family: "iconfont" !important;
-
-  svg {
-    display: none;
-  }
-  font-style: normal;
-}
 
 :deep(.el-tree-node__expand-icon.expanded) {
   // 动画取消
@@ -315,15 +306,24 @@ defineExpose({
   // 收起
   content: "\e61a";
   font-size: 18px;
-  color: #1f1f1f;
 }
 
 :deep(.el-tree-node__expand-icon:before) {
   // 展开
   content: "\e61b";
   font-size: 18px;
-  color: #1f1f1f;
 }
 
+:deep(.el-tree-node__expand-icon) {
+  // 更换图标库
+  font-family: "iconfont" !important;
+
+  svg {
+    display: none;
+  }
+
+  font-style: normal;
+  color: #1f1f1f;
+}
 
 </style>
