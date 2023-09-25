@@ -182,17 +182,29 @@ const getValue = () => {
 }
 
 const setValue = (val) => {
-  toRaw(editor.value).setValue(val)
+  const undoStack = getModel().undoStack;
+  toRaw(editor.value).executeEdits("replaceText", [{
+    range: getModel().getFullModelRange(),
+    text: val,
+    forceMoveMarkers: true
+  }]);
+  getModel().undoStack = undoStack;
 }
-// const setTheme = (val) => {
-//   monaco.editor.setTheme(val);
-// }
+
 const getSelectionValue = () => {
   return toRaw(editor.value).getModel().getValueInRange(toRaw(editor.value).getSelection())
 }
 
-const getMode = () => {
+const getModel = () => {
   return toRaw(editor.value).getModel()
+}
+
+const foldAll = () => {
+  toRaw(editor.value).getAction('editor.foldAll').run()
+}
+
+const unfoldAll = () => {
+  toRaw(editor.value).getAction('editor.unfoldAll').run()
 }
 
 const registerCustomEvent = (editor) => {
@@ -227,7 +239,7 @@ const registerCustomEvent = (editor) => {
 
   editor.onDidChangeCursorPosition((event) => {
     let value = getValue()
-    let offSet = toRaw(getMode()).getOffsetAt(event.position)
+    let offSet = toRaw(getModel()).getOffsetAt(event.position)
     let language = props.lang;
 
     if (props.value !== value && language === 'json') {
@@ -343,7 +355,10 @@ onUnmounted(() => {
 
 defineExpose({
   getValue,
-  getMode,
+  getModel,
+  setValue,
+  foldAll,
+  unfoldAll,
   getSelectionValue,
 })
 </script>

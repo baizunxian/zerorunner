@@ -6,10 +6,12 @@
         <el-card>
           <div class="personal-user">
             <div class="personal-user-avatar" @click="onCropperDialogOpen">
-              <!--              <el-upload class="h100 personal-user-left-upload" action="https://jsonplaceholder.typicode.com/posts/"-->
-              <!--                         multiple :limit="1">-->
-              <img :src="state.personalForm.avatar"/>
-              <!--              </el-upload>-->
+
+              <el-avatar :size="100"
+                         :src="state.personalForm.avatar"
+                         title="点击更换头像"
+                         style="cursor: pointer"/>
+
             </div>
             <div class="personal-user-right">
               <el-row>

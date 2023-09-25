@@ -12,6 +12,7 @@
 
               <el-tree-select
                   ref="menuTreeRef"
+                  filterable
                   v-model="state.form.parent_id"
                   :data="menuTree"
                   :props="{label: 'title', value: 'id'}"

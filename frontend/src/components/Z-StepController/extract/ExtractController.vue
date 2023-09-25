@@ -99,7 +99,6 @@
               </el-icon>
             </el-button>
           </el-col>
-
         </el-row>
       </div>
     </div>
@@ -118,7 +117,7 @@ const props = defineProps({
   extracts: {
     type: Array,
     default: () => {
-      return {}
+      return []
     }
   },
 })

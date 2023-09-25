@@ -90,7 +90,7 @@ let createForm = () => {
 }
 const formRef = ref()
 const roleTreeRef = ref()
-const state = reactive < RoleState > ({
+const state = reactive({
   editType: null,
   isShowDialog: false,
   form: createForm(),

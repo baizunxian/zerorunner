@@ -4,7 +4,7 @@ import os
 import typing
 from pathlib import Path
 
-from pydantic import BaseSettings, AnyHttpUrl, Field
+from pydantic import AnyHttpUrl, Field, BaseSettings
 
 project_banner = """
 ███████╗███████╗██████╗  ██████╗ ██████╗ ██╗   ██╗███╗   ██╗███╗   ██╗███████╗██████╗
@@ -31,7 +31,7 @@ class Configs(BaseSettings):
     STATIC_DIR: str = 'static'  # 静态文件目录
     GLOBAL_ENCODING: str = 'utf8'  # 全局编码
     CORS_ORIGINS: typing.List[typing.Any] = ["*"]  # 跨域请求
-    WHITE_ROUTER = ["/api/user/login"]  # 路由白名单，不需要鉴权
+    WHITE_ROUTER: list = ["/api/user/login"]  # 路由白名单，不需要鉴权
 
     SECRET_KEY: str = "kPBDjVk0o3Y1wLxdODxBpjwEjo7-Euegg4kdnzFIRjc"  # 密钥(每次重启服务密钥都会改变, token解密失败导致过期, 可设置为常量)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 1  # token过期时间: 60 minutes * 24 hours * 1 days = 1 days
@@ -94,7 +94,7 @@ class Configs(BaseSettings):
     beat_db_uri: str = Field(..., env="CELERY_BEAT_DB_URL")
 
     # jacoco service
-    JACOCO_SERVICE_URL: str = Field(None, env="JACOCO_SERVICE_URL")
+    JACOCO_SERVER_URL: str = Field(None, env="JACOCO_SERVER_URL")
 
     # gitlab
     GITLAB_URL: str = Field(None, env="GITLAB_URL")
@@ -105,6 +105,7 @@ class Configs(BaseSettings):
     class Config:
         case_sensitive = True  # 区分大小写
         env_file = ".env"
+        env_file_encoding = "utf-8"
 
 
 config = Configs()
