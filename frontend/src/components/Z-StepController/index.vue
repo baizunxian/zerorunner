@@ -302,8 +302,6 @@ defineExpose({
   svg {
     display: none;
   }
-
-  color: #1f1f1f;
   font-style: normal;
 }
 
@@ -317,12 +315,14 @@ defineExpose({
   // 收起
   content: "\e61a";
   font-size: 18px;
+  color: #1f1f1f;
 }
 
 :deep(.el-tree-node__expand-icon:before) {
   // 展开
   content: "\e61b";
   font-size: 18px;
+  color: #1f1f1f;
 }
 
 
