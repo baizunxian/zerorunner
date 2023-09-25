@@ -31,6 +31,8 @@
 import {reactive} from 'vue';
 import useVModel from "/@/utils/useVModel";
 
+const emit = defineEmits(["update:data"])
+
 const props = defineProps({
   data: {
     type: Object,
