@@ -98,6 +98,7 @@ def run_api_request(runner: SessionRunner,
     session_success = False
     # 初始化resp_obj
     resp_obj = None
+    extract_mapping = {}
     # 捕获异常
     try:
         # 合并变量
@@ -106,7 +107,6 @@ def run_api_request(runner: SessionRunner,
         upload_variables = prepare_upload_step(step, runner.config.functions)
         request_dict = step.request.dict()
         request_dict.pop("upload", None)
-        extract_mapping = {}
 
         # setup hooks
         if step.setup_hooks:
@@ -192,7 +192,7 @@ def run_api_request(runner: SessionRunner,
         # extract
         extractors = step.extracts
         extract_mapping = resp_obj.extract(extractors, step.variables, runner.config.functions)
-        step_result.export_vars = extract_mapping
+        step_result.result.export_vars = extract_mapping
         merge_variable.update(extract_mapping)
 
         # teardown code
