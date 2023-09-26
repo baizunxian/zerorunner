@@ -192,13 +192,13 @@ celery = create_celery()
 
 # celery_worker 专用于celery的worker
 # worker windows 启动，只能单线程
-# job -A celery_worker.worker worker --pool=solo -l INFO
+# celery -A celery_worker.worker worker --pool=solo -l INFO
 # worker linux  启动
-# job -A celery_worker.worker worker --pool=solo -c 10 -l INFO  linux 启动
+# celery -A celery_worker.worker worker --pool=solo -c 10 -l INFO  linux 启动
 # beat
-# job -A celery_worker.worker beat  -l INFO  启动节拍器，定时任务需要
+# celery -A celery_worker.worker beat  -l INFO  启动节拍器，定时任务需要
 # beat 数据库
-# job -A celery_worker.worker beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+# celery -A celery_worker.worker beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
 if __name__ == '__main__':
     import sys

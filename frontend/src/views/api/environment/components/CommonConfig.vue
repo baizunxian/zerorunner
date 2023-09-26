@@ -8,14 +8,15 @@
 <script setup name="commonConfig">
 
 import {handleEmpty} from "/@/utils/other";
-import {reactive, ref} from "vue";
+import {reactive} from "vue";
 import VariableController from "/@/components/Z-StepController/variable/VariableController.vue";
 
-const state = reactive<state>({
+const state = reactive({
   data: {
     variables: [],   // 变量列表
   },
 });
+
 // 初始化数据
 const setData = (data) => {
   if (data?.variables) {
