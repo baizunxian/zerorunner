@@ -65,7 +65,17 @@ def get_req_resp_record(resp_obj: Response) -> ReqRespData:
         request_content_type = lower_dict_keys(request_headers).get("content-type")
         if request_content_type and "multipart/form-data" in request_content_type:
             # upload file type
-            request_body = "upload file stream (OMITTED)"
+            fields: dict = request_body.fields
+            request_body = ""
+            if fields:
+                for key, value in fields.items():
+                    if isinstance(value, tuple) and value.__len__() == 3:
+                        # file_name, file_content, file_type = value
+                        request_body += f"{key}: (二进制文件)\n"
+                    else:
+                        request_body += f"{key}: {value}\n"
+            else:
+                request_body = "upload file stream (OMITTED)"
 
     request_data = RequestData(
         method=resp_obj.request.method,
