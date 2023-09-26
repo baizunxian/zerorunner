@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# @author: xiaobai
+# @author: xiao bai
 
 import time
 
@@ -7,8 +7,9 @@ from loguru import logger
 from zerorunner.model.base import TStepLogType, TStepResultStatusEnum
 from zerorunner.model.result_model import StepResult
 from zerorunner.model.step_model import TStep
-from zerorunner.runner_new import SessionRunner
+from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
+from zerorunner.steps.step_result import TStepResult
 
 
 def run_wait_request(runner: SessionRunner,
@@ -17,8 +18,8 @@ def run_wait_request(runner: SessionRunner,
                      parent_step_result: StepResult = None):
     """等待控制器"""
     step.name = "等待控制器"
-    step_result = runner.get_step_result(step)
-    runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
+    step_result = TStepResult(step, step_tag=step_tag)
+    step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
     request_dict = step.wait_request.dict()
@@ -28,19 +29,20 @@ def run_wait_request(runner: SessionRunner,
         if wait_time or wait_time == 0:
             time.sleep(wait_time)
             logger.info(f"等待控制器---> {wait_time}m")
-            runner.set_run_log(f"等待控制器---> {wait_time}m")
+            step_result.set_step_log(f"等待控制器---> {wait_time}m")
             step_result.step_tag = f"wait[{wait_time}m]"
-            runner.set_step_result_status(step_result, TStepResultStatusEnum.success)
+            step_result.set_step_result_status(TStepResultStatusEnum.success)
 
         else:
             raise ValueError("等待时间不能为空！")
     except Exception as err:
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.set_step_result_status(TStepResultStatusEnum.err)
         raise
     finally:
+        step_result.end_log()
+        step_result = step_result.get_step_result()
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-        runner.set_run_log(step_result=step_result, log_type=TStepLogType.end)
 
 
 class WaitWithOptionalArgs(IStep):

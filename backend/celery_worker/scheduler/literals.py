@@ -1,5 +1,5 @@
 # coding=utf-8
-from autotest.config import config
+from config import config
 
 DAYS = 'days'
 HOURS = 'hours'

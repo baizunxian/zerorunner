@@ -65,7 +65,17 @@ def get_req_resp_record(resp_obj: Response) -> ReqRespData:
         request_content_type = lower_dict_keys(request_headers).get("content-type")
         if request_content_type and "multipart/form-data" in request_content_type:
             # upload file type
-            request_body = "upload file stream (OMITTED)"
+            fields: dict = request_body.fields
+            request_body = ""
+            if fields:
+                for key, value in fields.items():
+                    if isinstance(value, tuple) and value.__len__() == 3:
+                        # file_name, file_content, file_type = value
+                        request_body += f"{key}: (二进制文件)\n"
+                    else:
+                        request_body += f"{key}: {value}\n"
+            else:
+                request_body = "upload file stream (OMITTED)"
 
     request_data = RequestData(
         method=resp_obj.request.method,
@@ -190,8 +200,6 @@ class HttpSession(requests.Session):
 
         # set stream to True, in order to get client/server IP/Port
         kwargs["stream"] = True
-        # if kwargs["data"]:
-        #     kwargs["data"] = kwargs["data"].encode("utf-8")
 
         start_timestamp = time.time()
         response = self._send_request_safe_mode(method, url, **kwargs)
@@ -214,7 +222,7 @@ class HttpSession(requests.Session):
             pass
 
         # get length of the response content
-        content_size = int(response.headers.get("content-length", 0))
+        content_size = response.content.__len__() or int(response.headers.get("content-length", 0))
 
         # record the consumed time
         self.data.stat.response_time_ms = response_time_ms

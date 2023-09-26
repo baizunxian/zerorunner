@@ -5,13 +5,11 @@
   <span style="margin-left: 5px">m</span>
 </template>
 
-<script lang="ts" setup name="WaitHeader">
-
-import {PropType} from "vue";
+<script setup name="WaitHeader">
 
 const props = defineProps({
   data: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     default: () => {
       return {}
     }

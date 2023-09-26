@@ -66,19 +66,13 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ApiSaveOrUpdate">
+<script setup name="ApiSaveOrUpdate">
 import {defineProps, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from "vue-router"
 import {useApiInfoApi} from '/@/api/useAutoApi/apiInfo'
 import {ElLoading, ElMessage} from 'element-plus'
 
 import UiInfo from './uiInfo.vue'
-// import ApiVariables from './ApiVariables.vue'
-// import ApiValidators from './ApiValidators.vue'
-// import ApiExtracts from './ApiExtracts.vue'
-// import ApiCode from "./ApiCode.vue"
-// import ApiHooks from "./ApiHooks.vue"
-
 
 // 定义父组件传过来的值
 const props = defineProps({
@@ -133,7 +127,7 @@ const state = reactive({
 });
 
 
-const saveOrUpdateOrDebug = (type: string) => {
+const saveOrUpdateOrDebug = (type) => {
   // if (!store.state.env?.envId) {
   //   console.log("store.state.env", store.state.env)
   //   showDriver()
@@ -217,7 +211,7 @@ const saveOrUpdateOrDebug = (type: string) => {
           loading.close()
         })
     }
-  } catch (err: any) {
+  } catch (err) {
     console.log(err)
     ElMessage.warning(err.message || '信息表单填写不完整')
 
@@ -225,7 +219,7 @@ const saveOrUpdateOrDebug = (type: string) => {
 }
 
 const initApi = () => {
-  let api_id: any
+  let api_id
   if (props.api_id) {
     api_id = props.api_id
     state.reportData = null
@@ -272,7 +266,7 @@ const goBack = () => {
   router.push({name: 'apiInfo'})
 }
 
-const getDataLength = (ref: string) => {
+const getDataLength = (ref) => {
   switch (ref) {
     case "body":
       return ApiRequestBodyRef?.value.getDataLength()
@@ -294,7 +288,7 @@ const getDataLength = (ref: string) => {
 }
 
 // updateHeader
-const updateHeader = (headerData: any, remove: any) => {
+const updateHeader = (headerData, remove) => {
   ApiRequestHeadersRef.value.updateHeader(headerData, remove)
 }
 

@@ -2,17 +2,17 @@
 # @author: xiaobai
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
-from zerorunner.snowflake import id_center
+from autotest.utils.response.http_response import partner_success
+from autotest.utils.snowflake import IDCenter
 
 router = APIRouter()
 
 
 @router.get('/getId')
-def get_all_lookup():
+def get_id():
     """
     获取id
     :return:
     """
-    data = id_center.get_id()
+    data = IDCenter.get_id()
     return partner_success(str(data))

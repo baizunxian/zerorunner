@@ -80,8 +80,8 @@
 
 </template>
 
-<script lang="ts" setup name="StepNode">
-import {nextTick, PropType} from 'vue';
+<script setup name="StepNode">
+import {nextTick} from 'vue';
 import WaitHeader from "/@/components/Z-StepController/wait/WaitHeader.vue";
 import IfControllerHeader from "/@/components/Z-StepController/ifController/IfControllerHeader.vue";
 import LoopHeader from "/@/components/Z-StepController/loop/LoopHeader.vue";
@@ -91,7 +91,7 @@ const emit = defineEmits(['copy-node', 'deleted-node'])
 
 const props = defineProps({
   data: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
   },
   node: {
     type: Object,
@@ -101,7 +101,7 @@ const props = defineProps({
   },
 })
 
-const editeName = (data: any) => {
+const editeName = (data) => {
   data.edit = true
   nextTick(() => {
     let inputRef = document.getElementById("editeName_" + data.index)
@@ -110,11 +110,11 @@ const editeName = (data: any) => {
 }
 
 // 编辑失去焦点时触发
-const nameEditBlur = (data: any) => {
+const nameEditBlur = (data) => {
   data.edit = false
 }
 
-const copyNode = (data: any) => {
+const copyNode = (data) => {
   emit("copy-node", data)
 }
 
@@ -123,7 +123,7 @@ const deletedNode = () => {
 }
 
 // 是否展示展开图标
-const shouDetailIcon = (step_type: string) => {
+const shouDetailIcon = (step_type) => {
   let noneType = ["wait", "if"]
   return noneType.indexOf(step_type) === -1
 }

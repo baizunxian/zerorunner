@@ -71,6 +71,7 @@
          v-click-outside="onClickOutside">
       <div class="row-contextmenu-item row-contextmenu-item-available"
            v-for="item in state.rowContextmenuList"
+           :key="item"
            @click="rowContextmenuClick(item)"
       >{{ item.name }}
       </div>
@@ -82,7 +83,7 @@
           :style="{height: '500px'}"
           ref="monacoEditRef"
           v-model:value="state.createTableContent"
-          long="sql"
+          lang="sql"
       ></z-monaco-editor>
     </el-dialog>
 
@@ -90,7 +91,7 @@
 
 </template>
 
-<script lang="ts" setup name="DBList">
+<script setup name="DBList">
 import {nextTick, onMounted, onUnmounted, reactive, ref} from 'vue';
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import mysqlIcon from "/@/icons/mysql_icon.svg";
@@ -149,13 +150,13 @@ const state = reactive({
 });
 // source
 const getSourceList = () => {
-  useQueryDBApi().getSourceList(state.sourceForm).then((res: any) => {
+  useQueryDBApi().getSourceList(state.sourceForm).then((res) => {
     state.sourceList = res.data.rows
   })
 }
 
 // source 变更
-const sourceChange = (value: any) => {
+const sourceChange = (value) => {
   state.dbForm.source_id = state.tableForm.source_id = value
   if (!value) {
     state.sourceForm.id = null
@@ -169,20 +170,20 @@ const sourceChange = (value: any) => {
 
 // 获取数据库列表
 const getDBList = () => {
-  useQueryDBApi().getDBList(state.dbForm).then((res: any) => {
+  useQueryDBApi().getDBList(state.dbForm).then((res) => {
     state.dbList = res.data
   })
 }
 
 // 点击数据库
-const clickDB = async (row: any, column: any, event: any) => {
+const clickDB = async (row, column, event) => {
   console.log("clickDB", row, column, event)
   let iconInfo = event.currentTarget.querySelector(".el-table__expand-icon")
   if (iconInfo) {
     iconInfo.click();
   }
   if (row.type === "database") {
-    let data: any
+    let data
     if (row.db_data) {
       data = row.db_data
     } else {
@@ -200,27 +201,27 @@ const clickDB = async (row: any, column: any, event: any) => {
 }
 
 // 加载数据库列表
-const getTableList = async (databases: any = "") => {
+const getTableList = async (databases = "") => {
   if (databases) state.tableForm.databases = databases
   let res = await useQueryDBApi().getTableList(state.tableForm)
   return res.data
 }
 
 // 加载数据库列表
-const loadTableList = async (row: any, treeNode: unknown, resolve: (date: any) => void) => {
+const loadTableList = async (row, treeNode, resolve) => {
   state.tableForm.databases = row.name
-  let tableList: any = await getTableList()
+  let tableList = await getTableList()
   resolve(tableList)
 }
 
 // 获取字段列表
-const getColumnList = async (table: any = null) => {
+const getColumnList = async (table = null) => {
   if (table) {
     state.tableForm.table = table
   } else {
     state.tableForm.table = null
   }
-  let res: any = await useQueryDBApi().getColumnList(state.tableForm)
+  let res = await useQueryDBApi().getColumnList(state.tableForm)
   return res.data
 }
 
@@ -229,7 +230,7 @@ const handelCreatePage = () => {
   saveOrUpdateRef.value.openDialog("save")
 }
 
-const rowContextmenu = (row: any, column: any, event: any) => {
+const rowContextmenu = (row, column, event) => {
   event.preventDefault();
   if (row.type === 'table') {
     state.showRowContextMenu = true
@@ -244,14 +245,14 @@ const rowContextmenu = (row: any, column: any, event: any) => {
   }
 }
 
-const rowContextmenuClick = async (item: any) => {
-  if (item.value == 'view_create_table_sql') {
+const rowContextmenuClick = async (item) => {
+  if (item.value === 'view_create_table_sql') {
     let params = {
       source_id: state.sourceForm.id,
       databases: state.currentDBRow.name,
       table_name: state.rightClickRow.name
     }
-    let {data}: any = await useQueryDBApi().showCreateTable(params)
+    let {data} = await useQueryDBApi().showCreateTable(params)
     state.createTableContent = data.create_table_sql
     state.showCreateTable = true
   } else if (item.value === "generate_select_sql") {
@@ -267,7 +268,7 @@ const onClickOutside = () => {
 onMounted(() => {
   getSourceList()
 
-  mittBus.on("getColumnList", async (table: any) => {
+  mittBus.on("getColumnList", async (table) => {
     let res = await getColumnList(table)
     return res
     // await getColumnList(table).then(async (res) => {

@@ -156,7 +156,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ExtractValidate">
+<script setup name="ExtractValidate">
 
 import {reactive, ref} from "vue";
 
@@ -189,13 +189,11 @@ const state = reactive({
 
 });
 // 初始化数据
-const initForm = (formData: any) => {
+const initForm = (formData) => {
   state.extract = []
   state.validate = []
   if (formData && formData.extract && formData.extract.length > 0) {
-    console.log(formData.extract, 'this.extract ')
-    console.log(formData.extract, 'form.extract')
-    formData.extract.forEach((extracts: any) => {
+    formData.extract.forEach((extracts) => {
       for (let key in extracts) {
         let extract_dict = {
           key: key,
@@ -243,7 +241,7 @@ const getFormData = () => {
 const addExtract = () => {
   state.extract.push({key: '', value: 'body.'})
 }
-const deleteExtract = (index: number) => {
+const deleteExtract = (index) => {
   state.extract.splice(index, 1)
 }
 
@@ -251,7 +249,7 @@ const deleteExtract = (index: number) => {
 const addValidate = () => {
   state.validate.push({check: 'body.', comparator: 'equals', type: 'string', expected: ''})
 }
-const deleteValidate = (index: number) => {
+const deleteValidate = (index) => {
   state.validate.splice(index, 1)
 }
 

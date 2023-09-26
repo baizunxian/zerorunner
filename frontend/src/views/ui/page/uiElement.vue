@@ -14,11 +14,11 @@
   </el-card>
 </template>
 
-<script setup lang="ts" name="UiElement">
+<script setup name="UiElement">
 import {ElButton, ElInput, ElMessage, ElMessageBox, ElOption, ElSelect} from "element-plus";
 import {h, reactive, watch} from "vue";
 import {useUiElementApi} from "/@/api/useUiApi/uiElement";
-import {RefreshLeft, Edit, CirclePlus} from "@element-plus/icons-vue"
+import {RefreshLeft, Edit, CirclePlus} from "@element-plus/icons"
 
 
 const props = defineProps({
@@ -33,7 +33,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {
       key: 'name', label: '元素名称', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElInput, {
+      render: ({row}) => h(ElInput, {
         modelValue: row.name,
         placeholder: '请输入元素名称',
         clearable: true,
@@ -41,12 +41,12 @@ const state = reactive({
     },
     {
       key: 'location_method', label: '定位方式', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElSelect, {
+      render: ({row}) => h(ElSelect, {
           style: 'width: 100%',
           modelValue: row.location_method,
           placeholder: '请选择定位方式',
           clearable: true,
-        }, () => state.locationTypes.map((type: any) => h(ElOption, {
+        }, () => state.locationTypes.map((type) => h(ElOption, {
           key: type.value,
           label: type.label,
           value: type.value
@@ -70,7 +70,7 @@ const state = reactive({
     },
     {
       key: 'location_value', label: '定位值', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElInput, {
+      render: ({row}) => h(ElInput, {
         modelValue: row.location_value,
         placeholder: '请输入定位值',
         clearable: true,
@@ -78,7 +78,7 @@ const state = reactive({
     },
     {
       key: 'remarks', label: '备注', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElInput, {
+      render: ({row}) => h(ElInput, {
         modelValue: row.remarks,
         placeholder: '请输入备注',
         clearable: true,
@@ -86,7 +86,7 @@ const state = reactive({
     },
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: ({row, $index}: any) => h("div", null, [
+      render: ({row, $index}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -140,7 +140,7 @@ const state = reactive({
 const getElementList = () => {
   state.loading = true
   useUiElementApi().getList(state.listQuery)
-    .then((res: any) => {
+    .then((res) => {
       state.elementList = res.data.rows;
       state.total = res.data.rowTotal;
     })
@@ -162,7 +162,7 @@ const addElement = () => {
 }
 
 // 更新保存 元素
-const saveElement = (row: any) => {
+const saveElement = (row) => {
   console.log(state, "state")
   // 判断有 row.page_name 则保存，不然就是url为空
   if (row.location_method && row.name) {
@@ -183,7 +183,7 @@ const saveElement = (row: any) => {
 
 
 // 删除
-const deletedElement = (row: any, index: number) => {
+const deletedElement = (row, index) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -194,7 +194,7 @@ const deletedElement = (row: any, index: number) => {
       return
     }
     useUiElementApi().deleted({id: row.id})
-      .then((res: any) => {
+      .then((res) => {
         ElMessage.success('删除成功')
         getElementList()
       })

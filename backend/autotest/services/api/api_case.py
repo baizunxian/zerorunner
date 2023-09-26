@@ -1,15 +1,17 @@
 import typing
 
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.api_models import ApiCase
+from autotest.models.api_models import ApiCase, ApiCaseStep
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
-    ApiTestCaseRun
+    ApiTestCaseRun, TCaseStepData, ApiCaseStepDataSchema
+from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
-from autotest.services.api.api_report import ReportService
 from autotest.utils import current_user
-from autotest.corelibs.serialize import default_serialize
-from zerorunner.testcase_new import ZeroRunner
+from autotest.utils.async_converter import sync_to_async
+from autotest.utils.serialize import default_serialize
+from autotest.utils.snowflake import IDCenter
+from zerorunner.testcase import ZeroRunner
 
 
 class ApiCaseService:
@@ -33,15 +35,62 @@ class ApiCaseService:
         """用例保存"""
         # 判断用例名是否重复
         exist_case_info = await ApiCase.get_case_by_name(name=params.name)
-        if params.id:
-            case_info = await ApiCase.get(params.id)
+        case_info = await ApiCase.get(params.id)
+        if not params.version:
+            params.version = 0
+        if case_info:
+            params.version = case_info.version + 1
             if case_info.name != params.name and exist_case_info:
-                raise ParameterError("套件名以存在!")
+                raise ParameterError("用例名以存在!")
         else:
             if exist_case_info:
-                raise ParameterError("套件名以存在!")
-        data = await ApiCase.create_or_update(params.dict())
+                raise ParameterError("用例名以存在!")
+        data = await ApiCase.create_or_update(params.dict(exclude={"step_data"}))
+        tile_step_list = await ApiCaseService.tile_step_data(params.step_data, data.get("id"), data.get("version"))
+        await ApiCaseStep.batch_create([step.dict() for step in tile_step_list])
         return data
+
+    @staticmethod
+    async def get_step_data_tree(step_list: typing.List[typing.Dict], parent_id: int = None) -> typing.List[
+        TCaseStepData]:
+        step_tree = []
+        if not step_list:
+            return step_tree
+        for step in step_list:
+            new_step = ApiCaseStepDataSchema(**step)
+            step_data = TCaseStepData(**new_step.step_data)
+            if step_data.request:
+                step_data.request.name = step.get("api_name", None)
+                step_data.request.method = step.get("api_method", None)
+            if new_step.parent_id == parent_id:
+                sub_steps = await ApiCaseService.get_step_data_tree(step_list, new_step.step_id)
+                if sub_steps:
+                    step_data.sub_steps = sub_steps if sub_steps else []
+                step_tree.append(step_data)
+        return step_tree
+
+    @staticmethod
+    async def tile_step_data(step_data: typing.List[TCaseStepData],
+                             case_id: typing.Union[str, int],
+                             version: int,
+                             parent_step_id: int = None) -> typing.List[
+        ApiCaseStepDataSchema]:
+        """处理用例步骤数据"""
+        tile_step_list = []
+        for step in step_data:
+            step_ = ApiCaseStepDataSchema(**step.dict())
+            step_.case_id = case_id
+            step_.version = version
+            step_.step_id = IDCenter.get_id()
+            step_.parent_id = parent_step_id
+            if step.request:
+                step_.api_id = step.request.api_id
+            step_.step_data = step.dict(exclude={"sub_steps"})
+            tile_step_list.append(step_)
+            if step.sub_steps:
+                tile_step_list.extend(
+                    await ApiCaseService.tile_step_data(step.sub_steps, case_id, version, step_.step_id))
+        return tile_step_list
 
     @staticmethod
     async def deleted(params: ApiCaseId):
@@ -51,23 +100,31 @@ class ApiCaseService:
     @staticmethod
     async def get_case_info(params: ApiCaseId) -> typing.Dict:
         """获取用例信息"""
-        api_case = await ApiCase.get(params.id)
+        api_case = await ApiCase.get(params.id, to_dict=True)
+        await ApiCaseService.set_step_data(api_case)
         if not api_case:
             raise ValueError('不存在当前套件！')
         return api_case
+
+    @staticmethod
+    async def set_step_data(api_case: typing.Dict):
+        step_data = await ApiCaseStep.get_step_by_case_id(api_case["id"], api_case["version"])
+        step_data_tree = await ApiCaseService.get_step_data_tree(step_data)
+        api_case["step_data"] = step_data_tree
 
     @staticmethod
     async def run_case(params: ApiTestCaseRun):
         """运行用例"""
         if not params.id:
             raise ValueError("id 不能为空！")
-        case_info = await ApiCase.get(params.id)
+        case_info = await ApiCase.get(params.id, to_dict=True)
+        await ApiCaseService.set_step_data(case_info)
         run_params = TestCaseRun(**default_serialize(case_info), env_id=params.env_id)
         api_case_info = await ApiCaseHandle.init(run_params)
         await api_case_info.make_functions()
         runner = ZeroRunner()
         testcase = api_case_info.get_testcase()
-        summary = runner.run_tests(testcase)
+        summary = await runner.run_tests(testcase)
         current_user_info = await current_user()
         summary_params = await ReportService.get_report_result(summary,
                                                                api_case_info.api_case.project_id,
@@ -86,7 +143,7 @@ class ApiCaseService:
         runner = ZeroRunner()
         # case_info.make_functions()
         testcase = case_info.get_testcases()
-        summary = runner.run_tests(testcase)
+        summary = await sync_to_async(runner.run_tests, testcase)
         # summary = runner.get_summary()
         project_id = case_info.api_case.project_id
         module_id = case_info.api_case.module_id

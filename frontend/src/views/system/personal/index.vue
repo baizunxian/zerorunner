@@ -6,10 +6,12 @@
         <el-card>
           <div class="personal-user">
             <div class="personal-user-avatar" @click="onCropperDialogOpen">
-              <!--              <el-upload class="h100 personal-user-left-upload" action="https://jsonplaceholder.typicode.com/posts/"-->
-              <!--                         multiple :limit="1">-->
-              <img :src="state.personalForm.avatar"/>
-              <!--              </el-upload>-->
+
+              <el-avatar :size="100"
+                         :src="state.personalForm.avatar"
+                         title="点击更换头像"
+                         style="cursor: pointer"/>
+
             </div>
             <div class="personal-user-right">
               <el-row>
@@ -188,7 +190,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="personal">
+<script setup name="personal">
 import {computed, defineAsyncComponent, nextTick, onMounted, reactive, ref} from 'vue';
 import {formatAxis} from '/@/utils/formatTime';
 import {useUserInfo} from "/@/stores/userInfo";
@@ -204,7 +206,7 @@ const userStores = useUserInfo()
 
 
 // 定义变量内容
-const state = reactive<PersonalState>({
+const state = reactive({
   newsInfoList: [],
   recommendList: [],
   personalForm: {
@@ -245,11 +247,11 @@ const onCropperDialogOpen = () => {
 const showEditTag = () => {
   state.editTag = true
   nextTick(() => {
-    UserTagInputRef.value!.input!.focus()
+    UserTagInputRef.value?.input.focus()
   })
 }
 
-const removeTag = (tag: string) => {
+const removeTag = (tag) => {
   state.personalForm.tags.splice(state.personalForm.tags.indexOf(tag), 1)
 }
 
@@ -269,7 +271,7 @@ const save = async () => {
   ElMessage.success("更新成功!")
 }
 
-const updateAvatar = (img: String) => {
+const updateAvatar = (img) => {
   state.personalForm.avatar = img
   save()
 }

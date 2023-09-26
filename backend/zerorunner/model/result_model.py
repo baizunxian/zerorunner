@@ -5,6 +5,7 @@ import typing
 from pydantic import BaseModel, Field
 
 from zerorunner.model.base import VariablesMapping, MethodEnum, Url, Headers, Cookies
+from zerorunner.model.step_model import TSqlRequest
 
 
 class RequestStat(BaseModel):
@@ -57,6 +58,13 @@ class SessionData(BaseModel):
     validators: typing.Dict = Field({}, description="校验")
 
 
+class SqlSessionData(TSqlRequest):
+    """sql会话数据"""
+
+    success: bool = Field(False, description="是否成功")
+    execution_result: typing.Any = Field(None, description="执行结果")
+
+
 class UiSessionData(BaseModel):
     """ui会话数据"""
     action: str = Field(None, description="动作")
@@ -88,8 +96,7 @@ class StepResult(BaseModel):
     step_result: typing.List['StepResult'] = Field([], description="步骤结果")
     session_data: SessionData = Field(None, description="请求信息")
     ui_session_data: UiSessionData = Field(None, description="ui请求数据")
-    # pre_hook_data: typing.List['StepResult'] = Field([], description="前置")
-    # post_hook_data: typing.List['StepResult'] = Field([], description="后置")
+    sql_session_data: SqlSessionData = Field(None, description="sql会话数据")
     setup_hook_results: typing.List['StepResult'] = Field([], description="前置hook")
     teardown_hook_results: typing.List['StepResult'] = Field([], description="后置hook")
     export_vars: VariablesMapping = Field({}, description="")
@@ -113,6 +120,7 @@ class TestCaseSummary(BaseModel):
     name: str = Field(..., description="报告名称")
     success: bool = Field(..., description="是否成功")
     case_id: typing.Union[str, int] = Field(None, description="用例id")
+    source_id: typing.Union[str, int] = Field(None, description="来源id")
     start_time: typing.Union[float, str] = Field(0, description="开始时间")
     response_time: float = Field(0, description="请求时间")
     duration: float = Field(0, description="耗时")
@@ -136,10 +144,6 @@ class PlatformInfo(BaseModel):
     python_version: str = Field(..., description="python版本")
     platform: str = Field(..., description="机器信息")
 
-
-# class TestSuite(BaseModel):
-#     config: TConfig
-#     testcases: typing.List[TestCase]
 
 
 class Stat(BaseModel):

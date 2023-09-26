@@ -1,16 +1,16 @@
 import typing
-import uuid
 
+from loguru import logger
+
+from autotest.utils.serialize import default_serialize
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiInfo
 from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
-from autotest.services.api.run_handle_new import HandelRunApiStep
 from autotest.services.api.api_report import ReportService
-from autotest.corelibs.serialize import default_serialize
+from autotest.services.api.run_handle_new import HandelRunApiStep
 from autotest.utils import current_user
-from zerorunner.loader import load_script_content
-from zerorunner.script_code import Zero
-from zerorunner.testcase_new import ZeroRunner
+from celery_worker.tasks import test_case
+from zerorunner.testcase import ZeroRunner
 
 
 class ApiInfoService:
@@ -51,8 +51,8 @@ class ApiInfoService:
             if api_info.name != params.name:
                 if existing_data:
                     raise ParameterError("用例名重复!")
-
-        return await ApiInfo.create_or_update(params.dict())
+        await ApiInfo.create_or_update(params.dict())
+        return await ApiInfo.get(params.id)
 
     @staticmethod
     async def set_api_status(**kwargs: typing.Any):
@@ -89,6 +89,38 @@ class ApiInfoService:
         return api_info
 
     @staticmethod
+    async def run_api(params: ApiRunSchema):
+        """"""
+        current_user_info = await current_user()
+        params.exec_user_id = current_user_info.get("id", None)
+        params.exec_user_name = current_user_info.get("nickname", None)
+        if params.api_run_mode == "one":
+            if params.run_mode == 20:
+                logger.info('异步执行用例 ~')
+                test_case.async_run_api.apply_async(kwargs=params.dict(), __business_id=params.id)
+            else:
+                summary = await ApiInfoService.run(params)  # 初始化校验，避免生成用例是出错
+                return summary
+        else:
+            logger.info('批量运行用例 ~')
+            for id_ in params.ids:
+                new_params = ApiRunSchema(
+                    id=id_,
+                    env_id=params.env_id,
+                    name=params.name,
+                    run_type=params.run_type,
+                    run_mode=params.run_mode,
+                    number_of_run=params.number_of_run,
+                    exec_user_id=params.exec_user_id,
+                    exec_user_name=params.exec_user_name
+                )
+                if params.run_type == 20:
+                    logger.info('异步执行用例 ~')
+                    test_case.async_run_api.apply_async(kwargs=new_params.dict(), __business_id=params.id)
+                else:
+                    await ApiInfoService.run(new_params)  # 初始化校验，避免生成用例是出错
+
+    @staticmethod
     async def run(params: ApiRunSchema, **kwargs) -> typing.Dict:
         """
         运行测试用例
@@ -102,7 +134,7 @@ class ApiInfoService:
         runner = ZeroRunner()
         summary = runner.run_tests(case_info.get_testcase())
         report_info = await ReportService.save_report(summary=summary,
-                                                      run_mode='api',
+                                                      run_mode=params.run_mode,
                                                       run_type=params.run_type,
                                                       project_id=case_info.api_info.project_id,
                                                       module_id=case_info.api_info.module_id,

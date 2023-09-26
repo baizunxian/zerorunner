@@ -129,7 +129,6 @@ def uniform_validator(validator):
 
 class ResponseObjectBase(object):
 
-
     def __copy__(self):
         pass
 

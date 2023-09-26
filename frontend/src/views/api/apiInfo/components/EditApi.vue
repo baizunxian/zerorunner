@@ -171,7 +171,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditApiInfo">
+<script setup name="EditApiInfo">
 import {defineProps, nextTick, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from "vue-router"
 import {useApiInfoApi} from '/@/api/useAutoApi/apiInfo'
@@ -241,7 +241,7 @@ const state = reactive({
 });
 
 
-const saveOrUpdateOrDebug = (type: string) => {
+const saveOrUpdateOrDebug = (type) => {
   // if (!store.state.env?.envId) {
   //   console.log("store.state.env", store.state.env)
   //   showDriver()
@@ -295,6 +295,7 @@ const saveOrUpdateOrDebug = (type: string) => {
           .then(res => {
             ElMessage.success('保存成功！')
             state.api_id = res.data.id
+            ApiInfoRef.value.setData(res.data)
           })
     } else {
       // testCaseData.type = type
@@ -325,15 +326,14 @@ const saveOrUpdateOrDebug = (type: string) => {
             loading.close()
           })
     }
-  } catch (err: any) {
+  } catch (err) {
     console.log(err)
     ElMessage.warning(err.message || '信息表单填写不完整')
 
   }
 }
 
-const initApi = () => {
-  let api_id: any
+const initApi = (api_id) => {
   if (props.api_id) {
     api_id = props.api_id
     state.reportData = null
@@ -380,7 +380,7 @@ const goBack = () => {
   router.push({name: 'apiInfo'})
 }
 
-const getDataLength = (ref: string) => {
+const getDataLength = (ref) => {
   switch (ref) {
     case "body":
       return ApiRequestBodyRef?.value.getDataLength()
@@ -402,7 +402,7 @@ const getDataLength = (ref: string) => {
 }
 
 // updateContentType
-const updateContentType = (mode: string, language: string, remove: any) => {
+const updateContentType = (mode, language, remove) => {
   ApiRequestHeadersRef.value.updateContentType(mode, language, remove)
 }
 

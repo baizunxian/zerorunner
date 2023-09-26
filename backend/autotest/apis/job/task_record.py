@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.job.task_record import TaskRecordQuery
 from autotest.services.job.task_record import TaskRecordServer
 

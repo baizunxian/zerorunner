@@ -12,10 +12,10 @@ from celery._state import _task_stack
 from celery.signals import setup_logging, task_prerun
 from celery.worker.request import Request
 
-from autotest.config import config
-from autotest.corelibs.local import g
-from autotest.corelibs.logger import InterceptHandler, logger
-from autotest.db.redis import init_redis_pool
+from config import config
+from autotest.utils.local import g
+from autotest.init.logger_init import InterceptHandler, logger
+from autotest.init.redis_init import init_redis_pool
 from autotest.schemas.job.task_record import TaskRecordIn
 from autotest.services.job.task_record import TaskRecordServer
 from autotest.utils.async_converter import AsyncIOPool
@@ -102,6 +102,18 @@ def create_celery():
     :return:
     """
 
+    class NewCelery(Celery):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+        def send_task(self, *args, **kwargs):
+            headers = {"headers": {"trace_id": g.trace_id}}
+            if kwargs:
+                kwargs.update(headers)
+            else:
+                kwargs = headers
+            return super().send_task(*args, **kwargs)
+
     class ContextTask(Task, ABC):
         Request = TaskRequest
 
@@ -119,6 +131,9 @@ def create_celery():
                 options = headers
             return super(ContextTask, self).apply_async(args, kwargs, task_id, producer, link, link_error,
                                                         shadow, **options)
+
+        def send_task(self):
+            ...
 
         def on_success(self, retval, task_id, args, kwargs):
             """任务成功时回调"""
@@ -167,7 +182,7 @@ def create_celery():
                 self.pop_request()
                 _task_stack.pop()
 
-    _celery_: Celery = Celery("zerorunner-job-worker", task_cls=ContextTask)
+    _celery_: Celery = NewCelery("zerorunner-job-worker", task_cls=ContextTask)
     _celery_.config_from_object(config)
 
     return _celery_
@@ -177,13 +192,13 @@ celery = create_celery()
 
 # celery_worker 专用于celery的worker
 # worker windows 启动，只能单线程
-# job -A celery_worker.worker.job worker --pool=solo -l INFO
+# celery -A celery_worker.worker worker --pool=solo -l INFO
 # worker linux  启动
-# job -A celery_worker.worker.job worker --pool=solo -c 10 -l INFO  linux 启动
+# celery -A celery_worker.worker worker --pool=solo -c 10 -l INFO  linux 启动
 # beat
-# job -A celery_worker.worker.job beat  -l INFO  启动节拍器，定时任务需要
+# celery -A celery_worker.worker beat  -l INFO  启动节拍器，定时任务需要
 # beat 数据库
-# job -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+# celery -A celery_worker.worker beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
 if __name__ == '__main__':
     import sys

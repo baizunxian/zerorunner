@@ -30,7 +30,7 @@
         <!--      展示-->
         <z-monaco-editor
             v-model:value="state.funcFrom.content"
-            v-model:long="state.long"
+            v-model:lang="state.lang"
         />
       </div>
 
@@ -62,7 +62,7 @@
             :isDiff="true"
             v-model:oldString="state.originalFuncContent"
             v-model:value="state.funcFrom.content"
-            v-model:long="state.long"
+            v-model:long="state.lang"
         />
       </div>
 
@@ -70,7 +70,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditFunc">
+<script setup name="EditFunc">
 import {onMounted, reactive} from "vue";
 import {useRoute, useRouter} from 'vue-router'
 import {useFunctionsApi} from "/@/api/useAutoApi/functions";
@@ -89,7 +89,7 @@ const state = reactive({
     remarks: ''
   },
 
-  long: 'python',
+  lang: 'python',
 
   // diff
   showDiff: false,
@@ -145,7 +145,7 @@ onMounted(() => {
   height: calc(100% - 114px);
 
   .el-dialog__body {
-    height: 100%;
+    height: calc(100% - 60px);
   }
 }
 

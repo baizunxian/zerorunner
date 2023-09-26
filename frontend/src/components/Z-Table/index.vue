@@ -3,8 +3,8 @@
       :data="data"
       :size="size"
       :tree-props="treeProps"
-      :row-key="rowKey"
-      v-bind="options"
+      :row-key="rowKey || ''"
+      v-bind="attrs"
       :load="load"
       :border="border"
       v-loading="tableLoading"
@@ -14,9 +14,10 @@
       @row-click="handleRowClick"
       @cell-click="handleCellClick"
       @sort-change="handleSortChange">
-    <template v-for="(col, index) in columns" :key="index">
+    <template v-for="(col, index) in columns">
       <!---复选框, 序号 (START)-->
       <el-table-column
+          :key="index"
           class-name="index-class"
           v-if="col.columnType === 'index' || col.columnType === 'selection' || col.columnType === 'expand'"
           :sortable="col.sortable"
@@ -42,6 +43,7 @@
       <!---图片 (START)-->
       <el-table-column
           v-else
+          :key="index + 1"
           v-bind="col"
           :render-header="col.renderHeader"
           :show-overflow-tooltip="col.show"
@@ -119,9 +121,12 @@
         @current-change="currentPageChange"/>
   </div>
 </template>
-<script setup lang="ts" name="z-table">
+<script setup name="z-table">
 import {computed, reactive} from 'vue'
+import {useAttrs} from "vue";
 import {formatLookup} from '/@/utils/lookup'
+
+const attrs = useAttrs()
 
 const props = defineProps({
   // 列表
@@ -151,7 +156,7 @@ const props = defineProps({
   rowKey: {
     type: String,
     default() {
-      return ""
+      return undefined
     }
   },
   border: {
@@ -262,44 +267,44 @@ const emit = defineEmits([
 
 
 // 自定义索引
-const indexMethod = (index: number) => {
+const indexMethod = (index) => {
   if (!props.showPage) return index + 1
   return index + (props.page - 1) * props.pageSize + 1
 }
 // 切换pageSize
-const pageSizeChange = (pageSize: number) => {
+const pageSizeChange = (pageSize) => {
   emit('update:pageSize', pageSize)
   emit('pagination-change', {page: props.page, limit: pageSize})
 }
 // 切换currentPage
-const currentPageChange = (currentPage: number) => {
+const currentPageChange = (currentPage) => {
   emit('current-change', currentPage)
   emit('update:page', currentPage)
   emit('pagination-change', {page: currentPage, limit: props.pageSize})
 }
 // 按钮组事件
-const handleAction = (command: any, scope: any) => {
+const handleAction = (command, scope) => {
   emit('command', command, scope.row)
 }
 // 多选事件
-const handleSelectionChange = (val: any) => {
+const handleSelectionChange = (val) => {
   emit('selection-change', val)
 }
 // 当某一行被点击时会触发该事件
-const handleRowClick = (row: any, column: any, event: Event) => {
+const handleRowClick = (row, column, event) => {
   emit('row-click', row, column, event)
 }
 // 当某个单元格被点击时会触发该事件
-const handleCellClick = (row: any, column: any, cell: any, event: Event) => {
+const handleCellClick = (row, column, cell, event) => {
   emit('cell-click', row, column, cell, event)
 }
 // 当表格的排序条件发生变化的时候会触发该事件
 // 在列中设置 sortable 属性即可实现以该列为基准的排序， 接受一个 Boolean，默认为 false。 可以通过 Table 的 default-sort 属性设置默认的排序列和排序顺序。 如果需要后端排序，需将 sortable 设置为 custom，同时在 Table 上监听 sort-change 事件， 在事件回调中可以获取当前排序的字段名和排序顺序，从而向接口请求排序后的表格数据。
-const handleSortChange = ({column, prop, order}: any) => {
+const handleSortChange = ({column, prop, order}) => {
   emit('sort-change', {column, prop, order})
 }
 
-const handleRow = (row: any, key: string, lookupCode: string) => {
+const handleRow = (row, key, lookupCode) => {
   if (props.showPlaceholder && (!row[key] || row[key] === '' || row[key] === null)) {
     return props.placeholder
   } else {

@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="uiPage">
+<script setup name="uiPage">
 import {ElButton, ElMessage, ElMessageBox} from "element-plus";
 import {h, onMounted, reactive, ref} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
@@ -36,7 +36,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {
       key: 'name', label: '页面名称', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -55,7 +55,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -89,7 +89,7 @@ const search = () => {
 const getList = () => {
   tableRef.value.openLoading()
   useUiPageApi().getList(state.listQuery)
-    .then((res: any) => {
+    .then((res) => {
       state.listData = res.data.rows;
       state.total = res.data.rowTotal;
 
@@ -100,8 +100,8 @@ const getList = () => {
 };
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (editType, row) => {
+  let query = {}
   query.editType = editType
   if (row) query.id = row.id
   router.push({name: 'EditPage', query: query})
@@ -109,7 +109,7 @@ const onOpenSaveOrUpdate = (editType: string, row: any) => {
 
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

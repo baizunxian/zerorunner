@@ -4,7 +4,7 @@
 # @create time: 2022/9/13 16:47
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.data_source import SourceQuery, SourceIn, SourceId
 from autotest.services.api.data_source import DataSourceService, SourceInfo, ExecuteParam, SourceIdIn, SourceTableIn, \
     CreateTableIn

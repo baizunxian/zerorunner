@@ -10,12 +10,12 @@
   </el-row>
 </template>
 
-<script lang="ts" setup name="LoopHeader">
-import {defineComponent, PropType, reactive, toRefs} from 'vue';
+<script setup name="LoopHeader">
+import {reactive} from 'vue';
 
 const props = defineProps({
   data: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     default: () => {
       return {
         // data: {

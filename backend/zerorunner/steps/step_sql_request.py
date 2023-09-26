@@ -1,29 +1,34 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import time
-import traceback
 import typing
 
 from loguru import logger
+
 from zerorunner.database.engine import DBEngine
+from zerorunner.model.result_model import SqlSessionData
 from zerorunner.model.step_model import TStep, TSqlRequest
 from zerorunner.models import TStepLogType, StepResult, TStepResultStatusEnum
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
+from zerorunner.steps.step_result import TStepResult
 
 
 def run_sql_request(runner: SessionRunner,
                     step: TStep,
                     step_tag: str = None,
                     parent_step_result: StepResult = None):
-    step_result = runner.get_step_result(step, step_tag)
-    runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
+    step_result = TStepResult(step, step_tag=step_tag)
+    step_result.start_log()
     start_time = time.time()
-    step_variables = runner.get_merge_variable(step)
-    request_dict = step.sql_request.dict()
-    parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
-    step.sql_request = TSqlRequest(**parsed_request_dict)
     try:
+        step_variables = runner.get_merge_variable(step)
+        request_dict = step.sql_request.dict()
+        # 合并变量
+        parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
+        step.sql_request = TSqlRequest(**parsed_request_dict)
+        step_result.result.sql_session_data = SqlSessionData(**step.sql_request.dict(exclude={'password'}))
+
         db_engine = DBEngine(
             f'mysql+pymysql://{step.sql_request.user}:'
             f'{step.sql_request.password}@{step.sql_request.host}:'
@@ -33,19 +38,26 @@ def run_sql_request(runner: SessionRunner,
 
         data = db_engine.fetchall(step.sql_request.sql)
         variables = {step.sql_request.variable_name: data}
-        runner.with_variables(variables)
-        step_result.export_vars.update(variables)
-        logger.info(f"SQL查询---> {step.sql_request.sql}")
-        runner.set_run_log(f"SQL查询-> 设置变量:{step.sql_request.variable_name}, 设置变量值：{data}")
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.success)
         runner.with_session_variables(variables)
+        step_result.result.export_vars.update(variables)
+        logger.info(f"SQL查询---> {step.sql_request.sql}")
+        step_result.start_log(f"SQL查询-> 设置变量:{step.sql_request.variable_name}, 设置变量值：{data}")
+        runner.with_session_variables(variables)
+        step_result.result.sql_session_data.execution_result = data
+        step_result.result.sql_session_data.success = True
+        step_result.set_step_result_status(TStepResultStatusEnum.success)
+
     except Exception as err:
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.set_step_result_status(TStepResultStatusEnum.err)
+        step_result.result.sql_session_data.success = False
         raise
     finally:
+        step_result.end_log()
+        step_result = step_result.get_step_result()
         step_result.duration = time.time() - start_time
-        runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
-        runner.set_run_log(step_result=step_result, log_type=TStepLogType.end)
+        runner.append_step_result(step_result=step_result,
+                                  step_tag=step_tag,
+                                  parent_step_result=parent_step_result)
 
 
 class RequestWithOptionalArgs(IStep):

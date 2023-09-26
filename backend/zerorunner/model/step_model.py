@@ -15,10 +15,10 @@ class TStepBase(BaseModel):
     step_type: str = Field("", description="步骤类型 api if loop sql wait 等")
     name: Name = Field("", description="步骤名称")
     index: int = Field(0, description="排序")
-    step_id: str = Field(None, description="步骤id")
+    step_id: int = Field(None, description="步骤id")
     retry_times: int = Field(0, description="重试次数")
     retry_interval: int = Field(0, description="重试间隔")
-    parent_step_id: str = Field(None, description="父级步骤id")
+    parent_step_id: int = Field(None, description="父级步骤id")
 
 
 class ExtractData(BaseModel):
@@ -46,13 +46,18 @@ class TRequest(BaseModel):
     url: Url = Field(..., description="请求url")
     params: typing.Dict[str, str] = Field({}, description="参数")
     headers: Headers = Field({}, description="请求头")
-    req_json: typing.Union[typing.Dict, typing.List, str] = Field(None, alias="json")
+    req_json: typing.Union[typing.Dict, typing.List, str] = Field(None, alias="json", description="json数据")
     data: typing.Union[str, typing.Dict[str, typing.Any]] = Field(None, description="data数据")
     cookies: Cookies = Field({}, description="cookies")
     timeout: float = Field(120, description="超时时间")
     allow_redirects: bool = Field(True, description="允许重定向")
     verify: Verify = Field(False, description="开启验证")
     upload: typing.Dict = Field({}, description="上传文件")  # used for upload files
+
+    def dict(self, *args, **kwargs):
+        if "by_alias" not in kwargs:
+            kwargs["by_alias"] = True
+        return super().dict(*args, **kwargs)
 
 
 class TSqlRequest(BaseModel):

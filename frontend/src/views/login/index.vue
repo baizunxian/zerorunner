@@ -50,15 +50,14 @@
   </div>
 </template>
 
-<script setup lang="ts" name="loginIndex">
-import {defineAsyncComponent, onMounted, reactive, computed} from 'vue';
+<script setup name="loginIndex">
+import {computed, defineAsyncComponent, onMounted, reactive} from 'vue';
 import {storeToRefs} from 'pinia';
 import {useThemeConfig} from '/@/stores/themeConfig';
 import {NextLoading} from '/@/utils/loading';
 import loginMain from '/@/assets/login-main.svg';
 import loginBg from '/@/assets/login-bg.svg';
 import logoMini from '/@/assets/logo.svg';
-import loginIconTwo from '/@/assets/login-icon-two.svg';
 
 
 // 引入组件

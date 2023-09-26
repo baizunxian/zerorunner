@@ -23,10 +23,10 @@
 
 </template>
 
-<script lang="ts" setup name="SelectCase">
-import {h, onMounted, reactive} from 'vue';
+<script setup name="SelectCase">
+import {onMounted, reactive} from 'vue';
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
-import {ElButton, ElTag} from "element-plus";
+import {ElButton,} from "element-plus";
 
 
 const state = reactive({
@@ -58,7 +58,7 @@ const state = reactive({
 const getList = () => {
   state.tableLoading = true
   useApiCaseApi().getList(state.listQuery)
-      .then((res: any) => {
+      .then((res) => {
         state.listData = res.data.rows
         state.total = res.data.rowTotal
         state.tableLoading = false
@@ -66,7 +66,7 @@ const getList = () => {
 };
 
 // 选择用例
-const selectionChange = (val: any) => {
+const selectionChange = (val) => {
   console.log("selectionChange", val)
   state.selectionData = val
 }
@@ -119,7 +119,7 @@ defineExpose({
 
       &:hover {
         color: #212121;
-        background-color: #E6E6E;
+        background-color: #e6e6ee;
       }
     }
 

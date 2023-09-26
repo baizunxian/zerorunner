@@ -2,7 +2,7 @@
 # @author: xiaobai
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.services.system.statistic import StatisticService
 
 router = APIRouter()

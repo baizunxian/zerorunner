@@ -67,7 +67,7 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="systemDeptDialog">
+<script setup name="systemDeptDialog">
 import { reactive, ref } from 'vue';
 
 // 定义子组件向父组件传值/事件
@@ -77,7 +77,7 @@ const emit = defineEmits(['refresh']);
 const deptDialogFormRef = ref();
 const state = reactive({
 	ruleForm: {
-		deptLevel: [] as string[], // 上级部门
+		deptLevel: [], // 上级部门
 		deptName: '', // 部门名称
 		person: '', // 负责人
 		phone: '', // 手机号
@@ -86,7 +86,7 @@ const state = reactive({
 		status: true, // 部门状态
 		describe: '', // 部门描述
 	},
-	deptData: [] as DeptTreeType[], // 部门数据
+	deptData: [], // 部门数据
 	dialog: {
 		isShowDialog: false,
 		type: '',
@@ -96,7 +96,7 @@ const state = reactive({
 });
 
 // 打开弹窗
-const openDialog = (type: string, row: RowDeptType) => {
+const openDialog = (type, row) => {
 	if (type === 'edit') {
 		row.deptLevel = ['vueNextAdmin'];
 		row.person = 'lyt';

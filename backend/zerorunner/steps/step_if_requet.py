@@ -7,8 +7,9 @@ from zerorunner import exceptions
 from zerorunner.model.base import TStepLogType, TStepResultStatusEnum
 from zerorunner.model.result_model import StepResult
 from zerorunner.model.step_model import TStep, TIFRequest
-from zerorunner.runner_new import SessionRunner
+from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
+from zerorunner.steps.step_result import TStepResult
 
 
 def run_if_request(runner: SessionRunner,
@@ -17,8 +18,8 @@ def run_if_request(runner: SessionRunner,
                    parent_step_result: StepResult = None):
     """条件控制器"""
     step.name = "条件控制器"
-    step_result = runner.get_step_result(step, step_tag)
-    runner.set_run_log(step_result=step_result, log_type=TStepLogType.start)
+    step_result = TStepResult(step, step_tag=step_tag)
+    step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
     request_dict = step.if_request.dict()
@@ -30,22 +31,25 @@ def run_if_request(runner: SessionRunner,
         c_result = runner.comparators(if_request_obj.check, if_request_obj.expect, if_request_obj.comparator)
         check_value = c_result.get("check_value", "")
         if c_result.get("check_result", "fail") != "success":
-            runner.set_run_log(f"条件不符---> {c_result.get('validate_msg', '')}")
+            step_result.set_step_log(f"条件不符---> {c_result.get('validate_msg', '')}")
             raise exceptions.ValidationFailure(f"条件不符---> {c_result.get('validate_msg', '')}")
         try:
-            runner.execute_loop(if_request_obj.teststeps, step_tag=f"IF {check_value}", parent_step_result=step_result)
+            runner.execute_loop(if_request_obj.teststeps,
+                                step_tag=f"IF {check_value}",
+                                parent_step_result=step_result.get_step_result())
         except Exception as err:
             raise
-
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.success)
+        step_result.set_step_result_status(TStepResultStatusEnum.success)
     except exceptions.VariableNotFound as err:
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.set_step_result_status(TStepResultStatusEnum.err)
         raise
     except Exception as err:
-        runner.set_step_result_status(step_result, TStepResultStatusEnum.err, str(err))
+        step_result.set_step_result_status(TStepResultStatusEnum.err)
         raise
 
     finally:
+        step_result.end_log()
+        step_result = step_result.get_step_result()
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         # 将数据平铺出来
@@ -53,7 +57,6 @@ def run_if_request(runner: SessionRunner,
             for sub_step_result in step_result.step_result:
                 runner.append_step_result(sub_step_result)
         step_result.step_result = []
-        runner.set_run_log(step_result=step_result, log_type=TStepLogType.end)
 
 
 class IFWithOptionalArgs(IStep):

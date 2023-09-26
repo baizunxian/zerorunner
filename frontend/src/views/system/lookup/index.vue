@@ -63,111 +63,109 @@
         width="60%"
         draggable
     >
-      <div style="display: flex">
-        <el-button type="primary" link @click="addLookupValue">
-          <el-icon>
-            <ele-Plus></ele-Plus>
-          </el-icon>
-          添加
-        </el-button>
-      </div>
-
-      <el-table
-          border
-          :data="state.lookupValueListData"
-          v-loading="state.lookupValueTableLoading"
-          style="width: 100%"
-      >
-
-        <el-table-column label="序号" width="50px" align="center">
-          <template #default="scope">
-            {{ scope.$index + (state.listQuery.page - 1) * state.listQuery.pageSize + 1 }}
-          </template>
-        </el-table-column>
-
-        <el-table-column label="操作" width="140">
-          <template #default="{row}">
-            <template v-if="row._edit">
-              <el-button
-                  size="small"
-                  type="primary"
-                  @click="saveOrUpdateLookupValue(row)">保存
-              </el-button>
-
-              <el-button
-                  size="small"
-                  type=""
-                  @click="row._edit = !row._edit">取消
-              </el-button>
-
-            </template>
-
-            <template v-else>
-              <el-button
-                  size="small"
-                  type="primary"
-                  @click="editLookupValue(row)">编辑
-              </el-button>
-
-              <el-button
-                  size="small"
-                  type="danger"
-                  @click="deletedLookupValue(row)">
-                删除
-              </el-button>
-
-            </template>
-
-
-          </template>
-        </el-table-column>
-
-        <el-table-column
-            v-for="field in state.lookupValueFieldData"
-            :key="field.fieldName"
-            :label="field.label"
-            :align="field.align"
-            :width="field.width"
-            :show-overflow-tooltip="field.show"
-            :prop="field.fieldName"
+      <el-card>
+        <div style="display: flex" class="mb10">
+          <el-button type="primary" link @click="addLookupValue">
+            <el-icon>
+              <ele-Plus></ele-Plus>
+            </el-icon>
+            添加
+          </el-button>
+        </div>
+        <el-table
+            border
+            :data="state.lookupValueListData"
+            v-loading="state.lookupValueTableLoading"
+            style="width: 100%"
         >
-          <template #default="{row}">
-            <template v-if="row._edit">
-              <el-input v-if="field.fieldName === 'display_sequence'" v-model.number="row[field.fieldName]"
-                        :placeholder="field.label" clearable></el-input>
-              <el-input v-else v-model="row[field.fieldName]" :placeholder="field.label" clearable></el-input>
+
+          <el-table-column label="序号" width="50px" align="center">
+            <template #default="scope">
+              {{ scope.$index + (state.listQuery.page - 1) * state.listQuery.pageSize + 1 }}
             </template>
+          </el-table-column>
 
-            <template v-else>
-              {{ row[field.fieldName] }}
+          <el-table-column label="操作" width="140">
+            <template #default="{row}">
+              <template v-if="row._edit">
+                <el-button
+                    size="small"
+                    type="primary"
+                    @click="saveOrUpdateLookupValue(row)">保存
+                </el-button>
+
+                <el-button
+                    size="small"
+                    type=""
+                    @click="cancelEdit(row)">取消
+                </el-button>
+
+              </template>
+
+              <template v-else>
+                <el-button
+                    size="small"
+                    type="primary"
+                    @click="editLookupValue(row)">编辑
+                </el-button>
+
+                <el-button
+                    size="small"
+                    type="danger"
+                    @click="deletedLookupValue(row)">
+                  删除
+                </el-button>
+
+              </template>
+
+
             </template>
+          </el-table-column>
 
-          </template>
-        </el-table-column>
+          <el-table-column
+              v-for="field in state.lookupValueFieldData"
+              :key="field.fieldName"
+              :label="field.label"
+              :align="field.align"
+              :width="field.width"
+              :show-overflow-tooltip="field.show"
+              :prop="field.fieldName"
+          >
+            <template #default="{row}">
+              <template v-if="row._edit">
+                <el-input v-if="field.fieldName === 'display_sequence'" v-model.number="row[field.fieldName]"
+                          :placeholder="field.label" clearable></el-input>
+                <el-input v-else v-model="row[field.fieldName]" :placeholder="field.label" clearable></el-input>
+              </template>
 
-      </el-table>
+              <template v-else>
+                {{ row[field.fieldName] }}
+              </template>
+
+            </template>
+          </el-table-column>
+
+        </el-table>
+      </el-card>
 
     </el-dialog>
 
   </div>
 </template>
 
-<script lang="ts" setup name="SystemLookup">
+<script setup name="SystemLookup">
 import {h, nextTick, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useLookupApi} from '/@/api/useSystemApi/lookup';
-import {formatLookup} from "/@/utils/lookup";
 
 
 const lookupFormRef = ref();
 const tableRef = ref();
-// const store = useStore();
-// const lookupInfo = store.state.lookup.lookup;
 const state = reactive({
   columns: [
     {
       key: 'code', label: '编码', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -182,7 +180,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'left', align: 'center', width: '220',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -267,7 +265,7 @@ const search = () => {
 }
 
 // 新增或修改字典
-const onOpenSaveOrUpdateLookup = (editType: string, row: any) => {
+const onOpenSaveOrUpdateLookup = (editType, row) => {
   state.lookupEditType = editType
   if (row) {
     state.lookupForm.id = row.id
@@ -283,7 +281,7 @@ const onOpenSaveOrUpdateLookup = (editType: string, row: any) => {
 };
 
 const saveOrUpdateLookup = () => {
-  lookupFormRef.value.validate((valid: any) => {
+  lookupFormRef.value.validate((valid) => {
     if (valid) {
       useLookupApi().saveOrUpdateLookup(state.lookupForm)
           .then(() => {
@@ -296,7 +294,7 @@ const saveOrUpdateLookup = () => {
 }
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('此操作将永久删除, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -323,19 +321,19 @@ const getLookupValueList = () => {
       })
 };
 // 新增或修改字典值
-const onOpenSaveOrUpdateLookupValuePage = (row: any) => {
+const onOpenSaveOrUpdateLookupValuePage = (row) => {
   state.lookupValueQuery.code = row.code
   state.lookupValueQuery.lookup_id = row.id
   state.isShowLookupValueDialog = !state.isShowLookupValueDialog
   getLookupValueList()
 };
 
-const editLookupValue = (row: any) => {
+const editLookupValue = (row) => {
   row._edit = !row._edit
 };
 
 const addLookupValue = () => {
-  let lookupValue: object = {
+  let lookupValue = {
     id: null,
     lookup_id: state.lookupValueQuery.lookup_id,
     lookup_code: '',
@@ -347,9 +345,9 @@ const addLookupValue = () => {
   state.lookupValueListData.push(lookupValue)
 }
 
-const saveOrUpdateLookupValue = (row: any) => {
+const saveOrUpdateLookupValue = (row) => {
   useLookupApi().saveOrUpdateLookupValue(row)
-      .then((res: any) => {
+      .then((res) => {
         ElMessage.success('保存成功！');
         row._edit = false
         row.id = res.data?.id
@@ -357,7 +355,7 @@ const saveOrUpdateLookupValue = (row: any) => {
       })
 }
 
-const deletedLookupValue = (row: any) => {
+const deletedLookupValue = (row) => {
   ElMessageBox.confirm('此操作将永久删除, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -374,10 +372,17 @@ const deletedLookupValue = (row: any) => {
       });
 }
 
+const cancelEdit = (row) => {
+  if (row.id) {
+    row._edit = false
+  } else {
+    state.lookupValueListData.splice(state.lookupValueListData.indexOf(row), 1)
+  }
+}
+
 // 页面加载时
 onMounted(() => {
   getList();
-  console.log(formatLookup('test', '80'))
 });
 </script>
 

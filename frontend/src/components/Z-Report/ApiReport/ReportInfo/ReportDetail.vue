@@ -117,7 +117,7 @@ import {useRouter} from "vue-router"
 import {useReportApi} from "/@/api/useAutoApi/report";
 import {getMethodColor, getStatusTag} from "/@/utils/case"
 import ReportStatistics from "./ReportStatistics.vue"
-import {Promotion} from "@element-plus/icons-vue"
+import {Promotion} from "@element-plus/icons"
 import {useUserInfo} from '/@/stores/userInfo';
 import {storeToRefs} from "pinia";
 

@@ -14,7 +14,7 @@
 
 </template>
 
-<script lang="ts" setup name="apiInfoController">
+<script setup name="apiInfoController">
 import {defineAsyncComponent, reactive} from 'vue';
 
 const uiInfoDetail = defineAsyncComponent(() => import("./uiInfoDetail.vue"))
@@ -24,7 +24,7 @@ const state = reactive({
   data: null
 })
 
-const onOpenApiInfoPage = (data: any) => {
+const onOpenApiInfoPage = (data) => {
   state.data = data
   state.openDetailPage = !state.openDetailPage
 }

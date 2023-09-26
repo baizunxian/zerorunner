@@ -1,10 +1,10 @@
 <template>
   <div class="step-details">
-    <z-step-controller use_type="post" :data="state.postSteps" :case_id="state.case_id"></z-step-controller>
+    <z-step-controller use_type="post" :steps="state.postSteps" :case_id="state.case_id"></z-step-controller>
   </div>
 </template>
 
-<script lang="ts" setup name="postOperation">
+<script setup name="postOperation">
 import {reactive} from 'vue';
 import {handleEmpty} from "/@/utils/other";
 
@@ -15,7 +15,7 @@ const state = reactive({
 });
 
 //
-const setData = (data: any, case_id: number) => {
+const setData = (data, case_id) => {
   state.postSteps = []
   state.case_id = 0
   if (data) state.postSteps = data

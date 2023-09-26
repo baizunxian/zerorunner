@@ -9,16 +9,16 @@
         <el-row :gutter="35">
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="上级菜单" prop="parent_id">
-              <el-select v-model="state.form.parent_id" clearable placeholder="Select">
-                <el-option :value="0" label="根目录"></el-option>
-                <el-option
-                    v-for="item in allMenuList"
-                    :key="item.id"
-                    :label="item.title"
-                    :value="item.id"
-                >
-                </el-option>
-              </el-select>
+
+              <el-tree-select
+                  ref="menuTreeRef"
+                  filterable
+                  v-model="state.form.parent_id"
+                  :data="menuTree"
+                  :props="{label: 'title', value: 'id'}"
+                  check-strictly
+                  :render-after-expand="false"
+              />
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
@@ -85,7 +85,8 @@
           </template>
           <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
             <el-form-item label="菜单排序">
-              <el-input-number v-model="state.form.sort" controls-position="right" placeholder="请输入排序" class="w100"/>
+              <el-input-number v-model="state.form.sort" controls-position="right" placeholder="请输入排序"
+                               class="w100"/>
             </el-form-item>
           </el-col>
           <template v-if="state.form.menu_type === 10">
@@ -142,11 +143,13 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SaveOrUpdateMenu">
-import {onMounted, reactive} from 'vue';
+<script setup name="SaveOrUpdateMenu">
+import {computed, onMounted, reactive, ref} from 'vue';
 import IconSelector from '/@/components/iconSelector/index.vue';
 import {useMenuApi} from "/@/api/useSystemApi/menu";
 import {ElMessage} from "element-plus";
+
+const menuTreeRef = ref()
 
 const emit = defineEmits(['getList'])
 const props = defineProps({
@@ -155,7 +158,13 @@ const props = defineProps({
   },
   menuList: {
     type: Array,
+    default: () => []
   }
+})
+
+const menuTree = computed(() => {
+
+  return [{title: '根目录', id: 0, children: [...props.menuList]}]
 })
 
 const createMenuForm = () => {
@@ -175,7 +184,7 @@ const createMenuForm = () => {
     isKeepAlive: 1, // 是否缓存
     isAffix: 0, // 是否固定
     isLink: 0, // 外链/内嵌时链接地址（http:xxx.com），开启外链条件，`1、isLink:true 2、链接地址不为空`
-    isIframe: 1, // 是否内嵌，开启条件，`1、isIframe:true 2、链接地址不为空`
+    isIframe: 0, // 是否内嵌，开启条件，`1、isIframe:true 2、链接地址不为空`
     roles: '', // 权限标识，取角色管理
     btnPower: '', // 菜单类型为按钮时，权限标识
   }
@@ -199,7 +208,7 @@ const state = reactive({
 // 创建表单
 
 // 打开弹窗
-const openDialog = (editType: string, row: any) => {
+const openDialog = (editType, row) => {
   state.editType = editType
   if (row) {
     state.form = JSON.parse(JSON.stringify(row));
@@ -207,6 +216,7 @@ const openDialog = (editType: string, row: any) => {
     state.form = createMenuForm()
   }
   state.isShowDialog = true;
+  menuTreeRef.value.setCurrentKey(row.id)
 };
 // 关闭弹窗
 const closeDialog = () => {
@@ -229,12 +239,11 @@ const saveOrUpdate = () => {
         emit('getList')
         closeDialog(); // 关闭弹窗
       })
-  console.log(state.form, 'state.menuForm')
   // setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
 };
+
 // 页面加载时
 onMounted(() => {
-  console.log(props.allMenuList,11111111)
   // getMenuData();
 });
 

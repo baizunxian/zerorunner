@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import typing
-import uuid
 
-from sqlalchemy import Column, String, Text, Integer, DateTime, select, update, BigInteger, Index, JSON
-from sqlalchemy.orm import aliased
+from sqlalchemy import String, Text, Integer, DateTime, select, update, Index, JSON
+from sqlalchemy.orm import aliased, mapped_column
 
 from autotest.models.base import Base
 from autotest.schemas.system.lookup import LookupQuery, LookupValueQuery
@@ -16,16 +15,16 @@ class User(Base):
     """用户表"""
     __tablename__ = 'user'
 
-    username = Column(String(64), nullable=False, comment='用户名', index=True)
-    password = Column(Text, nullable=False, comment='密码')
-    email = Column(String(64), nullable=True, comment='邮箱')
-    roles = Column(JSON, nullable=False, comment='用户类型')
-    status = Column(Integer, nullable=False, comment='用户状态  1 锁定， 0 正常', default=0)
-    nickname = Column(String(255), nullable=False, comment='用户昵称')
-    user_type = Column(Integer, nullable=False, comment='用户类型 10 管理人员, 20 测试人员', default=20)
-    remarks = Column(String(255), nullable=False, comment='用户描述')
-    avatar = Column(Text, nullable=False, comment='头像')
-    tags = Column(JSON, nullable=False, comment='标签')
+    username = mapped_column(String(64), nullable=False, comment='用户名', index=True)
+    password = mapped_column(Text, nullable=False, comment='密码')
+    email = mapped_column(String(64), comment='邮箱')
+    roles = mapped_column(JSON, comment='用户类型')
+    status = mapped_column(Integer, comment='用户状态  1 锁定， 0 正常', default=0)
+    nickname = mapped_column(String(255), comment='用户昵称')
+    user_type = mapped_column(Integer, comment='用户类型 10 管理人员, 20 测试人员', default=20)
+    remarks = mapped_column(String(255), comment='用户描述')
+    avatar = mapped_column(Text, comment='头像')
+    tags = mapped_column(JSON, comment='标签')
 
     @classmethod
     async def get_list(cls, params: UserQuery):
@@ -64,25 +63,24 @@ class Menu(Base):
     """菜单表"""
     __tablename__ = 'menu'
 
-    path = Column(String(255), nullable=False, comment='菜单路径')
-    name = Column(String(255), nullable=False, comment='菜单名称', index=True)
-    component = Column(Integer, nullable=True, comment='组件路径')
-    title = Column(String(255), nullable=True, comment='title', index=True)
-    isLink = Column(Integer, nullable=True,
-                    comment='开启外链条件，`1、isLink: true 2、链接地址不为空（meta.isLink） 3、isIframe: false`')
-    isHide = Column(Integer, nullable=True, default=False, comment='菜单是否隐藏（菜单不显示在界面，但可以进行跳转）')
-    isKeepAlive = Column(Integer, nullable=True, default=True, comment='菜单是否缓存')
-    isAffix = Column(Integer, nullable=True, default=False, comment='固定标签')
-    isIframe = Column(Integer, nullable=True, default=False, comment='是否内嵌')
-    roles = Column(String(64), nullable=True, default=False, comment='权限')
-    icon = Column(String(64), nullable=True, comment='icon', index=True)
-    parent_id = Column(Integer, nullable=True, comment='父级菜单id')
-    redirect = Column(String(255), nullable=True, comment='重定向路由')
-    sort = Column(Integer, nullable=True, comment='排序')
-    menu_type = Column(Integer, nullable=True, comment='菜单类型')
-    lookup_id = Column(Integer, nullable=True, comment='数据字典')
-    active_menu = Column(String(255), nullable=True, comment='显示页签')
-    views = Column(Integer, default=0, nullable=True, comment='访问数')
+    path = mapped_column(String(255), nullable=False, comment='菜单路径')
+    name = mapped_column(String(255), nullable=False, comment='菜单名称', index=True)
+    component = mapped_column(Integer, comment='组件路径')
+    title = mapped_column(String(255), comment='title', index=True)
+    isLink = mapped_column(Integer, comment='开启外链条件，`1、isLink: true 2、链接地址不为空（meta.isLink） 3、isIframe: false`')
+    isHide = mapped_column(Integer, default=False, comment='菜单是否隐藏（菜单不显示在界面，但可以进行跳转）')
+    isKeepAlive = mapped_column(Integer, default=True, comment='菜单是否缓存')
+    isAffix = mapped_column(Integer, default=False, comment='固定标签')
+    isIframe = mapped_column(Integer, default=False, comment='是否内嵌')
+    roles = mapped_column(String(64), default=False, comment='权限')
+    icon = mapped_column(String(64), comment='icon', index=True)
+    parent_id = mapped_column(Integer, comment='父级菜单id')
+    redirect = mapped_column(String(255), comment='重定向路由')
+    sort = mapped_column(Integer, comment='排序')
+    menu_type = mapped_column(Integer, comment='菜单类型')
+    # lookup_id = mapped_column(Integer, comment='数据字典')
+    active_menu = mapped_column(String(255), comment='显示页签')
+    views = mapped_column(Integer, default=0, comment='访问数')
 
     @classmethod
     async def get_menu_by_ids(cls, ids: typing.List[int]):
@@ -112,6 +110,7 @@ class Menu(Base):
     async def get_menu_by_title(cls, title: str):
         stmt = select(cls.get_table_columns()).where(cls.title == title, cls.enabled_flag == 1)
         return await cls.get_result(stmt, True)
+
     @classmethod
     async def get_menu_by_name(cls, name: str):
         stmt = select(cls.get_table_columns()).where(cls.name == name, cls.enabled_flag == 1)
@@ -136,11 +135,11 @@ class Roles(Base):
     """角色表"""
     __tablename__ = 'roles'
 
-    name = Column(String(64), nullable=True, comment='菜单名称', index=True)
-    role_type = Column(Integer, nullable=False, comment='权限类型，10菜单权限，20用户组权限', index=True, default=10)
-    menus = Column(String(64), nullable=True, comment='菜单列表', index=True)
-    description = Column(Integer, nullable=True, comment='描述')
-    status = Column(Integer, nullable=True, comment='状态 10 启用 20 禁用', default=10)
+    name = mapped_column(String(64), nullable=False, comment='菜单名称', index=True)
+    role_type = mapped_column(Integer, comment='权限类型，10菜单权限，20用户组权限', index=True, default=10)
+    menus = mapped_column(String(64), comment='菜单列表', index=True)
+    description = mapped_column(Integer, comment='描述')
+    status = mapped_column(Integer, comment='状态 10 启用 20 禁用', default=10)
 
     @classmethod
     async def get_list(cls, params: RoleQuery):
@@ -196,8 +195,8 @@ class Roles(Base):
 class Lookup(Base):
     __tablename__ = 'lookup'
 
-    code = Column(String(64), nullable=False, index=True, comment='编码')
-    description = Column(String(256), comment='描述')
+    code = mapped_column(String(64), nullable=False, index=True, comment='编码')
+    description = mapped_column(String(256), comment='描述')
 
     @classmethod
     async def get_list(cls, params: LookupQuery):
@@ -209,8 +208,8 @@ class Lookup(Base):
                       u.nickname.label("created_by_name"),
                       User.nickname.label("updated_by_name")) \
             .where(*q) \
-            .join(u, u.id == cls.created_by) \
-            .join(User, User.id == cls.updated_by) \
+            .outerjoin(u, u.id == cls.created_by) \
+            .outerjoin(User, User.id == cls.updated_by) \
             .order_by(cls.id.desc())
 
         return await cls.pagination(stmt)
@@ -224,12 +223,12 @@ class Lookup(Base):
 class LookupValue(Base):
     __tablename__ = 'lookup_value'
 
-    id = Column(Integer, primary_key=True, comment='主键')
-    lookup_id = Column(Integer, nullable=False, index=True, comment='所属类型')
-    lookup_code = Column(String(32), nullable=False, index=True, comment='编码')
-    lookup_value = Column(String(256), comment='值')
-    ext = Column(String(256), comment='拓展1')
-    display_sequence = Column(Integer, comment='显示顺序')
+    id = mapped_column(Integer, primary_key=True, comment='主键')
+    lookup_id = mapped_column(Integer, nullable=False, index=True, comment='所属类型')
+    lookup_code = mapped_column(String(32),  index=True, comment='编码')
+    lookup_value = mapped_column(String(256), comment='值')
+    ext = mapped_column(String(256), comment='拓展1')
+    display_sequence = mapped_column(Integer, comment='显示顺序')
 
     @classmethod
     async def get_lookup_value(cls, params: LookupValueQuery = LookupValueQuery()):
@@ -244,9 +243,9 @@ class LookupValue(Base):
                       u.nickname.label('created_by_name'),
                       User.nickname.label('updated_by_name')) \
             .where(*q) \
-            .join(Lookup, cls.lookup_id == Lookup.id) \
-            .join(User, cls.created_by == User.id) \
-            .join(u, cls.updated_by == u.id) \
+            .outerjoin(Lookup, cls.lookup_id == Lookup.id) \
+            .outerjoin(User, cls.created_by == User.id) \
+            .outerjoin(u, cls.updated_by == u.id) \
             .order_by(cls.display_sequence)
         return await cls.get_result(stmt)
 
@@ -263,42 +262,42 @@ class LookupValue(Base):
 class RequestHistory(Base):
     __tablename__ = 'request_history'
 
-    id = Column(Integer, primary_key=True, info='主键')
-    remote_addr = Column(String(255), nullable=False, comment='用户名称')
-    real_ip = Column(String(255), nullable=False, comment='用户名称')
-    request = Column(Text, nullable=False, comment='用户名称')
-    method = Column(String(255), nullable=True, comment='操作')
-    url = Column(String(255), nullable=True, comment='操作')
-    args = Column(String(255), nullable=True, comment='操作')
-    form = Column(String(255), nullable=True, comment='操作')
-    json = Column(Text, nullable=True, comment='操作')
-    response = Column(Text, nullable=True, comment='操作')
-    endpoint = Column(Text, nullable=True, comment='操作')
-    elapsed = Column(Text, nullable=True, comment='操作')
-    request_time = Column(DateTime, nullable=True, comment='操作')
-    env = Column(String(255), nullable=True, comment='操作')
-    employee_code = Column(String(255), nullable=True, comment='操作')
-    toekn = Column(String(255), nullable=True, comment='操作')
+    id = mapped_column(Integer, primary_key=True, comment='主键')
+    remote_addr = mapped_column(String(255), comment='用户名称')
+    real_ip = mapped_column(String(255), comment='用户名称')
+    request = mapped_column(Text, comment='用户名称')
+    method = mapped_column(String(255), comment='操作')
+    url = mapped_column(String(255), comment='操作')
+    args = mapped_column(String(255), comment='操作')
+    form = mapped_column(String(255), comment='操作')
+    json = mapped_column(Text, comment='操作')
+    response = mapped_column(Text, comment='操作')
+    endpoint = mapped_column(Text, comment='操作')
+    elapsed = mapped_column(Text, comment='操作')
+    request_time = mapped_column(DateTime, comment='操作')
+    env = mapped_column(String(255), comment='操作')
+    employee_code = mapped_column(String(255), comment='操作')
+    toekn = mapped_column(String(255), comment='操作')
 
 
 class MenuViewHistory(Base):
     """访问"""
     __tablename__ = 'menu_view_history'
 
-    menu_id = Column(Integer(), nullable=True, comment='菜单id', index=True)
-    remote_addr = Column(String(64), nullable=True, comment='访问ip', index=True)
-    user_id = Column(Integer(), nullable=True, comment='访问人', index=True)
+    menu_id = mapped_column(Integer(), comment='菜单id', index=True)
+    remote_addr = mapped_column(String(64), comment='访问ip', index=True)
+    user_id = mapped_column(Integer(), comment='访问人', index=True)
 
 
 class Notify(Base):
     """消息"""
     __tablename__ = 'notify'
 
-    user_id = Column(Integer(), nullable=True, comment='用户id', index=True)
-    group = Column(String(64), nullable=True, comment='组')
-    message = Column(String(500), nullable=True, comment='消息')
-    send_status = Column(Integer(), nullable=True, comment='发送状态，10成功 20 失败')
-    read_status = Column(Integer(), nullable=True, comment='消息状态，10未读 20 已读')
+    user_id = mapped_column(Integer(), comment='用户id', index=True)
+    group = mapped_column(String(64), comment='组')
+    message = mapped_column(String(500), comment='消息')
+    send_status = mapped_column(Integer(), comment='发送状态，10成功 20 失败')
+    read_status = mapped_column(Integer(), comment='消息状态，10未读 20 已读')
 
 
 class UserLoginRecord(Base):
@@ -307,19 +306,19 @@ class UserLoginRecord(Base):
         Index('idx_login_record_code_logintime', 'code', 'login_time'),
     )
 
-    token = Column(String(40), index=True, comment='登陆token')
-    code = Column(String(64), index=True, comment='账号')
-    user_id = Column(Integer, comment='用户id')
-    user_name = Column(String(50), comment='用户名称')
-    logout_type = Column(String(50), comment='退出类型')
-    login_type = Column(String(50), index=True, comment='登陆方式   扫码  账号密码等')
-    login_time = Column(DateTime, index=True, comment='登陆时间')
-    logout_time = Column(DateTime, comment='退出时间')
-    login_ip = Column(String(30), index=True, comment='登录IP')
-    ret_msg = Column(String(255), comment='返回信息')
-    ret_code = Column(String(9), index=True, comment='是否登陆成功  返回状态码  0成功')
-    address = Column(String(255), comment='地址')
-    source_type = Column(String(255), comment='来源')
+    token = mapped_column(String(40), index=True, comment='登陆token')
+    code = mapped_column(String(64), index=True, comment='账号')
+    user_id = mapped_column(Integer, comment='用户id')
+    user_name = mapped_column(String(50), comment='用户名称')
+    logout_type = mapped_column(String(50), comment='退出类型')
+    login_type = mapped_column(String(50), index=True, comment='登陆方式   扫码  账号密码等')
+    login_time = mapped_column(DateTime, index=True, comment='登陆时间')
+    logout_time = mapped_column(DateTime, comment='退出时间')
+    login_ip = mapped_column(String(30), index=True, comment='登录IP')
+    ret_msg = mapped_column(String(255), comment='返回信息')
+    ret_code = mapped_column(String(9), index=True, comment='是否登陆成功  返回状态码  0成功')
+    address = mapped_column(String(255), comment='地址')
+    source_type = mapped_column(String(255), comment='来源')
 
     @classmethod
     async def get_list(cls, params: UserLoginRecordQuery):
@@ -341,11 +340,10 @@ class UserLoginRecord(Base):
 class FileInfo(Base):
     """文件信息"""
     __tablename__ = 'file_info'
-    id = Column(String(60), nullable=False, primary_key=True, autoincrement=False)
-    name = Column(String(255), nullable=True, comment='存储的文件名')
-    file_path = Column(String(255), nullable=True, comment='文件路径')
-    extend_name = Column(String(255), nullable=True, comment='扩展名称', index=True)
-    original_name = Column(String(255), nullable=True, comment='原名称')
-    content_type = Column(String(255), nullable=True, comment='文件类型')
-    file_size = Column(String(255), nullable=True, comment='文件大小')
-
+    id = mapped_column(String(60), primary_key=True, autoincrement=False)
+    name = mapped_column(String(255), comment='存储的文件名')
+    file_path = mapped_column(String(255), comment='文件路径')
+    extend_name = mapped_column(String(255), comment='扩展名称', index=True)
+    original_name = mapped_column(String(255), comment='原名称')
+    content_type = mapped_column(String(255), comment='文件类型')
+    file_size = mapped_column(String(255), comment='文件大小')

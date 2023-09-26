@@ -1,17 +1,15 @@
 <template>
 
   <el-collapse-transition>
-    <div v-show="data.showDetail" @click.stop="">
-      <el-divider style="margin: 10px 0 5px 0;"/>
+    <div v-show="step.showDetail" @click.stop="">
       <div style="border: 1px solid #E6E6E6; padding: 8px">
-
         <el-form ref="formRef"
-                 :model="data">
-
+                 :model="step">
           <el-row :gutter="24">
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="运行环境" prop="project_id">
-                <el-select size="small" v-model="data.sql_request.env_id"
+                <el-select size="small"
+                           v-model="step.sql_request.env_id"
                            placeholder="运行环境"
                            filterable
                            style="width: 100%;"
@@ -29,7 +27,7 @@
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="数据源名称" prop="module_id">
-                <el-select size="small" v-model="data.sql_request.source_id" placeholder="请选择" filterable
+                <el-select size="small" v-model="step.sql_request.source_id" placeholder="请选择" filterable
                            style="width: 100%;">
                   <el-option
                       v-for="source in state.sourceList"
@@ -44,7 +42,7 @@
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="超时时间" prop="config_id">
-                <el-input-number size="small" v-model="data.sql_request.timeout" placeholder="秒"/>
+                <el-input-number size="small" v-model="step.sql_request.timeout" placeholder="秒"/>
               </el-form-item>
             </el-col>
           </el-row>
@@ -54,11 +52,11 @@
               <el-form-item label="存储结果" prop="variable_name">
                 <el-input size="small"
                           style="width: 100%"
-                          v-model="data.sql_request.variable_name"
+                          v-model="step.sql_request.variable_name"
                           placeholder="查询结果赋值的变量名称">
                   <template #suffix>
-                    <span v-show="data.sql_request.variable_name.length > 0" class="el-input__suffix-inner"
-                          @click="copyText('${'+ data.sql_request.variable_name +'}')">
+                    <span v-show="step.sql_request.variable_name.length > 0" class="el-input__suffix-inner"
+                          @click="copyText('${'+ step.sql_request.variable_name +'}')">
                     <el-icon color="#303133">
                       <ele-DocumentCopy/>
                     </el-icon>
@@ -74,7 +72,7 @@
             <z-monaco-editor
                 style="height: 150px"
                 ref="monacoEditRef"
-                v-model:value="data.sql_request.sql"
+                v-model:value="step.sql_request.sql"
                 :options="{minimap: {enabled: false}}"
             />
           </div>
@@ -87,25 +85,25 @@
 
 </template>
 
-<script lang="ts" setup name="SqlController">
-import {nextTick, onMounted, PropType, reactive} from 'vue';
+<script setup name="SqlController">
+import {nextTick, onMounted, reactive} from 'vue';
 import {useEnvApi} from "/@/api/useAutoApi/env";
-import {useQueryDBApi} from "/@/api/useTools/querDB";
 import commonFunction from '/@/utils/commonFunction';
+import useVModel from "/@/utils/useVModel";
 
 const {copyText} = commonFunction()
 
 const props = defineProps({
-  data: {
-    type: Object as PropType<TStepDataStat>,
-    default: () => {
-      return {}
-    }
+  step: {
+    type: Object,
+    required: true
   }
 
 })
 
+const emit = defineEmits(['update:step'])
 
+const step = useVModel(props, 'step', emit)
 const state = reactive({
   // sourceList
   sourceList: [],
@@ -124,12 +122,12 @@ const state = reactive({
 });
 
 // selectEnv
-const selectEnv = (env_id: number) => {
+const selectEnv = (env_id) => {
   if (env_id) {
     state.dataSourceQuery.env_id = env_id
     getDataSourceList()
   }
-  props.data.sql_request.source_id = null
+  step.value.sql_request.source_id = null
 }
 
 // 初始化env
@@ -151,8 +149,8 @@ const getDataSourceList = () => {
 onMounted(() => {
   getEnvList()
   nextTick(() => {
-    if (props.data.sql_request?.env_id) {
-      state.dataSourceQuery.env_id = props.data.sql_request.env_id
+    if (props.step.sql_request?.env_id) {
+      state.dataSourceQuery.env_id = step.value.sql_request.env_id
       getDataSourceList()
     }
   })
@@ -160,3 +158,9 @@ onMounted(() => {
 
 
 </script>
+
+<style>
+.no-touch {
+  touch-action: none;
+}
+</style>

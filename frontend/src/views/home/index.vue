@@ -100,14 +100,14 @@
   </div>
 </template>
 
-<script setup lang="ts" name="home">
+<script setup  name="home">
 import {reactive, onMounted, ref, watch, nextTick, onActivated, markRaw, computed} from 'vue';
 import * as echarts from 'echarts';
 import {storeToRefs} from 'pinia';
 import {useThemeConfig} from '/@/stores/themeConfig';
 import {useUserInfo} from '/@/stores/userInfo';
 import {useTagsViewRoutes} from '/@/stores/tagsViewRoutes';
-import {InfoFilled, Top, Bottom} from '@element-plus/icons-vue';
+import {InfoFilled, Top, Bottom} from '@element-plus/icons';
 import {usesStatisticsApi} from "/@/api/useAutoApi/statistics";
 
 // 定义变量内容
@@ -143,7 +143,7 @@ const state = reactive({
     homeChartTwo: null,
     homeCharThree: null,
     dispose: [null, '', undefined],
-  } as any,
+  },
   homeOne: [
     {
       num1: '125,12',
@@ -238,7 +238,7 @@ const state = reactive({
       iconColor: '#FBD4A0',
     },
   ],
-  myCharts: [] as EmptyArrayType,
+  myCharts: [],
   charts: {
     theme: '',
     bgColor: '',
@@ -254,7 +254,7 @@ const userInfo = computed(() => {
 
 // 折线图
 const initLineChart = () => {
-  if (!state.global.dispose.some((b: any) => b === state.global.homeChartOne)) state.global.homeChartOne.dispose();
+  if (!state.global.dispose.some((b) => b === state.global.homeChartOne)) state.global.homeChartOne.dispose();
   state.global.homeChartOne = markRaw(echarts.init(homeLineRef.value, state.charts.theme));
   const option = {
     backgroundColor: state.charts.bgColor,
@@ -336,7 +336,7 @@ const initLineChart = () => {
 };
 // 饼图
 const initPieChart = () => {
-  if (!state.global.dispose.some((b: any) => b === state.global.homeChartTwo)) state.global.homeChartTwo.dispose();
+  if (!state.global.dispose.some((b) => b === state.global.homeChartTwo)) state.global.homeChartTwo.dispose();
   state.global.homeChartTwo = markRaw(echarts.init(homePieRef.value, state.charts.theme));
   var getname = ['房屋及结构物', '专用设备', '通用设备', '文物和陈列品', '图书、档案'];
   var getvalue = [34.2, 38.87, 17.88, 9.05, 2.05];
@@ -406,7 +406,7 @@ const initPieChart = () => {
         radius: ['82', themeConfig.value.isIsDark ? '50' : '102'],
         center: ['32%', '50%'],
         itemStyle: {
-          color: function (params: any) {
+          color: function (params) {
             return colorList[params.dataIndex];
           },
         },
@@ -451,7 +451,7 @@ const getCountStatistics = async () => {
 }
 // 柱状图
 const initBarChart = () => {
-  if (!state.global.dispose.some((b: any) => b === state.global.homeCharThree)) state.global.homeCharThree.dispose();
+  if (!state.global.dispose.some((b) => b === state.global.homeCharThree)) state.global.homeCharThree.dispose();
   state.global.homeCharThree = markRaw(echarts.init(homeBarRef.value, state.charts.theme));
   const option = {
     backgroundColor: state.charts.bgColor,

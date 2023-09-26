@@ -38,7 +38,7 @@
     </el-tab-pane>
   </el-tabs>
 </template>
-<script lang="ts" setup name="containerBottom">
+<script setup name="containerBottom">
 import {getCurrentInstance, h, nextTick, onMounted, onUnmounted, reactive} from 'vue';
 import mittBus from '/@/utils/mitt';
 import commonFunction from '/@/utils/commonFunction'
@@ -46,7 +46,7 @@ import commonFunction from '/@/utils/commonFunction'
 const {copyText} = commonFunction()
 
 
-const {proxy} = <any>getCurrentInstance();
+const {proxy} = getCurrentInstance();
 const state = reactive({
   activeName: 'test',
   tableHeight: 200,
@@ -55,12 +55,12 @@ const state = reactive({
 });
 
 // 根据对于的 tabIndex 获取对于tab数据
-const findTableData = (tabIndex: number) => {
+const findTableData = (tabIndex) => {
   return state.data.find((e) => e.tabIndex == tabIndex).content
 }
 
 
-const addTab = (result: string) => {
+const addTab = (result) => {
   let tabIndex = ++state.tabIndex
   const newTabName = `结果${tabIndex}`
   state.data.push({
@@ -72,7 +72,7 @@ const addTab = (result: string) => {
   state.activeName = newTabName
 }
 
-const removeTab = (targetName: string) => {
+const removeTab = (targetName) => {
   const tabs = state.data
   let activeName = state.activeName
   if (activeName === targetName) {
@@ -90,13 +90,13 @@ const removeTab = (targetName: string) => {
   state.data = tabs.filter((tab) => tab.name !== targetName)
 }
 
-const setTableHeight = (tableHeight: number) => {
+const setTableHeight = (tableHeight) => {
   nextTick(() => {
     state.tableHeight = tableHeight - 60
   })
 }
 
-const renderHeader = ({column, $index}: any) => {
+const renderHeader = ({column, $index}) => {
   // 新建一个 span
   let span = document.createElement('span');
   // 设置表头名称
@@ -117,7 +117,7 @@ const renderHeader = ({column, $index}: any) => {
 
 onMounted(() => {
   //插入sql查询结果
-  mittBus.on("setExecuteResult", (result: any) => {
+  mittBus.on("setExecuteResult", (result) => {
     addTab(result)
   })
 

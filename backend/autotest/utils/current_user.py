@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import typing
-from autotest.corelibs import g
-from autotest.corelibs.consts import TEST_USER_INFO
-from autotest.db import init_redis_pool
+from autotest.utils.local import g
+from autotest.utils.consts import TEST_USER_INFO
+from autotest.init.redis_init import init_redis_pool
 from autotest.exceptions.exceptions import AccessTokenFail
 
 

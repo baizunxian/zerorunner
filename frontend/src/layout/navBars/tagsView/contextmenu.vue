@@ -29,7 +29,7 @@
 	</transition>
 </template>
 
-<script setup lang="ts" name="layoutTagsViewContextmenu">
+<script setup name="layoutTagsViewContextmenu">
 import { computed, reactive, onMounted, onUnmounted, watch } from 'vue';
 
 // 定义父组件传过来的值
@@ -75,11 +75,11 @@ const dropdowns = computed(() => {
 	}
 });
 // 当前项菜单点击
-const onCurrentContextmenuClick = (contextMenuClickId: number) => {
+const onCurrentContextmenuClick = (contextMenuClickId) => {
 	emit('currentContextmenuClick', Object.assign({}, { contextMenuClickId }, state.item));
 };
 // 打开右键菜单：判断是否固定，固定则不显示关闭按钮
-const openContextmenu = (item: RouteItem) => {
+const openContextmenu = (item) => {
 	state.item = item;
 	item.meta?.isAffix ? (state.dropdownList[1].affix = true) : (state.dropdownList[1].affix = false);
 	closeContextmenu();

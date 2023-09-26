@@ -2,7 +2,7 @@
 # @author: xiaobai
 import typing
 
-from autotest.corelibs.codes import CodeEnum
+from autotest.utils.response.codes import CodeEnum
 
 
 class MyBaseException(Exception):

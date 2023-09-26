@@ -1,16 +1,16 @@
 <template>
   <el-collapse-transition>
-    <div v-show="data.showDetail" class="w100" @pointerdown.stop @click.stop>
-<!--      <el-divider style="margin: 10px 0 5px 0;"/>-->
+    <div v-show="step.showDetail" class="w100" @pointerdown.stop @click.stop>
+      <!--      <el-divider style="margin: 10px 0 5px 0;"/>-->
 
-      <div v-if="data.loop_request.loop_type === 'count'" class="controller-content">
+      <div v-if="step.loop_request?.loop_type === 'count'" class="controller-content">
 
         <el-row>
 
           <el-col :span="6">
             <div>
               <span style="padding-right: 5px">循环次数</span>
-              <el-input v-model="data.loop_request.count_number"
+              <el-input v-model="step.loop_request.count_number"
                         @pointerdown.stop.native
                         @click.stop.native
                         placeholder="循环次数"></el-input>
@@ -20,7 +20,7 @@
           <el-col :span="6" :offset="2">
             <div>
               <span style="padding-right: 5px">循环间隔</span>
-              <el-input-number v-model.number="data.loop_request.count_sleep_time"
+              <el-input-number v-model.number="step.loop_request.count_sleep_time"
                                controls-position="right"
                                @pointerdown.stop.native
                                @click.stop.native
@@ -33,17 +33,18 @@
 
       </div>
 
-      <div v-else-if="data.loop_request.loop_type === 'for'" class="controller-content">
+      <div v-else-if="step.loop_request?.loop_type === 'for'" class="controller-content">
 
         <el-row>
           <el-col :span="6">
-            <el-input v-model="data.loop_request.for_variable_name"
+            <el-input v-model="step.loop_request.for_variable_name"
                       @pointerdown.stop.native
                       @click.stop.native
                       placeholder="定义变量名称"
             >
               <template #suffix>
-                  <span class="el-input__suffix-inner" @click="copyText('${'+ data.loop_request.for_variable_name +'}')">
+                  <span class="el-input__suffix-inner"
+                        @click="copyText('${'+ step.loop_request.for_variable_name +'}')">
                     <el-icon color="#303133">
                       <ele-DocumentCopy/>
                     </el-icon>
@@ -56,14 +57,14 @@
             <span style="padding: 0 8px">in</span>
           </el-col>
           <el-col :span="6">
-            <el-input v-model="data.loop_request.for_variable"
+            <el-input v-model="step.loop_request.for_variable"
                       @pointerdown.stop.native
                       @click.stop.native
                       placeholder="变量,例如：${var}"></el-input>
           </el-col>
           <el-col :span="6">
             <span>循环间隔</span>
-            <el-input v-model="data.loop_request.for_sleep_time"
+            <el-input v-model="step.loop_request.for_sleep_time"
                       @pointerdown.stop.native
                       @click.stop.native
                       placeholder="秒"
@@ -71,13 +72,13 @@
           </el-col>
         </el-row>
 
-      </div >
+      </div>
 
-      <div v-else-if="data.loop_request.loop_type === 'while'" class="controller-content">
+      <div v-else-if="step.loop_request?.loop_type === 'while'" class="controller-content">
 
         <el-row>
           <el-col :span="5">
-            <el-input v-model="data.loop_request.while_variable"
+            <el-input v-model="step.loop_request.while_variable"
                       @pointerdown.stop.native
                       @click.stop.native
                       class="com-padding"
@@ -87,7 +88,7 @@
             <el-select size="small"
                        @pointerdown.stop.native
                        @click.stop.native
-                       v-model="data.loop_request.while_comparator"
+                       v-model="step.loop_request.while_comparator"
                        placeholder="请选择"
                        filterable
                        class="w100 com-padding">
@@ -103,7 +104,7 @@
           <el-col :span="5">
             <el-input @pointerdown.stop.native
                       @click.stop.native
-                      v-model="data.loop_request.while_value"
+                      v-model="step.loop_request.while_value"
                       class="com-padding"
                       placeholder="值"></el-input>
           </el-col>
@@ -112,7 +113,7 @@
             <el-input-number @pointerdown.stop.native
                              controls-position="right"
                              @click.stop.native
-                             v-model="data.loop_request.while_timeout"
+                             v-model="step.loop_request.while_timeout"
                              placeholder="秒"></el-input-number>
           </el-col>
         </el-row>
@@ -122,22 +123,26 @@
   </el-collapse-transition>
 </template>
 
-<script lang="ts" setup name="LoopController">
-import {PropType, reactive} from 'vue';
+<script setup name="LoopController">
+import {reactive} from 'vue';
 import commonFunction from '/@/utils/commonFunction';
+import useVModel from "/@/utils/useVModel";
 
 const {copyText} = commonFunction()
 
+const emit = defineEmits(['update:step'])
 
 const props = defineProps({
-  data: {
-    type: Object as PropType<TStepDataStat>,
+  step: {
+    type: Object,
+    required: true,
     default: () => {
-      return {
-      }
+      return {}
     }
   }
 })
+
+const step = useVModel(props, 'step', emit)
 
 const state = reactive({
   // data

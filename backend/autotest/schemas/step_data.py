@@ -8,6 +8,19 @@ from autotest.schemas.base import BaseSchema
 from zerorunner.model.step_model import TStep, ValidatorData, TSqlRequest, TIFRequest, TLoopRequest
 from zerorunner.models import TRequest
 
+from enum import Enum
+
+
+class RequestMode(Enum):
+    """请求模式"""
+    RAW = "raw"
+    FORM_DATA = "form_data"
+    FILE = "file"
+    FORM_URLENCODED = "form-urlencoded"
+    none = "none"
+    JSON = "json"
+    TEXT = "text"
+
 
 class ApiBodyFileValueSchema(BaseSchema):
     id: str = Field("", description="文件id")
@@ -22,7 +35,8 @@ class ApiBodyFileDataSchema(BaseSchema):
 
 class TRequestData(TRequest):
     mode: str = Field("", description="模式 raw  form-data 等")
-    data: typing.Union[str, typing.List[ApiBodyFileDataSchema]] = Field(None, description="数据json 数据 或者form-data数据等")
+    data: typing.Union[str, typing.List[ApiBodyFileDataSchema]] = Field(None,
+                                                                        description="数据json 数据 或者form-data数据等")
     language: str = Field("", description="raw 中包含json text 等")
     upload: typing.Dict = Field({}, description="上传文件的数据")
     headers: typing.List[typing.Any] = Field([], description="请求头")

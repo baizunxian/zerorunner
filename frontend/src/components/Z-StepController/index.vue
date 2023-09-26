@@ -1,30 +1,6 @@
 <template>
   <div class="h100" id="stepController" style="overflow-y: auto">
-    <el-backtop :right="200" :bottom="200" :visibility-height="10" target="#stepController"/>
     <div class="h100" style="overflow-y: auto;">
-      <!--      <el-dropdown style="padding-left: 33px">-->
-      <!--        <el-button type="primary">-->
-      <!--          {{ `添加${use_type === 'case' ? '步骤' : 'Hook'}` }}-->
-      <!--          <el-icon class="el-icon&#45;&#45;right">-->
-      <!--            <arrowDown/>-->
-      <!--          </el-icon>-->
-      <!--        </el-button>-->
-      <!--        <template #dropdown>-->
-      <!--          <el-dropdown-menu>-->
-      <!--            <el-dropdown-item v-for="(value, key)  in state.optTypes"-->
-      <!--                              :key="key"-->
-      <!--                              style="margin: 5px 0"-->
-      <!--                              :style="{ color: getStepTypeInfo(key,'color')}"-->
-      <!--                              @click="handleAddData(key)">-->
-      <!--              <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"-->
-      <!--                 :style="{color:getStepTypeInfo(key,'color')}"></i>-->
-      <!--              {{ value }}-->
-      <!--            </el-dropdown-item>-->
-
-      <!--          </el-dropdown-menu>-->
-      <!--        </template>-->
-      <!--      </el-dropdown>-->
-
       <el-tree
           ref="stepTreeRef"
           draggable
@@ -35,9 +11,9 @@
           @node-drag-start="handleDrop"
           :expand-on-click-node="false"
           :props="{children: 'sub_steps'}"
-          :data="data">
+          :data="steps">
         <template #default="{ node }">
-          <StepNode v-model:data="node.data"
+          <StepNode v-model:step="node.data"
                     :node="node"
                     :class="[node.data.step_type ==='case'?'treeCaseStep':'']"
                     :opt-type="state.optTypes"
@@ -55,19 +31,14 @@
   </div>
 </template>
 
-<script lang="ts" setup name="stepController">
-import type {PropType} from 'vue'
-import {nextTick, onMounted, reactive, ref, watch} from 'vue';
-import {useRoute, useRouter} from "vue-router"
+<script setup name="stepController">
+import {reactive, ref, watch} from 'vue';
 import StepNode from "/@/components/Z-StepController/StepNode.vue";
 import SelectCase from "/@/components/Z-StepController/apiInfo/SelectApi.vue";
-import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
-import {ArrowDown} from '@element-plus/icons-vue'
 import ApiInfoController from "./apiInfo/ApiInfoController.vue"
+import useVModel from "/@/utils/useVModel";
 
-
-const emit = defineEmits([])
-
+const emit = defineEmits(['update:steps'])
 const props = defineProps({
   use_type: {
     type: String,
@@ -75,21 +46,22 @@ const props = defineProps({
       return 'pre'   // pre 前置  post 候置  case 用例
     }
   },
-  data: {
+  steps: {
     type: Array,
     default: () => []
   },
   case_id: {
-    type: [Number, String, null] as PropType<Number | String | null>,
+    type: [Number, String, null],
     default: () => {
       return null
     }
   }
 })
 
+const steps = useVModel(props, 'steps', emit)
+
+
 const ApiInfoControllerRef = ref()
-const route = useRoute()
-const router = useRouter()
 const selectApiRef = ref()
 const stepTreeRef = ref()
 
@@ -102,13 +74,8 @@ const state = reactive({
 
 });
 
-
-const initFabMenu = (stepType: string | null) => {
-  state.optTypes = getStepTypesByUse(props.use_type)
-}
-
 // 拖动处理
-const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
+const allowDrop = (draggingNode, dropNode, type) => {
   if (dropNode.data.step_type === 'if' && type === 'inner') {
     return true
   } else if (dropNode.data.step_type === 'loop' && type === 'inner') {
@@ -119,12 +86,15 @@ const allowDrop = (draggingNode: any, dropNode: any, type: any) => {
 }
 
 // 节点拖动完成重新计算顺序
-const handleDrop = (node: any, event: any) => {
+const handleDrop = (node, event) => {
+  console.log(node, event, "node, event")
+  // event.preventDefault()
+  // event.stopPropagation()
   // return false
 }
 
-const nodeClick = (data: any, node: any) => {
-  if (data.step_type == "api") {
+const nodeClick = (data, node) => {
+  if (data.step_type === "api") {
     ApiInfoControllerRef.value.onOpenApiInfoPage(data)
   } else {
     data.showDetail = !data.showDetail
@@ -132,9 +102,9 @@ const nodeClick = (data: any, node: any) => {
 }
 
 // 计算index，保持拖动后顺序
-const computeDataIndex = (data: any) => {
+const computeDataIndex = (data) => {
   if (data) {
-    data.forEach((data: any, index: number) => {
+    data.forEach((data, index) => {
       data.index = index + 1
       if (data.sub_steps) {
         computeDataIndex(data.sub_steps)
@@ -143,7 +113,7 @@ const computeDataIndex = (data: any) => {
   }
 }
 // handleAddData
-const handleAddData = async (optType: string) => {
+const handleAddData = async (optType) => {
   if (optType !== 'api') {
     let stepData = await getAddData(optType)
     appendTreeDate(stepData)
@@ -153,24 +123,20 @@ const handleAddData = async (optType: string) => {
 }
 
 // 添加tree data
-const appendTreeDate = (data: any) => {
+const appendTreeDate = (data) => {
   let parentNode = stepTreeRef.value?.getCurrentNode()
   if (parentNode && props.use_type === "case") {
     if (!parentNode.sub_steps) {
       parentNode.sub_steps = []
     }
-    // parentNode.teststeps.push(data)
-    // emit("update:data", [...props.data])
-    // props.data = [...props.data]
     stepTreeRef.value.append(data, parentNode.id)
   } else {
-    // props.data.push(data)
     stepTreeRef.value.append(data, null)
   }
 }
 
 const getStepData = () => {
-  let stepData: TStepDataStat = {
+  let stepData = {
     id: null,
     name: "",
     case_id: null,
@@ -190,12 +156,13 @@ const getStepData = () => {
     wait_request: null,
     script_request: null,
     showDetail: false,
+    ui_request: null,
   }
   return stepData
 }
 
 // 获取步骤
-const getAddData = (optType: string) => {
+const getAddData = (optType) => {
   let data = getStepData()
   data.name = `${optType}_${getRandomStr()}`
   data.step_type = optType
@@ -216,18 +183,7 @@ const getAddData = (optType: string) => {
       wait_time: 0
     }
 
-  }
-    // else if (optType === "extract") {
-    //   data = {
-    //     id: id,
-    //     name: name,
-    //     value: null,
-    //     json_path_list: [],
-    //     step_type: "extract",
-    //     enable: true
-    //   }
-  // }
-  else if (optType === "if") {
+  } else if (optType === "if") {
     data.if_request = {
       check: "",
       comparator: "",
@@ -263,7 +219,7 @@ const getAddData = (optType: string) => {
 const addApiStep = () => {
   let selectApiData = selectApiRef.value.getSelectionData()
   if (selectApiData) {
-    selectApiData.forEach((apiInfo: any) => {
+    selectApiData.forEach((apiInfo) => {
       // if (state.optType === "case" && caseInfo.id === parseInt(props.case_id)) {
       //   ElMessage.warning('不能引用用例自己！');
       // } else {
@@ -286,21 +242,23 @@ const getRandomStr = () => {
   return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1)
 }
 
-const deletedNode = (node: any) => {
+const deletedNode = (node) => {
   stepTreeRef.value.remove(node)
   // props.data.splice(index, 1)
 }
-const copyNode = (data: any) => {
-  props.data.push(JSON.parse(JSON.stringify(data)))
+const copyNode = (data) => {
+  steps.value.push(JSON.parse(JSON.stringify(data)))
 }
 
-const clickBlank = () => {
-  stepTreeRef.value?.setCurrentKey(null)
-}
-
-onMounted(() => {
-  initFabMenu(null)
-})
+watch(
+    () => steps.value,
+    (value) => {
+      computeDataIndex(value)
+    },
+    {
+      deep: true
+    }
+)
 
 defineExpose({
   handleAddData,
@@ -337,17 +295,6 @@ defineExpose({
   background: transparent !important;
 }
 
-:deep(.el-tree-node__expand-icon) {
-  // 更换图标库
-  font-family: "iconfont" !important;
-
-  svg {
-    display: none;
-  }
-
-  color: #1f1f1f;
-  font-style: normal;
-}
 
 :deep(.el-tree-node__expand-icon.expanded) {
   // 动画取消
@@ -367,5 +314,21 @@ defineExpose({
   font-size: 18px;
 }
 
+:deep(.el-tree-node__expand-icon.is-leaf) {
+  color: transparent;
+  cursor: default;
+}
+
+:deep(.el-tree-node__expand-icon) {
+  // 更换图标库
+  font-family: "iconfont" !important;
+  color: #1f1f1f;
+
+  svg {
+    display: none;
+  }
+
+  font-style: normal;
+}
 
 </style>

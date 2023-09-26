@@ -27,17 +27,22 @@
   </el-row>
 </template>
 
-<script lang="ts" setup name="IfStep">
-import {PropType, reactive} from 'vue';
+<script setup name="IfStep">
+import {reactive} from 'vue';
+import useVModel from "/@/utils/useVModel";
+
+const emit = defineEmits(["update:data"])
 
 const props = defineProps({
   data: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     default: () => {
       return {}
     }
   },
 })
+
+const data = useVModel(props, 'data', emit)
 
 const state = reactive({
   // data

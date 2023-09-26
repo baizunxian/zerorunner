@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, TimedTasksInSchema, TimedTasksId, CrontabSaveSchema
 from autotest.services.api.timed_task import TimedTasksService, CrontabService
 
@@ -34,4 +34,10 @@ async def deleted_tasks(params: TimedTasksId):
 @router.post('/checkCrontab', description="校验crontab")
 async def check_crontab(params: CrontabSaveSchema):
     data = await CrontabService.check_crontab(params.crontab)
+    return partner_success(data)
+
+
+@router.post('/runOnceJob', description="运行一次任务")
+async def run_once_job(params: TimedTasksId):
+    data = await TimedTasksService.run_once_job(params)
     return partner_success(data)

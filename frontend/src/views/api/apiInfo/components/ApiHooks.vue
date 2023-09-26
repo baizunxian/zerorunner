@@ -34,7 +34,7 @@
           <div class="step-details">
             <z-step-controller ref="setupHooksRef"
                                use_type="pre"
-                               :data="state.setup_hooks"
+                               :steps="state.setup_hooks"
                                :case_id="state.case_id">
             </z-step-controller>
           </div>
@@ -72,7 +72,7 @@
           <div class="step-details">
             <z-step-controller ref="teardownHookRef"
                                use_type="post"
-                               :data="state.teardown_hooks"
+                               :steps="state.teardown_hooks"
                                :case_id="state.case_id">
             </z-step-controller>
           </div>
@@ -82,10 +82,10 @@
   </div>
 </template>
 
-<script lang="ts" setup name="preOperation">
+<script setup name="preOperation">
 import {reactive, ref} from 'vue';
 import {handleEmpty} from "/@/utils/other";
-import {ArrowDown} from "@element-plus/icons-vue";
+import {ArrowDown} from "@element-plus/icons";
 import {getStepTypesByUse, getStepTypeInfo} from "/@/utils/case";
 
 const setupHooksRef = ref()
@@ -99,7 +99,7 @@ const state = reactive({
 });
 
 // init hook
-const setData = (setup_hooks: any, teardown_hooks: any, case_id: number) => {
+const setData = (setup_hooks, teardown_hooks, case_id) => {
   state.setup_hooks = setup_hooks ? setup_hooks : []
   state.teardown_hooks = teardown_hooks ? teardown_hooks : []
   state.case_id = case_id ? case_id : 0
@@ -117,7 +117,7 @@ const getData = () => {
   }
 }
 
-const handleAddData = (hook_type: string, optType: string) => {
+const handleAddData = (hook_type, optType) => {
   if (hook_type === "setup") {
     setupHooksRef.value.handleAddData(optType)
   } else if (hook_type === "teardown") {

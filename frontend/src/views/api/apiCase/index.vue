@@ -57,7 +57,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="apiCase">
+<script setup name="apiCase">
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
@@ -70,7 +70,8 @@ const state = reactive({
   columns: [
     {key: 'id', label: 'ID', width: '55', align: 'center', show: true},
     {
-      key: 'name', label: '用例名称', width: '', align: 'center', show: true, render: ({row}: any) => h(ElButton, {
+      key: 'name', label: '用例名称', width: '', align: 'center', show: true,
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -78,15 +79,16 @@ const state = reactive({
         }
       }, () => row.name)
     },
-    {key: 'remarks', label: '用例描述', width: '', align: 'center', show: true},
     {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
+    {key: 'step_count', label: '步骤数', width: '', align: 'center', show: true},
+    {key: 'remarks', label: '用例描述', width: '', align: 'center', show: true},
     {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
     {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', width: '200', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -100,6 +102,13 @@ const state = reactive({
             onOpenSaveOrUpdate("update", row)
           }
         }, () => '编辑'),
+
+        // h(ElButton, {
+        //   type: "warning",
+        //   onClick: () => {
+        //     toViewReport(row)
+        //   }
+        // }, () => '查看报告'),
 
         h(ElButton, {
           type: "danger",
@@ -150,15 +159,20 @@ const search = () => {
 }
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (editType, row) => {
+  let query = {}
   query.editType = editType
   if (row) query.id = row.id
   router.push({name: 'EditApiCase', query: query})
 };
 
+// 查看报告
+const toViewReport = (row) => {
+  router.push({name: 'apiReport', params: {case_id: row.id}})
+}
+
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -176,7 +190,7 @@ const deleted = (row: any) => {
 };
 
 // 打开运行页面
-const onOpenRunPage = (row: any) => {
+const onOpenRunPage = (row) => {
   state.showRunPage = true;
   state.runForm.id = row.id;
   getEnvList();
@@ -194,6 +208,7 @@ const getEnvList = () => {
 const runApiTestCase = () => {
   useApiCaseApi().runSuites(state.runForm).then(res => {
     ElMessage.success(res.msg)
+    state.showRunPage = false;
   })
 };
 

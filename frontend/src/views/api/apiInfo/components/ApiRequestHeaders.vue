@@ -2,29 +2,18 @@
   <HeadersController :data="state.headers"></HeadersController>
 </template>
 
-<script lang="ts" setup name="apiRequestHeaders">
+<script setup name="apiRequestHeaders">
 import {reactive} from "vue";
 import {handleEmpty} from "/@/utils/other";
 import HeadersController from "/@/components/Z-StepController/headers/HeadersController.vue";
 
-
-interface baseState {
-  key: string,
-  value: string,
-  remarks: string
-}
-
-interface headersState {
-  headers: Array<baseState>,
-}
-
-const state = reactive<headersState>({
+const state = reactive({
   // headers
   headers: [],  // 请求头数据
 
 });
 // 初始化数据
-const setData = (data: any) => {
+const setData = (data) => {
   state.headers = data ? data : []
 }
 
@@ -44,7 +33,7 @@ const getStatus = () => {
 }
 
 // updateHeader {key: "Content-Type", value: "application/json"} //更新请求头
-const updateContentType = (mode: string, language: string, remove: any) => {
+const updateContentType = (mode, language, remove) => {
   let headerValue = ""
   switch (mode) {
     case "form-data":

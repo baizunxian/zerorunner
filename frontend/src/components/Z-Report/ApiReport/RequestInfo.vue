@@ -31,34 +31,29 @@
   </div>
 </template>
 
-<script lang="ts" setup name="RequestInfo">
-import {nextTick, onMounted, reactive, watch, PropType} from 'vue';
+<script setup name="RequestInfo">
+import {nextTick, onMounted, reactive, watch} from 'vue';
 import JsonViews from "/@/components/Z-JsonViews/index.vue"
 
 const props = defineProps({
   data: {
-    type: Object as PropType<RequestData>,
+    type: Object,
     required: true,
   }
 })
 
-interface stateData {
-  accordionName: Array<string>,
-  request: RequestData,
-}
-
-const state = reactive<stateData>({
+const state = reactive({
   // 请求信息
   accordionName: ['body', 'header'],
   request: props.data
 });
 
 watch(
-  () => props.data,
-  () => {
-    state.request = props.data
-  },
-  {deep: true}
+    () => props.data,
+    () => {
+      state.request = props.data
+    },
+    {deep: true}
 )
 
 const getBodyType = () => {

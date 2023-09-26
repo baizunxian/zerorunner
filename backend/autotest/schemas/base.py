@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 
 
 class BaseSchema(BaseModel):

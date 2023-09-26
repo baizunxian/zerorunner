@@ -1,14 +1,14 @@
 <template>
   <div class="layout-logo" v-if="setShowLogo" @click="onThemeConfigChange">
     <img :src="getLogo" class="layout-logo-medium-img"/>
-<!--    <span>{{ themeConfig.globalTitle }}</span>-->
+    <!--    <span>{{ themeConfig.globalTitle }}</span>-->
   </div>
   <div class="layout-logo-size" v-else @click="onThemeConfigChange">
     <img :src="getLogo" class="layout-logo-size-img"/>
   </div>
 </template>
 
-<script setup lang="ts" name="layoutLogo">
+<script setup name="layoutLogo">
 import {computed} from 'vue';
 import {storeToRefs} from 'pinia';
 import {useThemeConfig} from '/@/stores/themeConfig';
@@ -34,8 +34,8 @@ const getLogo = computed(() => {
     }
     return logoMini
   } else {
-    if (layout == "defaults") return defaultLogo
-    if (layout == "transverse") return transverseLogo
+    if (layout === "defaults") return defaultLogo
+    if (layout === "transverse") return transverseLogo
   }
 });
 

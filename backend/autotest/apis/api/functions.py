@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.functions import FuncQuery, FuncListQuery, FuncIn, FuncDebug, FuncId
 from autotest.services.api.functions import FunctionsService
 

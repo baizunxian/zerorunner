@@ -4,15 +4,16 @@
 import uvicorn
 from fastapi import FastAPI, Depends
 
-from autotest.config import config
-from autotest.corelibs.logger import init_logger, logger
-from autotest.db.redis import init_redis_pool
+from config import config
+from autotest.init.logger_init import init_logger, logger
+from autotest.init.redis_init import init_redis_pool
 from autotest.init.cors import init_cors
 from autotest.init.dependencies import set_global_request
 from autotest.init.exception import init_exception
 from autotest.init.middleware import init_middleware
 from autotest.init.mount import init_mount
 from autotest.init.routers import init_router
+import click
 
 app = FastAPI(title="zerorunner",
               description=config.PROJECT_DESC,
@@ -39,6 +40,7 @@ async def init_app():
 
 @app.on_event("startup")
 async def startup():
+    click.echo(config.PROJECT_BANNER)
     await init_app()  # 加载注册中心
     # from autotest.models import init_db
     # await init_db()  # 初始化表

@@ -37,6 +37,9 @@
               </div>
 
             </template>
+            <div v-if="step.step_type === 'sql'">
+              {{ step.sql_session_data?.sql }}
+            </div>
             {{ step.message }}
           </el-collapse-item>
         </el-collapse>
@@ -79,6 +82,9 @@
               </div>
 
             </template>
+            <div v-if="step.step_type === 'sql'">
+              {{ step.sql_session_data?.sql }}
+            </div>
             {{ step.message }}
           </el-collapse-item>
         </el-collapse>
@@ -88,13 +94,17 @@
   </el-row>
 </template>
 
-<script lang="ts" setup name="StepInfo">
+<script setup name="StepInfo">
 import {getStepTypeInfo, stepTypes} from "/@/utils/case";
-import {nextTick, onMounted, PropType, reactive, watch} from 'vue';
+import {nextTick, onMounted, reactive, watch} from 'vue';
 
 const props = defineProps({
-  setupHookResults: {type: Array as PropType<Array<StepResult>>},
-  teardownHookResults: {type: Array as PropType<Array<StepResult>>},
+  setupHookResults: {
+    type: Array
+  },
+  teardownHookResults: {
+    type: Array
+  },
 })
 
 const state = reactive({
@@ -104,7 +114,7 @@ const state = reactive({
 });
 
 // 编辑脚本名称
-const showDetail = (step: any) => {
+const showDetail = (step) => {
   step.__edit = !step.__edit
 }
 

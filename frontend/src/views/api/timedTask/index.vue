@@ -45,7 +45,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="TimedTask">
+<script setup name="TimedTask">
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import EditTimedTask from './EditTimedTask.vue';
@@ -59,7 +59,7 @@ const state = reactive({
   columns: [
     {
       key: 'name', label: '任务名称', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         type: "primary",
         link: true,
         onClick: () => {
@@ -73,7 +73,7 @@ const state = reactive({
       width: '',
       align: 'center',
       show: true,
-      render: ({row}: any) => handleTaskType(row)
+      render: ({row}) => handleTaskType(row)
     },
     {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
     {
@@ -82,7 +82,7 @@ const state = reactive({
       width: '',
       align: 'center',
       show: true,
-      render: ({row}: any) => {
+      render: ({row}) => {
         let value = formatLookup("api_timed_task_status", row.enabled)
         return h("span", {style: {color: row.enabled ? '#0cbb52' : '#e6a23c'}}, value)
       }
@@ -93,8 +93,17 @@ const state = reactive({
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
-      label: '操作', columnType: 'string', fixed: 'right', width: '250', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      label: '操作', columnType: 'string', fixed: 'right', width: '340', align: 'center',
+      render: ({row}) => h("div", null, [
+
+        h(ElButton, {
+          type: "",
+          color: "#626aef",
+          onClick: () => {
+            runOnceJob(row)
+          }
+        }, () => "手动执行"),
+
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -142,55 +151,67 @@ const state = reactive({
 const getList = () => {
   tableRef.value.openLoading()
   useTimedTasksApi().getList(state.listQuery)
-    .then(res => {
-      state.listData = res.data.rows
-      state.total = res.data.rowTotal
-    })
-    .finally(() => {
-      tableRef.value.closeLoading()
-    })
+      .then(res => {
+        state.listData = res.data.rows
+        state.total = res.data.rowTotal
+      })
+      .finally(() => {
+        tableRef.value.closeLoading()
+      })
 };
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
+const onOpenSaveOrUpdate = (editType, row) => {
   saveOrUpdateRef.value.openDialog(editType, row);
 };
 
 // 新增或修改
-const taskSwitch = (row: any) => {
+const taskSwitch = (row) => {
   ElMessageBox.confirm(`${row.enabled ? '停止' : '启动'}当前任务, 是否继续?`, '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
     type: 'warning',
   }).then(() => {
     useTimedTasksApi().taskSwitch({id: row.id})
-      .then(() => {
-        ElMessage.success('操作成功！');
-        getList()
-      })
+        .then(() => {
+          ElMessage.success('操作成功！');
+          getList()
+        })
   })
 
 };
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
     type: 'warning',
   })
-    .then(() => {
-      useTimedTasksApi().deleted({id: row.id})
-        .then(() => {
-          ElMessage.success('删除成功');
-          getList()
-        })
-    })
-    .catch(() => {
-    });
+      .then(() => {
+        useTimedTasksApi().deleted({id: row.id})
+            .then(() => {
+              ElMessage.success('删除成功');
+              getList()
+            })
+      })
+      .catch(() => {
+      });
 };
 
-const handleTaskType = (row: any) => {
+const runOnceJob = (row) => {
+  ElMessageBox.confirm("即将手动调度任务, 是否继续？", '提示', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    useTimedTasksApi().runOnceJob({id: row.id}).then(() => {
+      ElMessage.success("执行成功！")
+    })
+  })
+}
+
+const handleTaskType = (row) => {
   if (row.task_type === 'crontab') {
     return `${row.task_type}[${row.crontab}]`
   } else if (row.task_type === 'interval') {
@@ -198,7 +219,7 @@ const handleTaskType = (row: any) => {
   }
 }
 
-const viewRunLog = (row: any) => {
+const viewRunLog = (row) => {
   state.business_id = row.id
   state.showRunLogPage = true
 }
@@ -213,18 +234,18 @@ onMounted(() => {
 <style>
 
 .stop {
-    background-color: #c1bfc7;
+  background-color: #c1bfc7;
 }
 
 .start {
-    background-color: #0cbb52;
+  background-color: #0cbb52;
 }
 
 .request-editor-tabs-badge {
-    display: inline-flex;
-    width: 8px;
-    height: 8px;
-    margin-right: 5px;
-    border-radius: 8px;
+  display: inline-flex;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 8px;
 }
 </style>

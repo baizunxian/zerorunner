@@ -20,8 +20,8 @@ class ReportService:
 
     @staticmethod
     async def save_report(summary: TestCaseSummary,
-                          run_mode: str = "case",
-                          run_type: int = 10,
+                          run_mode: int,
+                          run_type: str,
                           project_id: int = None,
                           module_id: int = None,
                           env_id: int = None,

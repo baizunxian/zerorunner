@@ -2,7 +2,7 @@
   <JsonViews :data="data"></JsonViews>
 </template>
 
-<script lang="ts" setup name="ReportExtracts">
+<script setup name="ReportExtracts">
 import {nextTick, onMounted, reactive, watch} from 'vue';
 import JsonViews from "/@/components/Z-JsonViews/index.vue";
 

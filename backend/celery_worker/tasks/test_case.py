@@ -3,23 +3,23 @@
 import time
 from threading import Lock
 import typing
+
+from autotest.services.api.api_case import ApiCaseService
 from celery_worker.worker import celery
-from autotest.config import config
-from autotest.corelibs.local import g
+from config import config
+from autotest.utils.local import g
 from loguru import logger
-from autotest.corelibs.consts import TEST_EXECUTE_SET, TEST_EXECUTE_STATS, CACHE_WEEK, TEST_EXECUTE_TASK
-from autotest.db.redis import MyRedis
+from autotest.utils.consts import TEST_EXECUTE_SET, TEST_EXECUTE_STATS, CACHE_WEEK, TEST_EXECUTE_TASK
+from autotest.init.redis_init import MyRedis
 from autotest.models.api_models import ApiCase, ApiTestReport
 from autotest.schemas.api.api_case import TestCaseRun
 from autotest.schemas.api.api_info import ApiRunSchema
 from autotest.schemas.api.api_report import TestReportSaveSchema
-from autotest.schemas.api.timed_task import TaskKwargsIn
-from autotest.services.api.api_info import ApiInfoService
+from autotest.services.api import api_info
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.api.api_report import ReportService
-from autotest.corelibs.serialize import default_serialize
 from zerorunner.model.step_model import TestCase
-from zerorunner.testcase_new import ZeroRunner
+from zerorunner.testcase import ZeroRunner
 
 r_lock = Lock()
 t_lock = Lock()
@@ -34,7 +34,7 @@ async def async_run_api(**kwargs: typing.Any):
     """
     params = ApiRunSchema(**kwargs)
     logger.info("start run api")
-    await ApiInfoService.run(params)
+    await api_info.ApiInfoService.run(params)
 
 
 @celery.task
@@ -51,11 +51,12 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
     r: MyRedis = g.redis
     if not case_id:
         raise ValueError("id 不能为空！")
-    case_info: ApiCase = await ApiCase.get(case_id)
+    case_info = await ApiCase.get(case_id, to_dict=True)
     if not case_id:
         logger.error(f"用例id: {case_id} 不存在！")
         return
-    run_params = TestCaseRun(**default_serialize(case_info), env_id=kwargs.get('case_env_id', None))
+    await ApiCaseService.set_step_data(case_info)
+    run_params = TestCaseRun(**case_info, env_id=kwargs.get('case_env_id', None))
     api_case_info = await HandelTestCase().init(run_params)
 
     if not report_id:
@@ -63,8 +64,8 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         report_params = TestReportSaveSchema(
             name=api_case_info.api_case.name,
             case_id=api_case_info.config.case_id,
-            run_mode="case",
-            run_type=20,
+            run_mode=20,
+            run_type="case",
             project_id=api_case_info.api_case.project_id,
             module_id=api_case_info.api_case.module_id,
             env_id=api_case_info.api_case.env_id,
@@ -80,7 +81,7 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         report_info = await ApiTestReport.get(report_id, to_dict=True)
         report_params = TestReportSaveSchema(**report_info)
 
-    if case_info.step_rely:  # 步骤依赖:
+    if run_params.step_rely:  # 步骤依赖:
         runner = ZeroRunner()
         # await api_case_info.init_config()
         testcase = api_case_info.get_testcases()
@@ -164,6 +165,5 @@ async def run_case_step(report_id: typing.Union[str, int]):
         summary_params = TestReportSaveSchema(**report_info)
         summary_params.success = static_dict["run_err_count"] == 0 and static_dict["run_fail_count"] == 0
         await ReportService.save_report_info(summary_params)
-
         await r.delete(testcase_static_key)
         await r.delete(testcase_task_key)

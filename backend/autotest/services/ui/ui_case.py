@@ -9,8 +9,8 @@ from autotest.services.ui.ui_report import UiReportService
 from autotest.utils import current_user
 from zerorunner.ext.zero_driver.driver import ZeroDriver, DriverSetting
 from zerorunner.model.step_model import TStep, TUiRequest
-from zerorunner.runner_new import SessionRunner
-from zerorunner.testcase_new import ZeroRunner
+from zerorunner.runner import SessionRunner
+from zerorunner.testcase import ZeroRunner
 
 
 class UiCaseServer:

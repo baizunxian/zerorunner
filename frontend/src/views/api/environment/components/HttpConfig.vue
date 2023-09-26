@@ -35,33 +35,13 @@
   </div>
 </template>
 
-<script lang="ts" setup name="httpConfig">
+<script setup name="httpConfig">
 import {reactive, ref} from "vue";
 import {handleEmpty} from "/@/utils/other";
 import HeadersController from "/@/components/Z-StepController/headers/HeadersController.vue";
 
-
-interface baseState {
-  key: string,
-  value: string,
-  remarks: string
-}
-
-interface dataState {
-  name: string,
-  domain_name: string,
-  remarks: string,
-  headers: Array<baseState>,
-}
-
-interface state {
-  data: dataState,
-  headersBulk: string,
-}
-
-
 const headersControllerRef = ref()
-const state = reactive<state>({
+const state = reactive({
   data: {
     name: "",  // 环境名称
     domain_name: "",  // 环境域名
@@ -73,7 +53,7 @@ const state = reactive<state>({
 
 });
 // 初始化数据
-const setData = (data: any) => {
+const setData = (data) => {
   if (data) {
     state.data.headers = data.headers ? data.headers : []
     state.data.remarks = data.remarks

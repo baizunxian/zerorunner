@@ -36,7 +36,7 @@
             ref="monacoEditRef"
             :options="{readOnly: true}"
             v-model:value="state.log"
-            long="text"
+            lang="text"
         ></z-monaco-editor>
       </el-col>
     </el-row>
@@ -44,7 +44,7 @@
   </el-dialog>
 </template>
 
-<script setup lang="ts" name="EditPage">
+<script setup name="EditPage">
 import {onDeactivated, reactive} from "vue";
 import {ElMessage} from 'element-plus';
 import UiStepInfo from "/@/views/ui/uiCase/uiStepInfo.vue";
@@ -88,10 +88,10 @@ const websocket = () => {
     console.log(url, 'weburl')
     let ws = new WebSocket(url)
     state.ws = ws
-    ws.onopen = (event: any) => {
+    ws.onopen = (event) => {
       console.log('已建立连接....')
     };
-    ws.onmessage = (event: any) => {
+    ws.onmessage = (event) => {
       console.log('接收信息：', event)
       //将字符串转换成 Blob对象
       let message = JSON.parse(event.data)

@@ -1,20 +1,19 @@
 #### 🌈 介绍
 
 #### 后端
-- 基于 python + fastApi + celery + sqlalchemy + redis
+- 基于 python3 + fastApi + celery + sqlalchemy + redis
 
 - 使用软件版本
 - python version 3.9.6
-- mysql version 8.0.23
+- mysql version 5.7.43
 - redis version 6.0.9
-- node version 18.15.0
 
 #### 前端
 
 - 基于 vite + vue3 + element-plus
 
 - 使用软件版本
-- node version 18.15.0
+- node version 16.22.0
 - vue  version 3.2.45
 - element-plus  version 2.2.26
 
@@ -44,7 +43,13 @@ https://gitee.com/xb_xiaobai/zerorunner
 git clone https://github.com/baizunxian/zerorunner.git
 
 # 数据库脚本 将内容复制数据库执行 需要新建数据库 zerorunner
-backend/script/db_init.sql  
+backend/script/zerorunner.sql  
+
+# MySQL版本 8.0.23 查询问题
+# 问题 which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by
+# 执行一下语句
+set @@global.sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
 
 # 修改对应的数据库地址，redis 地址
 backend/config.py
@@ -78,7 +83,7 @@ celery -A celery_worker.worker.celery beat  -l INFO
 ```bash
 # node 版本
 node -v 
-v18.15.0
+v16.22.0
 ```
 
 - 复制代码(桌面 cmd 运行) `npm install -g cnpm --registry=https://registry.npm.taobao.org`
@@ -91,19 +96,13 @@ git clone https://github.com/baizunxian/zerorunner.git
 # 进入项目
 cd zerorunner/frontend
 
-# 安装依赖
-cnpm install 
 # 或者
-yarn insatll
+yarn install
 
 # 运行项目
-cnpm run dev
-# 或者 
 yarn dev
 
 # 打包发布
-cnpm run build
-# 或者 
 yarn build
 ```
 

@@ -16,13 +16,9 @@
   </div>
 </template>
 
-<script setup lang="ts" name="apiInfo">
+<script setup name="apiInfo">
 import {reactive} from 'vue';
 import ApiList from "./components/ApiList.vue"
-
-// 引入组件
-// const CaseList = defineAsyncComponent(() => import("./components/ApiList.vue"))
-// const caseTree = defineAsyncComponent(() => import("./components/ApiTree.vue"))
 
 const state = reactive({
   activeName: "case_list",

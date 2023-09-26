@@ -140,7 +140,7 @@
               ref="stepControllerRef"
               use_type="case"
               style="margin-bottom: 10px"
-              v-model:data="state.form.step_data">
+              v-model:steps="state.form.step_data">
           </z-step-controller>
         </z-pane>
       </z-splitpanes>
@@ -206,7 +206,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditApiCase">
+<script setup name="EditApiCase">
 import {onMounted, reactive, ref} from 'vue';
 import {ElMessage} from "element-plus";
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
@@ -218,8 +218,8 @@ import {useProjectApi} from "/@/api/useAutoApi/project";
 import 'splitpanes/dist/splitpanes.css';
 import {handleEmpty} from "/@/utils/other";
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
-import {getStepTypesByUse, getStepTypeInfo} from "/@/utils/case";
-import {ArrowDown, InfoFilled} from "@element-plus/icons-vue";
+import {getStepTypeInfo, getStepTypesByUse} from "/@/utils/case";
+import {ArrowDown} from "@element-plus/icons";
 
 const createForm = () => {
   return {
@@ -266,11 +266,13 @@ const initData = async () => {
   if (route.query.id) {
     let {data} = await useApiCaseApi().getCaseInfo({id: route.query.id})
     state.form = data
+  } else {
+    state.form = createForm()
   }
 }
 
-const handleStepData = (step_data: Array<any>) => {
-  step_data.forEach((e: any) => {
+const handleStepData = (step_data) => {
+  step_data.forEach((e) => {
     if (e.sub_steps) {
       handleStepData(e.sub_steps)
     } else {
@@ -293,7 +295,7 @@ const getProjectList = async () => {
 
 };
 
-// 新增
+// 新增修改
 const saveOrUpdate = () => {
   if (!state.form.project_id) {
     ElMessage.warning('请选择所属项目！');
@@ -310,7 +312,9 @@ const saveOrUpdate = () => {
   state.form.variables = handleEmpty(state.form.variables)
   state.form.headers = handleEmpty(state.form.headers)
   useApiCaseApi().saveOrUpdate(state.form)
-      .then(() => {
+      .then((res) => {
+        state.form.id = res.data.id
+        state.form.version = res.data.version
         ElMessage.success('操作成功');
       })
 };
@@ -330,7 +334,7 @@ const getEnvList = () => {
 
 // debugApiCase
 const debugApiCase = () => {
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
       if (state.form.step_data.length == 0) {
         ElMessage.warning("请先添加步骤！")
@@ -340,7 +344,7 @@ const debugApiCase = () => {
       state.form.variables = handleEmpty(state.form.variables)
       state.form.headers = handleEmpty(state.form.headers)
       useApiCaseApi().debugSuites(state.form)
-          .then((req: any) => {
+          .then((req) => {
             state.reportInfo = req.data
             ReportDetailRef.value.showReport()
             ElMessage.success('操作成功');
@@ -358,17 +362,17 @@ const debugApiCase = () => {
 
 }
 
-const getDataLength = (dataType: string) => {
-  if (dataType == "headers") {
+const getDataLength = (dataType) => {
+  if (dataType === "headers") {
     return handleEmpty(state.form.headers).length
   }
-  if (dataType == "variables") {
+  if (dataType === "variables") {
     return handleEmpty(state.form.variables).length
   }
 }
 
 //handleAddData
-const handleAddData = (optType: string) => {
+const handleAddData = (optType) => {
   stepControllerRef.value.handleAddData(optType)
 
 }

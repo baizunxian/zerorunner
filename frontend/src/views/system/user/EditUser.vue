@@ -78,7 +78,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SaveOrUpdateUser">
+<script setup name="SaveOrUpdateUser">
 import {reactive, ref} from 'vue';
 import {useUserApi} from "/@/api/useSystemApi/user";
 import {ElMessage} from "element-plus";
@@ -119,10 +119,9 @@ const state = reactive({
 });
 
 // 新增修改窗口初始化
-const openDialog = (editType: string, row: any) => {
+const openDialog = (editType, row) => {
   state.editType = editType
   if (row) {
-    console.log(row)
     state.form = JSON.parse(JSON.stringify(row));
   } else {
     state.form = createForm()
@@ -140,7 +139,7 @@ const onCancel = () => {
 };
 // 更新-新增
 const saveOrUpdate = () => {
-  userFormRef.value.validate((valid: any) => {
+  userFormRef.value.validate((valid) => {
     if (valid) {
       useUserApi().saveOrUpdate(state.form)
           .then(() => {

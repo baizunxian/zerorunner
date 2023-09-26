@@ -16,23 +16,6 @@
           <RequestInfo :data="state.requestInfo"></RequestInfo>
         </el-tab-pane>
 
-        <el-tab-pane name="ReportValidators">
-          <template #label>
-            <strong>结果断言</strong>
-            <el-icon v-show="getValidatorsResultStatus !== null">
-              <ele-CircleCheck v-if="getValidatorsResultStatus" style="color: #0cbb52"/>
-              <ele-CircleClose v-else style="color: red"/>
-            </el-icon>
-          </template>
-          <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
-        </el-tab-pane>
-
-        <el-tab-pane name="extracts">
-          <template #label>
-            <strong>参数提取</strong>
-          </template>
-          <ReportExtracts :data="state.extracts"></ReportExtracts>
-        </el-tab-pane>
 
         <!--      <el-tab-pane label="异常信息" name="message">-->
         <!--        <request-content :data="data.req_resps[0].request"></request-content>-->
@@ -45,16 +28,36 @@
           <ReportVariables :data="state.variables" ref=""></ReportVariables>
         </el-tab-pane>
 
+         <el-tab-pane name="extracts">
+          <template #label>
+            <strong>参数提取</strong>
+          </template>
+          <ReportExtracts :data="state.extracts"></ReportExtracts>
+        </el-tab-pane>
+
+        <el-tab-pane name="ReportValidators">
+          <template #label>
+            <strong>
+              结果断言
+              <el-icon v-show="getValidatorsResultStatus !== null">
+                <CircleCheck :style="{color: getValidatorsResultStatus? '#0cbb52': 'red'}">
+                </CircleCheck>
+              </el-icon>
+            </strong>
+
+          </template>
+          <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
+        </el-tab-pane>
 
         <el-tab-pane name="preHookData">
           <template #label>
-            <strong>Hook</strong>
-            <el-icon v-show="getHookResultStatus !==null">
-              <ele-CircleCheck
-                  v-if="getHookResultStatus"
-                  style="color: #0cbb52"/>
-              <ele-CircleClose v-else style="color: red"/>
-            </el-icon>
+            <strong>Hook
+              <el-icon v-show="getHookResultStatus !==null">
+                <CircleCheck :style="{color: getHookResultStatus? '#0cbb52': 'red'}">
+                </CircleCheck>
+              </el-icon>
+            </strong>
+
           </template>
           <ReportHooks
               :setup-hook-results="state.setup_hook_results"
@@ -74,7 +77,7 @@
         <template #label>
           <strong>错误信息</strong>
           <el-icon v-if="state.message !== ''">
-            <ele-CircleClose style="color: red"/>
+            <CircleCheck style="color: red"></CircleCheck>
           </el-icon>
         </template>
         <ReportLog :data="state.message"></ReportLog>
@@ -84,8 +87,9 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ApiReport">
-import {computed, onMounted, PropType, reactive, ref, watch} from 'vue';
+<script setup name="ApiReport">
+import {computed, onMounted, reactive, ref, watch} from 'vue';
+import {CircleCheck} from "@element-plus/icons";
 import ResponseInfo from "./ResponseInfo.vue";
 import RequestInfo from "./RequestInfo.vue";
 import ReportValidators from "./ReportValidators.vue";
@@ -97,7 +101,7 @@ import ReportHooks from './ReportHooks.vue'
 
 const props = defineProps({
   reportData: {
-    type: [Object, Array] as PropType<ReportData>,
+    type: [Object, Array],
     required: true
   }
 },)
@@ -137,7 +141,7 @@ const state = reactive({
 });
 
 const initData = () => {
-  let step_result: StepResult
+  let step_result
   if (!props.reportData.step_results) {
     step_result = props.reportData
   } else {
@@ -148,8 +152,8 @@ const initData = () => {
   state.success = step_result.success
   state.step_type = step_result.step_type
   state.message = step_result.message
-  state.log = props.reportData.log
-  if (state.step_type == 'api') {
+  state.log = step_result.log
+  if (state.step_type === 'api') {
     state.activeName = "ResponseInfo"
     state.stat = step_result.session_data.stat
     state.responseInfo = step_result.session_data.req_resp.response
@@ -182,7 +186,7 @@ const getValidatorsResultStatus = computed(() => {
   if (state.validators.validate_extractor.length === 0) {
     return null
   }
-  let failList = state.validators.validate_extractor.filter((e: any) => {
+  let failList = state.validators.validate_extractor.filter((e) => {
     return e.check_result !== 'pass'
   })
   return failList.length === 0
@@ -194,7 +198,7 @@ const getHookResultStatus = computed(() => {
     return null
   }
   let newHooks = state.setup_hook_results.concat(state.teardown_hook_results)
-  let failList = newHooks.filter((e: any) => {
+  let failList = newHooks.filter((e) => {
     return !e.success
   })
   return failList.length === 0

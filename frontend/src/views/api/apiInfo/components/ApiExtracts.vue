@@ -1,8 +1,8 @@
 <template>
-  <ExtractController :data="state.extracts"></ExtractController>
+  <ExtractController :extracts="state.extracts"></ExtractController>
 </template>
 
-<script setup lang="ts" name="extracts">
+<script setup name="extracts">
 import {defineAsyncComponent, reactive} from 'vue';
 import {handleEmpty} from "/@/utils/other";
 
@@ -13,7 +13,7 @@ const state = reactive({
 })
 
 // 初始化数据
-const setData = (data: any) => {
+const setData = (data) => {
   state.extracts = data ? data : []
 }
 
@@ -24,7 +24,7 @@ const getDataLength = () => {
 // 获取表单数据
 const getData = () => {
   let extractData = handleEmpty(state.extracts)
-  extractData.forEach((e: any, index: number) => {
+  extractData.forEach((e, index) => {
     if (e.extract_type === "") {
       throw new Error(`提取: 第${index + 1}行 提取类型不能为空~🤣`)
     }

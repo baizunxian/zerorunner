@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from autotest.utils import current_user
 from celery_worker.tasks.test_case import async_run_testcase
-from autotest.corelibs.http_response import partner_success
+from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
     ApiTestCaseRun
 from autotest.services.api.api_case import ApiCaseService
@@ -25,7 +25,7 @@ async def get_case_by_ids(params: ApiCaseIdsQuery):
 @router.post('/saveOrUpdate', description="更新保存用例")
 async def save_or_update(params: ApiCaseIn):
     data = await ApiCaseService.save_or_update(params)
-    return partner_success(data.get("id"))
+    return partner_success(data)
 
 
 @router.post('/runTestCase', description="运行用例")

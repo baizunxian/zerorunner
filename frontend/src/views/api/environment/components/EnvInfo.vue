@@ -7,14 +7,14 @@
     <el-row :gutter="24">
       <el-col :span="10">
         <el-form-item label="环境名称" prop="name">
-          <el-input v-model.trim="state.data.name" style="width: 100%;" placeholder="请输入用例名称"></el-input>
+          <el-input v-model.trim="state.data.name" style="width: 100%;" placeholder="请输入环境名称"></el-input>
         </el-form-item>
       </el-col>
     </el-row>
   </el-form>
 </template>
 
-<script lang="ts" setup name="EnvInfo">
+<script setup name="EnvInfo">
 import {onMounted, reactive, ref} from "vue";
 
 const formRef = ref()
@@ -30,7 +30,7 @@ const state = reactive({
   // 表单及校验
   data: createData(),
   rules: {
-    name: [{required: true, message: '请输入用例名', trigger: 'blur'}],
+    name: [{required: true, message: '请输入环境名称', trigger: 'blur'}],
   },
 
 
@@ -41,13 +41,13 @@ const getData = () => {
 }
 
 // 初始化表单
-const setData = (data: any) => {
+const setData = (data) => {
   state.data = createData()
   if (data) state.data = data
 }
 
 // 回填id
-const setId = (id: any) => {
+const setId = (id) => {
   state.data.id = id
 }
 

@@ -9,11 +9,11 @@ from sqlalchemy.exc import IntegrityError, ProgrammingError
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from starlette.requests import Request
 
-from autotest.corelibs.codes import CodeEnum
+from autotest.utils.response.codes import CodeEnum
 from loguru import logger
 from autotest.exceptions.exceptions import IpError, ErrorUser, UserNotExist, SetRedis, AccessTokenFail, IdNotExist, \
     ParameterError
-from autotest.corelibs.http_response import resp_400, resp_500, partner_success
+from autotest.utils.response.http_response import resp_400, resp_500, partner_success
 
 
 def init_exception(app: FastAPI):

@@ -3,15 +3,19 @@
 # Future Imports
 from __future__ import annotations
 
+import asyncio
 # Standard Library Imports
 import asyncio as aio
 import inspect
+import sys
 import threading
 import typing
 
 AnyCallable = typing.Callable[..., typing.Any]
 AnyException = typing.Union[Exception, typing.Type[Exception]]
 AnyCoroutine = typing.Coroutine[typing.Any, typing.Any, typing.Any]
+
+PY39_VERSION = sys.version_info[:2] >= (3, 9)
 
 __all__ = ("AsyncIOPool",)
 
@@ -202,6 +206,18 @@ class AsyncIOPool:
             **kwargs,
         )
 
+    @classmethod
+    def sync_to_async_decorator(cls, func):
+        """同步函数转异步函数装饰器"""
+
+        async def wrapper(*args, **kwargs):
+            if PY39_VERSION:
+                return await asyncio.to_thread(func, *args, **kwargs)
+            else:
+                return await cls.loop.run_in_executor(cls.loop, lambda: func(*args, **kwargs))
+
+        return wrapper
+
     async def shutdown(self) -> None:
         """Shut down the worker pool."""
         if self.loop.is_running():
@@ -279,3 +295,11 @@ class AsyncIOPool:
     # def restart(self) -> None:
     #     """Restart the pool instance."""
     #     raise NotImplementedError
+
+
+async def sync_to_async(func, *args, **kwargs):
+    """同步函数转异步函数"""
+    if PY39_VERSION:
+        return await asyncio.to_thread(func, *args, **kwargs)
+    else:
+        return await AsyncIOPool.loop.run_in_executor(AsyncIOPool.loop, lambda: func(*args, **kwargs))

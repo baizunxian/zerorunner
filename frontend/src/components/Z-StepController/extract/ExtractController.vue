@@ -1,22 +1,22 @@
 <template>
-  <div style="padding: 8px">
+  <div>
     <div>
       <el-button type="primary" @click="add">
         添加提取
       </el-button>
     </div>
 
-    <div class="extract-item-editing jmespath" v-show="data">
-      <div class="regex-item" v-for="(dataInfo, index) in data" :key="dataInfo">
+    <div class="extract-item-editing jmespath" v-show="extracts">
+      <div class="regex-item" v-for="(extract, index) in extracts" :key="extract + index">
         <el-row justify="space-between"
                 align="middle"
                 class="el-row--flex"
                 style="margin: 0 -5px">
           <el-col :span="8" style="margin: 0 5px">
-            <el-input type="primary" link maxlength="60" placeholder="变量名" v-model="dataInfo.name">
+            <el-input type="primary" link maxlength="60" placeholder="变量名" v-model="extract.name">
               <template #suffix>
-                    <span class="el-input__suffix-inner" @click="copyText('${'+ dataInfo.name +'}')">
-                      {{ dataInfo.name?.length }}/60
+                    <span class="el-input__suffix-inner" @click="copyText('${'+ extract.name +'}')">
+                      {{ extract.name?.length }}/60
                       <el-icon color="#303133">
                         <ele-DocumentCopy/>
                       </el-icon>
@@ -25,18 +25,18 @@
             </el-input>
           </el-col>
 
-          <el-col :span="14" >
+          <el-col :span="14">
             <div class="flex w100">
               <el-input type="primary"
                         link
                         style="width: 100%"
                         class="input-with-select"
                         maxlength="60"
-                        :placeholder="getPlaceholder(dataInfo.extract_type)"
-                        v-model="dataInfo.path">
+                        :placeholder="getPlaceholder(extract.extract_type)"
+                        v-model="extract.path">
                 <template #prepend>
                   <el-select size="small"
-                             v-model="dataInfo.extract_type"
+                             v-model="extract.extract_type"
                              placeholder="提取方式"
                              filterable>
                     <el-option
@@ -50,7 +50,7 @@
 
               </el-input>
 
-              <div v-if="dataInfo.extract_type === 'JsonPath'"
+              <div v-if="extract.extract_type === 'JsonPath'"
                    class="flex pl10"
                    style="align-items: center; width: 40%">
                 <el-tag type="">继续提取</el-tag>
@@ -65,13 +65,13 @@
                     </el-icon>
                   </template>
                 </el-popover>
-                <el-switch v-model="dataInfo.continue_extract">
+                <el-switch v-model="extract.continue_extract">
                 </el-switch>
                 <div>
-                  <el-input-number :disabled="!dataInfo.continue_extract"
+                  <el-input-number :disabled="!extract.continue_extract"
                                    controls-position="right"
                                    style="padding-left: 5px"
-                                   v-model="dataInfo.continue_index">
+                                   v-model="extract.continue_index">
                   </el-input-number>
                 </div>
 
@@ -99,28 +99,30 @@
               </el-icon>
             </el-button>
           </el-col>
-
         </el-row>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup name="ExtractController">
+<script setup name="ExtractController">
 import {reactive} from 'vue';
 import commonFunction from '/@/utils/commonFunction';
 import {getModeTypeObj, getPlaceholder} from "/@/utils/case";
+import useVModel from "/@/utils/useVModel";
 
 const emit = defineEmits(['update:data'])
 
 const props = defineProps({
-  data: {
-    type: Object,
+  extracts: {
+    type: Array,
     default: () => {
-      return {}
+      return []
     }
   },
 })
+
+const extracts = useVModel(props, 'extracts', emit)
 
 
 const {copyText} = commonFunction()
@@ -134,17 +136,17 @@ const state = reactive({
 
 // add JsonPathList
 const add = () => {
-  let data: any
+  let data
   data = {name: "", path: "", extract_type: "jmespath"}
-  if (props.data) {
-    props.data?.push(data)
+  if (extracts) {
+    extracts.value.push(data)
   } else {
     emit("update:data", [data])
   }
 }
 
-const deleted = (index: number) => {
-  props.data.splice(index, 1)
+const deleted = (index) => {
+  extracts.value.splice(index, 1)
 }
 
 

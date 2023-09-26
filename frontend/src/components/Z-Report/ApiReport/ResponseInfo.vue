@@ -34,8 +34,17 @@
             ref="monacoEditRef"
             :options="{readOnly: true}"
             v-model:value="state.body"
-            long="json"
+            lang="json"
         ></z-monaco-editor>
+        <el-image
+            v-else-if="state.content_type.includes('image')"
+            style="width: 300px; height: 300px"
+            :src="state.response.body"
+            :zoom-rate="1.2"
+            :preview-src-list="[state.response.body]"
+            :initial-index="4"
+            fit="cover"
+        />
         <pre v-else>{{ state.response.body }}</pre>
       </el-collapse-item>
 
@@ -67,13 +76,12 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ResponseInfo">
-import {nextTick, onMounted, PropType, reactive, watch} from 'vue';
-import JsonViews from "/@/components/Z-JsonViews/index.vue";
+<script setup name="ResponseInfo">
+import {nextTick, onMounted, reactive, watch} from 'vue';
 import {formatSizeUnits} from "/@/utils/case"
 
 const props = defineProps({
-  data: Object as PropType<ResponseData>,
+  data: Object,
   stat: Object,
 })
 
@@ -108,7 +116,7 @@ watch(
 onMounted(() => {
 
   nextTick(() => {
-      initData()
+    initData()
   })
 })
 
