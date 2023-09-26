@@ -95,6 +95,7 @@ def run_api_request(runner: SessionRunner,
     merge_headers = copy.deepcopy(runner.config.headers)
     merge_headers.update(step.request.headers)
     step.request.headers = merge_headers
+    session_success = False
     # 初始化resp_obj
     resp_obj = None
     # 捕获异常
@@ -105,7 +106,6 @@ def run_api_request(runner: SessionRunner,
         upload_variables = prepare_upload_step(step, runner.config.functions)
         request_dict = step.request.dict()
         request_dict.pop("upload", None)
-        session_success = False
         extract_mapping = {}
 
         # setup hooks
