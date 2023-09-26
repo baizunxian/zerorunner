@@ -102,9 +102,9 @@ def run_api_request(runner: SessionRunner,
     # 捕获异常
     try:
         # 合并变量
-        merge_variable = runner.get_merge_variable(step)
+        merge_variable = runner.get_merge_variable(step=step)
         # parse
-        upload_variables = prepare_upload_step(step, runner.config.functions)
+        upload_variables = prepare_upload_step(step, runner.config.functions, merge_variable)
         request_dict = step.request.dict()
         request_dict.pop("upload", None)
 
@@ -142,12 +142,9 @@ def run_api_request(runner: SessionRunner,
             step_result.set_step_log(f"前置code结束  ~~~")
 
         # 前置步骤后再执行下合并 避免前置步骤中复制变量获取不到
-        merge_variable = runner.get_merge_variable(step)
+        merge_variable = runner.get_merge_variable(step=step)
         if upload_variables:
-            upload_variables = parse_variables_mapping(
-                upload_variables, runner.parser.functions_mapping
-            )
-            merge_variable.update(upload_variables)
+            merge_variable = runner.get_merge_variable(variables_mapping=upload_variables)
 
         parsed_request_dict = runner.parser.parse_data(
             request_dict, merge_variable
@@ -215,7 +212,7 @@ def run_api_request(runner: SessionRunner,
             )
             step.variables.update(parsed_zero_variables)
             # code  执行完成后重新合并变量
-            merge_variable = runner.get_merge_variable(step)
+            merge_variable = runner.get_merge_variable(step=step)
             step_result.set_step_log("后置code结束~~~")
 
         # teardown hooks
@@ -228,7 +225,7 @@ def run_api_request(runner: SessionRunner,
                        parent_step_result=step_result.get_step_result())
             step_result.set_step_log("后置hook结束~~~")
             # code teardown 执行完成后重新合并变量
-            merge_variable = runner.get_merge_variable(step)
+            merge_variable = runner.get_merge_variable(step=step)
 
         # validate
         validators = step.validators

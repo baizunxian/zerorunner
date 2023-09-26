@@ -158,7 +158,7 @@ class SessionRunner(object):
     def get_merge_variable_pool(self):
         return self.__merge_variable_pool
 
-    def get_merge_variable(self, step: TStep = None):
+    def get_merge_variable(self, step: TStep = None, variables_mapping: VariablesMapping = None):
         """
         获取合并的变量
         优先级
@@ -177,9 +177,12 @@ class SessionRunner(object):
         # 合并会话变量
         merge_variable_pool = merge_variables(self.__session_variables, merge_variable_pool)
         # 合并用例变量
+        merge_variable_pool = merge_variables(self.__session_variables, merge_variable_pool)
+        # 合并用例变量
         if step:
             merge_variable_pool = merge_variables(step.variables, merge_variable_pool)
-
+        if variables_mapping:
+            merge_variable_pool = merge_variables(variables_mapping, merge_variable_pool)
         merge_variable_pool = parse_variables_mapping(
             merge_variable_pool, self.parser.functions_mapping
         )
