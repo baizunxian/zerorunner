@@ -143,7 +143,7 @@ def multipart_encoder(**kwargs):
     fields_dict = {}
     for key, value in kwargs.items():
 
-        if os.path.isabs(value):
+        if isinstance(value, str) and os.path.isabs(value):
             # value is absolute file path
             _file_path = value
             is_exists_file = os.path.isfile(value)
@@ -157,7 +157,7 @@ def multipart_encoder(**kwargs):
             # is_exists_file = os.path.isfile(_file_path)
 
             # 修改 不支持相对路径
-            _file_path = os.path.join('', value)
+            _file_path = os.path.join('', value) if isinstance(value, str) else str(value)
             is_exists_file = ''
 
         if is_exists_file:
@@ -168,7 +168,7 @@ def multipart_encoder(**kwargs):
             file_handler = open(_file_path, "rb")
             fields_dict[key] = (filename, file_handler, mime_type)
         else:
-            fields_dict[key] = value
+            fields_dict[key] = str(value) if not isinstance(value, str) else value
 
     return MultipartEncoder(fields=fields_dict)
 
