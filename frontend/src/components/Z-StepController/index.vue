@@ -314,6 +314,11 @@ defineExpose({
   font-size: 18px;
 }
 
+:deep(.el-tree-node__expand-icon.is-leaf) {
+  color: transparent;
+  cursor: default;
+}
+
 :deep(.el-tree-node__expand-icon) {
   // 更换图标库
   font-family: "iconfont" !important;
