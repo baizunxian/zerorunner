@@ -24,6 +24,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  readOnly: {
+    type: Boolean,
+    default: false,
+  },
   // 比对需要的源数据
   oldString: {
     type: String,
@@ -150,15 +154,16 @@ const initEditor = () => {
   let modEditor
   if (props.isDiff) {
     editor.value = monaco.editor.createDiffEditor(monacoEditorRef.value, options)
-    originalEditor.value = monaco.editor.createModel(props.oldString, props.lang)
-    modifiedEditor.value = monaco.editor.createModel(props.value, props.lang)
+    originalEditor.value = monaco.editor.createModel(props.value, props.lang)
+    modifiedEditor.value = monaco.editor.createModel(props.oldString, props.lang)
     toRaw(editor.value).setModel({
       original: toRaw(originalEditor.value),
       modified: toRaw(modifiedEditor.value)
     })
-
     registerCustomEvent(editor.value.getModifiedEditor())
     registerCustomEvent(editor.value.getOriginalEditor())
+    toRaw(editor.value.getModifiedEditor()).updateOptions({readOnly: props.readOnly});
+    toRaw(editor.value.getOriginalEditor()).updateOptions({readOnly: props.readOnly});
 
   } else {
     editor.value = monaco.editor.create(monacoEditorRef.value, options)
@@ -318,6 +323,14 @@ watch(
     () => {
       monaco.editor.setTheme(props.theme)
 
+    },
+    {deep: true}
+)
+watch(
+    () => props.isDiff,
+    () => {
+      toRaw(editor.value)?.dispose()
+      initEditor()
     },
     {deep: true}
 )

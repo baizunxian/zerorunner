@@ -95,18 +95,18 @@ def run_api_request(runner: SessionRunner,
     merge_headers = copy.deepcopy(runner.config.headers)
     merge_headers.update(step.request.headers)
     step.request.headers = merge_headers
-    # parse
-    upload_variables = prepare_upload_step(step, runner.config.functions)
-    request_dict = step.request.dict()
-    request_dict.pop("upload", None)
-    session_success = False
-    extract_mapping = {}
     # 初始化resp_obj
     resp_obj = None
     # 捕获异常
     try:
         # 合并变量
         merge_variable = runner.get_merge_variable(step)
+        # parse
+        upload_variables = prepare_upload_step(step, runner.config.functions)
+        request_dict = step.request.dict()
+        request_dict.pop("upload", None)
+        session_success = False
+        extract_mapping = {}
 
         # setup hooks
         if step.setup_hooks:

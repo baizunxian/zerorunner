@@ -13,9 +13,11 @@
         <el-button plain type="primary" size="small" class="ml10" @click="foldAll">折叠</el-button>
         <el-button plain type="primary" size="small" class="ml10" @click="unfoldAll">展开</el-button>
         <el-button plain type="primary" size="small" class="ml10" @click="copy">复制</el-button>
+        <el-button plain type="primary" size="small" class="ml10" @click="jsonDiff">比对</el-button>
       </template>
       <z-monaco-editor :lang="'json'"
                        ref="monacoEditorRef"
+                       :is-diff="isDiff"
                        v-model:value="jsonData">
       </z-monaco-editor>
     </el-card>
@@ -31,6 +33,7 @@ import {ElMessage} from "element-plus";
 
 const jsonData = ref('')
 const monacoEditorRef = ref(null)
+const isDiff = ref(false)
 
 const beautifyJson = () => {
   if (!jsonData.value) return
@@ -143,9 +146,14 @@ const copy = () => {
   ElMessage.success('复制成功 🎉')
 }
 
+const jsonDiff = () => {
+  isDiff.value = !isDiff.value
+}
+
 const setValue = (value) => {
   monacoEditorRef.value.setValue(value)
 }
+
 
 </script>
 
