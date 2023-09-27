@@ -33,7 +33,6 @@ class UserService:
         if not user_info:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         u_password = decrypt_rsa_password(user_info["password"])
-
         if u_password != password:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         token = str(uuid.uuid4())
@@ -114,7 +113,7 @@ class UserService:
         :return:
         """
         if not params.id:
-            if User.get_user_by_name(params.nickname):
+            if await User.get_user_by_name(params.nickname):
                 raise ValueError('用户昵称已存在！')
         else:
             user_info = await User.get(params.id, to_dict=True)

@@ -86,7 +86,12 @@
             destroy-on-close
             :with-header="true">
           <template #header>
-            <strong>报告详情</strong>
+            <span>
+              <strong class="pr10">报告详情</strong>
+               <el-tag type="danger" v-if="state.reportData?.success === 0">不通过</el-tag>
+               <el-tag type="success" v-else>通过</el-tag>
+            </span>
+
           </template>
           <z-api-report :reportData="state.reportData"/>
         </el-drawer>
@@ -209,7 +214,7 @@ const state = reactive({
       key: 'status', label: '状态', align: "center", width: 'auto', show: true,
       render: ({row}: any) => h(ElTag, {
         type: getStatusTag(row.status),
-      }, () => row.status? row.status.toUpperCase() : "-")
+      }, () => row.status ? row.status.toUpperCase() : "-")
     },
     {key: 'message', label: '错误信息', align: "center", width: 'auto', show: true},
     {

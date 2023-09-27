@@ -188,7 +188,7 @@ def run_api_request(runner: SessionRunner,
 
         # extract
         extractors = step.extracts
-        extract_mapping = resp_obj.extract(extractors, step.variables, runner.config.functions)
+        extract_mapping = resp_obj.extract(extractors, merge_variable, runner.config.functions)
         step_result.result.export_vars = extract_mapping
         merge_variable.update(extract_mapping)
 
@@ -266,6 +266,7 @@ def run_api_request(runner: SessionRunner,
             # save request & response meta data
             runner.session.data.success = session_success
             runner.session.data.validators = resp_obj.validation_results if resp_obj else {}
+            runner.session.data.extracts = resp_obj.extract_results if resp_obj else []
 
             # save step data
             step_result.session_data = runner.session.data

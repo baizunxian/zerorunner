@@ -37,13 +37,13 @@ export default function () {
 		return Number.parseFloat(value).toFixed(2);
 	};
 	// 点击复制文本
-	const copyText = (text) => {
+	const copyText = (text, msg = "") => {
 		return new Promise((resolve, reject) => {
 			try {
 				// 复制
 				toClipboard(text);
 				// 下面可以设置复制成功的提示框等操作
-				ElMessage.success('复制成功!');
+				ElMessage.success(msg || '复制成功!');
 				resolve(text);
 			} catch (e) {
 				// 复制失败

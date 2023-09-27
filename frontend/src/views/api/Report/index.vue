@@ -41,7 +41,6 @@
 <script setup name="apiReport">
 import {useReportApi} from '/@/api/useAutoApi/report';
 import {h, onMounted, reactive, ref} from 'vue';
-import {useRoute} from "vue-router";
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus'
 import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue";
 

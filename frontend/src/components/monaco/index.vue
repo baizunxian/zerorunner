@@ -8,6 +8,7 @@ import {onMounted, onUnmounted, reactive, ref, toRaw, watch} from 'vue'
 import SQLSnippets from "./core/sql.js"
 import {getJsonPath} from '/@/utils/jsonPath'
 import {ElMessage} from "element-plus";
+import commonFunction from "/@/utils/commonFunction";
 
 const props = defineProps({
   // 展示的字符串
@@ -277,13 +278,7 @@ const registerCustomEvent = (editor) => {
 
 const copyToClipboard = () => {
   if (state.jsonPath) {
-    navigator.clipboard.writeText(state.jsonPath)
-        .then(function () {
-              ElMessage.success(`复制成功！ ${state.jsonPath}`)
-            }, function () {
-              ElMessage.error("jsonpath copy failed.");
-            }
-        );
+    commonFunction().copyText(state.jsonPath, `复制成功 🎉  ${state.jsonPath}`)
   } else {
     ElMessage.warning("没有可复制的路径...");
   }
