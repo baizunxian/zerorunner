@@ -112,12 +112,12 @@ class UserService:
         :param params: 用户字段
         :return:
         """
-        if not params.id:
-            if await User.get_user_by_name(params.nickname):
-                raise ValueError('用户昵称已存在！')
+        exist_user = await User.get_user_by_nickname(params.nickname)
+        if not params.id and exist_user:
+            raise ValueError('用户昵称已存在！')
         else:
             user_info = await User.get(params.id, to_dict=True)
-            if user_info['nickname'] != params.nickname and User.get_user_by_nickname(params.nickname):
+            if user_info['nickname'] != params.nickname and await exist_user:
                 raise ValueError('用户昵称已存在！')
         result = await User.create_or_update(params.dict())
         current_user_info = await current_user()

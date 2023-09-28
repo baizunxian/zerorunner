@@ -4,6 +4,7 @@ import copy
 import time
 import traceback
 import typing
+from unittest import SkipTest
 
 import requests
 from loguru import logger
@@ -101,6 +102,7 @@ def run_api_request(runner: SessionRunner,
     extract_mapping = {}
     # 捕获异常
     try:
+        runner.handle_skip_feature(step)
         # 合并变量
         merge_variable = runner.get_merge_variable(step=step)
         # parse
@@ -245,6 +247,10 @@ def run_api_request(runner: SessionRunner,
 
     except exceptions.MyBaseError as err:
         step_result.set_step_result_status(TStepResultStatusEnum.err)
+        raise
+
+    except SkipTest as err:
+        step_result.set_step_result_status(TStepResultStatusEnum.skip)
         raise
 
     except Exception as err:

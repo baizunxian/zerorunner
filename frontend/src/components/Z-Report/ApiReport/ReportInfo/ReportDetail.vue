@@ -155,9 +155,7 @@ const state = reactive({
         link: true,
         type: "primary",
         onClick: () => {
-          if (row.status !== 'SKIP') {
-            viewDetail(row)
-          }
+          viewDetail(row)
         }
       }, () => row.name)
     },
@@ -223,9 +221,7 @@ const state = reactive({
         h(ElButton, {
           type: "primary",
           onClick: () => {
-            if (row.status !== 'SKIP') {
-              viewDetail(row)
-            }
+             viewDetail(row)
           }
         }, () => '查看'),
         h(ElButton, {
@@ -234,9 +230,7 @@ const state = reactive({
           title: "跳转到api",
           icon: Promotion,
           onClick: () => {
-            if (row.status !== 'SKIP') {
-              toApiInfo(row)
-            }
+             toApiInfo(row)
           }
         }, () => '跳转')
       ])

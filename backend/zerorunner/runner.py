@@ -8,6 +8,7 @@ import traceback
 import typing
 import uuid
 from datetime import datetime
+from unittest import SkipTest
 
 from loguru import logger
 
@@ -214,6 +215,16 @@ class SessionRunner(object):
     def clear_step_results(self):
         """清空步骤结果"""
         self.__step_results.clear()
+
+    def handle_skip_feature(self, step: TStep):
+        """ handle skip feature for testcase
+            - skip: skip current test unconditionally
+            - skipIf: skip current test if condition is true
+            - skipUnless: skip current test unless condition is true
+        """
+        skip_reason = None
+        if skip_reason:
+            raise SkipTest(skip_reason)
 
     def get_export_variables(self) -> typing.Dict:
         """获取导出的变量"""
