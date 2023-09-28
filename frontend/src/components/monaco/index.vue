@@ -97,7 +97,7 @@ const state = reactive({
     language: props.lang, // 语言类型
     tabCompletion: 'on',
     cursorSmoothCaretAnimation: true,
-    formatOnPaste: false,
+    formatOnPaste: true,
     mouseWheelZoom: function (e) {
       const editor = e.target;
       const isAtBottom = editor.getScrollTop() >= editor.getScrollHeight() - editor.getLayoutInfo().height;
