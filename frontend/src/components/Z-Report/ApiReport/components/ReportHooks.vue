@@ -95,7 +95,7 @@
 </template>
 
 <script setup name="StepInfo">
-import {getStepTypeInfo, stepTypes} from "/@/utils/case";
+import {getStepTypeInfo, stepTypes} from "/src/utils/case";
 import {nextTick, onMounted, reactive, watch} from 'vue';
 
 const props = defineProps({

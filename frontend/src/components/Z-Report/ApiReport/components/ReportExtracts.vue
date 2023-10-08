@@ -36,7 +36,7 @@
 
 <script setup name="ReportExtracts">
 import {computed} from 'vue';
-import JsonViews from "/@/components/Z-JsonViews/index.vue";
+import JsonViews from "/src/components/Z-JsonViews/index.vue";
 
 const props = defineProps({
   data: {

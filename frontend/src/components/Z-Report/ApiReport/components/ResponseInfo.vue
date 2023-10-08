@@ -78,7 +78,7 @@
 
 <script setup name="ResponseInfo">
 import {nextTick, onMounted, reactive, watch} from 'vue';
-import {formatSizeUnits} from "/@/utils/case"
+import {formatSizeUnits} from "/src/utils/case"
 
 const props = defineProps({
   data: {

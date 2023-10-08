@@ -95,13 +95,13 @@
 <script setup name="ApiReport">
 import {computed, onMounted, reactive, ref, watch} from 'vue';
 import {CircleCheck, CircleClose} from "@element-plus/icons";
-import ResponseInfo from "./ResponseInfo.vue";
-import RequestInfo from "./RequestInfo.vue";
-import ReportValidators from "./ReportValidators.vue";
-import ReportExtracts from "./ReportExtracts.vue";
-import ReportLog from "./ReportLog.vue";
-import ReportVariables from "./ReportVariables.vue";
-import ReportHooks from './ReportHooks.vue'
+import ResponseInfo from "./components/ResponseInfo.vue";
+import RequestInfo from "./components/RequestInfo.vue";
+import ReportValidators from "./components/ReportValidators.vue";
+import ReportExtracts from "./components/ReportExtracts.vue";
+import ReportLog from "./components/ReportLog.vue";
+import ReportVariables from "./components/ReportVariables.vue";
+import ReportHooks from './components/ReportHooks.vue'
 
 
 const props = defineProps({

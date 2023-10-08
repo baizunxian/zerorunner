@@ -17,7 +17,7 @@
 
 <script setup name="ReportVariables">
 import {nextTick, onMounted, reactive, watch} from 'vue';
-import JsonViews from "/@/components/Z-JsonViews/index.vue";
+import JsonViews from "/src/components/Z-JsonViews/index.vue";
 
 const props = defineProps({
   data: {

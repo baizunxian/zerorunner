@@ -37,16 +37,14 @@ class UserService:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         token = str(uuid.uuid4())
         login_time = default_serialize(datetime.now())
-        tags = user_info.get("tags", None)
-        roles = user_info.get("roles", None)
         token_user_info = {
             "id": user_info["id"],
             "token": token,
             "login_time": login_time,
             "username": user_info["username"],
             "nickname": user_info["nickname"],
-            "roles": roles if roles else [],
-            "tags": tags if tags else []
+            "roles":user_info.get("roles", []),
+            "tags": user_info.get("tags", [])
         }
         await g.redis.set(TEST_USER_INFO.format(token), token_user_info, CACHE_DAY)
         logger.info('用户 [{}] 登录了系统'.format(user_info["username"]))
@@ -99,10 +97,8 @@ class UserService:
         """
         data = await User.get_list(params)
         for row in data.get("rows"):
-            roles = row.get("roles", None)
-            tags = row.get("roles", None)
-            row["roles"] = roles if roles else []
-            row["tags"] = tags if tags else []
+            row["roles"] = row.get("roles", [])
+            row["tags"] = row.get("tags", [])
         return data
 
     @staticmethod

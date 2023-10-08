@@ -113,12 +113,12 @@
 
           <div class="echarts-item__info">
             <strong>执行时间：</strong>
-            <span class="">{{ start_time }}</span>
+            <span class="">{{ data.start_time }}</span>
           </div>
 
           <div class="echarts-item__info">
             <strong>执行人：</strong>
-            <span class="">{{ exec_user_name }}</span>
+            <span class="">{{ data.exec_user_name }}</span>
           </div>
         </div>
 
