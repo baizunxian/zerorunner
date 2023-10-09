@@ -30,9 +30,14 @@
 
          <el-tab-pane name="extracts">
           <template #label>
-            <strong>参数提取</strong>
+            <strong>参数提取
+              <el-icon v-show="getExtractResultStatus !==null">
+                <CircleCheck v-if="getExtractResultStatus" style="color: #0cbb52"></CircleCheck>
+                <CircleClose v-else style="color: red"></CircleClose>
+              </el-icon>
+            </strong>
           </template>
-          <ReportExtracts :data="state.extracts"></ReportExtracts>
+          <ReportExtracts :data="state.extracts" :extractResults="state.extractResults"></ReportExtracts>
         </el-tab-pane>
 
         <el-tab-pane name="ReportValidators">
@@ -40,8 +45,8 @@
             <strong>
               结果断言
               <el-icon v-show="getValidatorsResultStatus !== null">
-                <CircleCheck :style="{color: getValidatorsResultStatus? '#0cbb52': 'red'}">
-                </CircleCheck>
+                <CircleCheck v-if="getValidatorsResultStatus" style="color: #0cbb52"></CircleCheck>
+                <CircleClose v-else style="color: red"></CircleClose>
               </el-icon>
             </strong>
 
@@ -53,8 +58,8 @@
           <template #label>
             <strong>Hook
               <el-icon v-show="getHookResultStatus !==null">
-                <CircleCheck :style="{color: getHookResultStatus? '#0cbb52': 'red'}">
-                </CircleCheck>
+                <CircleCheck v-if="getHookResultStatus" style="color: #0cbb52"></CircleCheck>
+                <CircleClose v-else style="color: red"></CircleClose>
               </el-icon>
             </strong>
 
@@ -77,7 +82,7 @@
         <template #label>
           <strong>错误信息</strong>
           <el-icon v-if="state.message !== ''">
-            <CircleCheck style="color: red"></CircleCheck>
+            <CircleClose style="color: red"></CircleClose>
           </el-icon>
         </template>
         <ReportLog :data="state.message"></ReportLog>
@@ -89,14 +94,14 @@
 
 <script setup name="ApiReport">
 import {computed, onMounted, reactive, ref, watch} from 'vue';
-import {CircleCheck} from "@element-plus/icons";
-import ResponseInfo from "./ResponseInfo.vue";
-import RequestInfo from "./RequestInfo.vue";
-import ReportValidators from "./ReportValidators.vue";
-import ReportExtracts from "./ReportExtracts.vue";
-import ReportLog from "./ReportLog.vue";
-import ReportVariables from "./ReportVariables.vue";
-import ReportHooks from './ReportHooks.vue'
+import {CircleCheck, CircleClose} from "@element-plus/icons";
+import ResponseInfo from "./components/ResponseInfo.vue";
+import RequestInfo from "./components/RequestInfo.vue";
+import ReportValidators from "./components/ReportValidators.vue";
+import ReportExtracts from "./components/ReportExtracts.vue";
+import ReportLog from "./components/ReportLog.vue";
+import ReportVariables from "./components/ReportVariables.vue";
+import ReportHooks from './components/ReportHooks.vue'
 
 
 const props = defineProps({
@@ -126,6 +131,7 @@ const state = reactive({
   validatorsResult: "",
   // 参数提取
   extracts: {},
+  extractResults: [],
   // 错误信息
   message: "",
   // 变量
@@ -160,6 +166,7 @@ const initData = () => {
     state.requestInfo = step_result.session_data.req_resp.request
     state.validators = step_result.session_data.validators
     state.extracts = step_result.export_vars
+    state.extractResults = step_result.session_data.extracts
     state.setup_hook_results = step_result.setup_hook_results
     state.teardown_hook_results = step_result.teardown_hook_results
 
@@ -175,7 +182,7 @@ const initData = () => {
 }
 
 const getStat = () => {
-  return {status_code: state.responseInfo.status_code, ...state.stat}
+  return {status_code: state.responseInfo?.status_code, ...state.stat}
 }
 
 // 获取校验结果状态
@@ -200,6 +207,16 @@ const getHookResultStatus = computed(() => {
   let newHooks = state.setup_hook_results.concat(state.teardown_hook_results)
   let failList = newHooks.filter((e) => {
     return !e.success
+  })
+  return failList.length === 0
+})
+// 获取hook执行结果状态状态
+const getExtractResultStatus = computed(() => {
+  if (!state.extractResults || state.extractResults.length === 0) {
+    return null
+  }
+  let failList = state.extractResults.filter((e) => {
+    return e.extract_result !== 'pass'
   })
   return failList.length === 0
 })
@@ -228,4 +245,5 @@ defineExpose({
 .report-container {
   padding: 10px;
 }
+
 </style>

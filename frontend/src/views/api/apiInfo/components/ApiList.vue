@@ -97,8 +97,24 @@
     </el-dialog>
 
     <!--    测试报告-->
-    <ReportDetail :report-info="state.reportInfo" ref="reportDetailRef"/>
+    <el-dialog
+        draggable
+        v-if="state.showReportDialog"
+        v-model="state.showReportDialog"
+        width="90%"
+        top="5vh"
+        destroy-on-close
+        :close-on-click-modal="false">
+      <template #header>
+        <strong>报告详情</strong>
+        <!--      <el-button class="ml5" style="font-size: 12px" type="primary" link @click="state.showLog=!state.showLog">-->
+        <!--        执行日志-->
+        <!--      </el-button>-->
+      </template>
 
+      <ReportDetail :report-id="state.reportInfo.id" ref="reportDetailRef"/>
+
+    </el-dialog>
     <!--    postman 导入 import-->
     <el-dialog
         draggable
@@ -280,6 +296,7 @@ const state = reactive({
     api_run_mode: "one",  // one, batch
   },
   // report
+  showReportDialog: false,
   reportInfo: {},
 
   //project
@@ -395,7 +412,9 @@ const runApi = () => {
         if (state.runForm.run_mode === 10 && state.runForm.api_run_mode === 'one') {
           ElMessage.success('运行成功');
           state.reportInfo = res.data
-          reportDetailRef.value.showReport()
+          console.log(state.reportInfo, 'state.reportInfo')
+          state.showReportDialog = !state.showReportDialog;
+          // reportDetailRef.value.showReport()
           state.showRunPage = !state.showRunPage;
         } else {
           ElMessage.success("执行成功~");

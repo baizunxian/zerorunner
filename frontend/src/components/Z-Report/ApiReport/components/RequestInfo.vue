@@ -1,8 +1,8 @@
 <template>
   <div class="request">
     <div class="request-info">
-      <el-tag effect="dark" type="success">{{ state.request.method }}</el-tag>
-      {{ state.request.url }}
+      <el-tag effect="dark" type="success">{{ request.method }}</el-tag>
+      {{ request.url }}
     </div>
 
     <el-collapse v-model="state.accordionName">
@@ -10,17 +10,24 @@
         <template #title>
           <strong>Body</strong>
         </template>
-        <JsonViews v-if="getBodyType() === 'object' && state.request.body !== null"
-                   v-model:data="state.request.body">
+        <JsonViews v-if="contentType.includes('json') && getBodyType() === 'object'"
+                   v-model:data="request.body">
         </JsonViews>
-        <pre v-else>{{ state.request.body }}</pre>
+        <div v-else-if="contentType.includes('multipart/form-data') && getBodyType() === 'object'">
+          <div v-for="(value, key) in request.body" :key="key">
+            <span style="font-size: 12px">
+              <strong>{{ key }}: </strong><span>{{ value }}</span>
+              </span>
+          </div>
+        </div>
+        <pre v-else>{{ request.body }}</pre>
       </el-collapse-item>
 
       <el-collapse-item name="header">
         <template #title>
           <strong>Header</strong>
         </template>
-        <div v-for="(value, key) in state.request.headers" :key="key">
+        <div v-for="(value, key) in request.headers" :key="key">
         <span style="font-size: 12px">
           <span style="font-weight: 600">{{ key }}: </span><span>{{ value }}</span>
           </span>
@@ -32,8 +39,8 @@
 </template>
 
 <script setup name="RequestInfo">
-import {nextTick, onMounted, reactive, watch} from 'vue';
-import JsonViews from "/@/components/Z-JsonViews/index.vue"
+import {computed, reactive} from 'vue';
+import JsonViews from "/src/components/Z-JsonViews/index.vue"
 
 const props = defineProps({
   data: {
@@ -42,30 +49,26 @@ const props = defineProps({
   }
 })
 
+const request = computed(() => {
+  return props.data
+})
+
 const state = reactive({
   // 请求信息
   accordionName: ['body', 'header'],
   request: props.data
 });
 
-watch(
-    () => props.data,
-    () => {
-      state.request = props.data
-    },
-    {deep: true}
-)
+const contentType = computed(() => {
+  return props.data.headers['Content-Type'] || props.data.headers['content-type'] || ""
+})
+
 
 const getBodyType = () => {
   let body = props.data?.body
   return typeof body
 }
 
-onMounted(() => {
-  nextTick(() => {
-    state.request = props.data
-  })
-})
 
 </script>
 

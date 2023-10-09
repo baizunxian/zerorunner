@@ -42,7 +42,7 @@ class TStepResult:
         if status == TStepResultStatusEnum.skip:
             self.result.success = True
             self.result.status = TStepResultStatusEnum.skip.value
-            self.result.message = msg if msg else "跳过"
+            # self.result.message = msg if msg else "跳过"
             self.skip_log(msg)
 
         if status == TStepResultStatusEnum.err:

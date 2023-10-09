@@ -36,21 +36,23 @@ export function getStepTypeInfo(stepType, type) {
 export const baseModeType = [
 	{key: "jmespath", value: "jmespath"},
 	{key: "JsonPath", value: "JsonPath"},
+	{key: "变量&函数", value: "variable_or_func"},
 ]
 
 export function getModeTypeObj(modeType) {
-	if (modeType === 'extract') {
-		//  提取的
-		return baseModeType
-	}
-	if (modeType === 'validator') {
-		//  断言
-		let validModeTypes = [
-			{key: "变量&函数", value: "variable_or_func"},
-		]
-		return [...baseModeType, ...validModeTypes]
-	}
-	return []
+	return baseModeType
+	// if (modeType === 'extract') {
+	// 	//  提取的
+	// 	return baseModeType
+	// }
+	// if (modeType === 'validator') {
+	// 	//  断言
+	// 	let validModeTypes = [
+	// 		{key: "变量&函数", value: "variable_or_func"},
+	// 	]
+	// 	return [...baseModeType, ...validModeTypes]
+	// }
+	// return []
 }
 
 export function getComparators(useType) {

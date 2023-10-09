@@ -106,3 +106,12 @@ class CheckModeEnum(str, Enum):
     variable_or_func = "variable_or_func"
     RequestHeaders = "request_headers"
     ResponseHeaders = "response_headers"
+
+
+class ExtractTypeEnum(str, Enum):
+    """提取类型枚举"""
+    JsonPath = "JsonPath"
+    jmespath = "jmespath"
+    variable_or_func = "variable_or_func"
+    RequestHeaders = "request_headers"
+    ResponseHeaders = "response_headers"

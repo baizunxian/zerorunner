@@ -12,8 +12,8 @@ from loguru import logger
 from requests import Response
 
 from zerorunner import exceptions
-from zerorunner.exceptions import ValidationFailure, ParamsError
-from zerorunner.model.base import CheckModeEnum
+from zerorunner.exceptions import ValidationFailure, ParamsError, ExtractFailure
+from zerorunner.model.base import CheckModeEnum, ExtractTypeEnum
 from zerorunner.models import VariablesMapping, Validators, FunctionsMapping, ExtractData
 from zerorunner.parser import parse_data, parse_string_value, Parser
 
@@ -143,6 +143,7 @@ class ResponseObjectBase(object):
         self.resp_obj = resp_obj
         self.parser = parser
         self.validation_results: typing.Dict = {}
+        self.extract_results: typing.List = []
 
     def __getattr__(self, key):
         if key in ["json", "content", "body"]:
@@ -172,19 +173,53 @@ class ResponseObjectBase(object):
             return {}
 
         extract_mapping = {}
+        extract_pass = True
+        failures = []
         for extractor in extractors:
-            if '$' in extractor.path:
-                # field contains variable or function
-                extractor.path = parse_data(
-                    extractor.path, variables_mapping, functions_mapping
+            extract_msg = f"extract {extractor.name} {extractor.extract_type} {extractor.path}"
+            extractor_dict = extractor.dict()
+            try:
+                if '$' in extractor.path:
+                    # field contains variable or function
+                    extractor.path = parse_data(
+                        extractor.path, variables_mapping, functions_mapping
+                    )
+                if extractor.extract_type.lower() == ExtractTypeEnum.jmespath.value.lower():
+                    field_value = self._search_jmespath(extractor.path)
+                elif extractor.extract_type.lower() == ExtractTypeEnum.JsonPath.value.lower():
+                    field_value = self._search_jsonpath(extractor)
+                elif extractor.extract_type.lower() == ExtractTypeEnum.variable_or_func.value.lower():
+                    field_value = parse_data(extractor.path, variables_mapping, functions_mapping)
+                else:
+                    raise ValueError(f"提取类型{extractor.extract_type}错误！")
+                extract_mapping[extractor.name] = field_value
+                extractor_dict["extract_result"] = "pass"
+                extractor_dict["extract_value"] = field_value
+
+            except Exception as ex:
+                extract_pass = False
+                extractor_dict["extract_result"] = "fail"
+                extractor_dict["message"] = str(ex)
+                extract_msg += "\t==> fail"
+                extract_msg += (
+                    f"\n"
+                    f"name: {extractor.name}\n"
+                    f"extract_type: {extractor.extract_type}\n"
+                    f"continue_extract: {extractor.continue_extract}\n"
+                    f"continue_index: {extractor.continue_index}\n"
                 )
-            if extractor.extract_type == "jmespath":
-                field_value = self._search_jmespath(extractor.path)
-            elif extractor.extract_type == "JsonPath":
-                field_value = self._search_jsonpath(extractor)
-            else:
-                raise ValueError(f"提取类型{extractor.extract_type}错误！")
-            extract_mapping[extractor.name] = field_value
+                message = str(ex)
+                if message:
+                    extract_msg += f"\nmessage: {message}"
+
+                logger.error(extract_msg)
+                failures.append(extract_msg)
+                logger.error(f"提取表达式: {extractor.path} 提取类型: {extractor.extract_type} 提取失败！")
+                logger.error(ex)
+            self.extract_results.append(extractor_dict)
+        if not extract_pass:
+            failures_string = "\n".join([failure for failure in failures])
+            raise ExtractFailure(failures_string)
 
         logger.info(f"extract mapping: {extract_mapping}")
         return extract_mapping

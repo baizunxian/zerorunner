@@ -1,122 +1,95 @@
 <template>
-  <el-dialog
-      draggable
-      v-if="state.showReportDialog"
-      v-model="state.showReportDialog"
-      width="90%"
-      top="5vh"
-      destroy-on-close
-      :close-on-click-modal="false">
-    <template #header>
-      <strong>报告详情</strong>
-      <!--      <el-button class="ml5" style="font-size: 12px" type="primary" link @click="state.showLog=!state.showLog">-->
-      <!--        执行日志-->
-      <!--      </el-button>-->
-    </template>
+  <div class="app-container">
+    <el-card style="margin-bottom: 10px">
+      <ReportStatistics :data="state.statisticsData">
+      </ReportStatistics>
+    </el-card>
+    <el-card>
+      <!--        search      -->
+      <div v-show="!isDebug">
+        <el-input
+            clearable
+            v-model="state.listQuery.name"
+            placeholder="用例名称"
+            style="width: 200px;"
+            class="ml10"
+            @keyup.enter.native="searchDetail"/>
+        <el-input
+            clearable
+            v-model="state.listQuery.api_name"
+            placeholder="接口名称" style="width: 150px;"
+            class="ml10"
+            @keyup.enter.native="searchDetail"/>
+        <el-input
+            clearable
+            v-model="state.listQuery.url"
+            placeholder="url查询" style="width: 150px;"
+            class="ml10"
+            @keyup.enter.native="searchDetail"/>
 
-    <div class="">
-      <el-card style="margin-bottom: 10px">
-        <ReportStatistics :data="state.statisticsData"
-                          :exec_user_name="state.exec_user_name"
-                          :start_time="state.start_time">
-        </ReportStatistics>
-      </el-card>
-      <el-card>
-        <!--        search      -->
-        <div v-show="!isDebug">
-          <el-input
-              clearable
-              v-model="state.listQuery.name"
-              placeholder="用例名称"
-              style="width: 200px;"
-              class="ml10"
-              @keyup.enter.native="searchDetail"/>
-          <el-input
-              clearable
-              v-model="state.listQuery.api_name"
-              placeholder="接口名称" style="width: 150px;"
-              class="ml10"
-              @keyup.enter.native="searchDetail"/>
-          <el-input
-              clearable
-              v-model="state.listQuery.url"
-              placeholder="url查询" style="width: 150px;"
-              class="ml10"
-              @keyup.enter.native="searchDetail"/>
-
-          <el-button class="ml10" type="primary" @click="searchDetail">
-            查询
-          </el-button>
+        <el-button class="ml10" type="primary" @click="searchDetail">
+          查询
+        </el-button>
 
 
-        </div>
-
-        <!--       tool      -->
-        <div class="mb8 mt8">
-          <el-checkbox class="ml10" v-model="state.viewErrOrFailApiStatus" @change="viewErrOrFailApi">
-            只看错误/失败接口
-          </el-checkbox>
-        </div>
-
-        <!--        search      -->
-        <div>
-          <z-table
-              :columns="state.columns"
-              :data="state.listData"
-              row-key="id"
-              :lazy="true"
-              :showPlaceholder="true"
-              :loading="state.tableLoading"
-              :load="getChildrenData"
-              v-model:page-size="state.listQuery.pageSize"
-              v-model:page="state.listQuery.page"
-              :total="state.total"
-              :tree-props="{ children: 'children', hasChildren: 'has_step_data' }"
-              @pagination-change="getList"
-          ></z-table>
-        </div>
-      </el-card>
-
-      <div>
-        <el-drawer
-            v-model="state.showDetailInfo"
-            size="70%"
-            append-to-body
-            direction="ltr"
-            destroy-on-close
-            :with-header="true">
-          <template #header>
-            <strong>报告详情</strong>
-          </template>
-          <z-api-report :reportData="state.reportData"/>
-        </el-drawer>
       </div>
 
-    </div>
-  </el-dialog>
+      <!--       tool      -->
+      <div class="mb8 mt8">
+        <el-checkbox class="ml10" v-show="!props.isDebug" v-model="state.viewErrOrFailApiStatus" @change="viewErrOrFailApi">
+          只看错误/失败接口
+        </el-checkbox>
+      </div>
 
-  <!--  <el-dialog-->
-  <!--      draggable-->
-  <!--      v-if="state.showReportDialog"-->
-  <!--      v-model="state.showLog"-->
-  <!--      width="80%"-->
-  <!--      top="8vh"-->
-  <!--      destroy-on-close-->
-  <!--      :close-on-click-modal="false">-->
-  <!--    <template #header>-->
-  <!--      <span>日志</span>-->
-  <!--    </template>-->
-  <!--    <pre>{{ reportInfo.run_log }}</pre>-->
-  <!--  </el-dialog>-->
+      <!--        search      -->
+      <div>
+        <z-table
+            :columns="state.columns"
+            :data="state.listData"
+            row-key="id"
+            :lazy="true"
+            :showPlaceholder="true"
+            :loading="state.tableLoading"
+            :load="getChildrenData"
+            v-model:page-size="state.listQuery.pageSize"
+            v-model:page="state.listQuery.page"
+            :total="state.total"
+            :tree-props="{ children: 'children', hasChildren: 'has_step_data' }"
+            @pagination-change="getList"
+        ></z-table>
+      </div>
+    </el-card>
+
+    <div>
+      <el-drawer
+          v-model="state.showDetailInfo"
+          size="70%"
+          append-to-body
+          direction="ltr"
+          destroy-on-close
+          :with-header="true">
+        <template #header>
+            <span>
+              <strong class="pr10">报告详情</strong>
+               <el-tag type="danger" v-if="state.reportData?.success === 0">不通过</el-tag>
+               <el-tag type="success" v-else>通过</el-tag>
+            </span>
+
+        </template>
+        <z-api-report :reportData="state.reportData"/>
+      </el-drawer>
+    </div>
+
+  </div>
 </template>
 
-<script lang="ts" setup name="ReportDetail">
-import {h, reactive, nextTick} from "vue";
+<script setup name="ReportDetail">
+import {h, reactive, nextTick, watch, onMounted} from "vue";
 import {ElButton, ElTag} from "element-plus";
-import {useRouter} from "vue-router"
+import {useRouter, useRoute} from "vue-router"
 import {useReportApi} from "/@/api/useAutoApi/report";
 import {getMethodColor, getStatusTag} from "/@/utils/case"
-import ReportStatistics from "./ReportStatistics.vue"
+import ReportStatistics from "../components/ReportStatistics.vue"
 import {Promotion} from "@element-plus/icons"
 import {useUserInfo} from '/@/stores/userInfo';
 import {storeToRefs} from "pinia";
@@ -125,6 +98,12 @@ const stores = useUserInfo();
 const {userInfos} = storeToRefs(stores);
 
 const props = defineProps({
+  reportId: {
+    type: Number || String,
+    default: () => {
+      return null
+    }
+  },
   reportInfo: {
     type: Object,
     default: () => {
@@ -134,31 +113,30 @@ const props = defineProps({
   isDebug: {
     type: Boolean,
     default: () => {
-      return false
+      return null
     }
   },
 })
 
 const router = useRouter()
+const route = useRoute()
 
 const state = reactive({
   columns: [
     {label: 'N', columnType: 'index', align: 'center', width: 'auto', showTooltip: false},
     {
       key: 'name', label: '名称', align: 'center', width: 'auto', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
-          if (row.status !== 'SKIP') {
-            viewDetail(row)
-          }
+          viewDetail(row)
         }
       }, () => row.name)
     },
     {
       key: 'method', label: '请求方法', align: 'center', width: '', show: true,
-      render: ({row}: any) => row.method ? h(ElTag, {
+      render: ({row}) => row.method ? h(ElTag, {
         type: "",
         style: {"background": getMethodColor(row.method), color: "#ffffff",}
       }, () => row.method) : "-"
@@ -170,7 +148,7 @@ const state = reactive({
     },
     {
       key: 'step_tag', label: '步骤标签', align: 'center', width: '', show: true,
-      render: ({row}: any) => row.step_tag ? h(ElTag, {
+      render: ({row}) => row.step_tag ? h(ElTag, {
         type: getStatusTag(row.status),
       }, () => row.step_tag) : "-"
     },
@@ -184,7 +162,7 @@ const state = reactive({
     },
     {
       key: 'status_code', label: 'HttpCode', width: '', align: 'center', show: true,
-      render: ({row}: any) => row.status_code ? h(ElTag, {
+      render: ({row}) => row.status_code ? h(ElTag, {
         type: row.status_code == 200 ? "success" : "warning",
       }, () => row.status_code == 200 ? "200 OK" : row.status_code) : "-"
     },
@@ -207,20 +185,18 @@ const state = reactive({
     // {key: 'run_count', label: '运行数', align: 'center', width: '', show: true},
     {
       key: 'status', label: '状态', align: "center", width: 'auto', show: true,
-      render: ({row}: any) => h(ElTag, {
+      render: ({row}) => h(ElTag, {
         type: getStatusTag(row.status),
-      }, () => row.status? row.status.toUpperCase() : "-")
+      }, () => row.status ? row.status.toUpperCase() : "-")
     },
     {key: 'message', label: '错误信息', align: "center", width: 'auto', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '150',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
-            if (row.status !== 'SKIP') {
-              viewDetail(row)
-            }
+            viewDetail(row)
           }
         }, () => '查看'),
         h(ElButton, {
@@ -229,9 +205,7 @@ const state = reactive({
           title: "跳转到api",
           icon: Promotion,
           onClick: () => {
-            if (row.status !== 'SKIP') {
-              toApiInfo(row)
-            }
+            toApiInfo(row)
           }
         }, () => '跳转')
       ])
@@ -274,25 +248,24 @@ const state = reactive({
 })
 
 const initReport = () => {
+  const isDebug = props.isDebug || route.query.isDebug
+  const report_id = props.reportId || route.query.id
+  console.log("initReport-report_id", report_id)
   state.start_time = props.reportInfo.start_time
   state.exec_user_name = userInfos.value.nickname
-  if (props.isDebug) {
+  if (isDebug) {
     state.listData = props.reportInfo.step_results
     state.statisticsData = getStatisticsDataByDebug(props.reportInfo.step_results)
   } else {
-    state.report_id = props.reportInfo.id
-    state.start_time = props.reportInfo.start_time
-    state.exec_user_name = props.reportInfo.exec_user_name
-    state.listQuery.id = state.report_id
-    state.statQuery.id = state.report_id
-    if (state.report_id) {
+    state.report_id = state.listQuery.id = state.statQuery.id = report_id
+    if (report_id) {
       getList()
       getStatistics()
     }
   }
 }
 
-const getStatisticsDataByDebug = (step_results: Array<StepResult>) => {
+const getStatisticsDataByDebug = (step_results) => {
   let reportInfo = props.reportInfo
   let statisticsData = {
     actual_run_count: reportInfo.actual_run_count,
@@ -309,10 +282,10 @@ const getStatisticsDataByDebug = (step_results: Array<StepResult>) => {
     case_pass_rate: 0,
     step_pass_rate: 0
   }
-  let elapsed_ms: number = 0
+  let elapsed_ms = 0
   statisticsData.step_pass_rate = Math.round((statisticsData.count_step_success / statisticsData.actual_run_count) * 100)
 
-  step_results.forEach((e: any) => {
+  step_results.forEach((e) => {
     if (e.step_type == 'api') {
       e.url = e.session_data.req_resp.request.url
       e.method = e.session_data.req_resp.request.method
@@ -338,7 +311,7 @@ const getStatisticsDataByDebug = (step_results: Array<StepResult>) => {
 // 获取报告列表
 const getList = () => {
   state.tableLoading = true
-  useReportApi().getReportDetail(state.listQuery).then((res: any) => {
+  useReportApi().getReportDetail(state.listQuery).then((res) => {
     state.listData = res.data.rows
     state.total = res.data.rowTotal
     state.tableLoading = false
@@ -354,7 +327,7 @@ const searchDetail = () => {
 }
 
 // 查看错误或者失败的api
-const viewErrOrFailApi = (value: any) => {
+const viewErrOrFailApi = (value) => {
   state.listQuery.step_type = ""
   state.listQuery.status_list = []
   if (value) {
@@ -366,19 +339,19 @@ const viewErrOrFailApi = (value: any) => {
 
 // 获取统计数据
 const getStatistics = () => {
-  useReportApi().getReportStatistics(state.statQuery).then((res: any) => {
+  useReportApi().getReportStatistics(state.statQuery).then((res) => {
     state.statisticsData = res.data
   })
 }
 
 // 查看详情
-const viewDetail = (row: any) => {
+const viewDetail = (row) => {
   state.reportData = row
   state.showDetailInfo = true
 }
 
 // 获取子步骤数据
-const getChildrenData = async (row: any, treeNode: any, resolve: any) => {
+const getChildrenData = async (row, treeNode, resolve) => {
   state.listQuery.id = row.id
   state.listQuery.parent_step_id = row.step_id
   let res = await useReportApi().getReportDetail(state.listQuery)
@@ -392,22 +365,40 @@ const showReport = () => {
   })
 }
 
-const toApiInfo = (row: any) => {
+const toApiInfo = (row) => {
   router.push({name: "EditApiInfo", query: {editType: "update", id: row.case_id}})
 }
 
-// watch(
-//     () => props.reportInfo,
-//     (val) => {
-//       if (val) {
-//         initReport()
-//       }
-//     },
-//     {
-//       deep: true,
-//       // immediate: true,
-//     }
-// );
+watch(
+    () => props.reportInfo,
+    (val) => {
+      if (val) {
+        initReport()
+      }
+    },
+    {
+      deep: true,
+      // immediate: true,
+    }
+);
+
+watch(
+    () => props.report_id,
+    (val) => {
+      console.log("report_id", val)
+      if (val) {
+        initReport()
+      }
+    },
+    {
+      deep: true,
+      // immediate: true,
+    }
+);
+
+onMounted(() => {
+  initReport()
+})
 
 defineExpose({
   showReport,

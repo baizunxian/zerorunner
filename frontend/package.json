@@ -1,75 +1,71 @@
 {
-	"name": "zerorunner",
-	"version": "2.1.2",
-	"description": "一个自动化测试平台",
-	"author": "xiaobai",
-	"license": "MIT",
-	"scripts": {
-		"dev": "vite --force",
-		"build": "vite build",
-		"lint-fix": "eslint --fix --ext .js --ext .jsx --ext .vue src/"
-	},
-	"dependencies": {
-		"@element-plus/icons-vue": "^2.0.10",
-		"axios": "^1.2.1",
-		"echarts": "^5.4.1",
-		"element-plus": "^2.2.26",
-		"js-cookie": "^3.0.1",
-		"mitt": "^3.0.0",
-		"nprogress": "^0.2.0",
-		"pinia": "^2.0.28",
-		"qrcodejs2-fixes": "^0.0.2",
-		"qs": "^6.11.0",
-		"screenfull": "^6.0.2",
-		"sortablejs": "^1.15.0",
-		"vue": "^3.2.45",
-		"vue-clipboard3": "^2.0.0",
-		"vue-router": "^4.1.6",
-		"vuedraggable": "^4.1.0"
-	},
-	"devDependencies": {
-		"@element-plus/icons": "^0.0.11",
-		"@vitejs/plugin-vue": "^4.0.0",
-		"@vue/compiler-sfc": "^3.2.45",
-		"cropperjs": "^1.5.13",
-		"eslint": "8.22.0",
-		"eslint-plugin-vue": "^9.8.0",
-		"monaco-editor": "^0.34.1",
-		"prettier": "^2.8.1",
-		"sass": "^1.56.2",
-		"splitpanes": "^3.1.5",
-		"typescript": "^4.9.4",
-		"vite": "^4.0.4",
-		"vite-plugin-monaco-editor": "1.0.5",
-		"vite-plugin-vue-setup-extend": "^0.4.0",
-		"vue-eslint-parser": "^9.1.0",
-		"xterm": "^5.1.0",
-		"xterm-addon-fit": "^0.7.0"
-	},
-	"browserslist": [
-		"> 1%",
-		"last 2 versions",
-		"not dead"
-	],
-	"bugs": {
-		"url": "https://github.com/baizunxian/zerorunner/issues"
-	},
-	"engines": {
-		"node": ">=16.0.0",
-		"npm": ">= 7.0.0"
-	},
-	"keywords": [
-		"vue",
-		"vue3",
-		"vuejs/vue-next",
-		"vuejs/vue-next-template",
-		"element-ui",
-		"element-plus",
-		"vue-next-admin",
-		"next-admin"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/baizunxian/zerorunner.git"
-	}
+  "name": "zerorunner",
+  "version": "2.1.2",
+  "description": "一个自动化测试平台",
+  "author": "xiaobai",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --force",
+    "build": "vite build",
+    "lint-fix": "eslint --fix --ext .js --ext .jsx --ext .vue src/"
+  },
+  "dependencies": {
+    "@element-plus/icons": "^0.0.11",
+    "@element-plus/icons-vue": "^2.0.10",
+    "axios": "^1.2.1",
+    "cropperjs": "^1.5.13",
+    "echarts": "^5.4.1",
+    "element-plus": "^2.2.26",
+    "js-cookie": "^3.0.1",
+    "mitt": "^3.0.0",
+    "monaco-editor": "^0.34.1",
+    "nprogress": "^0.2.0",
+    "pinia": "^2.0.28",
+    "qrcodejs2-fixes": "^0.0.2",
+    "qs": "^6.11.0",
+    "relation-graph": "^2.0.41",
+    "screenfull": "^6.0.2",
+    "sortablejs": "^1.15.0",
+    "splitpanes": "^3.1.5",
+    "vue": "^3.2.45",
+    "vue-clipboard3": "^2.0.0",
+    "vue-router": "^4.1.6",
+    "vuedraggable": "^4.1.0",
+    "xterm": "^5.1.0",
+    "xterm-addon-fit": "^0.7.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.0.0",
+    "@vue/compiler-sfc": "^3.2.45",
+    "eslint": "8.22.0",
+    "eslint-plugin-vue": "^9.8.0",
+    "prettier": "^2.8.1",
+    "sass": "^1.56.2",
+    "vite": "^4.0.4",
+    "vite-plugin-monaco-editor": "1.0.5",
+    "vite-plugin-vue-setup-extend": "^0.4.0",
+    "vue-eslint-parser": "^9.1.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
+  "bugs": {
+    "url": "https://github.com/baizunxian/zerorunner/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">= 7.0.0"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "element-ui",
+    "element-plus"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/baizunxian/zerorunner.git"
+  }
 }

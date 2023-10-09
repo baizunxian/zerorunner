@@ -33,7 +33,7 @@ import {useRolesApi} from "/@/api/useSystemApi/roles";
 const SaveOrUpdateUserRef = ref()
 const tableRef = ref()
 
-const state = reactive < StateRow > ({
+const state = reactive({
   columns: [
     {
       key: 'username', label: '账户名称', width: '', align: 'center', show: true,
