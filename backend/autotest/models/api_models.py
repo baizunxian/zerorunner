@@ -175,14 +175,14 @@ class ApiInfo(Base):
     __tablename__ = 'api_info'
 
     name = mapped_column(String(255), nullable=False, comment="用例名称", index=True)
-    project_id = mapped_column(Integer, nullable=False, comment='所属项目')
-    module_id = mapped_column(Integer, nullable=False, comment='所属模块')
+    project_id = mapped_column(BigInteger, nullable=False, comment='所属项目')
+    module_id = mapped_column(BigInteger, nullable=False, comment='所属模块')
     status = mapped_column(Integer, comment='用例状态 10, 生效 ， 20 失效', default=10)
     code_id = mapped_column(BigInteger, comment='关联接口id')
     code = mapped_column(String(255), comment='接口code')
     priority = mapped_column(Integer, comment='优先级', default=3)
     tags = mapped_column(JSON, comment='用例标签')
-    url = mapped_column(JSON, nullable=False, comment='请求地址')
+    url = mapped_column(String(255), nullable=False, comment='请求地址')
     method = mapped_column(String(255), comment='请求方式')
     remarks = mapped_column(String(255), comment='描述')
     step_type = mapped_column(String(255), comment='描述')
@@ -513,7 +513,8 @@ class ApiCaseStep(Base):
                        ApiInfo.method.label('api_method'),
                        )
                 .outerjoin(ApiInfo, and_(ApiInfo.id == cls.api_id, ApiInfo.enabled_flag == 1))
-                .where(cls.case_id == case_id, cls.version == version,
+                .where(cls.case_id == case_id,
+                       cls.version == version,
                        cls.enabled_flag == 1).order_by(cls.index.asc()))
         return await cls.get_result(stmt)
 
@@ -894,7 +895,7 @@ class EnvFunc(Base):
 class Functions(Base):
     __tablename__ = 'functions'
 
-    name = mapped_column(Integer,  nullable=False, comment='name')
+    name = mapped_column(Integer, nullable=False, comment='name')
     remarks = mapped_column(Integer, comment='备注')
     project_id = mapped_column(Integer, comment='关联项目')
     content = mapped_column(Text, comment='自定义函数内容')
@@ -938,7 +939,7 @@ class DataSource(Base):
     __tablename__ = 'data_source'
 
     type = mapped_column(String(255), comment='数据源类型', index=True)
-    name = mapped_column(String(255),  nullable=False, comment='数据源名称', index=True)
+    name = mapped_column(String(255), nullable=False, comment='数据源名称', index=True)
     host = mapped_column(String(255), comment='ip')
     port = mapped_column(String(255), comment='端口')
     user = mapped_column(String(255), comment='用户名')

@@ -87,7 +87,6 @@ const allowDrop = (draggingNode, dropNode, type) => {
 
 // 节点拖动完成重新计算顺序
 const handleDrop = (node, event) => {
-  console.log(node, event, "node, event")
   // event.preventDefault()
   // event.stopPropagation()
   // return false
@@ -104,10 +103,10 @@ const nodeClick = (data, node) => {
 // 计算index，保持拖动后顺序
 const computeDataIndex = (data) => {
   if (data) {
-    data.forEach((data, index) => {
-      data.index = index + 1
-      if (data.sub_steps) {
-        computeDataIndex(data.sub_steps)
+    data.forEach((e, index) => {
+      e.index = index + 1
+      if (e.sub_steps) {
+        computeDataIndex(e.sub_steps)
       }
     })
   }
@@ -247,17 +246,16 @@ const deletedNode = (node) => {
   // props.data.splice(index, 1)
 }
 const copyNode = (data) => {
-  steps.value.push(JSON.parse(JSON.stringify(data)))
+  data = JSON.parse(JSON.stringify(data))
+  steps.value.push(data)
 }
 
 watch(
     () => steps.value,
     (value) => {
-      computeDataIndex(value)
+      computeDataIndex(steps.value)
     },
-    {
-      deep: true
-    }
+    {deep: true}
 )
 
 defineExpose({
