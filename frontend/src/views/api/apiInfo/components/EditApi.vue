@@ -426,6 +426,13 @@ watch(
     },
 )
 
+watch(
+    () => route.query.editType,
+    () => {
+      initApi()
+    },
+)
+
 onMounted(() => {
   initApi()
 })

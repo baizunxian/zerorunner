@@ -201,7 +201,7 @@ class ApiInfoService:
         if not api_info:
             raise ValueError('不存在当前接口！')
         # api关联到的测试用例
-        api_case_relation_data = await ApiCase.get_relation_by_api_id(params.id)
+        api_case_relation_data = await ApiCase.get_relation_by_api_id(params.id) or []
         node_list = [dict(id=f"api_{params.id}", data=dict(id=params.id, type="api", name=api_info.get("name"),
                                                              created_by_name=api_info.get("created_by_name"),
                                                              creation_date=api_info.get("creation_date")))]

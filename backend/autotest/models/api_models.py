@@ -455,8 +455,9 @@ class ApiCase(Base):
                       ).where(*q) \
             .outerjoin(ApiCaseStep, and_(ApiCaseStep.case_id == cls.id,
                                          cls.version == ApiCaseStep.version,
-                                         ApiCaseStep.api_id == api_id)) \
+                                         )) \
             .outerjoin(User, User.id == cls.created_by) \
+            .where(*q, ApiCaseStep.api_id == api_id) \
             .group_by(cls.id) \
             .order_by(cls.id.desc())
         return await cls.get_result(stmt)
