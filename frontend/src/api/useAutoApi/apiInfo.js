@@ -72,5 +72,12 @@ export function useApiInfoApi() {
         data,
       });
     },
+    getUseApiRelation: (data) => {
+      return request({
+        url: `${BaseApiPath}/getUseApiRelation`,
+        method: 'POST',
+        data,
+      });
+    },
   };
 }

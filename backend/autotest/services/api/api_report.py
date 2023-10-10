@@ -158,6 +158,7 @@ class ReportService:
         data['exec_user_id'] = report_info.exec_user_id
         data['exec_user_name'] = report_info.exec_user_name
         data['start_time'] = report_info.start_time
+        data['success'] = report_info.success
         return data
 
     @staticmethod

@@ -54,7 +54,7 @@ const state = reactive({
     not_contains: "不包含",
     gt: "大于",
     lt: "小于",
-    none: "空",
+    is_none: "空",
     not_none: "非空",
   },
 });

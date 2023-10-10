@@ -1,5 +1,16 @@
 <template>
   <div class="app-container">
+    <div class="report-seal"
+         v-show="state.statisticsData"
+         :style="{border: `solid 4px var(${reportStatus? '--el-color-success': '--el-color-danger'})`}">
+      <div class="report-seal-son"
+           :style="{border: `solid 2px var(${reportStatus? '--el-color-success': '--el-color-danger'})`,
+           color: `var(${reportStatus? '--el-color-success': '--el-color-danger'})`
+      }">
+        <span class="report-seal-text">{{ reportStatus ? "通过" : "不通过" }}</span>
+        <!--        <span class="report-seal-time">{{state.statisticsData.start_time}}</span>-->
+      </div>
+    </div>
     <el-card style="margin-bottom: 10px">
       <ReportStatistics :data="state.statisticsData">
       </ReportStatistics>
@@ -36,7 +47,8 @@
 
       <!--       tool      -->
       <div class="mb8 mt8">
-        <el-checkbox class="ml10" v-show="!props.isDebug" v-model="state.viewErrOrFailApiStatus" @change="viewErrOrFailApi">
+        <el-checkbox class="ml10" v-show="!props.isDebug" v-model="state.viewErrOrFailApiStatus"
+                     @change="viewErrOrFailApi">
           只看错误/失败接口
         </el-checkbox>
       </div>
@@ -84,7 +96,7 @@
 </template>
 
 <script setup name="ReportDetail">
-import {h, reactive, nextTick, watch, onMounted} from "vue";
+import {h, reactive, nextTick, watch, onMounted, computed} from "vue";
 import {ElButton, ElTag} from "element-plus";
 import {useRouter, useRoute} from "vue-router"
 import {useReportApi} from "/@/api/useAutoApi/report";
@@ -369,6 +381,11 @@ const toApiInfo = (row) => {
   router.push({name: "EditApiInfo", query: {editType: "update", id: row.case_id}})
 }
 
+// 获取报告状态，通过，不通过
+const reportStatus = computed(() => {
+  return state.statisticsData?.success === 1
+})
+
 watch(
     () => props.reportInfo,
     (val) => {
@@ -408,5 +425,36 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
+
+.report-seal {
+  z-index: 1;
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  width: 80px;
+  height: 80px;
+  //border: solid 4px var(--el-color-success);
+  border-radius: 100%;
+  background-color: var(--el-tag--success-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.report-seal-son {
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  //border: solid 2px var(--el-color-success);
+  border-radius: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  position: relative;
+  text-align: center;
+  vertical-align: middle;
+  transform: rotate(45deg);
+  //color: var(--el-color-success);
+  font-size: 16px;
+  font-weight: 900;
+}
 
 </style>

@@ -411,11 +411,6 @@ class ApiCase(Base):
         return await cls.pagination(stmt)
 
     @classmethod
-    def get_case_by_id(cls, id):
-        """根据套件id查询用例"""
-        return cls.query.filter(cls.id == id, cls.enabled_flag == 1).first()
-
-    @classmethod
     async def get_case_by_ids(cls, ids: typing.List[int]):
         """根据套件ids查询用例"""
         stmt = select(cls.get_table_columns()).where(cls.id.in_(ids), cls.enabled_flag == 1)
@@ -436,6 +431,7 @@ class ApiCase(Base):
 
     @classmethod
     def statistic_project_case_number(cls):
+        """统计项目用例数量"""
         return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(User, User.id == cls.created_by) \
             .with_entities(ProjectInfo.name,
@@ -446,8 +442,24 @@ class ApiCase(Base):
             .filter(cls.enabled_flag == 1)
 
     @classmethod
-    def get_all_count(cls):
-        return cls.query.filter(cls.enabled_flag == 1).count()
+    async def get_relation_by_api_id(cls, api_id: typing.Union[str, int]):
+        """获取关联关系，那些case 使用了对应的api"""
+        q = [cls.enabled_flag == 1]
+        stmt = select(cls.id.label("case_id"),
+                      cls.name.label("case_name"),
+                      cls.creation_date,
+                      func.concat("case_", cls.id).label("relation_id"),
+                      func.concat("case").label('type'),
+                      ApiInfo.id.label("api_id"),
+                      User.nickname.label("created_by_name"),
+                      ).where(*q) \
+            .outerjoin(ApiCaseStep, and_(ApiCaseStep.case_id == cls.id,
+                                         cls.version == ApiCaseStep.version,
+                                         ApiCaseStep.api_id == api_id)) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .group_by(cls.id) \
+            .order_by(cls.id.desc())
+        return await cls.get_result(stmt)
 
 
 class ApiCaseStep(Base):

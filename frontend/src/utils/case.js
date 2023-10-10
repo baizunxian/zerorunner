@@ -24,7 +24,7 @@ export function getStepTypeInfo(stepType, type) {
 		script: {color: "#7B4D12FF", background: "#F1EEE9FF", icon: 'iconfont icon-code'},
 		wait: {color: "#67C23AFF", background: "#F2F9EEFF", icon: 'iconfont icon-time'},
 		api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-c158API'},
-		case: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-a-case-o1'},
+		case: {color: "#f4664a", background: "#f5f5faFF", icon: 'iconfont icon-a-case-o1'},
 		loop: {color: "#02A7F0FF", background: "#F4F4F5FF", icon: 'iconfont icon-loop'},
 		extract: {color: "#015478FF", background: "#E6EEF2FF", icon: ''},
 		sql: {color: "#783887FF", background: "#F2ECF3FF", icon: 'iconfont icon-suffix-sql'},
