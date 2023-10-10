@@ -32,7 +32,6 @@
             style="height: 400px"
             v-if="state.content_type?.indexOf('json') !== -1"
             ref="monacoEditRef"
-            :options="{readOnly: true}"
             v-model:value="state.body"
             lang="json"
         ></z-monaco-editor>
@@ -120,7 +119,6 @@ watch(
 )
 
 onMounted(() => {
-
   nextTick(() => {
     initData()
   })
