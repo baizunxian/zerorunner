@@ -239,7 +239,6 @@ const refreshCurrentTagsView = async (fullPath, path) => {
   let item = null;
   state.tagsViewList.forEach((v) => {
     v.transUrl = transUrlParams(v);
-    debugger
     if (v.transUrl && v.path === path) {
       if (v.transUrl === transUrlParams(v)) item = v;
     } else {
