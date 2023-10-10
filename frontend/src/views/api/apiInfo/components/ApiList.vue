@@ -389,6 +389,9 @@ const getSelectionData = () => {
 const onOpenSaveOrUpdate = (editType, row) => {
   let query = {}
   query.editType = editType
+  if (query.editType === 'save') {
+    query.timeStamp = new Date().getTime()
+  }
   if (row) query.id = row.id
   router.push({name: 'EditApiInfo', query: query})
 
