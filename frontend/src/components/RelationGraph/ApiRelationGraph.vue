@@ -157,10 +157,10 @@ const jumpTo = () => {
   switch (state.currentNode.data?.type) {
     case "api":
       router.push({name: 'EditApiInfo', query: query})
-      return
+      break
     case "case":
       router.push({name: 'EditApiCase', query: query})
-      return
+      break
     default:
       break
   }

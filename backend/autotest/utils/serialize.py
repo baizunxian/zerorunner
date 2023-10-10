@@ -55,6 +55,10 @@ def default_serialize(obj):
     try:
         if isinstance(obj, int) and len(str(obj)) > 15:
             return str(obj)
+        if isinstance(obj, dict):
+            return {key: default_serialize(value) for key, value in obj.items()}
+        if isinstance(obj, list):
+            return [default_serialize(i) for i in obj]
         if isinstance(obj, datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
         if isinstance(obj, Row):
