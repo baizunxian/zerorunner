@@ -106,7 +106,7 @@ class ApiRunBatchSchema(BaseModel):
 
 class ApiBaseSchema(BaseModel):
     key: str = Field(None, description="")
-    value: str = Field(None, description="")
+    value: typing.Any = Field(None, description="")
     remarks: str = Field(None, description="")
 
 

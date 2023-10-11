@@ -112,7 +112,7 @@ class TLoopRequest(BaseModel):
     while_comparator: str = Field(None, description="比对条件")  # 比对条件
     while_variable: typing.Any = Field(None, description="循环变量")  # 循环变量
     while_value: str = Field(None, description="循环值")  # 循环值
-    while_sleep_time: int = Field(0, description="")
+    while_sleep_time: int = Field(1, description="")
     while_timeout: int = Field(0, description="超时时间")  # 超时时间
 
     teststeps: typing.List[object] = Field([], description="步骤")

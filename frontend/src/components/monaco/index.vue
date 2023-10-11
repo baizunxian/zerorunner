@@ -4,7 +4,6 @@
 <script setup name="monacoEditor">
 import * as monaco from 'monaco-editor'
 import {onMounted, onUnmounted, reactive, ref, toRaw, watch} from 'vue'
-
 import SQLSnippets from "./core/sql.js"
 import {getJsonPath} from '/@/utils/jsonPath'
 import {ElMessage} from "element-plus";
@@ -188,13 +187,18 @@ const getValue = () => {
 }
 
 const setValue = (val) => {
-  const undoStack = getModel().undoStack;
-  toRaw(editor.value).executeEdits("replaceText", [{
-    range: getModel().getFullModelRange(),
-    text: val,
-    forceMoveMarkers: true
-  }]);
-  getModel().undoStack = undoStack;
+  const isReadOnly = toRaw(editor.value).getRawOptions().readOnly;
+  if (isReadOnly) {
+    toRaw(editor.value).setValue(val)
+  } else {
+    const undoStack = getModel().undoStack;
+    toRaw(editor.value).executeEdits("replaceText", [{
+      range: getModel().getFullModelRange(),
+      text: val,
+      forceMoveMarkers: true
+    }]);
+    getModel().undoStack = undoStack;
+  }
 }
 
 const getSelectionValue = () => {

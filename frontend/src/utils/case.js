@@ -58,7 +58,7 @@ export function getModeTypeObj(modeType) {
 export function getComparators(useType) {
 	return {
 		equals: "等于",
-		not_equals: "不等",
+		not_equal: "不等",
 		length_equals: "长度等于",
 		contains: "包含",
 		startswith: "以...开始",

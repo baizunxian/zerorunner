@@ -1,19 +1,17 @@
 <template>
   <div class="app-container">
-    <div class="report-seal"
-         v-show="state.statisticsData"
-         :style="{border: `solid 4px var(${reportStatus? '--el-color-success': '--el-color-danger'})`}">
-      <div class="report-seal-son"
-           :style="{border: `solid 2px var(${reportStatus? '--el-color-success': '--el-color-danger'})`,
+    <el-card style="margin-bottom: 10px">
+      <div class="report-seal"
+           v-show="state.statisticsData"
+           :style="{border: `solid 4px var(${reportStatus? '--el-color-success': '--el-color-danger'})`}">
+        <div class="report-seal-son"
+             :style="{border: `solid 2px var(${reportStatus? '--el-color-success': '--el-color-danger'})`,
            color: `var(${reportStatus? '--el-color-success': '--el-color-danger'})`
       }">
-        <span class="report-seal-text">{{ reportStatus ? "通过" : "不通过" }}</span>
-        <!--        <span class="report-seal-time">{{state.statisticsData.start_time}}</span>-->
+          <span class="report-seal-text">{{ reportStatus ? "通过" : "不通过" }}</span>
+        </div>
       </div>
-    </div>
-    <el-card style="margin-bottom: 10px">
-      <ReportStatistics :data="state.statisticsData">
-      </ReportStatistics>
+      <ReportStatistics :data="state.statisticsData"></ReportStatistics>
     </el-card>
     <el-card>
       <!--        search      -->
@@ -430,7 +428,8 @@ defineExpose({
   z-index: 1;
   position: absolute;
   right: 10px;
-  top: 5px;
+  margin-top: -30px;
+  //top: 5px;
   width: 80px;
   height: 80px;
   //border: solid 4px var(--el-color-success);

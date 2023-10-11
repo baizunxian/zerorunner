@@ -7,6 +7,7 @@ import typing
 
 from loguru import logger
 
+import zerorunner.parser
 from zerorunner import exceptions
 from zerorunner.model.base import TStepLogType, TStepResultStatusEnum, LoopTypeEnum
 from zerorunner.model.result_model import StepResult
@@ -14,6 +15,7 @@ from zerorunner.model.step_model import TStep, TLoopRequest
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
 from zerorunner.steps.step_result import TStepResult
+from zerorunner.parser import parse_string_to_json
 
 
 def run_loop_request(runner: SessionRunner,
@@ -26,9 +28,9 @@ def run_loop_request(runner: SessionRunner,
     step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
-    request_dict = step.loop_request.dict()
-    parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
-    step.loop_request = TLoopRequest(**parsed_request_dict)
+    # request_dict = step.loop_request.dict()
+    # parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
+    # step.loop_request = TLoopRequest(**parsed_request_dict)
     try:
         # 次数循环
         if step.loop_request.loop_type.lower() == LoopTypeEnum.Count.value:
@@ -49,6 +51,7 @@ def run_loop_request(runner: SessionRunner,
         elif step.loop_request.loop_type.lower() == LoopTypeEnum.For.value:
             for_variable_name = step.loop_request.for_variable_name
             merge_variable = runner.get_merge_variable()
+            iterable_obj = parse_string_to_json(step.loop_request.for_variable)
             iterable_obj = runner.parser.parse_data(step.loop_request.for_variable, merge_variable)
             if not isinstance(iterable_obj, typing.Iterable):
                 step_result.set_step_log(f"for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
@@ -73,9 +76,13 @@ def run_loop_request(runner: SessionRunner,
             # todo 循环超时时间待实现
             run_number = 0
             step_result.set_step_log("🔄while循环---> 开始")
+            step.loop_request.while_value = parse_string_to_json(step.loop_request.while_value)
             while True:
-                c_result = runner.comparators(step.loop_request.while_variable,
-                                              step.loop_request.while_value,
+                while_variable = runner.parser.parse_data(step.loop_request.while_variable,
+                                                          runner.get_merge_variable(step))
+                while_value = runner.parser.parse_data(step.loop_request.while_value, runner.get_merge_variable(step))
+                c_result = runner.comparators(while_variable,
+                                              while_value,
                                               step.loop_request.while_comparator)
                 check_value = c_result.get("check_value", "")
                 if c_result.get("check_result", "fail") == "success":
@@ -96,7 +103,7 @@ def run_loop_request(runner: SessionRunner,
                 if run_number > 100:
                     step_result.set_step_log("循环次数大于100退出while循环")
                     break
-                time.sleep(step.loop_request.while_sleep_time)
+                time.sleep(step.loop_request.while_sleep_time or 1)
             step_result.set_step_log(f"🔄while循环---> 结束")
         else:
             raise exceptions.LoopNotFound("请确认循环类型是否为 count for while ")
