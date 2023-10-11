@@ -198,7 +198,7 @@ class UserService:
             tags=user_info.tags,
             login_time=token_user_info.get("login_time"),
             remarks=user_info.remarks
-        )
+        ).dict()
 
     @staticmethod
     async def get_menu_by_token(token: str) -> typing.List[typing.Dict[typing.Text, typing.Any]]:

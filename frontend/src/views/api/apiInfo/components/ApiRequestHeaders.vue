@@ -37,20 +37,20 @@ const updateContentType = (mode, language, remove) => {
   let headerValue = ""
   switch (mode) {
     case "form_data":
-      headerValue = "111"
+      headerValue = ""
       break
     case "x_www_form_urlencoded":
       headerValue = "application/x-www-form-urlencoded"
       break
     case "raw":
       language = language.toLowerCase()
-      if (language == "json") {
+      if (language === "json") {
         headerValue = "application/json"
-      } else if (language == "xml") {
+      } else if (language === "xml") {
         headerValue = "application/xml"
-      } else if (language == "html") {
+      } else if (language === "html") {
         headerValue = "text/html"
-      } else if (language == "text") {
+      } else if (language === "text") {
         headerValue = "text/plain"
       }
       break
@@ -68,7 +68,6 @@ const updateContentType = (mode, language, remove) => {
   if (remove) {
     state.headers = state.headers.filter(e => e.key.toLowerCase() !== "content-type")
   }
-  console.log("state.headers", state.headers)
 }
 
 defineExpose({
