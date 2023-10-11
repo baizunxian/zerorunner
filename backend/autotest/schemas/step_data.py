@@ -16,7 +16,7 @@ class RequestMode(Enum):
     RAW = "raw"
     FORM_DATA = "form_data"
     FILE = "file"
-    FORM_URLENCODED = "form-urlencoded"
+    X_WWW_FORM_URLENCODED = "x_www_form_urlencoded"
     none = "none"
     JSON = "json"
     TEXT = "text"

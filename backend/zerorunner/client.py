@@ -193,7 +193,6 @@ class HttpSession(requests.Session):
         :param cert: (optional)
             if String, path to ssl client cert file (.pem). If Tuple, ('cert', 'key') pair.
         """
-        self.data = SessionData()
 
         # timeout default to 120 seconds
         kwargs.setdefault("timeout", 120)
@@ -204,6 +203,8 @@ class HttpSession(requests.Session):
         start_timestamp = time.time()
         response = self._send_request_safe_mode(method, url, **kwargs)
         response_time_ms = round((time.time() - start_timestamp) * 1000, 2)
+
+        self.data = SessionData()
 
         try:
             client_ip, client_port = response.raw._connection.sock.getsockname()

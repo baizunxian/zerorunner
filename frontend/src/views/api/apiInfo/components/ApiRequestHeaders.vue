@@ -36,10 +36,10 @@ const getStatus = () => {
 const updateContentType = (mode, language, remove) => {
   let headerValue = ""
   switch (mode) {
-    case "form-data":
-      headerValue = ""
+    case "form_data":
+      headerValue = "111"
       break
-    case "x-www-form-urlencoded":
+    case "x_www_form_urlencoded":
       headerValue = "application/x-www-form-urlencoded"
       break
     case "raw":
@@ -68,6 +68,7 @@ const updateContentType = (mode, language, remove) => {
   if (remove) {
     state.headers = state.headers.filter(e => e.key.toLowerCase() !== "content-type")
   }
+  console.log("state.headers", state.headers)
 }
 
 defineExpose({

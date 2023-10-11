@@ -190,7 +190,7 @@ class HandleStepData(object):
                 self.step.request.data = self.api_info.request.data
         elif request_mode == RequestMode.FORM_DATA.value:
             upload_dict = {}
-            for data in self.api_info.request.data:
+            for data in self.api_info.request.data or []:
                 if data.type == RequestMode.FILE.value:
                     file_value_info = data.value
                     file_info = await FileInfo.get(file_value_info.id)
@@ -205,6 +205,11 @@ class HandleStepData(object):
                 else:
                     upload_dict[data.key] = data.value
             self.step.request.upload = upload_dict
+        elif request_mode == RequestMode.X_WWW_FORM_URLENCODED.value:
+            form_urlencoded_dict = {}
+            for data in self.api_info.request.data or []:
+                form_urlencoded_dict[data.key] = data.value
+            self.step.request.data = form_urlencoded_dict
 
         elif request_mode == RequestMode.none.value.lower():
             self.step.request.data = None

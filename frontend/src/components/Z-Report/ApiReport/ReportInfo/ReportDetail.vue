@@ -260,7 +260,6 @@ const state = reactive({
 const initReport = () => {
   const isDebug = props.isDebug || route.query.isDebug
   const report_id = props.reportId || route.query.id
-  console.log("initReport-report_id", report_id)
   state.start_time = props.reportInfo.start_time
   state.exec_user_name = userInfos.value.nickname
   if (isDebug) {
@@ -290,7 +289,10 @@ const getStatisticsDataByDebug = (step_results) => {
     count_case_success: 0,
     count_case_fail: 0,
     case_pass_rate: 0,
-    step_pass_rate: 0
+    step_pass_rate: 0,
+    start_time: reportInfo.start_time,
+    exec_user_name: userInfos.value.nickname,
+    success: reportInfo.success
   }
   let elapsed_ms = 0
   statisticsData.step_pass_rate = Math.round((statisticsData.count_step_success / statisticsData.actual_run_count) * 100)
@@ -381,7 +383,7 @@ const toApiInfo = (row) => {
 
 // 获取报告状态，通过，不通过
 const reportStatus = computed(() => {
-  return state.statisticsData?.success === 1
+  return state.statisticsData?.success === 1 || state.statisticsData?.success == true
 })
 
 watch(
