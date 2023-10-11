@@ -55,7 +55,7 @@
                 <el-col :span="24">
                   <div class="personal-item">
                     <div class="personal-item-label">登录时间：</div>
-                    <div class="personal-item-value">2021-02-05 18:47:26</div>
+                    <div class="personal-item-value">{{userInfos.login_time}}</div>
                   </div>
                 </el-col>
 
@@ -196,6 +196,7 @@ import {formatAxis} from '/@/utils/formatTime';
 import {useUserInfo} from "/@/stores/userInfo";
 import {useUserApi} from "/@/api/useSystemApi/user";
 import {ElMessage} from "element-plus";
+import {storeToRefs} from "pinia";
 
 const SeePictures = defineAsyncComponent(() => import("/@/components/seePictures/index.vue"))
 const SeePicturesRef = ref();
@@ -203,6 +204,7 @@ const UserTagInputRef = ref()
 
 // 用户信息
 const userStores = useUserInfo()
+const {userInfos} = storeToRefs(userStores);
 
 
 // 定义变量内容
