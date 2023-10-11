@@ -172,7 +172,7 @@
 </template>
 
 <script setup name="EditApiInfo">
-import {defineProps, nextTick, onMounted, reactive, ref, watch} from 'vue'
+import {defineProps, nextTick, onActivated, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from "vue-router"
 import {useApiInfoApi} from '/@/api/useAutoApi/apiInfo'
 import {ElLoading, ElMessage} from 'element-plus'
@@ -426,6 +426,12 @@ watch(
     },
 )
 
+onActivated(() => {
+  if (state.timeStamp != route.query.timeStamp) {
+    state.timeStamp = route.query.timeStamp
+    initApi()
+  }
+})
 onMounted(() => {
   initApi()
 })

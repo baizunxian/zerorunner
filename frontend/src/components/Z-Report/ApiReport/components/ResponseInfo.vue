@@ -4,7 +4,7 @@
       <el-tag type="success"
               class="response-info__item"
               effect="dark">
-        {{ state.response.status_code === 200 ? state.response.status_code + ' OK' : state.response.status_code }}
+        {{ state.response?.status_code === 200 ? state.response?.status_code + ' OK' : state.response?.status_code }}
       </el-tag>
       <el-tag type="success"
               effect="plain"
@@ -18,7 +18,7 @@
       <el-tag type="info"
               effect="plain"
               class="response-info__item">
-        ContentType：{{ state.response.content_type }}
+        ContentType：{{ state.response?.content_type }}
       </el-tag>
 
     </div>
@@ -39,20 +39,20 @@
         <el-image
             v-else-if="state.content_type.includes('image')"
             style="width: 300px; height: 300px"
-            :src="state.response.body"
+            :src="state.response?.body"
             :zoom-rate="1.2"
-            :preview-src-list="[state.response.body]"
+            :preview-src-list="[state.response?.body]"
             :initial-index="4"
             fit="cover"
         />
-        <pre v-else>{{ state.response.body }}</pre>
+        <pre v-else>{{ state.response?.body }}</pre>
       </el-collapse-item>
 
       <el-collapse-item name="header">
         <template #title>
           <strong>Header</strong>
         </template>
-        <div v-for="(value, key) in state.response.headers" :key="key">
+        <div v-for="(value, key) in state.response?.headers" :key="key">
         <span style="font-size: 12px">
           <span style="font-weight: 600">{{ key }}: </span><span>{{ value }}</span>
           </span>
@@ -63,7 +63,7 @@
         <template #title>
           <strong>Cookies</strong>
         </template>
-        <div v-for="(value, key) in state.response.cookies" :key="key">
+        <div v-for="(value, key) in state.response?.cookies" :key="key">
         <span style="font-size: 12px">
           <span style="font-weight: 600">{{ key }}: </span><span>{{ value }}</span>
           </span>
@@ -78,11 +78,17 @@
 
 <script setup name="ResponseInfo">
 import {nextTick, onMounted, reactive, watch} from 'vue';
-import {formatSizeUnits} from "/@/utils/case"
+import {formatSizeUnits} from "/src/utils/case"
 
 const props = defineProps({
-  data: Object,
-  stat: Object,
+  data: {
+    type: Object,
+    required: true
+  },
+  stat: {
+    type: Object,
+    required: true
+  }
 })
 
 
@@ -114,7 +120,6 @@ watch(
 )
 
 onMounted(() => {
-
   nextTick(() => {
     initData()
   })

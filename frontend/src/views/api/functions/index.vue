@@ -86,7 +86,7 @@
             <strong>{{ row.func_args }}</strong>
           </template>
         </el-table-column>
-        <el-table-column prop="func_doc" label="函数说明" show-overflow-tooltip align="left">
+        <el-table-column prop="func_doc" label="函数说明" :show-overflow-tooltip="true" align="left">
           <template #default="{row}">
             <div v-html="row.func_doc"></div>
           </template>
@@ -136,7 +136,6 @@
           </el-descriptions-item>
           <el-descriptions-item width="150px" label="执行结果">
             <z-monaco-editor
-                ref="monacoEdit"
                 :options="state.options"
                 style="height: 300px;"
                 v-model:value="state.debugFuncResult"
@@ -229,7 +228,7 @@ const state = reactive({
   // monaco
   options: {
     lineNumbers: 'off',
-    readOnly: true,
+    // readOnly: true,
     lineDecorationsWidth: 1,
     lineNumbersMinChars: 1,
     minimap: {
@@ -306,7 +305,7 @@ const getFuncList = () => {
 }
 //函数页面初始化
 const showDebugFunc = (row) => {
-  state.debugFuncResult = ''
+  state.debugFuncResult = ""
   state.funcArgsInfo = {}
   state.funcArgsInfo = row.args_info
   state.debugFuncShow = !state.debugFuncShow
@@ -322,6 +321,7 @@ const debugFunc = () => {
   useFunctionsApi().debugFunc(state.debugFuncForm)
       .then(res => {
         state.debugFuncResult = JSON.stringify(res.data.result)
+        console.log("state.debugFuncResult", state.debugFuncResult)
       })
 }
 

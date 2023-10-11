@@ -336,6 +336,7 @@ class SessionData(BaseModel):
     stat: RequestStat = RequestStat()
     address: AddressData = AddressData()
     validators: typing.Dict = {}
+    extracts: typing.List = []
 
 
 class StepResult(BaseModel):
@@ -387,6 +388,7 @@ StepResult.update_forward_refs()
 
 
 StepResult.update_forward_refs()
+
 
 #
 # class IStep(object):

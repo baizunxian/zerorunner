@@ -152,8 +152,13 @@ class ReportService:
         """
         报告统计
         """
+        report_info = await ApiTestReport.get(params.id)
         report_detail = ApiTestReportDetail.model(params.id)
         data = await report_detail.statistics(params)
+        data['exec_user_id'] = report_info.exec_user_id
+        data['exec_user_name'] = report_info.exec_user_name
+        data['start_time'] = report_info.start_time
+        data['success'] = report_info.success
         return data
 
     @staticmethod

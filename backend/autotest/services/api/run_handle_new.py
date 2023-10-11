@@ -42,7 +42,7 @@ def parse_string_to_json(str_value: str):
         return str_value
 
 
-def handle_headers_or_validators(param: typing.List[ApiBaseSchema]) -> typing.Dict:
+def handle_headers_or_validators(param: typing.List[ApiBaseSchema], type: str = None) -> typing.Dict:
     """处理请求头，跟变量
     args  param List[ApiCaseBaseSchema] 对象
     [
@@ -52,6 +52,7 @@ def handle_headers_or_validators(param: typing.List[ApiBaseSchema]) -> typing.Di
         "remarks": "测试",
         }
     ]
+    type 类型 如有是请求头则吧不是字符串的value转成字符串
 
     return
     {
@@ -65,6 +66,8 @@ def handle_headers_or_validators(param: typing.List[ApiBaseSchema]) -> typing.Di
     for p in param:
         if isinstance(p, dict):
             p = ApiBaseSchema(**p)
+        if type == "headers" and not isinstance(p.value, str):
+            p.value = str(p.value)
         data[p.key] = p.value
     return data
 
@@ -86,6 +89,7 @@ class HandleConfig(object):
         await self.init_functions()
         if headers:
             await self.init_headers(headers)
+
         if variables:
             await self.init_variables(headers)
 
@@ -107,7 +111,7 @@ class HandleConfig(object):
                 self.config.env_variables = parse_validators_string_value(new_variables)
             # 环境请求头
             if env_info.headers:
-                self.config.headers.update(handle_headers_or_validators(env_info.headers))
+                self.config.headers.update(handle_headers_or_validators(env_info.headers, type="headers"))
         config_funcs = await EnvFunc.get_by_env_id(env_id) if env_id else []
         if config_funcs:
             for func in config_funcs:
@@ -117,7 +121,7 @@ class HandleConfig(object):
                         load_func_content(func_content, f"{func.get('name', '')}{uuid.uuid4().hex}"))
 
     async def init_headers(self, headers: typing.List[ApiBaseSchema]):
-        self.config.headers.update(handle_headers_or_validators(headers))
+        self.config.headers.update(handle_headers_or_validators(headers, type="headers"))
 
     async def init_variables(self, variables: typing.List[ApiBaseSchema]):
         new_variables = handle_headers_or_validators(variables)
@@ -186,7 +190,7 @@ class HandleStepData(object):
                 self.step.request.data = self.api_info.request.data
         elif request_mode == RequestMode.FORM_DATA.value:
             upload_dict = {}
-            for data in self.api_info.request.data:
+            for data in self.api_info.request.data or []:
                 if data.type == RequestMode.FILE.value:
                     file_value_info = data.value
                     file_info = await FileInfo.get(file_value_info.id)
@@ -201,6 +205,11 @@ class HandleStepData(object):
                 else:
                     upload_dict[data.key] = data.value
             self.step.request.upload = upload_dict
+        elif request_mode == RequestMode.X_WWW_FORM_URLENCODED.value:
+            form_urlencoded_dict = {}
+            for data in self.api_info.request.data or []:
+                form_urlencoded_dict[data.key] = data.value
+            self.step.request.data = form_urlencoded_dict
 
         elif request_mode == RequestMode.none.value.lower():
             self.step.request.data = None
@@ -258,7 +267,7 @@ class HandleStepData(object):
         return Step(RunScriptStep(self.step))
 
     async def init_request_headers(self):
-        step_headers = handle_headers_or_validators(self.api_info.request.headers)
+        step_headers = handle_headers_or_validators(self.api_info.request.headers, type="headers")
         self.step.request.headers = step_headers
 
     async def init_variables(self):

@@ -24,7 +24,7 @@ export function getStepTypeInfo(stepType, type) {
 		script: {color: "#7B4D12FF", background: "#F1EEE9FF", icon: 'iconfont icon-code'},
 		wait: {color: "#67C23AFF", background: "#F2F9EEFF", icon: 'iconfont icon-time'},
 		api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-c158API'},
-		case: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-a-case-o1'},
+		case: {color: "#f4664a", background: "#f5f5faFF", icon: 'iconfont icon-a-case-o1'},
 		loop: {color: "#02A7F0FF", background: "#F4F4F5FF", icon: 'iconfont icon-loop'},
 		extract: {color: "#015478FF", background: "#E6EEF2FF", icon: ''},
 		sql: {color: "#783887FF", background: "#F2ECF3FF", icon: 'iconfont icon-suffix-sql'},
@@ -36,27 +36,29 @@ export function getStepTypeInfo(stepType, type) {
 export const baseModeType = [
 	{key: "jmespath", value: "jmespath"},
 	{key: "JsonPath", value: "JsonPath"},
+	{key: "变量&函数", value: "variable_or_func"},
 ]
 
 export function getModeTypeObj(modeType) {
-	if (modeType === 'extract') {
-		//  提取的
-		return baseModeType
-	}
-	if (modeType === 'validator') {
-		//  断言
-		let validModeTypes = [
-			{key: "变量&函数", value: "variable_or_func"},
-		]
-		return [...baseModeType, ...validModeTypes]
-	}
-	return []
+	return baseModeType
+	// if (modeType === 'extract') {
+	// 	//  提取的
+	// 	return baseModeType
+	// }
+	// if (modeType === 'validator') {
+	// 	//  断言
+	// 	let validModeTypes = [
+	// 		{key: "变量&函数", value: "variable_or_func"},
+	// 	]
+	// 	return [...baseModeType, ...validModeTypes]
+	// }
+	// return []
 }
 
 export function getComparators(useType) {
 	return {
 		equals: "等于",
-		not_equals: "不等",
+		not_equal: "不等",
 		length_equals: "长度等于",
 		contains: "包含",
 		startswith: "以...开始",

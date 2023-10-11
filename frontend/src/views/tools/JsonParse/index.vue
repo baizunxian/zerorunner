@@ -30,6 +30,7 @@
 
 import {ref} from "vue";
 import {ElMessage} from "element-plus";
+import commonFunction from '/@/utils/commonFunction';
 
 const jsonData = ref('')
 const monacoEditorRef = ref(null)
@@ -142,7 +143,7 @@ const copy = () => {
     ElMessage.warning('没有可复制的内容 👻')
     return
   }
-  navigator.clipboard.writeText(jsonData.value)
+  commonFunction().copyText(jsonData.value)
   ElMessage.success('复制成功 🎉')
 }
 

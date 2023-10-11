@@ -66,14 +66,14 @@ def get_req_resp_record(resp_obj: Response) -> ReqRespData:
         if request_content_type and "multipart/form-data" in request_content_type:
             # upload file type
             fields: dict = request_body.fields
-            request_body = ""
+            request_body = {}
             if fields:
                 for key, value in fields.items():
                     if isinstance(value, tuple) and value.__len__() == 3:
                         # file_name, file_content, file_type = value
-                        request_body += f"{key}: (二进制文件)\n"
+                        request_body[key] = "(二进制)"
                     else:
-                        request_body += f"{key}: {value}\n"
+                        request_body[key] = value
             else:
                 request_body = "upload file stream (OMITTED)"
 
@@ -193,7 +193,6 @@ class HttpSession(requests.Session):
         :param cert: (optional)
             if String, path to ssl client cert file (.pem). If Tuple, ('cert', 'key') pair.
         """
-        self.data = SessionData()
 
         # timeout default to 120 seconds
         kwargs.setdefault("timeout", 120)
@@ -204,6 +203,8 @@ class HttpSession(requests.Session):
         start_timestamp = time.time()
         response = self._send_request_safe_mode(method, url, **kwargs)
         response_time_ms = round((time.time() - start_timestamp) * 1000, 2)
+
+        self.data = SessionData()
 
         try:
             client_ip, client_port = response.raw._connection.sock.getsockname()
@@ -222,7 +223,8 @@ class HttpSession(requests.Session):
             pass
 
         # get length of the response content
-        content_size = response.content.__len__() or int(response.headers.get("content-length", 0))
+        content_size = response.content.__len__() or int(
+            response.headers.get("content-length", 0)) if response.content else 0
 
         # record the consumed time
         self.data.stat.response_time_ms = response_time_ms

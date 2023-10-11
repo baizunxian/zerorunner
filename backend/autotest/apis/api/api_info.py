@@ -84,3 +84,12 @@ def postman2case():
     json_body = json.load(postman_file)
     data = ApiInfoService.postman2api(json_body, **request.form)
     return partner_success(data)
+
+@router.post('/getUseApiRelation', description="api使用关系")
+async def use_api_relation(params: ApiId):
+    """
+    测试报告
+    :return:
+    """
+    data = await ApiInfoService.use_api_relation(params)
+    return partner_success(data)

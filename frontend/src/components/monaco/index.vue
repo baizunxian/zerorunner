@@ -4,10 +4,10 @@
 <script setup name="monacoEditor">
 import * as monaco from 'monaco-editor'
 import {onMounted, onUnmounted, reactive, ref, toRaw, watch} from 'vue'
-
 import SQLSnippets from "./core/sql.js"
 import {getJsonPath} from '/@/utils/jsonPath'
 import {ElMessage} from "element-plus";
+import commonFunction from "/@/utils/commonFunction";
 
 const props = defineProps({
   // 展示的字符串
@@ -96,7 +96,7 @@ const state = reactive({
     language: props.lang, // 语言类型
     tabCompletion: 'on',
     cursorSmoothCaretAnimation: true,
-    formatOnPaste: false,
+    formatOnPaste: true,
     mouseWheelZoom: function (e) {
       const editor = e.target;
       const isAtBottom = editor.getScrollTop() >= editor.getScrollHeight() - editor.getLayoutInfo().height;
@@ -187,13 +187,18 @@ const getValue = () => {
 }
 
 const setValue = (val) => {
-  const undoStack = getModel().undoStack;
-  toRaw(editor.value).executeEdits("replaceText", [{
-    range: getModel().getFullModelRange(),
-    text: val,
-    forceMoveMarkers: true
-  }]);
-  getModel().undoStack = undoStack;
+  const isReadOnly = toRaw(editor.value).getRawOptions().readOnly;
+  if (isReadOnly) {
+    toRaw(editor.value).setValue(val)
+  } else {
+    const undoStack = getModel().undoStack;
+    toRaw(editor.value).executeEdits("replaceText", [{
+      range: getModel().getFullModelRange(),
+      text: val,
+      forceMoveMarkers: true
+    }]);
+    getModel().undoStack = undoStack;
+  }
 }
 
 const getSelectionValue = () => {
@@ -277,13 +282,7 @@ const registerCustomEvent = (editor) => {
 
 const copyToClipboard = () => {
   if (state.jsonPath) {
-    navigator.clipboard.writeText(state.jsonPath)
-        .then(function () {
-              ElMessage.success(`复制成功！ ${state.jsonPath}`)
-            }, function () {
-              ElMessage.error("jsonpath copy failed.");
-            }
-        );
+    commonFunction().copyText(state.jsonPath, `复制成功 🎉  ${state.jsonPath}`)
   } else {
     ElMessage.warning("没有可复制的路径...");
   }

@@ -49,12 +49,12 @@ const state = reactive({
   showDetail: false,
   comparatorOptions: {
     equals: "等于",
-    not_equals: "不等于",
+    not_equal: "不等于",
     contains: "包含",
     not_contains: "不包含",
     gt: "大于",
     lt: "小于",
-    none: "空",
+    is_none: "空",
     not_none: "非空",
   },
 });

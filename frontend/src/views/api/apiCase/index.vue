@@ -54,6 +54,8 @@
       </template>
     </el-dialog>
 
+    <!--    <RelationGraph></RelationGraph>-->
+
   </div>
 </template>
 
@@ -63,6 +65,7 @@ import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRouter} from 'vue-router'
 import {useEnvApi} from "/@/api/useAutoApi/env";
+import RelationGraph from "/@/components/RelationGraph/index.vue";
 
 const tableRef = ref();
 const router = useRouter();
@@ -162,6 +165,9 @@ const search = () => {
 const onOpenSaveOrUpdate = (editType, row) => {
   let query = {}
   query.editType = editType
+  if (query.editType === 'save') {
+    query.timeStamp = new Date().getTime()
+  }
   if (row) query.id = row.id
   router.push({name: 'EditApiCase', query: query})
 };

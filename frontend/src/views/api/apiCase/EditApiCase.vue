@@ -168,7 +168,25 @@
         </el-tabs>
       </el-dialog>
     </el-card>
-    <ReportDetail ref="ReportDetailRef" :report-info="state.reportInfo" :is-debug="true"></ReportDetail>
+
+    <el-dialog
+        draggable
+        v-if="state.showReportDialog"
+        v-model="state.showReportDialog"
+        width="90%"
+        top="5vh"
+        destroy-on-close
+        :close-on-click-modal="false">
+      <template #header>
+        <strong>报告详情</strong>
+        <!--      <el-button class="ml5" style="font-size: 12px" type="primary" link @click="state.showLog=!state.showLog">-->
+        <!--        执行日志-->
+        <!--      </el-button>-->
+      </template>
+
+      <ReportDetail :report-info="state.reportInfo" :is-debug="true" ref="reportDetailRef"/>
+
+    </el-dialog>
 
     <el-dialog
         draggable
@@ -207,7 +225,7 @@
 </template>
 
 <script setup name="EditApiCase">
-import {onMounted, reactive, ref} from 'vue';
+import {onActivated, onMounted, reactive, ref, watch} from 'vue';
 import {ElMessage} from "element-plus";
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRoute, useRouter} from "vue-router"
@@ -255,6 +273,7 @@ const state = reactive({
   // tabs
   activeTabName: "variable",
 //  report
+  showReportDialog: false,
   reportInfo: null,
 //  showRunPage
   showRunPage: false,
@@ -346,7 +365,7 @@ const debugApiCase = () => {
       useApiCaseApi().debugSuites(state.form)
           .then((req) => {
             state.reportInfo = req.data
-            ReportDetailRef.value.showReport()
+            state.showReportDialog = !state.showReportDialog
             ElMessage.success('操作成功');
             state.runCaseLoading = false
             state.showRunPage = false
@@ -381,10 +400,17 @@ const handleAddData = (optType) => {
 const goBack = () => {
   router.push({name: 'apiCase'})
 }
+
+onActivated(() => {
+  if (state.timeStamp != route.query.timeStamp) {
+    state.timeStamp = route.query.timeStamp
+    initData()
+  }
+})
+
 // 页面加载时
 onMounted(() => {
   initData()
-  // getEnvList()
   getProjectList()
 });
 

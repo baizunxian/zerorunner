@@ -10,11 +10,15 @@ import json
 import os
 import os.path
 import platform
-from multiprocessing import Queue
 import typing
+from datetime import datetime
+from multiprocessing import Queue
 
-from zerorunner import exceptions, __version__
+from fastapi.encoders import jsonable_encoder
 from loguru import logger
+from sqlalchemy import Row
+from sqlalchemy.orm import DeclarativeMeta
+from zerorunner import exceptions, __version__
 from zerorunner.models import VariablesMapping
 
 
@@ -253,3 +257,24 @@ def gen_cartesian_product(*args: typing.List[typing.Dict]) -> typing.List[typing
         product_list.append(product_item_dict)
 
     return product_list
+
+
+def default_serialize(obj):
+    """默认序序列化"""
+    try:
+        if isinstance(obj, int) and len(str(obj)) > 15:
+            return str(obj)
+        if isinstance(obj, dict):
+            return {key: default_serialize(value) for key, value in obj.items()}
+        if isinstance(obj, list):
+            return [default_serialize(i) for i in obj]
+        if isinstance(obj, datetime):
+            return obj.strftime("%Y-%m-%d %H:%M:%S")
+        if isinstance(obj, Row):
+            data = dict(zip(obj._fields, obj._data))
+            return {key: default_serialize(value) for key, value in data.items()}
+        if hasattr(obj, "__class__") and isinstance(obj.__class__, DeclarativeMeta):
+            return {c.name: default_serialize(getattr(obj, c.name)) for c in obj.__table__.columns}
+        return jsonable_encoder(obj)
+    except TypeError as err:
+        return repr(obj)

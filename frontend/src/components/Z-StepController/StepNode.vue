@@ -72,9 +72,7 @@
         <div class="step-header__right header-right">
           <span @click.stop="">
             <el-tooltip content="启用/禁用" placement="top">
-              <el-switch
-                  v-model="step.enable"
-                  inline-prompt>
+              <el-switch v-model="step.enable" inline-prompt>
               </el-switch>
             </el-tooltip>
           </span>

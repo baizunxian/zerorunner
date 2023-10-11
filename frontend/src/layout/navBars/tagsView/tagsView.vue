@@ -234,12 +234,12 @@ const addTagsView = (path, to) => {
   });
 };
 // 2、刷新当前 tagsView：
-const refreshCurrentTagsView = async (fullPath) => {
+const refreshCurrentTagsView = async (fullPath, path) => {
   const decodeURIPath = decodeURI(fullPath);
-  let item = {};
+  let item = null;
   state.tagsViewList.forEach((v) => {
     v.transUrl = transUrlParams(v);
-    if (v.transUrl) {
+    if (v.transUrl && v.path === path) {
       if (v.transUrl === transUrlParams(v)) item = v;
     } else {
       if (v.path === decodeURIPath) item = v;
@@ -354,7 +354,7 @@ const onCurrentContextmenuClick = async (item) => {
       // 刷新当前
       if (meta.isDynamic) await router.push({name, params});
       else await router.push({path, query});
-      refreshCurrentTagsView(route.fullPath);
+      refreshCurrentTagsView(route.fullPath, route.path);
       break;
     case 1:
       // 关闭当前

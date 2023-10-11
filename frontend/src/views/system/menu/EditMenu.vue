@@ -144,7 +144,7 @@
 </template>
 
 <script setup name="SaveOrUpdateMenu">
-import {computed, onMounted, reactive, ref} from 'vue';
+import {computed, nextTick, onMounted, reactive, ref} from 'vue';
 import IconSelector from '/@/components/iconSelector/index.vue';
 import {useMenuApi} from "/@/api/useSystemApi/menu";
 import {ElMessage} from "element-plus";
@@ -216,7 +216,9 @@ const openDialog = (editType, row) => {
     state.form = createMenuForm()
   }
   state.isShowDialog = true;
-  menuTreeRef.value.setCurrentKey(row.id)
+  nextTick(() => {
+    menuTreeRef.value.setCurrentKey(state.form.parent_id)
+  })
 };
 // 关闭弹窗
 const closeDialog = () => {

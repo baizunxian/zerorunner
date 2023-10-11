@@ -33,21 +33,18 @@ class UserService:
         if not user_info:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         u_password = decrypt_rsa_password(user_info["password"])
-
         if u_password != password:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         token = str(uuid.uuid4())
         login_time = default_serialize(datetime.now())
-        tags = user_info.get("tags", None)
-        roles = user_info.get("roles", None)
         token_user_info = {
             "id": user_info["id"],
             "token": token,
             "login_time": login_time,
             "username": user_info["username"],
             "nickname": user_info["nickname"],
-            "roles": roles if roles else [],
-            "tags": tags if tags else []
+            "roles":user_info.get("roles", []),
+            "tags": user_info.get("tags", [])
         }
         await g.redis.set(TEST_USER_INFO.format(token), token_user_info, CACHE_DAY)
         logger.info('用户 [{}] 登录了系统'.format(user_info["username"]))
@@ -100,10 +97,8 @@ class UserService:
         """
         data = await User.get_list(params)
         for row in data.get("rows"):
-            roles = row.get("roles", None)
-            tags = row.get("roles", None)
-            row["roles"] = roles if roles else []
-            row["tags"] = tags if tags else []
+            row["roles"] = row.get("roles", [])
+            row["tags"] = row.get("tags", [])
         return data
 
     @staticmethod
@@ -113,12 +108,12 @@ class UserService:
         :param params: 用户字段
         :return:
         """
-        if not params.id:
-            if User.get_user_by_name(params.nickname):
-                raise ValueError('用户昵称已存在！')
+        exist_user = await User.get_user_by_nickname(params.nickname)
+        if not params.id and exist_user:
+            raise ValueError('用户昵称已存在！')
         else:
             user_info = await User.get(params.id, to_dict=True)
-            if user_info['nickname'] != params.nickname and User.get_user_by_nickname(params.nickname):
+            if user_info['nickname'] != params.nickname and await exist_user:
                 raise ValueError('用户昵称已存在！')
         result = await User.create_or_update(params.dict())
         current_user_info = await current_user()

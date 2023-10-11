@@ -43,6 +43,7 @@ def partner_success(data=None,
 
     success = True if code == CodeEnum.PARTNER_CODE_OK.code else False
     content = dict(code=code, msg=msg, data=data, success=success, trace_id=g.trace_id)
+    content = default_serialize(content)
     return ORJSONResponse(status_code=http_code, content=content, headers=headers)
 
 

@@ -32,7 +32,7 @@
           @pagination-change="getList"
       />
 
-      <ReportDetail :report-info="state.reportInfo" ref="reportDetailRef"/>
+<!--      <ReportDetail :report-info="state.reportInfo"/>-->
 
     </el-card>
   </div>
@@ -40,13 +40,13 @@
 
 <script setup name="apiReport">
 import {useReportApi} from '/@/api/useAutoApi/report';
+import {useRouter} from "vue-router";
 import {h, onMounted, reactive, ref} from 'vue';
-import {useRoute} from "vue-router";
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus'
-import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue";
+import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
 
-const reportDetailRef = ref()
 const tableRef = ref()
+const router = useRouter()
 const state = reactive({
   columns: [
     {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
@@ -162,7 +162,8 @@ const deleted = (row) => {
 
 const onOpenReport = (row) => {
   state.reportInfo = row
-  reportDetailRef.value.showReport()
+  router.push({name: 'ApiReportDetail', query: {id: row.id}})
+  // reportDetailRef.value.showReport()
 }
 
 // watch(

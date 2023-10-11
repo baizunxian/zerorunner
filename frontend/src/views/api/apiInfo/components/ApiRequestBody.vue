@@ -11,6 +11,7 @@
         >
           <el-radio label="none">none</el-radio>
           <el-radio label="form_data">form-data</el-radio>
+          <el-radio label="x_www_form_urlencoded">x-www-form-urlencoded</el-radio>
           <el-radio label="raw">raw</el-radio>
 
           <el-dropdown @command="handleLanguage"
@@ -125,6 +126,53 @@
         </el-row>
       </div>
     </div>
+    <!---------------------------x-www-form-urlencoded------------------------------------>
+    <div v-if="state.mode === 'x_www_form_urlencoded'">
+      <div>
+        <el-row justify="space-between"
+                v-for="(data, index) in state.x_www_form_urlencoded"
+                :key="index"
+                align="middle"
+                style="padding: 5px 0;"
+        >
+          <!--            参数名-->
+          <el-col :span="8">
+            <div class="mt-4">
+              <el-input
+                  v-model="data.key"
+                  placeholder="Key"
+                  class="input-with-select"
+              >
+              </el-input>
+            </div>
+          </el-col>
+
+          <!--参数值-->
+          <el-col :span="8">
+            <el-input size="small"
+                      placeholder="Value"
+                      v-model="data.value"></el-input>
+          </el-col>
+
+          <el-col :span="5">
+            <el-input size="small"
+                      maxlength="200"
+                      placeholder="备注"
+                      v-model="data.remarks">
+            </el-input>
+          </el-col>
+
+          <el-col :span="1">
+            <el-button type="danger" circle @click="deleteXFormData(index)"
+                       :disabled="state.x_www_form_urlencoded.length === index  + 1 ">
+              <el-icon>
+                <ele-Delete/>
+              </el-icon>
+            </el-button>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
     <!---------------------------raw------------------------------------>
     <div v-if="state.mode === 'raw'" style="padding-top: 8px;">
       <div style="border: 1px solid #E6E6E6">
@@ -228,6 +276,8 @@ const state = reactive({
   formData: [],
   formDatatypeOptions: ['text', 'file'],
   fileData: {},
+  // x_www_form_urlencoded
+  x_www_form_urlencoded: [],
 
   //monaco
   lang: 'json',
@@ -239,17 +289,20 @@ const initData = () => {
   state.language = "JSON"
   state.rawData = ""
   state.formData = []
+  state.x_www_form_urlencoded = []
   state.fileData = {}
 }
 // 初始化表单
 const setData = (data) => {
   initData()
   if (!data) return
-
   let mode = state.mode = data.mode
   switch (mode) {
     case 'form_data':
       state.formData = data.data ? data.data : []
+      break
+    case 'x_www_form_urlencoded':
+      state.x_www_form_urlencoded = data.data ? data.data : []
       break
     case 'raw':
       state.rawData = data.data
@@ -262,17 +315,6 @@ const setData = (data) => {
   }
 }
 
-// 获取是否填写状态
-const getStatus = () => {
-  let formDataList = handleEmpty(state.formData)
-  switch (state.mode) {
-    case 'form_data':
-      return formDataList.length > 0
-    case 'raw':
-      return state.rawData !== ''
-  }
-}
-
 // 获取表单数据
 const getData = () => {
   let requestData = {}
@@ -282,6 +324,8 @@ const getData = () => {
     requestData.language = state.language
   } else if (state.mode === 'form_data') {
     requestData.data = state.formData.filter((e) => e.key !== "" || e.value !== "")
+  } else if (state.mode === 'x_www_form_urlencoded') {
+    requestData.data = state.x_www_form_urlencoded.filter((e) => e.key !== "" || e.value !== "")
   } else if (state.mode === 'none') {
     requestData.data = null
   }
@@ -328,9 +372,16 @@ const deleteParams = (index) => {
 const addFormData = () => {
   state.formData.push({key: '', type: 'text', value: ''})
 }
+// formData
+const addXFormData = () => {
+  state.x_www_form_urlencoded.push({key: '', value: ''})
+}
 // 删除
 const deleteFormData = (index) => {
   state.formData.splice(index, 1)
+}// 删除
+const deleteXFormData = (index) => {
+  state.x_www_form_urlencoded.splice(index, 1)
 }
 const formDataBlur = () => {
   if (state.formData.length > 0) {
@@ -340,6 +391,16 @@ const formDataBlur = () => {
     }
   } else {
     addFormData()
+  }
+}
+const xFormDataBlur = () => {
+  if (state.x_www_form_urlencoded.length > 0) {
+    let endData = state.x_www_form_urlencoded[state.x_www_form_urlencoded.length - 1]
+    if (!endData || (endData.key !== "" || endData.value !== "")) {
+      addXFormData()
+    }
+  } else {
+    addXFormData()
   }
 }
 
@@ -409,11 +470,21 @@ watch(
       deep: true
     }
 );
+watch(
+    () => state.x_www_form_urlencoded,
+    () => {
+      xFormDataBlur()
+    }, {
+      deep: true
+    }
+);
 
 const getDataLength = () => {
   let dataLength = 0
   if (state.mode === 'form_data') {
     dataLength = state.formData?.length || 0
+  } else if (state.mode === 'x_www_form_urlencoded') {
+    dataLength = state.x_www_form_urlencoded?.length || 0
   } else if (state.mode === 'raw') {
     dataLength = state.rawData.length || 0
   } else if (state.mode === 'none') {

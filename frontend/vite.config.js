@@ -4,9 +4,9 @@ import {defineConfig, loadEnv} from 'vite';
 import vueSetupExtend from 'vite-plugin-vue-setup-extend';
 import monacoEditorPlugin from "vite-plugin-monaco-editor"
 
-// import MonacoEditorNlsPlugin, {esbuildPluginMonacoEditorNls, Languages,} from '/@/components/monaco/nls';
+import MonacoEditorNlsPlugin, {esbuildPluginMonacoEditorNls, Languages,} from '/@/components/monaco/nls';
 
-// const zh_CN = require('/@/components/monaco/nls/zh-hans.json')
+const zh_CN = require('/@/components/monaco/nls/zh-hans.json')
 
 
 const pathResolve = (dir) => {
@@ -23,13 +23,13 @@ const viteConfig = defineConfig((mode) => {
 		plugins: [
 			vue(),
 			vueSetupExtend(), monacoEditorPlugin(),
-			// MonacoEditorNlsPlugin({
-			//   locale: Languages.zh_hans,
-			//   /**
-			//    * The weight of `localedata` is higher than that of `locale`
-			//    */
-			//   localeData: zh_CN.contents
-			// })
+			MonacoEditorNlsPlugin({
+				locale: Languages.zh_hans,
+				/**
+				 * The weight of `localedata` is higher than that of `locale`
+				 */
+				localeData: zh_CN.contents
+			})
 		],
 		optimizeDeps: {
 			/** vite >= 2.3.0 */
@@ -71,13 +71,13 @@ const viteConfig = defineConfig((mode) => {
 			],
 			esbuildOptions: {
 				plugins: [
-					// esbuildPluginMonacoEditorNls({
-					//   locale: Languages.zh_hans,
-					//   /**
-					//    * The weight of `localedata` is higher than that of `locale`
-					//    */
-					//   localeData: zh_CN.contents
-					// }),
+					esbuildPluginMonacoEditorNls({
+						locale: Languages.zh_hans,
+						/**
+						 * The weight of `localedata` is higher than that of `locale`
+						 */
+						localeData: zh_CN.contents
+					}),
 				],
 			},
 		},
