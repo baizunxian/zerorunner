@@ -12,8 +12,8 @@ from loguru import logger
 from autotest.models.api_models import Env, DataSource, ApiInfo, EnvFunc
 from autotest.models.system_models import FileInfo
 from autotest.schemas.api.api_case import TestCaseRun, TCaseStepData
-from autotest.schemas.api.api_info import ApiBaseSchema, ApiInfoIn
-from autotest.schemas.step_data import TStepData, RequestMode
+from autotest.schemas.api.api_info import ApiInfoIn
+from autotest.schemas.step_data import TStepData, RequestMode, ApiBaseSchema
 from autotest.utils.des import decrypt_rsa_password
 from config import config
 from zerorunner.loader import load_module_functions, load_func_content
