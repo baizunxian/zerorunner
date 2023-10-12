@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Form
 
 from autotest.utils.local import g
 from autotest.utils.response.codes import CodeEnum
@@ -15,6 +15,12 @@ router = APIRouter()
 @router.post("/login", description="登录")
 async def login(params: UserLogin):
     data = await UserService.login(params)
+    return partner_success(data, msg="登录成功！")
+
+
+@router.post("/loginByDocs", description="登录")
+async def login_docs(username: str = Form(), password: str = Form()):
+    data = await UserService.login_by_docs(username, password)
     return partner_success(data, msg="登录成功！")
 
 

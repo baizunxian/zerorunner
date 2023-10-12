@@ -7,7 +7,7 @@ from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, Te
 from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
 from autotest.utils.async_converter import sync_to_async
 from autotest.utils.serialize import default_serialize
 from autotest.utils.snowflake import IDCenter

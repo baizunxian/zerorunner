@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 
+import click
 import uvicorn
 from fastapi import FastAPI, Depends
 
-from config import config
-from autotest.init.logger_init import init_logger, logger
-from autotest.init.redis_init import init_redis_pool
 from autotest.init.cors import init_cors
-from autotest.init.dependencies import set_global_request
+from autotest.init.dependencies import login_verification
 from autotest.init.exception import init_exception
+from autotest.init.logger_init import init_logger, logger
 from autotest.init.middleware import init_middleware
 from autotest.init.mount import init_mount
+from autotest.init.redis_init import init_redis_pool
 from autotest.init.routers import init_router
-import click
+from config import config
 
 app = FastAPI(title="zerorunner",
               description=config.PROJECT_DESC,
               version=config.PROJECT_VERSION,
-              dependencies=[Depends(set_global_request)])
+              dependencies=[Depends(login_verification)])
 
 
 async def init_app():

@@ -130,7 +130,7 @@ class TConfig(BaseModel):
 
 class TRequest(BaseModel):
     """请求模型"""
-    method: MethodEnum
+    method: typing.Union[str, MethodEnum]
     url: Url
     params: typing.Dict[str, str] = {}
     headers: Headers = {}

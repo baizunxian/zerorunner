@@ -397,6 +397,14 @@ const onOpenSaveOrUpdate = (editType, row) => {
 
 };
 
+//复制
+const copyApi = (row) => {
+  useApiInfoApi().copyApi({id: row.id}).then(() => {
+    getList()
+    ElMessage.success('复制成功 🎉')
+  })
+}
+
 // 删除
 const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {

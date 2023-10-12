@@ -26,19 +26,11 @@ def run_script_request(runner: SessionRunner,
     step.script_request = TScriptRequest(**parsed_request_dict)
     try:
         module_name = uuid.uuid4().hex
-        base_script_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "script_code.py")
-        with open(base_script_path, 'r', encoding='utf8') as f:
-            base_script = f.read()
-        script = f"{base_script}\n\n{step.script_request.script_content}"
+        script = f"{step.script_request.script_content}"
+        model, captured_output = load_script_content(step.script_request.script_content,
+                                                     f"{runner.config.case_id}_setup_code")
         script_module, _ = load_script_content(script, f"script_{module_name}")
-        headers = script_module.zero.headers.get_headers()
-        variables = script_module.zero.environment.get_environment()
-        for key, value in headers.items():
-            step_result.set_step_log(f"✏️设置请求头-> key:{key} value: {value}")
-        for key, value in variables.items():
-            step_result.set_step_log(f"✏️设置请变量-> key:{key} value: {value}")
-        runner.with_session_variables(variables)
-        functions = load_module_functions(script_module)
+        functions = load_module_functions(model)
         runner.with_functions(functions)
     except Exception as err:
         step_result.set_step_result_status(TStepResultStatusEnum.err)

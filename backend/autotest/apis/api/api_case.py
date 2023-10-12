@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
 from celery_worker.tasks.test_case import async_run_testcase
 from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \

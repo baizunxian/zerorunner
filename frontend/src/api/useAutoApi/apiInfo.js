@@ -22,6 +22,13 @@ export function useApiInfoApi() {
         data
       })
     },
+    copyApi(data) {
+      return request({
+        url: `${BaseApiPath}/copyApi`,
+        method: 'POST',
+        data
+      })
+    },
     deleted: (data) => {
       return request({
         url: `${BaseApiPath}/deleted`,

@@ -6,9 +6,9 @@ from autotest.schemas.api.api_case import TestCaseRun, TCaseStepData
 from autotest.schemas.ui.ui_case import UiCaseQuery, UiCaseId, UiCaseIn
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.ui.ui_report import UiReportService
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
 from zerorunner.ext.zero_driver.driver import ZeroDriver, DriverSetting
-from zerorunner.model.step_model import TStep, TUiRequest
+from zerorunner.model.step_model import TUiRequest
 from zerorunner.runner import SessionRunner
 from zerorunner.testcase import ZeroRunner
 
