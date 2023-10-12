@@ -73,7 +73,7 @@ class MenuService:
         if not menu.get('meta', None):
             menu['meta'] = {
                 'title': menu.get('title', None),
-                'isLink': menu.pop('isLink', None),
+                'isLink': menu.pop('linkUrl', ""),
                 'isHide': menu.pop('isHide', None),
                 'isKeepAlive': menu.pop('isKeepAlive', None),
                 'isAffix': menu.pop('isAffix', None),

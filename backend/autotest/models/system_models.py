@@ -2,7 +2,7 @@
 # @author: xiaobai
 import typing
 
-from sqlalchemy import String, Text, Integer, DateTime, select, update, Index, JSON
+from sqlalchemy import String, Text, Integer, DateTime, select, update, Index, JSON, Boolean
 from sqlalchemy.orm import aliased, mapped_column
 
 from autotest.models.base import Base
@@ -67,11 +67,12 @@ class Menu(Base):
     name = mapped_column(String(255), nullable=False, comment='菜单名称', index=True)
     component = mapped_column(Integer, comment='组件路径')
     title = mapped_column(String(255), comment='title', index=True)
-    isLink = mapped_column(Integer, comment='开启外链条件，`1、isLink: true 2、链接地址不为空（meta.isLink） 3、isIframe: false`')
-    isHide = mapped_column(Integer, default=False, comment='菜单是否隐藏（菜单不显示在界面，但可以进行跳转）')
-    isKeepAlive = mapped_column(Integer, default=True, comment='菜单是否缓存')
-    isAffix = mapped_column(Integer, default=False, comment='固定标签')
-    isIframe = mapped_column(Integer, default=False, comment='是否内嵌')
+    isLink = mapped_column(Boolean, comment='开启外链条件，`1、isLink: true 2、链接地址不为空（meta.isLink） 3、isIframe: false`')
+    linkUrl = mapped_column(String(255), comment='链接地址')
+    isHide = mapped_column(Boolean, default=False, comment='菜单是否隐藏（菜单不显示在界面，但可以进行跳转）')
+    isKeepAlive = mapped_column(Boolean, default=True, comment='菜单是否缓存')
+    isAffix = mapped_column(Boolean, default=False, comment='固定标签')
+    isIframe = mapped_column(Boolean, default=False, comment='是否内嵌')
     roles = mapped_column(String(64), default=False, comment='权限')
     icon = mapped_column(String(64), comment='icon', index=True)
     parent_id = mapped_column(Integer, comment='父级菜单id')

@@ -36,6 +36,8 @@ const getLogo = computed(() => {
   } else {
     if (layout === "defaults") return defaultLogo
     if (layout === "transverse") return transverseLogo
+    if (layout === "columns") return defaultLogo
+    if (layout === "classic") return transverseLogo
   }
 });
 
