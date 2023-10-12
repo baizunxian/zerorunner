@@ -48,7 +48,7 @@
 import {onDeactivated, reactive} from "vue";
 import {ElMessage} from 'element-plus';
 import UiStepInfo from "/@/views/ui/uiCase/uiStepInfo.vue";
-import config from "/@/config/config";
+import {getWebSocketUrl} from "/@/utils/config";
 
 const props = defineProps({
   stepDataList: {
@@ -84,8 +84,7 @@ const guid = () => {
 
 const websocket = () => {
   if ('WebSocket' in window) {
-    let url = `${config.WebSocketUrl}/api/ws/uiCase/debug/${state.uid}`
-    console.log(url, 'weburl')
+    let url = `${getWebSocketUrl()}/api/ws/uiCase/debug/${state.uid}`
     let ws = new WebSocket(url)
     state.ws = ws
     ws.onopen = (event) => {
