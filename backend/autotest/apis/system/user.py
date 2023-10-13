@@ -18,12 +18,6 @@ async def login(params: UserLogin):
     return partner_success(data, msg="登录成功！")
 
 
-@router.post("/loginByDocs", description="登录")
-async def login_docs(username: str = Form(), password: str = Form()):
-    data = await UserService.login_by_docs(username, password)
-    return partner_success(data, msg="登录成功！")
-
-
 @router.post("/logout", description="登出")
 async def logout():
     await UserService.logout()

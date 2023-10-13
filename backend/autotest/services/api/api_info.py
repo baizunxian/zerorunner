@@ -2,13 +2,13 @@ import typing
 
 from loguru import logger
 
-from autotest.utils.serialize import default_serialize
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.api_models import ApiInfo, ApiCase
+from autotest.models.api_models import ApiInfo, ApiCaseStep
 from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
 from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle_new import HandelRunApiStep
 from autotest.utils.current_user import current_user
+from autotest.utils.serialize import default_serialize
 from celery_worker.tasks import test_case
 from zerorunner.testcase import ZeroRunner
 
@@ -210,7 +210,7 @@ class ApiInfoService:
         if not api_info:
             raise ValueError('不存在当前接口！')
         # api关联到的测试用例
-        api_case_relation_data = await ApiCase.get_relation_by_api_id(params.id) or []
+        api_case_relation_data = await ApiCaseStep.get_relation_by_api_id(params.id) or []
         node_list = [dict(id=f"api_{params.id}", data=dict(id=params.id, type="api", name=api_info.get("name"),
                                                            created_by_name=api_info.get("created_by_name"),
                                                            creation_date=api_info.get("creation_date")))]

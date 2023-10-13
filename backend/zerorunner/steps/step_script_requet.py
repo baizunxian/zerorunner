@@ -16,7 +16,7 @@ from zerorunner.steps.step_result import TStepResult
 def run_script_request(runner: SessionRunner,
                        step: TStep,
                        step_tag: str = None,
-                       parent_step_result: StepResult = None):
+                       parent_step_result: TStepResult = None):
     step_result = TStepResult(step, step_tag=step_tag)
     step_result.start_log()
     start_time = time.time()
@@ -37,6 +37,8 @@ def run_script_request(runner: SessionRunner,
     finally:
         step_result.end_log()
         step_result = step_result.get_step_result()
+        if parent_step_result:
+            parent_step_result.set_step_log(step_result.log, show_time=False)
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
 

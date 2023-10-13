@@ -2,12 +2,13 @@ import axios from 'axios';
 import {ElMessage, ElMessageBox} from 'element-plus';
 import {Session} from '/@/utils/storage';
 import qs from 'qs';
+import {getApiBaseUrl} from "/@/utils/config";
 
 const cancelToken = axios.CancelToken
 const source = cancelToken.source()
 // 配置新建一个 axios 实例
 const service = axios.create({
-	baseURL: import.meta.env.VITE_API_BASE_URL + '/api' || "http://localhost:8080" + '/api',
+	baseURL: getApiBaseUrl(),
 	timeout: 50000,
 	headers: {'Content-Type': 'application/json'},
 	paramsSerializer: {
