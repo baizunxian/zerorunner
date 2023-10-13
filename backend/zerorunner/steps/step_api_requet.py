@@ -30,7 +30,7 @@ def call_hooks(
         hooks: Hooks,
         step_variables: VariablesMapping,
         hook_msg: str,
-        parent_step_result: StepResult
+        parent_step_result: TStepResult
 ) -> typing.Union[typing.List[StepResult], typing.Any]:
     """ 调用钩子.
 
@@ -117,7 +117,7 @@ def run_api_request(runner: SessionRunner,
                        hooks=step.setup_hooks,
                        step_variables=merge_variable,
                        hook_msg="setup_hooks",
-                       parent_step_result=step_result.get_step_result())
+                       parent_step_result=step_result)
             step_result.set_step_log("前置hook结束~~~")
         # setup code
         if step.setup_code:
@@ -224,7 +224,7 @@ def run_api_request(runner: SessionRunner,
                        hooks=step.teardown_hooks,
                        step_variables=merge_variable,
                        hook_msg="teardown_hooks",
-                       parent_step_result=step_result.get_step_result())
+                       parent_step_result=step_result)
             step_result.set_step_log("后置hook结束~~~")
             # code teardown 执行完成后重新合并变量
             merge_variable = runner.get_merge_variable(step=step)

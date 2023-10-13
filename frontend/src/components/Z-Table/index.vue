@@ -1,6 +1,6 @@
 <template>
   <el-table
-      :data="data"
+      :data="listData"
       :size="size"
       :tree-props="treeProps"
       :row-key="rowKey || ''"
@@ -242,6 +242,10 @@ const props = defineProps({
       return false
     }
   }
+})
+
+const listData = computed(() => {
+  return props.data.constructor === Array ? props.data : []
 })
 
 const state = reactive({

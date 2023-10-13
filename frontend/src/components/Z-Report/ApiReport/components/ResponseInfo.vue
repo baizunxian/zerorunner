@@ -120,7 +120,6 @@ watch(
 )
 
 onMounted(() => {
-
   nextTick(() => {
     initData()
   })

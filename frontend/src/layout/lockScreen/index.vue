@@ -28,9 +28,9 @@
 				<div v-show="state.isShowLoockLogin" class="layout-lock-screen-login">
 					<div class="layout-lock-screen-login-box">
 						<div class="layout-lock-screen-login-box-img">
-							<img src="" />
+							<img :src="userInfos.avatar" />
 						</div>
-						<div class="layout-lock-screen-login-box-name">Administrator</div>
+						<div class="layout-lock-screen-login-box-name">{{ userInfos.nickname }}</div>
 						<div class="layout-lock-screen-login-box-value">
 							<el-input
 								placeholder="请输入密码"
@@ -48,11 +48,11 @@
 							</el-input>
 						</div>
 					</div>
-					<div class="layout-lock-screen-login-icon">
-						<SvgIcon name="ele-Microphone" :size="20" />
-						<SvgIcon name="ele-AlarmClock" :size="20" />
-						<SvgIcon name="ele-SwitchButton" :size="20" />
-					</div>
+<!--					<div class="layout-lock-screen-login-icon">-->
+<!--						<SvgIcon name="ele-Microphone" :size="20" />-->
+<!--						<SvgIcon name="ele-AlarmClock" :size="20" />-->
+<!--						<SvgIcon name="ele-SwitchButton" :size="20" />-->
+<!--					</div>-->
 				</div>
 			</transition>
 		</div>
@@ -65,12 +65,15 @@ import { formatDate } from '/@/utils/formatTime';
 import { Local } from '/@/utils/storage';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
+import {useUserInfo} from "/@/stores/userInfo";
 
 // 定义变量内容
 const layoutLockScreenDateRef = ref();
 const layoutLockScreenInputRef = ref();
 const storesThemeConfig = useThemeConfig();
+const userInfo = useUserInfo()
 const { themeConfig } = storeToRefs(storesThemeConfig);
+const { userInfos } = storeToRefs(userInfo);
 const state = reactive({
 	transparency: 1,
 	downClientY: 0,

@@ -115,6 +115,23 @@
       <ReportDetail :report-id="state.reportInfo.id" ref="reportDetailRef"/>
 
     </el-dialog>
+
+    <!--    关系弹窗-->
+    <el-dialog
+        draggable
+        v-if="state.showApiRelation"
+        v-model="state.showApiRelation"
+        width="60%"
+        class="relation-draggable"
+        top="5vh"
+        destroy-on-close
+        :close-on-click-modal="false">
+      <template #header>
+        <strong>接口关系</strong>
+      </template>
+      <ApiRelationGraph :data="state.relationData"></ApiRelationGraph>
+    </el-dialog>
+
     <!--    postman 导入 import-->
     <el-dialog
         draggable
@@ -206,6 +223,8 @@ import {useModuleApi} from "/@/api/useAutoApi/module";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {getMethodColor} from "/@/utils/case";
 import {useUserInfo} from '/@/stores/userInfo';
+import ApiRelationGraph from "/@/components/RelationGraph/ApiRelationGraph.vue";
+
 
 const userInfoStore = useUserInfo()
 
@@ -247,7 +266,7 @@ const state = reactive({
     {key: 'creation_date', label: '创建时间', width: '150', show: true},
     {key: 'created_by_name', label: '创建人', width: 'auto', show: true},
     {
-      label: '操作', fixed: 'right', width: '200', align: 'center',
+      label: '操作', fixed: 'right', width: '280', align: 'center',
       render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "success",
@@ -262,6 +281,14 @@ const state = reactive({
             onOpenSaveOrUpdate("update", row)
           }
         }, () => '编辑'),
+
+        h(ElButton, {
+          type: "primary",
+          color: "#626aef",
+          onClick: () => {
+            getRelationData(row)
+          }
+        }, () => '血缘关系'),
 
         h(ElButton, {
           type: "danger",
@@ -331,6 +358,9 @@ const state = reactive({
   },
   // oneSelf
   oneSelf: false,
+  //Relation
+  showApiRelation: false,
+  relationData: [],
 });
 
 
@@ -359,10 +389,21 @@ const getSelectionData = () => {
 const onOpenSaveOrUpdate = (editType, row) => {
   let query = {}
   query.editType = editType
+  if (query.editType === 'save') {
+    query.timeStamp = new Date().getTime()
+  }
   if (row) query.id = row.id
   router.push({name: 'EditApiInfo', query: query})
 
 };
+
+//复制
+const copyApi = (row) => {
+  useApiInfoApi().copyApi({id: row.id}).then(() => {
+    getList()
+    ElMessage.success('复制成功 🎉')
+  })
+}
 
 // 删除
 const deleted = (row) => {
@@ -470,6 +511,14 @@ const oneSelfChange = (val) => {
   getList()
 }
 
+const getRelationData = (row) => {
+  useApiInfoApi().getUseApiRelation({id: row.id}).then(res => {
+    console.log(res.data, 'res.data')
+    state.relationData = res.data
+    state.showApiRelation = true
+  })
+}
+
 defineExpose({
   getSelectionData,
 })
@@ -555,4 +604,7 @@ onMounted(() => {
   }
 }
 
+:deep(.relation-draggable .el-dialog__body) {
+  height: 80vh;
+}
 </style>

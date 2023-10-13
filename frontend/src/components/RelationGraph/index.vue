@@ -2,21 +2,29 @@
   <div class="h100">
     <div class="h100" ref="relationGraphBox" @click="state.isShowNodeMenuPanel = false">
       <RelationGraph ref="relationGraph$" :options="state.graphOptions">
-        <template #node="{node}"
-        >
-          <div @mouseover="nodeSlotOver(node, $event)"
-               @mouseout="nodeSlotOut(node, $event)"
-               @contextmenu.prevent.stop="showNodeMenus(node, $event)"
-          >
-            <div
-                style="height:80px;line-height: 80px;border-radius: 50%;cursor: pointer;">
-              <i style="font-size: 30px;" :class="node.data.myicon"/>
-            </div>
-            <div
-                style="color: forestgreen;font-size: 16px;position: absolute;width: 160px;height:25px;line-height: 25px;margin-top:5px;margin-left:-48px;text-align: center;background-color: rgba(66,187,66,0.2);">
-              {{ node.data.myicon }}
-            </div>
+        <template #node="{node}">
+
+          <div style="width:200px;cursor: pointer; color: black">
+              {{node.data.name}}
           </div>
+          <!--          <div @mouseover="nodeSlotOver(node, $event)"-->
+          <!--               @mouseout="nodeSlotOut(node, $event)"-->
+          <!--               @contextmenu.prevent.stop="showNodeMenus(node, $event)"-->
+          <!--          >-->
+          <!--            <div-->
+          <!--                style="height:80px;line-height: 80px;border-radius: 50%;cursor: pointer;">-->
+          <!--              <i style="font-size: 30px;" :class="node.data.myicon"/>-->
+          <!--            </div>-->
+          <!--            <div-->
+          <!--                style="-->
+          <!--                        color: forestgreen;-->
+          <!--                        font-size:-->
+          <!--                        16px;position: absolute;-->
+          <!--                        width: 160px;-->
+          <!--                        height:25px;line-height: 25px;margin-top:5px;margin-left:-48px;text-align: center;background-color: rgba(66,187,66,0.2);">-->
+          <!--              {{ node.text }}-->
+          <!--            </div>-->
+          <!--          </div>-->
         </template>
 
       </RelationGraph>
@@ -49,15 +57,15 @@
 </template>
 
 <script setup name="RelationGraph">
-import {onMounted, reactive, ref} from "vue";
+import {onMounted, reactive, ref, watch, nextTick} from "vue";
 import RelationGraph from 'relation-graph/vue3'
 
 const relationGraphBox = ref()
 const relationGraph$ = ref()
 
 const props = defineProps({
-  value: {
-    type: Array,
+  data: {
+    type: Object,
     default: () => []
   }
 })
@@ -74,36 +82,36 @@ const state = reactive({
   },
   graphOptions: {
     // http://relation-graph.com/#/docs/graph  配置说明
-    defaultExpandHolderPosition: 'right',
+    // defaultExpandHolderPosition: 'right',
     // defaultLineShape: 4,
     debug: false,
-    showDebugPanel: true,
+    showDebugPanel: false,
+    defaultNodeShape: 1,
+    defaultNodeColor: '#ffffff',
+    defaultNodeBorderWidth: 1,
+    defaultNodeBorderColor: '#ffffff',
     defaultJunctionPoint: 'border',
+    'layouts': [
+      {
+        'label': '中心',
+        'layoutName': 'center',
+        'layoutClassName': 'seeks-layout-center'
+      }
+    ],
   },
 });
 
-onMounted(() => {
-  const graphJsonData = {
-    rootId: 'N3',
-    nodes: [
-      {id: 'N4', text: '十4'},
-      {id: 'N5', text: '十5'},
-      {id: 'N6', text: '十6'},
-      {id: 'N7', text: '十7'},
-      {id: 'N3', text: '十三'},
-      {id: 'N9', text: '152****3393'},
-    ],
-    lines: [
-      {from: 'N3', to: 'N9', text: '分享'},
-      {from: 'N3', to: 'N4', text: '分享444'},
-      {from: 'N3', to: 'N5', text: '分享555'},
-      {from: 'N3', to: 'N6', text: '分享666'},
-      {from: 'N3', to: 'N7', text: '分享777'},
-      {from: 'N9', to: 'N4', text: '分享x'}
-    ],
-  };
-  relationGraph$.value.setJsonData(graphJsonData, () => {
+const initData = () => {
+  relationGraph$.value.setJsonData(props.data, () => {
   })
+  nextTick(() => {
+    relationGraph$.value.onGraphResize()
+    relationGraph$.value.refresh()
+  })
+}
+
+onMounted(() => {
+  initData()
 })
 
 const showMenu = () => {
@@ -138,6 +146,16 @@ const doAction = (actionName) => {
   state.isShowNodeMenuPanel = false;
 }
 
+
+watch(
+    () => props.data,
+    () => {
+      nextTick(() => {
+        initData()
+      })
+    },
+    {deep: true}
+)
 
 defineExpose({
   showMenu

@@ -411,11 +411,6 @@ class ApiCase(Base):
         return await cls.pagination(stmt)
 
     @classmethod
-    def get_case_by_id(cls, id):
-        """根据套件id查询用例"""
-        return cls.query.filter(cls.id == id, cls.enabled_flag == 1).first()
-
-    @classmethod
     async def get_case_by_ids(cls, ids: typing.List[int]):
         """根据套件ids查询用例"""
         stmt = select(cls.get_table_columns()).where(cls.id.in_(ids), cls.enabled_flag == 1)
@@ -436,6 +431,7 @@ class ApiCase(Base):
 
     @classmethod
     def statistic_project_case_number(cls):
+        """统计项目用例数量"""
         return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(User, User.id == cls.created_by) \
             .with_entities(ProjectInfo.name,
@@ -444,10 +440,6 @@ class ApiCase(Base):
                            User.nickname.label('username'),
                            ) \
             .filter(cls.enabled_flag == 1)
-
-    @classmethod
-    def get_all_count(cls):
-        return cls.query.filter(cls.enabled_flag == 1).count()
 
 
 class ApiCaseStep(Base):
@@ -516,6 +508,27 @@ class ApiCaseStep(Base):
                 .where(cls.case_id == case_id,
                        cls.version == version,
                        cls.enabled_flag == 1).order_by(cls.index.asc()))
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_relation_by_api_id(cls, api_id: typing.Union[str, int]):
+        """获取关联关系，那些case 使用了对应的api"""
+        q = [cls.enabled_flag == 1]
+        stmt = select(
+            cls.id.label("case_step_id"),
+            ApiCase.id.label("case_id"),
+            ApiCase.name.label("case_name"),
+            ApiCase.creation_date,
+            func.concat("case_", ApiCase.id).label("relation_id"),
+            func.concat("case").label('type'),
+        ) \
+            .join(ApiCase, and_(cls.case_id == ApiCase.id,
+                                cls.version == ApiCase.version,
+                                ApiCase.enabled_flag == 1
+                                )) \
+            .where(*q, ApiCaseStep.api_id == api_id) \
+            .group_by(ApiCase.id) \
+            .order_by(ApiCase.id.desc())
         return await cls.get_result(stmt)
 
 

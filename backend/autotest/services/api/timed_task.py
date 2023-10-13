@@ -11,7 +11,7 @@ from autotest.exceptions.exceptions import ParameterError
 from autotest.models.celery_beat_models import TimedTask, Crontab, IntervalSchedule, PeriodicTaskChanged
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, CrontabSaveSchema, TimedTasksInSchema, TimedTasksId, \
     TaskKwargsIn, IntervalIn
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
 from celery_worker.worker import celery
 
 

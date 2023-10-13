@@ -24,7 +24,6 @@
 
 <script setup name="RepositoryManager">
 import {h, onMounted, reactive, ref} from 'vue';
-import {useRoute, useRouter} from "vue-router";
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useRepositoryApi} from "/@/api/useCoverageApi/repository";
 import CoverageInfo from "/@/views/precisionTest/RepositoryManager/coverageInfo.vue";

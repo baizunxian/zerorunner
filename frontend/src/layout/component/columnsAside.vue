@@ -5,7 +5,7 @@
         <li
             v-for="(v, k) in state.columnsAsideList"
             :key="k"
-            @click="onColumnsAsideMenuClick(v, k)"
+            @click="onColumnsAsideMenuClick(v)"
             @mouseenter="onColumnsAsideMenuMouseenter(v, k)"
             :ref="
 						(el) => {
@@ -45,10 +45,9 @@
 </template>
 
 <script setup name="layoutColumnsAside">
-import {nextTick, onMounted, onUnmounted, reactive, ref, watch} from 'vue';
-import {onBeforeRouteUpdate, useRoute, useRouter} from 'vue-router';
+import {reactive, ref, onMounted, nextTick, watch, onUnmounted} from 'vue';
+import {useRoute, useRouter, onBeforeRouteUpdate} from 'vue-router';
 import {storeToRefs} from 'pinia';
-import pinia from '/@/stores/index';
 import {useRoutesList} from '/@/stores/routesList';
 import {useThemeConfig} from '/@/stores/themeConfig';
 import mittBus from '/@/utils/mitt';
@@ -74,15 +73,31 @@ const state = reactive({
 
 // 设置菜单高亮位置移动
 const setColumnsAsideMove = (k) => {
+  if (k === undefined) return false;
   state.liIndex = k;
   columnsAsideActiveRef.value.style.top = `${columnsAsideOffsetTopRefs.value[k].offsetTop + state.difference}px`;
 };
 // 菜单高亮点击事件
-const onColumnsAsideMenuClick = (v, k) => {
-  setColumnsAsideMove(k);
-  let {path, redirect} = v;
-  if (redirect) router.push(redirect);
-  else router.push(path);
+const onColumnsAsideMenuClick = (v) => {
+  const {path, redirect} = v;
+  if (redirect) {
+    onColumnsAsideDown(v.k);
+    if (route.path.startsWith(redirect)) mittBus.emit('setSendColumnsChildren', setSendChildren(redirect));
+    else router.push(redirect);
+  } else {
+    if (!v.children) {
+      router.push(path);
+    } else {
+      // 显示子级菜单
+      const resData = setSendChildren(path);
+      if (Object.keys(resData).length <= 0) return false;
+      onColumnsAsideDown(resData.item?.k);
+      mittBus.emit('setSendColumnsChildren', resData);
+    }
+  }
+  // 一个路由设置自动收起菜单
+  if (!v.children) themeConfig.value.isCollapse = true;
+  else if (v.children.length > 1) themeConfig.value.isCollapse = false;
 };
 // 鼠标移入时，显示当前的子级菜单
 const onColumnsAsideMenuMouseenter = (v, k) => {
@@ -97,6 +112,7 @@ const onColumnsAsideMenuMouseenter = (v, k) => {
 };
 // 鼠标移走时，显示原来的子级菜单
 const onColumnsAsideMenuMouseleave = async () => {
+  if (!themeConfig.value.isColumnsMenuHoverPreload) return false;
   await stores.setColumnsNavHover(false);
   // 添加延时器，防止拿到的 store.state.routesList 值不是最新的
   setTimeout(() => {
@@ -109,13 +125,21 @@ const onColumnsAsideDown = (k) => {
     setColumnsAsideMove(k);
   });
 };
+// 设置只有一个路由时设置自动收起菜单
+const setMenuAutoCollaps = (path) => {
+  const resData = setSendChildren(path);
+  resData.children.length <= 1 ? (themeConfig.value.isCollapse = true) : (themeConfig.value.isCollapse = false);
+  return resData;
+};
 // 设置/过滤路由（非静态路由/是否显示在菜单中）
 const setFilterRoutes = () => {
   state.columnsAsideList = filterRoutesFun(routesList.value);
-  const resData = setSendChildren(route.path);
-  if (Object.keys(resData).length <= 0) return false;
+  const resData = setMenuAutoCollaps(route.path);
   onColumnsAsideDown(resData.item?.k);
-  mittBus.emit('setSendColumnsChildren', resData);
+  // 延迟 500 毫秒更新，防止 aside.vue 组件 setSendColumnsChildren 还没有注册
+  setTimeout(() => {
+    mittBus.emit('setSendColumnsChildren', resData);
+  }, 500);
 };
 // 传送当前子级数据到菜单中
 const setSendChildren = (path) => {
@@ -169,15 +193,16 @@ onUnmounted(() => {
 });
 // 路由更新时
 onBeforeRouteUpdate((to) => {
+  const resData = setMenuAutoCollaps(to.path);
   setColumnsMenuHighlight(to.path);
-  mittBus.emit('setSendColumnsChildren', setSendChildren(to.path));
+  mittBus.emit('setSendColumnsChildren', resData);
 });
 // 监听布局配置信息的变化，动态增加菜单高亮位置移动像素
 watch(
-    pinia.state,
-    (val) => {
-      val.themeConfig.themeConfig.columnsAsideStyle === 'columnsRound' ? (state.difference = 3) : (state.difference = 0);
-      if (!val.routesList.isColumnsMenuHover && !val.routesList.isColumnsNavHover) {
+    [() => themeConfig.value.columnsAsideStyle, isColumnsMenuHover, isColumnsNavHover],
+    () => {
+      themeConfig.value.columnsAsideStyle === 'columnsRound' ? (state.difference = 3) : (state.difference = 0);
+      if (!isColumnsMenuHover.value && !isColumnsNavHover.value) {
         state.liHoverIndex = null;
         mittBus.emit('setSendColumnsChildren', setSendChildren(route.path));
       } else {
@@ -201,7 +226,8 @@ watch(
   ul {
     position: relative;
 
-    .layout-columns-active {
+    .layout-columns-active,
+    .layout-columns-active a {
       color: var(--next-bg-columnsMenuBarColor) !important;
       transition: 0.3s ease-in-out;
     }

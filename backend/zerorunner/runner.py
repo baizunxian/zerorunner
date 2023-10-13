@@ -23,6 +23,7 @@ from zerorunner.model.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
     Parser, parse_variables_mapping
 from zerorunner.response import uniform_validator
+from zerorunner.steps.step_result import TStepResult
 from zerorunner.utils import merge_variables
 
 
@@ -93,15 +94,15 @@ class SessionRunner(object):
     def get_session_variables(self):
         return self.__session_variables
 
-    def append_step_result(self, step_result: StepResult, step_tag: str = None, parent_step_result: StepResult = None):
+    def append_step_result(self, step_result: StepResult, step_tag: str = None, parent_step_result: TStepResult = None):
         """setup_hooks teardown_hooks"""
         if parent_step_result:
             if step_tag and step_tag == "setup_hooks":
-                parent_step_result.setup_hook_results.append(step_result)
+                parent_step_result.get_step_result().setup_hook_results.append(step_result)
             elif step_tag and step_tag == "teardown_hooks":
-                parent_step_result.teardown_hook_results.append(step_result)
+                parent_step_result.get_step_result().teardown_hook_results.append(step_result)
             else:
-                parent_step_result.step_result.append(step_result)
+                parent_step_result.get_step_result().step_result.append(step_result)
         else:
             self.__step_results.append(step_result)
 
@@ -269,7 +270,7 @@ class SessionRunner(object):
         )
         return testcase_summary
 
-    def run_step(self, step, step_tag: str = None, parent_step_result: StepResult = None):
+    def run_step(self, step, step_tag: str = None, parent_step_result: TStepResult = None):
         """运行步骤，可以运行实现IStep run 方法的任何步骤
         Args:
             step (Step): obj IStep

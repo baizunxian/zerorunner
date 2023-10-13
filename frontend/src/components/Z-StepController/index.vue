@@ -107,6 +107,8 @@ const computeDataIndex = (data) => {
       e.index = index + 1
       if (e.sub_steps) {
         computeDataIndex(e.sub_steps)
+      } else  {
+        e.sub_steps = []
       }
     })
   }
@@ -156,6 +158,7 @@ const getStepData = () => {
     script_request: null,
     showDetail: false,
     ui_request: null,
+    sub_steps: []
   }
   return stepData
 }

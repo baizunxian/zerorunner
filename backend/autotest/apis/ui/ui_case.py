@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from autotest.utils.response.http_response import partner_success
 from autotest.schemas.ui.ui_case import UiCaseQuery, UiCaseId, UiCaseIn, UiTestCaseRun
 from autotest.services.ui.ui_case import UiCaseServer
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
 from celery_worker.tasks.ui_case import async_run_ui
 
 router = APIRouter()

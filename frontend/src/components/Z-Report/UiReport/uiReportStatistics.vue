@@ -126,7 +126,7 @@
 
 <script setup name="ReportStatistics">
 import * as ECharts from 'echarts'
-import {nextTick, onMounted, onUnmounted, PropType, reactive, ref, watch} from "vue";
+import {nextTick, onMounted, onUnmounted, reactive, ref, watch} from "vue";
 
 
 const props = defineProps({

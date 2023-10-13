@@ -54,15 +54,15 @@ class TStepResult:
     def get_step_result(self):
         return self.result
 
-    def set_step_log(self, message: str = None):
+    def set_step_log(self, message: str = None, show_time: bool = True):
         """
         args :
             message: 日志内容
             log_type: 内容类型 start end  success fail skip err 等
         """
         if message:
-            log_header = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}:"
-            self.result.log += f"{log_header}{message}\n"
+            message = message if message.endswith('\n') else message + '\n'
+            self.result.log += f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ':' if show_time else ''}{message}"
 
     def start_log(self, message: str = None):
         new_msg = f"\n{message}" if message else ""

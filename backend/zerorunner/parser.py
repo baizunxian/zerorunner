@@ -12,6 +12,7 @@ import typing
 from loguru import logger
 from zerorunner import loader, utils, exceptions
 from zerorunner.model.base import VariablesMapping, FunctionsMapping
+from zerorunner.utils import default_serialize
 
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 
@@ -34,6 +35,18 @@ def parse_string_value(str_value: str) -> typing.Any:
     try:
         return ast.literal_eval(str_value)
     except ValueError:
+        return str_value
+    except SyntaxError:
+        # e.g. $var, ${func}
+        return str_value
+
+
+def parse_string_to_json(str_value: str):
+    try:
+        return json.loads(str_value)
+    except TypeError:
+        return str_value
+    except JSONDecodeError:
         return str_value
     except SyntaxError:
         # e.g. $var, ${func}
@@ -232,7 +245,7 @@ def get_mapping_variable(
         return variables_mapping[variable_name]
     except KeyError:
         raise exceptions.VariableNotFound(
-            f"变量 {variable_name} 不在变量池中\n{json.dumps(variables_mapping, indent=4, ensure_ascii=False)}"
+            f"变量 {variable_name} 不在变量池中\n{json.dumps(default_serialize(variables_mapping), indent=4, ensure_ascii=False)}"
         )
 
 

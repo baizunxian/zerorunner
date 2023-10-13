@@ -225,7 +225,7 @@
 </template>
 
 <script setup name="EditApiCase">
-import {onMounted, reactive, ref} from 'vue';
+import {onActivated, onMounted, reactive, ref, watch} from 'vue';
 import {ElMessage} from "element-plus";
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRoute, useRouter} from "vue-router"
@@ -400,10 +400,17 @@ const handleAddData = (optType) => {
 const goBack = () => {
   router.push({name: 'apiCase'})
 }
+
+onActivated(() => {
+  if (state.timeStamp != route.query.timeStamp) {
+    state.timeStamp = route.query.timeStamp
+    initData()
+  }
+})
+
 // 页面加载时
 onMounted(() => {
   initData()
-  // getEnvList()
   getProjectList()
 });
 

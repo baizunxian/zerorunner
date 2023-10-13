@@ -16,7 +16,7 @@ class RequestMode(Enum):
     RAW = "raw"
     FORM_DATA = "form_data"
     FILE = "file"
-    FORM_URLENCODED = "form-urlencoded"
+    X_WWW_FORM_URLENCODED = "x_www_form_urlencoded"
     none = "none"
     JSON = "json"
     TEXT = "text"
@@ -33,10 +33,16 @@ class ApiBodyFileDataSchema(BaseSchema):
     type: str = Field("", description="类型 file text")
 
 
+class ApiBaseSchema(BaseModel):
+    key: str = Field(None, description="")
+    value: typing.Any = Field(None, description="")
+    remarks: str = Field(None, description="")
+
+
 class TRequestData(TRequest):
     mode: str = Field("", description="模式 raw  form-data 等")
-    data: typing.Union[str, typing.List[ApiBodyFileDataSchema]] = Field(None,
-                                                                        description="数据json 数据 或者form-data数据等")
+    data: typing.Union[str, typing.List[typing.Union[ApiBodyFileDataSchema, ApiBaseSchema]]] = Field(None,
+                                                                                                     description="数据json 数据 或者form-data数据等")
     language: str = Field("", description="raw 中包含json text 等")
     upload: typing.Dict = Field({}, description="上传文件的数据")
     headers: typing.List[typing.Any] = Field([], description="请求头")
