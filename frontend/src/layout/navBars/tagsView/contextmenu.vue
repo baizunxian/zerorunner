@@ -56,7 +56,7 @@ const state = reactive({
 		{ contextMenuClickId: 1, txt: '关闭', affix: false, icon: 'ele-Close' },
 		{ contextMenuClickId: 2, txt: '关闭其它', affix: false, icon: 'ele-CircleClose' },
 		{ contextMenuClickId: 3, txt: '全部关闭', affix: false, icon: 'ele-FolderDelete' },
-		{ contextMenuClickId: 4, txt: '当前页全屏', affix: false, icon: 'iconfont icon-fullscreen' },
+		{ contextMenuClickId: 4, txt: '当前页全屏', affix: false, icon: 'iconfont icon-quanping' },
 	],
 	item: {},
 	arrowLeft: 10,
