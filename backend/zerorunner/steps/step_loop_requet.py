@@ -7,15 +7,13 @@ import typing
 
 from loguru import logger
 
-import zerorunner.parser
 from zerorunner import exceptions
-from zerorunner.model.base import TStepLogType, TStepResultStatusEnum, LoopTypeEnum
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep, TLoopRequest
+from zerorunner.model.base import TStepResultStatusEnum, LoopTypeEnum
+from zerorunner.model.step_model import TStep
+from zerorunner.parser import parse_string_to_json
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
 from zerorunner.steps.step_result import TStepResult
-from zerorunner.parser import parse_string_to_json
 
 
 def run_loop_request(runner: SessionRunner,
@@ -52,7 +50,7 @@ def run_loop_request(runner: SessionRunner,
             for_variable_name = step.loop_request.for_variable_name
             merge_variable = runner.get_merge_variable()
             iterable_obj = parse_string_to_json(step.loop_request.for_variable)
-            iterable_obj = runner.parser.parse_data(step.loop_request.for_variable, merge_variable)
+            iterable_obj = runner.parser.parse_data(iterable_obj, merge_variable)
             if not isinstance(iterable_obj, typing.Iterable):
                 step_result.set_step_log(f"for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
                 raise ValueError("for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
@@ -64,7 +62,7 @@ def run_loop_request(runner: SessionRunner,
                     # 执行循环
                     runner.execute_loop(steps=step.loop_request.teststeps,
                                         step_tag=f"For {for_variable_value}",
-                                        parent_step_result=step_result.get_step_result())
+                                        parent_step_result=step_result)
                     time.sleep(step.loop_request.for_sleep_time)
                 except Exception as err:
                     logger.error(err)
@@ -92,7 +90,7 @@ def run_loop_request(runner: SessionRunner,
                 try:
                     runner.execute_loop(steps=step.loop_request.teststeps,
                                         step_tag=f"while {check_value}",
-                                        parent_step_result=step_result.get_step_result())
+                                        parent_step_result=step_result)
                     step_result.set_step_result_status(TStepResultStatusEnum.success)
                 except Exception as err:
                     # 执行for循环错误

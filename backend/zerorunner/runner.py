@@ -304,7 +304,7 @@ class SessionRunner(object):
     def execute_loop(self,
                      steps: typing.List[object],
                      step_tag=None,
-                     parent_step_result: StepResult = None):
+                     parent_step_result: TStepResult = None):
         """
         执行循环
         :param steps: 步骤

@@ -42,7 +42,7 @@ class ValidatorData(BaseModel):
 
 class TRequest(BaseModel):
     """api 请求模型"""
-    method: MethodEnum = Field(..., description="请求方法")
+    method: typing.Union[str, MethodEnum] = Field(..., description="请求方法")
     url: Url = Field(..., description="请求url")
     params: typing.Dict[str, str] = Field({}, description="参数")
     headers: Headers = Field({}, description="请求头")

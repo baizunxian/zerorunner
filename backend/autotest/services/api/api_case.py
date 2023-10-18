@@ -176,3 +176,8 @@ class ApiCaseService:
             return 0
         if count_info:
             return count_info.get("count", 0)
+
+    @staticmethod
+    def run_callback(*args, **kwargs):
+        print(1111)
+        ...

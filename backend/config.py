@@ -54,13 +54,16 @@ class Configs(BaseSettings):
     # dir
     BASEDIR: str = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
-    # job
+    # celery worker
     broker_url: str = Field(..., env="CELERY_BROKER_URL")
-    result_backend: str = Field(..., env="CELERY_RESULT_BACKEND")
-    accept_content: typing.List[str] = ["json"]
-    result_serializer: str = "json"
+    # result_backend: str = Field(..., env="CELERY_RESULT_BACKEND")
+    task_serializer: str = "pickle"
+    result_serializer: str = "pickle"
+    accept_content: typing.Tuple = ("pickle", "json",)
+    task_protocol: int = 2
     timezone: str = "Asia/Shanghai"
     enable_utc: bool = False
+    broker_connection_retry_on_startup: bool = True
     # 并发工作进程/线程/绿色线程执行任务的数量 默认10
     worker_concurrency: int = 10
     # 一次预取多少消息乘以并发进程数 默认4

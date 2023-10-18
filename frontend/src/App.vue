@@ -1,8 +1,8 @@
 <template>
   <el-config-provider :size="getGlobalComponentSize" :locale="zhCn">
-    <router-view v-show="themeConfig.lockScreenTime > 1"/>
+    <router-view v-show="setLockScreen"/>
     <LockScreen v-if="themeConfig.isLockScreen"/>
-    <Settings ref="settingsRef" v-show="themeConfig.lockScreenTime > 1"/>
+    <Settings ref="settingsRef" v-show="setLockScreen"/>
     <CloseFull v-if="!themeConfig.isLockScreen"/>
     <Upgrade v-if="getVersion"/>
   </el-config-provider>
@@ -33,6 +33,12 @@ const stores = useTagsViewRoutes();
 const storesThemeConfig = useThemeConfig();
 const {themeConfig} = storeToRefs(storesThemeConfig);
 
+// 设置锁屏时组件显示隐藏
+const setLockScreen = computed(() => {
+  // 防止锁屏后，刷新出现不相关界面
+  return themeConfig.value.isLockScreen ? themeConfig.value.lockScreenTime > 1 : themeConfig.value.lockScreenTime >= 0;
+});
+
 // 获取版本号
 const getVersion = computed(() => {
   let isVersion = false;
@@ -57,7 +63,7 @@ onBeforeMount(() => {
 onMounted(() => {
   nextTick(() => {
     // 监听布局配'置弹窗点击打开
-    mittBus.on('openSetingsDrawer', () => {
+    mittBus.on('openSettingsDrawer', () => {
       settingsRef.value.openDrawer();
     });
     // 获取缓存中的布局配置
@@ -73,7 +79,7 @@ onMounted(() => {
 });
 // 页面销毁时，关闭监听布局配置/i18n监听
 onUnmounted(() => {
-  mittBus.off('openSetingsDrawer', () => {
+  mittBus.off('openSettingsDrawer', () => {
   });
 });
 // 监听路由的变化，设置网站标题

@@ -2,20 +2,22 @@
 # @author: xiao bai
 
 import json
+import pickle
 import typing
 from aioredis import Redis, DataError
 from redis.typing import KeyT, FieldT, EncodableT, AnyFieldT
+from redis import Redis as SyncRedis
 
 
-class MyRedis(Redis):
-    """ 继承Redis,并添加自己的方法 """
+class MyAsyncRedis(Redis):
+    """ 异步Redis,并添加自己的方法 """
 
     # 写 __init__ 的话就取消下面注释
     # def __init__(self, connection_pool):
     #     # print(connection_pool)
     #     super(RedisPlus, self).__init__(connection_pool=connection_pool)
     async def get(self, name: str) -> typing.Any:
-        data = await super(MyRedis, self).get(name)
+        data = await super(MyAsyncRedis, self).get(name)
         return json.loads(data) if data else None
 
     async def set(
@@ -24,7 +26,7 @@ class MyRedis(Redis):
             value: typing.Any,
             ex: typing.Optional[int] = None,
     ) -> typing.Any:
-        return await super(MyRedis, self).set(name, json.dumps(value), ex=ex)
+        return await super(MyAsyncRedis, self).set(name, json.dumps(value), ex=ex)
 
     async def list_loads(self, key: str, num: int = -1) -> list:
         """
@@ -55,6 +57,25 @@ class MyRedis(Redis):
             return json.loads(r)
         return None
 
+    async def cus_lpush_by_pickle(self, key: str, value: typing.Union[str, list, dict]):
+        """
+        向列表右侧插入数据
+        :param key: 列表的key
+        :param value: 插入的值
+        """
+        text = pickle.dumps(value)
+        await self.lpush(key, text)
+
+    async def cus_lpop_by_pickle(self, key: str):
+        """
+        获取list数据
+        :param key: 列表的key
+        """
+        r = await self.lpop(key)
+        if r:
+            return pickle.loads(r)
+        return None
+
     async def hset(
             self,
             name: KeyT,
@@ -83,3 +104,11 @@ class MyRedis(Redis):
         """
         value = await self.lindex(key, id)
         return json.loads(value)
+
+
+class MySyncRedis(SyncRedis):
+    """同步redis"""
+
+    def get(self, name: str) -> typing.Any:
+        data = super(MySyncRedis, self).get(name)
+        return json.loads(data) if data else None

@@ -12,13 +12,17 @@ from celery._state import _task_stack
 from celery.signals import setup_logging, task_prerun
 from celery.worker.request import Request
 
-from config import config
-from autotest.utils.local import g
 from autotest.init.logger_init import InterceptHandler, logger
-from autotest.init.redis_init import init_redis_pool
+from autotest.init.redis_init import init_async_redis_pool
 from autotest.schemas.job.task_record import TaskRecordIn
 from autotest.services.job.task_record import TaskRecordServer
 from autotest.utils.async_converter import AsyncIOPool
+from autotest.utils.local import g
+from autotest.utils.serialize import MyJsonDecode
+from config import config
+
+WorkerPool = AsyncIOPool()
+
 
 
 class TaskRequest(Request):
@@ -82,10 +86,11 @@ def receiver_task_pre_run(task: Task, *args, **kwargs):
             start_time=datetime.datetime.now(),
             status="RUNNING",
             business_id=business_id,
-            args=json.dumps(task.request.args),
-            kwargs=json.dumps(task.request.kwargs)
+            args=json.dumps(task.request.args, cls=MyJsonDecode),
+            kwargs=json.dumps(task.request.kwargs, cls=MyJsonDecode),
         )
-        AsyncIOPool.run_in_pool(TaskRecordServer.save_or_update(params))
+        WorkerPool.run(TaskRecordServer.save_or_update(params))
+        logger.info(f"task pre run task id [{task.request.id}]")
     except:
         logger.error(f"task pre run error:\n{traceback.format_exc()}")
 
@@ -106,13 +111,13 @@ def create_celery():
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
-        def send_task(self, *args, **kwargs):
-            headers = {"headers": {"trace_id": g.trace_id}}
-            if kwargs:
-                kwargs.update(headers)
-            else:
-                kwargs = headers
-            return super().send_task(*args, **kwargs)
+        # def send_task(self, *args, **kwargs):
+        #     headers = {"headers": {"trace_id": g.trace_id}}
+        #     if kwargs:
+        #         kwargs.update(headers)
+        #     else:
+        #         kwargs = headers
+        #     return super().send_task(*args, **kwargs)
 
     class ContextTask(Task, ABC):
         Request = TaskRequest
@@ -132,8 +137,6 @@ def create_celery():
             return super(ContextTask, self).apply_async(args, kwargs, task_id, producer, link, link_error,
                                                         shadow, **options)
 
-        def send_task(self):
-            ...
 
         def on_success(self, retval, task_id, args, kwargs):
             """任务成功时回调"""
@@ -156,14 +159,14 @@ def create_celery():
             :return:
             """
             try:
-                record_task_info = AsyncIOPool.run_in_pool(TaskRecordServer.get_task_record_by_id(self.request.id))
+                record_task_info = WorkerPool.run(TaskRecordServer.get_task_record_by_id(self.request.id))
                 if record_task_info:
                     record_task_info["status"] = status
                     record_task_info["result"] = result
                     record_task_info["traceback"] = err
                     record_task_info["end_time"] = datetime.datetime.now()
                     params = TaskRecordIn(**record_task_info)
-                    AsyncIOPool.run_in_pool(TaskRecordServer.save_or_update(params))
+                    WorkerPool.run(TaskRecordServer.save_or_update(params))
             except:
                 logger.error(f"handel task  result error task id [{self.request.id}]:\n{traceback.format_exc()}")
 
@@ -172,10 +175,10 @@ def create_celery():
             g.trace_id = self.request.trace_id
             _task_stack.push(self)
             self.push_request(args=args, kwargs=kwargs)
-            g.redis = AsyncIOPool.run_in_pool(init_redis_pool())
+            g.redis = WorkerPool.run(init_async_redis_pool())
             try:
                 if asyncio.iscoroutinefunction(self.run):
-                    return AsyncIOPool.run_in_pool(self.run(*args, **kwargs))
+                    return WorkerPool.run(self.run(*args, **kwargs))
                 else:
                     return self.run(*args, **kwargs)
             finally:
@@ -184,6 +187,8 @@ def create_celery():
 
     _celery_: Celery = NewCelery("zerorunner-job-worker", task_cls=ContextTask)
     _celery_.config_from_object(config)
+    # 自动发现各个app下的tasks.py文件
+    _celery_.autodiscover_tasks()
 
     return _celery_
 

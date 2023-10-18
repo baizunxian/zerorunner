@@ -118,7 +118,7 @@ const onScreenfullClick = () => {
 };
 // 布局配置 icon 点击时
 const onLayoutSetingClick = () => {
-  mittBus.emit('openSetingsDrawer');
+  mittBus.emit('openSettingsDrawer');
 };
 // 下拉菜单点击时
 const onHandleCommandClick = (path) => {
