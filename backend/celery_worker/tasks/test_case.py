@@ -190,7 +190,7 @@ async def run_case_step(report_id: typing.Union[str, int], callback: typing.Call
             t_lock.release()
 
         if callback:
-            callback(exc)
+            callback()
 
 
 def run_step_by_queue(testcase_queue: Queue, report_id: typing.Union[str, int], my_redis):
