@@ -113,11 +113,11 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         # 运行统计
         testcase_static_key = TEST_EXECUTE_STATS.format(report_id)
         testcase_task_key = TEST_EXECUTE_TASK.format(report_id)
-        testcase_queue = Queue()
+        # testcase_queue = Queue()
         for step in testcase.teststeps:
             new_testcase = TestCase(config=testcase.config, teststeps=[step])
             await r.cus_lpush_by_pickle(testcase_list_key, new_testcase.dict(by_alias=True))
-            testcase_queue.put(new_testcase)
+            # testcase_queue.put(new_testcase)
 
         # 设置默认统计数据
         await r.set(testcase_static_key, report_params.dict(), CACHE_WEEK)
@@ -134,13 +134,11 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
 
         [run_case_step.delay(report_id) for _ in range(config.task_run_pool)]
 
-        logger.info('完成---2')
-
 
 @celery.task
 async def run_case_step(report_id: typing.Union[str, int], callback: typing.Callable = None):
     """运行用例步骤"""
-    r: MyRedis = g.redis
+    r: MyAsyncRedis = g.redis
     testcase_list_key = TEST_EXECUTE_SET.format(report_id)
     testcase_static_key = TEST_EXECUTE_STATS.format(report_id)
     testcase_task_key = TEST_EXECUTE_TASK.format(report_id)
