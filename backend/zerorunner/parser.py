@@ -8,6 +8,7 @@ import builtins
 import json
 import re
 import typing
+from json import JSONDecodeError
 
 from loguru import logger
 from zerorunner import loader, utils, exceptions
