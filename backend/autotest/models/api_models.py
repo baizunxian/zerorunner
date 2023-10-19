@@ -555,6 +555,7 @@ class ApiTestReport(Base):
     env_id = mapped_column(Integer, comment='运行环境')
     exec_user_id = mapped_column(Integer, comment='执行人id')
     exec_user_name = mapped_column(String(255), comment='执行人昵称')
+    error_msg = mapped_column(Text, comment='错误信息')
 
     @classmethod
     async def get_list(cls, params: TestReportQuery):

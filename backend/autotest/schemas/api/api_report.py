@@ -47,6 +47,7 @@ class TestReportSaveSchema(BaseModel):
     env_id: int = Field(None, description="")
     exec_user_id: int = Field(None, description="")
     exec_user_name: str = Field(None, description="")
+    error_msg: str = Field(None, description="")
 
 
 class TestReportMakeSchema(BaseModel):

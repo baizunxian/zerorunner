@@ -20,6 +20,7 @@ from zerorunner.loader import load_module_functions, load_func_content
 from zerorunner.model.base import TStepTypeEnum
 from zerorunner.model.step_model import TStep, TRequest, TSqlRequest, TIFRequest, TLoopRequest, TScriptRequest, \
     TWaitRequest, TestCase, TUiRequest, TConfig
+from zerorunner.parser import Parser
 from zerorunner.steps.step import Step
 from zerorunner.steps.step_api_requet import RunRequestStep
 from zerorunner.steps.step_if_requet import RunIFStep
@@ -97,21 +98,22 @@ class HandleConfig(object):
 
     async def init_env(self, env_id: typing.Union[int, str]):
         env_info = await Env.get(env_id)
+        env_headers = {}
+        env_variables = {}
         if env_info:
             # 环境初始化
-            env_variables = env_info.variables
             # 环境域名
             if env_info.domain_name:
                 self.config.base_url = env_info.domain_name
 
             # 环境变量
             if env_info.variables:
-                new_variables = handle_headers_or_validators(env_variables)
+                new_variables = handle_headers_or_validators(env_info.variables)
                 # 43 修复环境变量覆盖用例变量
-                self.config.env_variables = parse_validators_string_value(new_variables)
+                env_variables.update(parse_validators_string_value(new_variables))
             # 环境请求头
             if env_info.headers:
-                self.config.headers.update(handle_headers_or_validators(env_info.headers, type="headers"))
+                env_headers.update(handle_headers_or_validators(env_info.headers, type="headers"))
         config_funcs = await EnvFunc.get_by_env_id(env_id) if env_id else []
         if config_funcs:
             for func in config_funcs:
@@ -119,6 +121,14 @@ class HandleConfig(object):
                 if func_content:
                     self.config.functions.update(
                         load_func_content(func_content, f"{func.get('name', '')}{uuid.uuid4().hex}"))
+        try:
+            env_headers = Parser(self.config.functions).parse_data(env_headers, env_variables)
+            self.config.headers.update(env_headers)
+            env_variables = Parser(self.config.functions).parse_data(env_variables, env_variables)
+            self.config.env_variables.update(env_variables)
+        except Exception as exc:
+            logger.error(f"环境配置初始化失败 env_id:{env_id}: {exc}")
+            raise ValueError(f"环境配置初始化失败 env_id:{env_id}: {exc}")
 
     async def init_headers(self, headers: typing.List[ApiBaseSchema]):
         self.config.headers.update(handle_headers_or_validators(headers, type="headers"))

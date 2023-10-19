@@ -88,6 +88,7 @@ const state = reactive({
     {key: 'duration', label: '运行耗时(秒)', align: 'center', width: '', show: true},
     {key: 'start_time', label: '运行时间', align: 'center', width: '150', show: true},
     {key: 'exec_user_name', label: '执行人', align: 'center', width: '', show: true},
+    {key: 'error_msg', label: '错误信息', align: 'center', width: '', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
       render: ({row}) => h("div", null, [

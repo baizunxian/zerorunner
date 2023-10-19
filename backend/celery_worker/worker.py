@@ -24,7 +24,6 @@ from config import config
 WorkerPool = AsyncIOPool()
 
 
-
 class TaskRequest(Request):
     """重写task request 设置 trace_id 这里可以设置所有透传过来的参数"""
 
@@ -90,9 +89,9 @@ def receiver_task_pre_run(task: Task, *args, **kwargs):
             kwargs=json.dumps(task.request.kwargs, cls=MyJsonDecode),
         )
         WorkerPool.run(TaskRecordServer.save_or_update(params))
-        logger.info(f"task pre run task id [{task.request.id}]")
+        logger.info(f"异步任务提交--> task id [{task.request.id}]")
     except:
-        logger.error(f"task pre run error:\n{traceback.format_exc()}")
+        logger.error(f"t异步任务提交--> 错误 error:\n{traceback.format_exc()}")
 
 
 @setup_logging.connect
@@ -111,13 +110,13 @@ def create_celery():
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
-        # def send_task(self, *args, **kwargs):
-        #     headers = {"headers": {"trace_id": g.trace_id}}
-        #     if kwargs:
-        #         kwargs.update(headers)
-        #     else:
-        #         kwargs = headers
-        #     return super().send_task(*args, **kwargs)
+        def send_task(self, *args, **kwargs):
+            headers = {"headers": {"trace_id": g.trace_id}}
+            if kwargs:
+                kwargs.update(headers)
+            else:
+                kwargs = headers
+            return super().send_task(*args, **kwargs)
 
     class ContextTask(Task, ABC):
         Request = TaskRequest
@@ -136,7 +135,6 @@ def create_celery():
                 options = headers
             return super(ContextTask, self).apply_async(args, kwargs, task_id, producer, link, link_error,
                                                         shadow, **options)
-
 
         def on_success(self, retval, task_id, args, kwargs):
             """任务成功时回调"""
@@ -168,7 +166,7 @@ def create_celery():
                     params = TaskRecordIn(**record_task_info)
                     WorkerPool.run(TaskRecordServer.save_or_update(params))
             except:
-                logger.error(f"handel task  result error task id [{self.request.id}]:\n{traceback.format_exc()}")
+                logger.error(f"异步任务执行结果保存错误！ task id [{self.request.id}]:\n{traceback.format_exc()}")
 
         def __call__(self, *args, **kwargs):
             """重写call方法 支持异步函数的运行"""

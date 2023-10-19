@@ -104,3 +104,15 @@
 **Changed**
 - **其他页面优化**
 
+## 2.1.3 (2023-10-19)
+
+**Added**
+- 接口环境配置只初始化一次
+
+**Changed**
+- **其他页面优化**
+- **数据库变更 ddl**
+```sql
+ALTER TABLE `zerorunner`.`api_test_report` 
+ADD COLUMN `error_msg` text NULL AFTER `exec_user_name`;
+```

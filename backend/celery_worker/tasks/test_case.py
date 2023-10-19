@@ -63,18 +63,16 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         return
     await ApiCaseService.set_step_data(case_info)
     run_params = TestCaseRun(**case_info, env_id=kwargs.get('case_env_id', None))
-    api_case_info = await HandelTestCase().init(run_params)
-
     if not report_id:
         """没有报告id创建报告"""
         report_params = TestReportSaveSchema(
-            name=api_case_info.api_case.name,
-            case_id=api_case_info.config.case_id,
+            name=case_info["name"],
+            case_id=case_info["id"],
             run_mode=20,
             run_type="case",
-            project_id=api_case_info.api_case.project_id,
-            module_id=api_case_info.api_case.module_id,
-            env_id=api_case_info.api_case.env_id,
+            project_id=case_info["project_id"],
+            module_id=run_params.module_id,
+            env_id=run_params.env_id,
             exec_user_id=exec_user_id,
             exec_user_name=exec_user_name,
             start_time=time.strftime("%Y-%m-%d %H-%M-%S", time.localtime(time.time()))
@@ -86,6 +84,15 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
 
         report_info = await ApiTestReport.get(report_id, to_dict=True)
         report_params = TestReportSaveSchema(**report_info)
+
+    # 初始化用例
+    try:
+        api_case_info = await HandelTestCase().init(run_params)
+    except Exception as exc:
+        logger.error(f"用例初始化失败！用例id: {case_id} 错误信息：{exc}")
+        report_params.error_msg = f"用例初始化失败！用例id: {case_id} 错误信息：{exc}"
+        await ReportService.save_report_info(report_params)
+        raise RuntimeError(f"用例初始化失败！用例id: {case_id} 错误信息：\n{exc}")
 
     if run_params.step_rely:  # 步骤依赖:
         runner = ZeroRunner()
@@ -174,6 +181,10 @@ async def run_case_step(report_id: typing.Union[str, int], callback: typing.Call
 
         logger.error(f"用例执行错误，报告id: {report_id} 错误信\n{exc}")
     finally:
+        if t_lock.acquire():
+            await r.decrby(testcase_task_key)
+            t_lock.release()
+
         run_test_num = await r.get(testcase_task_key)
         if run_test_num == 0:
             report_info = await ApiTestReport.get(report_id, to_dict=True)
@@ -184,10 +195,6 @@ async def run_case_step(report_id: typing.Union[str, int], callback: typing.Call
             await ReportService.save_report_info(summary_params)
             await r.delete(testcase_static_key)
             await r.delete(testcase_task_key)
-
-        if t_lock.acquire():
-            await r.decrby(testcase_task_key)
-            t_lock.release()
 
         if callback:
             callback()
