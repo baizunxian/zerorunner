@@ -495,7 +495,6 @@ const runApi = () => {
         state.runApiLoading = !state.runApiLoading;
       })
       .catch((err) => {
-        ElMessage.error(err.message);
         state.runApiLoading = !state.runApiLoading;
       })
 }
