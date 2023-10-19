@@ -7,6 +7,7 @@ import logging
 import traceback
 import uuid
 from abc import ABC
+
 from celery import Celery, Task
 from celery._state import _task_stack
 from celery.signals import setup_logging, task_prerun
@@ -46,13 +47,19 @@ class TaskRequest(Request):
 # @after_task_publish.connect
 # def pre_task_received(body, **kwargs):
 #     """任务发布后触发"""
+#     time.sleep(30)
 #     queue_name = '{0}.dq'.format(body)
+#     logger.info(f'sleep 30 s {queue_name}')
+
+
 #
 #
 # @task_received.connect
 # def task_received_in(request: Request, **kwargs):
 #     """收到任务时触发"""
 #     queue_name = '{0}.dq'.format(request)
+#     time.sleep(30)
+#     logger.info(f'sleep 30 s {queue_name}')
 
 
 # @before_task_publish.connect
