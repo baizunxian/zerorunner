@@ -313,8 +313,11 @@
         <div class="layout-breadcrumb-seting-bar-flex mt15">
           <div class="layout-breadcrumb-seting-bar-flex-label">主页面切换动画</div>
           <div class="layout-breadcrumb-seting-bar-flex-value">
-            <el-select v-model="getThemeConfig.animation" placeholder="请选择" size="default" style="width: 90px"
+            <el-select v-model="getThemeConfig.animation"
+                       placeholder="请选择" size="default"
+                       style="width: 90px"
                        @change="setLocalThemeConfig">
+              <el-option label="default" value="default"></el-option>
               <el-option label="slide-right" value="slide-right"></el-option>
               <el-option label="slide-left" value="slide-left"></el-option>
               <el-option label="opacitys" value="opacitys"></el-option>

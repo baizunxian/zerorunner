@@ -2,7 +2,7 @@
   <div class="login-container flex">
     <div class="login-left">
       <!--      <h1 class="text-logo">ZERORRUNER</h1>-->
-      <span class="text-logo-2">ZERORRUNER</span>
+      <span class="text-logo-2">{{ getThemeConfig.globalTitle }}</span>
 
       <div class="login-left-logo">
         <!--        <div class="login-left-logo-img">-->
@@ -36,10 +36,10 @@
               </el-tabs>
             </div>
             <Scan v-if="state.isScan"/>
-<!--            <div class="login-content-main-sacn" @click="state.isScan = !state.isScan">-->
-<!--              <i class="iconfont" :class="state.isScan ? 'icon-diannao1' : 'icon-barcode-qr'"></i>-->
-<!--              <div class="login-content-main-sacn-delta"></div>-->
-<!--            </div>-->
+            <!--            <div class="login-content-main-sacn" @click="state.isScan = !state.isScan">-->
+            <!--              <i class="iconfont" :class="state.isScan ? 'icon-diannao1' : 'icon-barcode-qr'"></i>-->
+            <!--              <div class="login-content-main-sacn-delta"></div>-->
+            <!--            </div>-->
           </div>
         </div>
       </div>
@@ -87,8 +87,9 @@ onMounted(() => {
 <style scoped lang="scss">
 .login-container {
   height: 100%;
-  background: var(--el-color-white);
-  background-image: url("/@/assets/bakgrounImage/bj_hc.png");
+  //background: var(--el-color-white);
+  background: url("/@/assets/bakgrounImage/bj_hc.png") no-repeat center center;
+  background-size: 100% 100%;
 
   .login-left {
     flex: 1;
@@ -315,72 +316,6 @@ onMounted(() => {
       text-decoration: none;
     }
   }
-}
-
-$LIGHTING_FLOOR: 1;
-$LIGHTING_CEIL: 2;
-$LIGHTING_FLAT: 3;
-
-@mixin text-logo(
-  $primary,
-  $depth: 5,
-  $shadowsteps: 5,
-  $shadowincrementer: 3px,
-  $shadowopacity: .5,
-  $primaryshadowcolour: #000,
-  $lighting: $LIGHTING_CEIL) {
-  $predefinedShadows: (
-      0 0 5px rgba($primaryshadowcolour, .05),
-      0 -1px 3px rgba($primaryshadowcolour, .2),
-      0 3px 5px rgba($primaryshadowcolour, .2));
-  $value: ();
-  @for $i from 1 through $depth {
-    $num: $i + px;
-    $hueadjust: $i;
-    @if ($lighting == $LIGHTING_FLOOR) {
-      $hueadjust: ($i * 2 - $depth - 5) * 1%;
-    } @else if ($lighting == $LIGHTING_CEIL) {
-      $hueadjust: -($i*2 + $depth - 10) * 1%;
-    } @else if ($lighting == $LIGHTING_FLAT) {
-      $hueadjust: -$depth * 1%;
-    }
-    $colour: adjust-color($primary, $lightness: $hueadjust);
-    $theShadow: 0 $num 0 $colour;
-    $value: append($value, $theShadow, comma);
-  }
-
-  @for $i from 1 through $shadowsteps {
-    @if ($i >= length($predefinedShadows)) {
-      $dist: $i * $shadowincrementer;
-      $value: append($value, 0 $dist $dist rgba($primaryshadowcolour, $shadowopacity));
-    } @else {
-      $value: append($value, nth($predefinedShadows, $i));
-    }
-  }
-
-  text-shadow: $value;
-}
-
-$primarycolour: rgb(230, 190, 190);
-
-h1 {
-  color: #FFF;
-  font-family: "Kanit";
-  font-size: 30px;
-  line-height: 1em;
-  margin: 0;
-  position: absolute;
-  right: -50px;
-  //text-align: center;
-  top: 50px;
-  //transform: translateY(-50%);
-  width: 100%;
-
-  @include text-logo(
-          adjust-color($primarycolour, $lightness: -8%),
-      $depth: 8,
-      $primaryshadowcolour: adjust-color($primarycolour, $lightness: -10%, $saturation: +20%),
-      $shadowopacity: .3);
 }
 
 .text-logo-2 {
