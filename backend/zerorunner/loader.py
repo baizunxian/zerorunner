@@ -110,12 +110,12 @@ def load_script_content(content: str, module_name: str, params: dict = None) -> 
     mod = sys.modules.setdefault(module_name, types.ModuleType(module_name))
     output_buffer = StringIO()
     log_handler = CapturingLogHandler(output_buffer)
-    logger.add(log_handler)
-    new_content = "from loguru import logger\n\n" + content
+    temp_logger = logger.add(log_handler)
+    params["logger"] = temp_logger
     if params:
         mod.__dict__.update(params)
     try:
-        code = compile(new_content, module_name, 'exec')
+        code = compile(content, module_name, 'exec')
         with contextlib.redirect_stdout(output_buffer):
             exec(code, mod.__dict__)
         captured_output = output_buffer.getvalue()
@@ -124,7 +124,7 @@ def load_script_content(content: str, module_name: str, params: dict = None) -> 
         raise IndentationError(f"脚本格式错误，请检查！\n {traceback.format_exc()}")
 
     finally:
-        logger.remove()
+        logger.remove(temp_logger)
         output_buffer.close()
 
 

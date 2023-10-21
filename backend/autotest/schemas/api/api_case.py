@@ -60,10 +60,6 @@ class TCaseStepData(TStepData):
 TCaseStepData.update_forward_refs()
 
 
-class ApiStepInfoIn(ApiInfoIn):
-    node_id: str = Field(None, description="节点id")
-
-
 class ApiCaseIn(BaseModel):
     """用例保存"""
     id: int = Field(None, description="")

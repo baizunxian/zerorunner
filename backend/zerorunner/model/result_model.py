@@ -82,7 +82,7 @@ class StepResult(BaseModel):
 
     name: str = Field("", description="步骤名称")
     case_id: str = Field("", description="case_id")
-    source_id: typing.Union[int, str] = Field(None, description="来源id")
+    source_id: typing.Union[int, str] = Field("", description="来源id")
     index: int = Field(0, description="index")
     start_time: float = Field(0, description="开始时间")
     duration: float = Field(0, description="执行耗时")

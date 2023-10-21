@@ -11,7 +11,7 @@ from loguru import logger
 
 from autotest.models.api_models import Env, DataSource, ApiInfo, EnvFunc
 from autotest.models.system_models import FileInfo
-from autotest.schemas.api.api_case import TestCaseRun, TCaseStepData, ApiStepInfoIn
+from autotest.schemas.api.api_case import TestCaseRun
 from autotest.schemas.api.api_info import ApiInfoIn
 from autotest.schemas.step_data import TStepData, RequestMode, ApiBaseSchema, RawLanguageEnum
 from autotest.utils.des import decrypt_rsa_password
