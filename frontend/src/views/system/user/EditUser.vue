@@ -138,15 +138,17 @@ const onCancel = () => {
   closeDialog();
 };
 // 更新-新增
-const saveOrUpdate = () => {
-  userFormRef.value.validate((valid) => {
+const saveOrUpdate = async () => {
+  userFormRef.value.validate(async (valid) => {
     if (valid) {
-      useUserApi().saveOrUpdate(state.form)
-          .then(() => {
-            ElMessage.success('操作成功');
-            emit('getList')
-            closeDialog(); // 关闭弹窗
-          })
+      if (state.editType !== 'save') {
+        await useUserApi().saveOrUpdate(state.form)
+      } else {
+        await useUserApi().userRegister(state.form)
+      }
+      ElMessage.success('操作成功');
+      emit('getList')
+      closeDialog(); // 关闭弹窗
     }
   })
 

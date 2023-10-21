@@ -47,7 +47,7 @@ export const useThemeConfig = defineStore('themeConfig', {
 			 * 分栏设置
 			 */
 			// 默认分栏菜单背景颜色
-			columnsMenuBar: '#2b2f3a',
+			columnsMenuBar: '#3a3f4d',
 			// 默认分栏菜单字体颜色
 			columnsMenuBarColor: '#e6e6e6',
 			// 是否开启分栏菜单背景颜色渐变

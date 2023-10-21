@@ -55,7 +55,7 @@
                 <el-col :span="24">
                   <div class="personal-item">
                     <div class="personal-item-label">登录时间：</div>
-                    <div class="personal-item-value">2021-02-05 18:47:26</div>
+                    <div class="personal-item-value">{{ userInfos.login_time }}</div>
                   </div>
                 </el-col>
 
@@ -63,7 +63,7 @@
                   <div class="personal-item">
                     <div class="personal-item-label">密码：</div>
                     <div class="personal-item-value">
-                      <el-button text type="primary">修改密码</el-button>
+                      <el-button text type="primary" @click="updatePassword">修改密码</el-button>
                     </div>
                   </div>
                 </el-col>
@@ -187,6 +187,8 @@
     </el-dialog>
 
     <SeePictures ref="SeePicturesRef" @updateAvatar="updateAvatar"></SeePictures>
+
+    <ResetPassword ref="ResetPasswordRef"></ResetPassword>
   </div>
 </template>
 
@@ -196,13 +198,16 @@ import {formatAxis} from '/@/utils/formatTime';
 import {useUserInfo} from "/@/stores/userInfo";
 import {useUserApi} from "/@/api/useSystemApi/user";
 import {ElMessage} from "element-plus";
+import {storeToRefs} from "pinia";
+import ResetPassword from "/@/views/system/personal/ResetPassword.vue";
 
 const SeePictures = defineAsyncComponent(() => import("/@/components/seePictures/index.vue"))
 const SeePicturesRef = ref();
-const UserTagInputRef = ref()
-
+const UserTagInputRef = ref();
+const ResetPasswordRef = ref();
 // 用户信息
 const userStores = useUserInfo()
+const {userInfos} = storeToRefs(userStores);
 
 
 // 定义变量内容
@@ -268,12 +273,17 @@ const save = async () => {
   let {data} = await useUserApi().saveOrUpdate(state.personalForm)
   await userStores.setUserInfos(data)
   await getUserInfo()
-  ElMessage.success("更新成功!")
+  ElMessage.success("更新成功!╰(*°▽°*)╯😍")
+  state.showEditPage = !state.showEditPage
 }
 
 const updateAvatar = (img) => {
   state.personalForm.avatar = img
   save()
+}
+
+const updatePassword = () => {
+  ResetPasswordRef.value.openDialog(userInfos.value)
 }
 
 onMounted(() => {

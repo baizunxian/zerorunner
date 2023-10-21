@@ -12,7 +12,7 @@
           backgroundColor: getStepTypeInfo(step.step_type, 'background')
         }"
         >
-          <div class="el-step__icon-inner">{{ step.index }}</div>
+          <div class="el-step__icon-inner">{{ step.$index }}</div>
         </div>
 
         <!--        <span v-if="!data.edit">-->

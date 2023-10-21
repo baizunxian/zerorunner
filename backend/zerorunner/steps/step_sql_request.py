@@ -17,7 +17,7 @@ from zerorunner.steps.step_result import TStepResult
 def run_sql_request(runner: SessionRunner,
                     step: TStep,
                     step_tag: str = None,
-                    parent_step_result: StepResult = None):
+                    parent_step_result: TStepResult = None):
     step_result = TStepResult(step, step_tag=step_tag)
     step_result.start_log()
     start_time = time.time()
@@ -41,7 +41,7 @@ def run_sql_request(runner: SessionRunner,
         runner.with_session_variables(variables)
         step_result.result.export_vars.update(variables)
         logger.info(f"SQL查询---> {step.sql_request.sql}")
-        step_result.start_log(f"SQL查询-> 设置变量:{step.sql_request.variable_name}, 设置变量值：{data}")
+        step_result.set_step_log(f"SQL查询-> 设置变量:{step.sql_request.variable_name}, 设置变量值：{data}")
         runner.with_session_variables(variables)
         step_result.result.sql_session_data.execution_result = data
         step_result.result.sql_session_data.success = True
@@ -54,6 +54,9 @@ def run_sql_request(runner: SessionRunner,
     finally:
         step_result.end_log()
         step_result = step_result.get_step_result()
+        if parent_step_result:
+            if parent_step_result:
+                parent_step_result.set_step_log(step_result.log, show_time=False)
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result,
                                   step_tag=step_tag,

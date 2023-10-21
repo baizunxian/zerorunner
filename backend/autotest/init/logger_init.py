@@ -7,7 +7,7 @@ from loguru import logger
 
 from config import config
 from autotest.utils.local import g
-from autotest.utils import create_dir
+from autotest.utils.create_dir import create_dir
 
 # 创建日志文件名
 from autotest.utils.common import get_str_uuid

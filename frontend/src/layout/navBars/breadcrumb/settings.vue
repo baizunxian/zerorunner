@@ -1,13 +1,7 @@
 <template>
   <div class="layout-breadcrumb-seting">
-    <el-drawer v-model="getThemeConfig.isDrawer"
-               direction="rtl"
-               destroy-on-close
-               size="260px"
+    <el-drawer title="布局配置" v-model="getThemeConfig.isDrawer" direction="rtl" destroy-on-close size="260px"
                @close="onDrawerClose">
-      <template #header>
-        <span>布局配置</span>
-      </template>
       <el-scrollbar class="layout-breadcrumb-seting-bar">
         <!-- 全局主题 -->
         <el-divider content-position="left">全局主题</el-divider>
@@ -194,7 +188,7 @@
           <div class="layout-breadcrumb-seting-bar-flex-label">自动锁屏(s/秒)</div>
           <div class="layout-breadcrumb-seting-bar-flex-value">
             <el-input-number
-                v-model.number="getThemeConfig.lockScreenTime"
+                v-model="getThemeConfig.lockScreenTime"
                 controls-position="right"
                 :min="1"
                 :max="9999"
@@ -319,7 +313,9 @@
         <div class="layout-breadcrumb-seting-bar-flex mt15">
           <div class="layout-breadcrumb-seting-bar-flex-label">主页面切换动画</div>
           <div class="layout-breadcrumb-seting-bar-flex-value">
-            <el-select v-model="getThemeConfig.animation" placeholder="请选择" size="default" style="width: 90px"
+            <el-select v-model="getThemeConfig.animation"
+                       placeholder="请选择" size="default"
+                       style="width: 90px"
                        @change="setLocalThemeConfig">
               <el-option label="default" value="default"></el-option>
               <el-option label="slide-right" value="slide-right"></el-option>
@@ -437,8 +433,8 @@
           </div>
         </div>
         <div class="copy-config">
-<!--          <el-alert title="点击下方按钮，复制布局配置去 `src/store/modules/themeConfig.ts` 中修改。" type="warning"-->
-<!--                    :closable="false"></el-alert>-->
+          <el-alert title="点击下方按钮，复制布局配置去 `src/store/modules/themeConfig.ts` 中修改。" type="warning"
+                    :closable="false"></el-alert>
           <el-button size="default" class="copy-config-btn" type="primary" ref="copyConfigBtnRef"
                      @click="onCopyConfigClick">
             <el-icon class="mr5">
@@ -458,7 +454,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutBreadcrumbSeting">
+<script setup name="layoutBreadcrumbSeting">
 import {nextTick, onUnmounted, onMounted, computed, reactive} from 'vue';
 import {ElMessage} from 'element-plus';
 import {storeToRefs} from 'pinia';
@@ -466,7 +462,7 @@ import {useThemeConfig} from '/@/stores/themeConfig';
 import {useChangeColor} from '/@/utils/theme';
 import {verifyAndSpace} from '/@/utils/toolsValidate';
 import {Local} from '/@/utils/storage';
-import Watermark from '/@/utils/wartermark';
+import Watermark from '/@/utils/watermark';
 import commonFunction from '/@/utils/commonFunction';
 import other from '/@/utils/other';
 import mittBus from '/@/utils/mitt';
@@ -497,7 +493,7 @@ const onColorPickerChange = () => {
   setDispatchThemeConfig();
 };
 // 2、菜单 / 顶栏
-const onBgColorPickerChange = (bg: string) => {
+const onBgColorPickerChange = (bg) => {
   document.documentElement.style.setProperty(`--next-bg-${bg}`, themeConfig.value[bg]);
   if (bg === 'menuBar') {
     document.documentElement.style.setProperty(`--next-bg-menuBar-light-1`, getLightColor(getThemeConfig.value.menuBar, 0.05));
@@ -520,15 +516,17 @@ const onColumnsMenuBarGradualChange = () => {
   setGraduaFun('.layout-container .layout-columns-aside', getThemeConfig.value.isColumnsMenuBarColorGradual, getThemeConfig.value.columnsMenuBar);
 };
 // 2、菜单 / 顶栏 --> 背景渐变函数
-const setGraduaFun = (el: string, bool: boolean, color: string) => {
-  setTimeout(() => {
-    let els = document.querySelector(el);
-    if (!els) return false;
-    document.documentElement.style.setProperty('--el-menu-bg-color', document.documentElement.style.getPropertyValue('--next-bg-menuBar'));
-    if (bool) els.setAttribute('style', `background:linear-gradient(to bottom left , ${color}, ${getLightColor(color, 0.6)}) !important;`);
-    else els.setAttribute('style', ``);
-    setLocalThemeConfig();
-  }, 200);
+const setGraduaFun = (el, bool, color) => {
+  nextTick(() => {
+    setTimeout(() => {
+      let els = document.querySelector(el);
+      if (!els) return false;
+      document.documentElement.style.setProperty('--el-menu-bg-color', document.documentElement.style.getPropertyValue('--next-bg-menuBar'));
+      if (bool) els.setAttribute('style', `background:linear-gradient(to bottom , ${color}, ${getLightColor(color, 0.5)})`);
+      else els.setAttribute('style', ``);
+      setLocalThemeConfig();
+    }, 300);
+  });
 };
 // 2、分栏设置 ->
 const onColumnsMenuHoverPreloadChange = () => {
@@ -572,7 +570,7 @@ const onShareTagsViewChange = () => {
   setLocalThemeConfig();
 };
 // 4、界面显示 --> 灰色模式/色弱模式
-const onAddFilterChange = (attr: string) => {
+const onAddFilterChange = (attr) => {
   if (attr === 'grayscale') {
     if (getThemeConfig.value.isGrayscale) getThemeConfig.value.isInvert = false;
   } else {
@@ -586,7 +584,7 @@ const onAddFilterChange = (attr: string) => {
 };
 // 4、界面显示 --> 深色模式
 const onAddDarkChange = () => {
-  const body = document.documentElement as HTMLElement;
+  const body = document.documentElement;
   if (getThemeConfig.value.isIsDark) body.setAttribute('data-theme', 'dark');
   else body.setAttribute('data-theme', '');
 };
@@ -596,14 +594,14 @@ const onWartermarkChange = () => {
   setLocalThemeConfig();
 };
 // 4、界面显示 --> 水印文案
-const onWartermarkTextInput = (val: string) => {
+const onWartermarkTextInput = (val) => {
   getThemeConfig.value.wartermarkText = verifyAndSpace(val);
   if (getThemeConfig.value.wartermarkText === '') return false;
   if (getThemeConfig.value.isWartermark) Watermark.set(getThemeConfig.value.wartermarkText);
   setLocalThemeConfig();
 };
 // 5、布局切换
-const onSetLayout = (layout: string) => {
+const onSetLayout = (layout) => {
   Local.set('oldLayout', layout);
   if (getThemeConfig.value.layout === layout) return false;
   if (layout === 'transverse') getThemeConfig.value.isCollapse = false;
@@ -639,8 +637,8 @@ const setDispatchThemeConfig = () => {
 };
 // 存储布局配置
 const setLocalThemeConfig = () => {
-  // Local.remove('themeConfig');
-  // Local.set('themeConfig', getThemeConfig.value);
+  Local.remove('themeConfig');
+  Local.set('themeConfig', getThemeConfig.value);
 };
 // 存储布局配置全局主题样式（html根标签）
 const setLocalThemeConfigStyle = () => {
@@ -659,7 +657,7 @@ const onResetConfigClick = () => {
   Local.clear();
   window.location.reload();
   // @ts-ignore
-  Local.set('version', __VERSION__);
+  Local.set('version', __NEXT_VERSION__);
 };
 // 初始化菜单样式等
 const initSetStyle = () => {
@@ -676,7 +674,7 @@ onMounted(() => {
     if (!Local.get('frequency')) initLayoutChangeFun();
     Local.set('frequency', 1);
     // 监听窗口大小改变，非默认布局，设置成默认布局（适配移动端）
-    mittBus.on('layoutMobileResize', (res: LayoutMobileResize) => {
+    mittBus.on('layoutMobileResize', (res) => {
       getThemeConfig.value.layout = res.layout;
       getThemeConfig.value.isDrawer = false;
       initLayoutChangeFun();

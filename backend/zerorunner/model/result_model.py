@@ -82,6 +82,7 @@ class StepResult(BaseModel):
 
     name: str = Field("", description="步骤名称")
     case_id: str = Field("", description="case_id")
+    source_id: typing.Union[int, str] = Field(None, description="来源id")
     index: int = Field(0, description="index")
     start_time: float = Field(0, description="开始时间")
     duration: float = Field(0, description="执行耗时")
@@ -143,7 +144,6 @@ class PlatformInfo(BaseModel):
     zerorunner_version: str = Field(..., description="版本号")
     python_version: str = Field(..., description="python版本")
     platform: str = Field(..., description="机器信息")
-
 
 
 class Stat(BaseModel):

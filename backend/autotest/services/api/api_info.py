@@ -2,13 +2,13 @@ import typing
 
 from loguru import logger
 
-from autotest.utils.serialize import default_serialize
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.api_models import ApiInfo, ApiCase
-from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
+from autotest.models.api_models import ApiInfo, ApiCaseStep
+from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema, ApiIds
 from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle_new import HandelRunApiStep
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
+from autotest.utils.serialize import default_serialize
 from celery_worker.tasks import test_case
 from zerorunner.testcase import ZeroRunner
 
@@ -55,6 +55,17 @@ class ApiInfoService:
         return await ApiInfo.get_api_by_id(data.get('id', None))
 
     @staticmethod
+    async def copy_api(params: ApiId):
+        source_api_info = await ApiInfo.get(params.id, to_dict=True)
+        if not source_api_info:
+            raise ParameterError("用例不存在!")
+        source_api_info.pop("id", None)
+        api_info = ApiInfoIn(**source_api_info)
+        api_info.id = None
+        api_info.name = f"copy_{api_info.name}"
+        await ApiInfoService.save_or_update(api_info)
+
+    @staticmethod
     async def set_api_status(**kwargs: typing.Any):
         """
         用例失效生效
@@ -87,6 +98,17 @@ class ApiInfoService:
         if not api_info:
             raise ValueError('当前用例不存在！')
         return api_info
+
+    @staticmethod
+    async def get_detail_by_ids(params: ApiIds) -> typing.Dict:
+        """
+        根据用例ids获取用例信息
+        :param params:
+        :return:
+        """
+        api_info_list = await ApiInfo.get_api_by_ids(params)
+
+        return api_info_list if api_info_list else []
 
     @staticmethod
     async def run_api(params: ApiRunSchema):
@@ -201,10 +223,10 @@ class ApiInfoService:
         if not api_info:
             raise ValueError('不存在当前接口！')
         # api关联到的测试用例
-        api_case_relation_data = await ApiCase.get_relation_by_api_id(params.id) or []
+        api_case_relation_data = await ApiCaseStep.get_relation_by_api_id(params.id) or []
         node_list = [dict(id=f"api_{params.id}", data=dict(id=params.id, type="api", name=api_info.get("name"),
-                                                             created_by_name=api_info.get("created_by_name"),
-                                                             creation_date=api_info.get("creation_date")))]
+                                                           created_by_name=api_info.get("created_by_name"),
+                                                           creation_date=api_info.get("creation_date")))]
         line_list = []
         for relation_data in api_case_relation_data:
             node_data = dict(id=relation_data.get("relation_id"),

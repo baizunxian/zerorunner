@@ -21,6 +21,7 @@ async def save_or_update(params: TimedTasksInSchema):
 
 @router.post('/taskSwitch', description="定时任务开关")
 async def task_switch(params: TimedTasksId):
+    raise RuntimeError("验收环境关闭该功能，可以手都执行查看效果😊")
     data = await TimedTasksService.task_switch(params)
     return partner_success(data)
 
@@ -31,13 +32,13 @@ async def deleted_tasks(params: TimedTasksId):
     return partner_success(data)
 
 
-@router.post('/checkCrontab', description="校验crontab")
+@router.post('/checkCrontab', description="定时任务校验crontab")
 async def check_crontab(params: CrontabSaveSchema):
     data = await CrontabService.check_crontab(params.crontab)
     return partner_success(data)
 
 
-@router.post('/runOnceJob', description="运行一次任务")
+@router.post('/runOnceJob', description="定时任务运行一次任务")
 async def run_once_job(params: TimedTasksId):
     data = await TimedTasksService.run_once_job(params)
     return partner_success(data)

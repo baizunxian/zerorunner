@@ -78,7 +78,7 @@
 
 </template>
 
-<script lang="ts" setup name="UiReportDetail">
+<script setup name="UiReportDetail">
 import {h, nextTick, reactive} from "vue";
 import {ElButton, ElImage} from "element-plus";
 import {useRouter} from "vue-router"
@@ -87,7 +87,7 @@ import {getStatusTag} from "/@/utils/case"
 import ReportStatistics from "./uiReportStatistics.vue"
 import {useUserInfo} from '/@/stores/userInfo';
 import {storeToRefs} from "pinia";
-import config from "/@/config/config"
+import {getBaseApiUrl} from "/@/utils/config"
 
 const stores = useUserInfo();
 const {userInfos} = storeToRefs(stores);
@@ -114,7 +114,7 @@ const state = reactive({
     {label: 'N', columnType: 'index', align: '', width: 'auto', showTooltip: false},
     {
       key: 'name', label: '名称', align: '', width: 'auto', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -141,7 +141,7 @@ const state = reactive({
     },
     {
       key: '', label: '元素', align: "", width: 'auto', show: true,
-      render: ({row}: any) => h('div', null, [
+      render: ({row}) => h('div', null, [
         h('div', {}, `定位方法: ${row.location_method}`),
         h('div', {}, `定位值: ${row.location_value}`),
       ])
@@ -160,20 +160,20 @@ const state = reactive({
       align: '',
       width: '',
       show: true,
-      render: ({row}: any) => h(ElImage, {
-            src: `${config.url}/${row.screenshot_url}`,
-            fit: "contain",
-            previewSrcList: state.screenshotUrlList,
-            previewTeleported: true,
-            style: {
-              width: "60px",
-              height: "50px",
-            }
-          })
+      render: ({row}) => h(ElImage, {
+        src: `${getBaseApiUrl()}/${row.screenshot_url}`,
+        fit: "contain",
+        previewSrcList: state.screenshotUrlList,
+        previewTeleported: true,
+        style: {
+          width: "60px",
+          height: "50px",
+        }
+      })
     },
     {
       label: '操作', columnType: 'string', fixed: 'right', align: '', width: '200',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: getStatusTag(row.status),
           plain: true,
@@ -240,10 +240,10 @@ const initReport = () => {
 // 获取报告列表
 const getDetails = () => {
   state.tableLoading = true
-  useUiReportApi().getReportDetail(state.listQuery).then((res: any) => {
+  useUiReportApi().getReportDetail(state.listQuery).then((res) => {
     state.listData = res.data
     if (res.data.length > 0) {
-      state.screenshotUrlList = res.data.map((item: any) => {
+      state.screenshotUrlList = res.data.map((item) => {
         return `${config.url}/${item.screenshot_url}`
       })
     }
@@ -259,7 +259,7 @@ const searchDetail = () => {
 }
 
 // 查看错误或者失败的api
-const viewErrOrFailApi = (value: any) => {
+const viewErrOrFailApi = (value) => {
   state.listQuery.status_list = []
   if (value) {
     state.listQuery.status_list = ["ERROR", "FAILURE"]
@@ -269,19 +269,19 @@ const viewErrOrFailApi = (value: any) => {
 
 // 获取统计数据
 const getStatistics = () => {
-  useUiReportApi().getReportStatistics(state.statQuery).then((res: any) => {
+  useUiReportApi().getReportStatistics(state.statQuery).then((res) => {
     state.statisticsData = res.data
   })
 }
 
 // 查看详情
-const viewDetail = (row: any) => {
+const viewDetail = (row) => {
   state.reportData = row
   state.showDetailInfo = true
 }
 
 // 获取子步骤数据
-const getChildrenData = async (row: any, treeNode: any, resolve: any) => {
+const getChildrenData = async (row, treeNode, resolve) => {
   state.listQuery.id = row.id
   state.listQuery.parent_step_id = row.step_id
   let res = await useUiReportApi().getReportDetail(state.listQuery)
@@ -295,7 +295,7 @@ const showReport = () => {
   })
 }
 
-const toApiInfo = (row: any) => {
+const toApiInfo = (row) => {
   router.push({name: "EditApiInfo", query: {editType: "update", id: row.case_id}})
 }
 

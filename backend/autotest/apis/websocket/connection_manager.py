@@ -7,7 +7,7 @@ from fastapi import WebSocket
 from loguru import logger
 
 from autotest.utils.local import g
-from autotest.init.redis_init import init_redis_pool
+from autotest.init.redis_init import init_async_redis_pool
 
 
 class ConnectionManager:
@@ -17,7 +17,7 @@ class ConnectionManager:
         self.redis = None
 
     async def init_redis(self):
-        self.redis = await init_redis_pool()
+        self.redis = await init_async_redis_pool()
 
     async def connect(self, ws: WebSocket):
         # 等待连接

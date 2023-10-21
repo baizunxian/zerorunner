@@ -7,21 +7,19 @@ import typing
 
 from loguru import logger
 
-import zerorunner.parser
 from zerorunner import exceptions
-from zerorunner.model.base import TStepLogType, TStepResultStatusEnum, LoopTypeEnum
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep, TLoopRequest
+from zerorunner.model.base import TStepResultStatusEnum, LoopTypeEnum
+from zerorunner.model.step_model import TStep
+from zerorunner.parser import parse_string_to_json
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
 from zerorunner.steps.step_result import TStepResult
-from zerorunner.parser import parse_string_to_json
 
 
 def run_loop_request(runner: SessionRunner,
                      step: TStep,
                      step_tag: str = None,
-                     parent_step_result: StepResult = None):
+                     parent_step_result: TStepResult = None):
     """循环控制器"""
     step.name = "循环控制器"
     step_result = TStepResult(step, step_tag=step_tag)
@@ -37,9 +35,9 @@ def run_loop_request(runner: SessionRunner,
             step_result.set_step_log("🔄次数循环---> 开始")
             for i in range(min(step.loop_request.count_number, 100)):
                 try:
-                    runner.execute_loop(step.loop_request.teststeps,
+                    runner.execute_loop(step.children_steps,
                                         step_tag=f"Loop {i + 1}",
-                                        parent_step_result=step_result.get_step_result())
+                                        parent_step_result=step_result)
                     step_result.set_step_log(f"次数循环---> 第{i + 1}次")
                     time.sleep(step.loop_request.count_sleep_time)
                 except Exception as err:
@@ -52,7 +50,7 @@ def run_loop_request(runner: SessionRunner,
             for_variable_name = step.loop_request.for_variable_name
             merge_variable = runner.get_merge_variable()
             iterable_obj = parse_string_to_json(step.loop_request.for_variable)
-            iterable_obj = runner.parser.parse_data(step.loop_request.for_variable, merge_variable)
+            iterable_obj = runner.parser.parse_data(iterable_obj, merge_variable)
             if not isinstance(iterable_obj, typing.Iterable):
                 step_result.set_step_log(f"for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
                 raise ValueError("for 循环错误： 变量 {iterable_obj} 不是一个可迭代对象！")
@@ -62,9 +60,9 @@ def run_loop_request(runner: SessionRunner,
                     # 设置变量
                     runner.with_session_variables({for_variable_name: for_variable_value})
                     # 执行循环
-                    runner.execute_loop(steps=step.loop_request.teststeps,
+                    runner.execute_loop(steps=step.children_steps,
                                         step_tag=f"For {for_variable_value}",
-                                        parent_step_result=step_result.get_step_result())
+                                        parent_step_result=step_result)
                     time.sleep(step.loop_request.for_sleep_time)
                 except Exception as err:
                     logger.error(err)
@@ -90,9 +88,9 @@ def run_loop_request(runner: SessionRunner,
                     break
                 step_result.set_step_log(f"条件不满足继续while循环 ---> {c_result}")
                 try:
-                    runner.execute_loop(steps=step.loop_request.teststeps,
+                    runner.execute_loop(steps=step.children_steps,
                                         step_tag=f"while {check_value}",
-                                        parent_step_result=step_result.get_step_result())
+                                        parent_step_result=step_result)
                     step_result.set_step_result_status(TStepResultStatusEnum.success)
                 except Exception as err:
                     # 执行for循环错误
@@ -117,12 +115,14 @@ def run_loop_request(runner: SessionRunner,
     finally:
         step_result.end_log()
         step_result = step_result.get_step_result()
+        if parent_step_result:
+            parent_step_result.set_step_log(step_result.log, show_time=False)
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         # 将数据平铺出来
         if step_result.step_result:
             for sub_step_result in step_result.step_result:
-                runner.append_step_result(sub_step_result)
+                runner.append_step_result(sub_step_result, parent_step_result=parent_step_result)
         step_result.step_result = []
 
 

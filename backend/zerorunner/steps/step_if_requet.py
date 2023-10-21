@@ -15,7 +15,7 @@ from zerorunner.steps.step_result import TStepResult
 def run_if_request(runner: SessionRunner,
                    step: TStep,
                    step_tag: str = None,
-                   parent_step_result: StepResult = None):
+                   parent_step_result: TStepResult = None):
     """条件控制器"""
     step.name = "条件控制器"
     step_result = TStepResult(step, step_tag=step_tag)
@@ -34,9 +34,9 @@ def run_if_request(runner: SessionRunner,
             step_result.set_step_log(f"条件不符---> {c_result.get('validate_msg', '')}")
             raise exceptions.ValidationFailure(f"条件不符---> {c_result.get('validate_msg', '')}")
         try:
-            runner.execute_loop(if_request_obj.teststeps,
+            runner.execute_loop(step.children_steps,
                                 step_tag=f"IF {check_value}",
-                                parent_step_result=step_result.get_step_result())
+                                parent_step_result=step_result)
         except Exception as err:
             raise
         step_result.set_step_result_status(TStepResultStatusEnum.success)
@@ -55,7 +55,7 @@ def run_if_request(runner: SessionRunner,
         # 将数据平铺出来
         if step_result.step_result:
             for sub_step_result in step_result.step_result:
-                runner.append_step_result(sub_step_result)
+                runner.append_step_result(sub_step_result, parent_step_result=parent_step_result)
         step_result.step_result = []
 
 

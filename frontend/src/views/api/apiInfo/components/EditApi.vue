@@ -427,7 +427,7 @@ watch(
 )
 
 onActivated(() => {
-  if (state.timeStamp != route.query.timeStamp) {
+  if (state.timeStamp !== route.query.timeStamp) {
     state.timeStamp = route.query.timeStamp
     initApi()
   }

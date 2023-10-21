@@ -11,13 +11,17 @@ from zerorunner.model.base import Name
 
 class TStepBase(BaseModel):
     """步骤基类"""
+    enable: bool = Field(True, description="是否有效")  # 是否有效
+    version: int = Field(0, description="版本")
+    is_quotation: int = Field(0, description="是否引用 0 否 1 是")
+    source_id: typing.Union[str, int] = Field(None, description="源id")
     case_id: typing.Union[str, int] = Field(None, description="用例id")
     step_type: str = Field("", description="步骤类型 api if loop sql wait 等")
     name: Name = Field("", description="步骤名称")
     index: int = Field(0, description="排序")
-    step_id: int = Field(None, description="步骤id")
     retry_times: int = Field(0, description="重试次数")
     retry_interval: int = Field(0, description="重试间隔")
+    step_id: int = Field(None, description="步骤id")
     parent_step_id: int = Field(None, description="父级步骤id")
 
 
@@ -42,7 +46,7 @@ class ValidatorData(BaseModel):
 
 class TRequest(BaseModel):
     """api 请求模型"""
-    method: MethodEnum = Field(..., description="请求方法")
+    method: typing.Union[str, MethodEnum] = Field(..., description="请求方法")
     url: Url = Field(..., description="请求url")
     params: typing.Dict[str, str] = Field({}, description="参数")
     headers: Headers = Field({}, description="请求头")
@@ -147,6 +151,7 @@ class TStep(TStepBase):
     loop_request: TLoopRequest = Field(None, description="loop请求")
     script_request: TScriptRequest = Field(None, description="script请求")
     ui_request: TUiRequest = Field(None, description="ui请求")
+    children_steps: typing.List['TStep'] = Field([], description="子步骤")
 
 
 class TConfig(BaseModel):

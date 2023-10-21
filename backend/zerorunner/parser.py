@@ -8,6 +8,7 @@ import builtins
 import json
 import re
 import typing
+from json import JSONDecodeError
 
 from loguru import logger
 from zerorunner import loader, utils, exceptions
@@ -22,7 +23,7 @@ dolloar_regex_compile = re.compile(r"\$\$")
 # variable should start with a-zA-Z_
 variable_regex_compile = re.compile(r"\$\{([a-zA-Z_]\w*)\}|\$([a-zA-Z_]\w*)")
 # function notation, e.g. ${func1($var_1, $var_3)}
-function_regex_compile = re.compile(r"\$\{([a-zA-Z_]\w*)\(([\$\w\.\-/\s=,]*)\)\}")
+function_regex_compile = re.compile(r"\$\{([a-zA-Z_]\w*)\(([\"\$\w\.\-/\s=,]*)\)\}")
 
 
 def parse_string_value(str_value: str) -> typing.Any:

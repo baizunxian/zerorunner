@@ -58,7 +58,8 @@ class Zero:
                     return self.request[item]
                 return self.request[item]
             else:
-                raise AttributeError(f"{item} not found in zero.request")
+                return None
+                # raise AttributeError(f"{item} not found in zero.request")
 
         def set(self, key, value):
             self.request[key] = value
@@ -67,7 +68,8 @@ class Zero:
             if hasattr(self.request, key):
                 return getattr(self.request, key)
             else:
-                raise AttributeError(f"{key} not found in zero.request")
+                return None
+                # raise AttributeError(f"{key} not found in zero.request")
 
         def get_request(self):
             return self.request
@@ -91,7 +93,8 @@ class Zero:
             if hasattr(self.response, key):
                 return getattr(self.response, key)
             else:
-                raise AttributeError(f"{key} not found in zero.response")
+                return None
+                # raise AttributeError(f"{key} not found in zero.response")
 
         def get_response(self):
             return self.response
@@ -109,7 +112,8 @@ class Zero:
                     return self.environment[item]
                 return self.environment[item]
             else:
-                raise AttributeError(f"{item} not found in zero.environment")
+                return None
+                # raise AttributeError(f"{item} not found in zero.environment")
 
         def set(self, key, value):
             self.environment[key] = value
@@ -118,7 +122,8 @@ class Zero:
             if hasattr(self.environment, key):
                 return getattr(self.environment, key)
             else:
-                raise AttributeError(f"{key} not found in zero.environment")
+                return None
+                # raise AttributeError(f"{key} not found in zero.environment")
 
         def get_environment(self):
             return self.environment
@@ -136,7 +141,8 @@ class Zero:
                     return self.variables[item]
                 return self.variables[item]
             else:
-                raise AttributeError(f"{item} not found in zero.variables")
+                return None
+                # raise AttributeError(f"{item} not found in zero.variables")
 
         def set(self, key, value):
             self.variables[key] = value
@@ -145,7 +151,8 @@ class Zero:
             if hasattr(self.variables, key):
                 return getattr(self.variables, key)
             else:
-                raise AttributeError(f"{key} not found in zero.variables")
+                return None
+                # raise AttributeError(f"{key} not found in zero.variables")
 
         def get_variables(self):
             return self.variables

@@ -302,7 +302,7 @@ const saveOrUpdateOrDebug = (type) => {
           })
     }
   } catch (err) {
-    console.log(err)
+    console.log("保存错误！！！\n", err)
     ElMessage.info(err || '信息表单填写不完整')
 
   }

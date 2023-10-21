@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 
+import click
 import uvicorn
 from fastapi import FastAPI, Depends
 
-from config import config
-from autotest.init.logger_init import init_logger, logger
-from autotest.init.redis_init import init_redis_pool
 from autotest.init.cors import init_cors
-from autotest.init.dependencies import set_global_request
+from autotest.init.dependencies import login_verification
 from autotest.init.exception import init_exception
+from autotest.init.logger_init import init_logger, logger
 from autotest.init.middleware import init_middleware
 from autotest.init.mount import init_mount
+from autotest.init.redis_init import init_async_redis_pool
 from autotest.init.routers import init_router
-import click
+from config import config
 
 app = FastAPI(title="zerorunner",
               description=config.PROJECT_DESC,
               version=config.PROJECT_VERSION,
-              dependencies=[Depends(set_global_request)])
+              dependencies=[Depends(login_verification)])
 
 
 async def init_app():
@@ -31,7 +31,9 @@ async def init_app():
 
     init_middleware(app)  # 注册请求响应拦截
 
-    init_cors(app)  # 初始化跨域
+    init_cors(app)  # 注册请求响应拦截
+
+    await init_async_redis_pool(app)  # 初始化跨域
 
     init_logger()
 
@@ -45,7 +47,6 @@ async def startup():
     # from autotest.models import init_db
     # await init_db()  # 初始化表
     # await init_data()  # 初始化数据
-    app.state.redis = await init_redis_pool()  # redis
 
 
 @app.on_event("shutdown")

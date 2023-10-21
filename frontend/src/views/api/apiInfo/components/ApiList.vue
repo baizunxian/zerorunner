@@ -215,7 +215,8 @@
 
 <script setup name="apiInfoList">
 import {defineAsyncComponent, h, onMounted, reactive, ref} from 'vue';
-import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
+import {ElButton, ElMessage, ElMessageBox, ElTag, ElPopover, ElIcon} from 'element-plus';
+import {MoreFilled} from "@element-plus/icons"
 import {useApiInfoApi} from "/@/api/useAutoApi/apiInfo";
 import {useRouter} from "vue-router";
 import {useEnvApi} from "/@/api/useAutoApi/env";
@@ -281,6 +282,36 @@ const state = reactive({
             onOpenSaveOrUpdate("update", row)
           }
         }, () => '编辑'),
+
+        // h(ElPopover, {
+        //   trigger: "hover"
+        // }, {
+        //   default: () => h('div', {}, [
+        //     h('div', {}, h(ElButton, {
+        //       style: {
+        //         color: "#626aef"
+        //       },
+        //       link: true,
+        //       onClick: () => {
+        //         getRelationData(row)
+        //       }
+        //     }, () => '血缘关系')),
+        //
+        //     h('div', {}, h(ElButton, {
+        //       type: "danger",
+        //       link: true,
+        //       onClick: () => {
+        //         copyApi(row)
+        //       }
+        //     }, () => '删除')),
+        //   ]),
+        //   reference: () =>
+        //       h(ElButton, {
+        //         link: true,
+        //         icon: MoreFilled
+        //       }),
+        // }),
+
 
         h(ElButton, {
           type: "primary",
@@ -397,6 +428,14 @@ const onOpenSaveOrUpdate = (editType, row) => {
 
 };
 
+//复制
+const copyApi = (row) => {
+  useApiInfoApi().copyApi({id: row.id}).then(() => {
+    getList()
+    ElMessage.success('复制成功 🎉')
+  })
+}
+
 // 删除
 const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
@@ -455,8 +494,8 @@ const runApi = () => {
         }
         state.runApiLoading = !state.runApiLoading;
       })
-      .catch((err) => {
-        ElMessage.error(err.message);
+      .catch((exc) => {
+        console.log(exc)
         state.runApiLoading = !state.runApiLoading;
       })
 }

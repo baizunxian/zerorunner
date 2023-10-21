@@ -16,6 +16,8 @@ services:
 
   celery-worker:
     container_name: zerorunner_celery_worker
+    environment:
+      - C_FORCE_ROOT=true
     build:
       context: .
       dockerfile: zero-docker-file/Dockerfile-backend-build
