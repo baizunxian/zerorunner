@@ -35,9 +35,9 @@ def run_loop_request(runner: SessionRunner,
             step_result.set_step_log("🔄次数循环---> 开始")
             for i in range(min(step.loop_request.count_number, 100)):
                 try:
-                    runner.execute_loop(step.loop_request.teststeps,
+                    runner.execute_loop(step.children_steps,
                                         step_tag=f"Loop {i + 1}",
-                                        parent_step_result=step_result.get_step_result())
+                                        parent_step_result=step_result)
                     step_result.set_step_log(f"次数循环---> 第{i + 1}次")
                     time.sleep(step.loop_request.count_sleep_time)
                 except Exception as err:
@@ -60,7 +60,7 @@ def run_loop_request(runner: SessionRunner,
                     # 设置变量
                     runner.with_session_variables({for_variable_name: for_variable_value})
                     # 执行循环
-                    runner.execute_loop(steps=step.loop_request.teststeps,
+                    runner.execute_loop(steps=step.children_steps,
                                         step_tag=f"For {for_variable_value}",
                                         parent_step_result=step_result)
                     time.sleep(step.loop_request.for_sleep_time)
@@ -88,7 +88,7 @@ def run_loop_request(runner: SessionRunner,
                     break
                 step_result.set_step_log(f"条件不满足继续while循环 ---> {c_result}")
                 try:
-                    runner.execute_loop(steps=step.loop_request.teststeps,
+                    runner.execute_loop(steps=step.children_steps,
                                         step_tag=f"while {check_value}",
                                         parent_step_result=step_result)
                     step_result.set_step_result_status(TStepResultStatusEnum.success)
@@ -122,7 +122,7 @@ def run_loop_request(runner: SessionRunner,
         # 将数据平铺出来
         if step_result.step_result:
             for sub_step_result in step_result.step_result:
-                runner.append_step_result(sub_step_result)
+                runner.append_step_result(sub_step_result, parent_step_result=parent_step_result)
         step_result.step_result = []
 
 

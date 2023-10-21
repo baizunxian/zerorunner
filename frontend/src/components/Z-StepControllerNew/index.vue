@@ -10,7 +10,7 @@
           node-key="id"
           @node-drag-start="handleDrop"
           :expand-on-click-node="false"
-          :props="{children: 'children_steps'}"
+          :props="{children: 'sub_steps'}"
           :data="steps">
         <template #default="{ node }">
           <StepNode v-model:step="node.data"
@@ -37,7 +37,6 @@ import StepNode from "/@/components/Z-StepController/StepNode.vue";
 import SelectCase from "/@/components/Z-StepController/apiInfo/SelectApi.vue";
 import ApiInfoController from "./apiInfo/ApiInfoController.vue"
 import useVModel from "/@/utils/useVModel";
-import {useApiInfoApi} from "/@/api/useAutoApi/apiInfo";
 
 const emit = defineEmits(['update:steps'])
 const props = defineProps({
@@ -94,7 +93,6 @@ const handleDrop = (node, event) => {
 }
 
 const nodeClick = (data, node) => {
-  console.log(node, 'node ----')
   if (data.step_type === "api") {
     ApiInfoControllerRef.value.onOpenApiInfoPage(data)
   } else {
@@ -103,19 +101,14 @@ const nodeClick = (data, node) => {
 }
 
 // 计算index，保持拖动后顺序
-const computeDataIndex = (data, parent_index) => {
+const computeDataIndex = (data) => {
   if (data) {
     data.forEach((e, index) => {
-      e.$index = index + 1
-      if (parent_index) {
-        e.index = parseInt(`${parent_index}${index}`)
-      } else {
-        e.index = index + 1
-      }
-      if (e.children_steps) {
-        computeDataIndex(e.children_steps, e.index)
-      } else {
-        e.children_steps = []
+      e.index = index + 1
+      if (e.sub_steps) {
+        computeDataIndex(e.sub_steps)
+      } else  {
+        e.sub_steps = []
       }
     })
   }
@@ -123,7 +116,7 @@ const computeDataIndex = (data, parent_index) => {
 // handleAddData
 const handleAddData = async (optType) => {
   if (optType !== 'api') {
-    let stepData = getAddData(optType)
+    let stepData = await getAddData(optType)
     appendTreeDate(stepData)
   } else {
     selectApiRef.value.onOpenApiList()
@@ -134,8 +127,8 @@ const handleAddData = async (optType) => {
 const appendTreeDate = (data) => {
   let parentNode = stepTreeRef.value?.getCurrentNode()
   if (parentNode && props.use_type === "case") {
-    if (!parentNode.children_steps) {
-      parentNode.children_steps = []
+    if (!parentNode.sub_steps) {
+      parentNode.sub_steps = []
     }
     stepTreeRef.value.append(data, parentNode.id)
   } else {
@@ -165,8 +158,8 @@ const getStepData = () => {
     script_request: null,
     showDetail: false,
     ui_request: null,
+    sub_steps: [],
     is_quotation: true,
-    children_step: []
   }
   return stepData
 }
@@ -226,25 +219,24 @@ const getAddData = (optType) => {
 }
 
 // 添加case
-const addApiStep = async () => {
+const addApiStep = () => {
   let selectApiData = selectApiRef.value.getSelectionData()
   if (selectApiData) {
-    let apiIds = selectApiData.map(e => {
-      return e.id
+    selectApiData.forEach((apiInfo) => {
+      // if (state.optType === "case" && caseInfo.id === parseInt(props.case_id)) {
+      //   ElMessage.warning('不能引用用例自己！');
+      // } else {
+      let stepData = getStepData()
+      stepData.step_type = "api"
+      stepData.name = apiInfo.name
+      stepData.request = {
+        name: apiInfo.name,
+        api_id: apiInfo.id,
+        method: apiInfo.method
+      }
+      appendTreeDate(stepData)
+      // }
     })
-    let {data} = await useApiInfoApi().getApiInfos({ids: apiIds})
-    if (data && data.length > 0) {
-      data.forEach(apiInfo => {
-        let stepData = Object.assign({}, apiInfo)
-        console.log(apiInfo)
-        stepData.id = null
-        stepData.step_type = 'api'
-        stepData.source_id = apiInfo.id
-        stepData.enable = true
-        appendTreeDate(stepData)
-      })
-    }
-
   }
   state.showApioInfo = false
 }

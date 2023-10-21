@@ -71,6 +71,13 @@ export function useApiInfoApi() {
         data,
       });
     },
+    getApiInfos: (data) => {
+      return request({
+        url: `${BaseApiPath}/getApiInfos`,
+        method: 'POST',
+        data,
+      });
+    },
     postman2case: (data) => {
       return request({
         url: `${BaseApiPath}/postman2case`,

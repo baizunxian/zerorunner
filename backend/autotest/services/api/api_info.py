@@ -4,7 +4,7 @@ from loguru import logger
 
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiInfo, ApiCaseStep
-from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
+from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema, ApiIds
 from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle_new import HandelRunApiStep
 from autotest.utils.current_user import current_user
@@ -56,12 +56,14 @@ class ApiInfoService:
 
     @staticmethod
     async def copy_api(params: ApiId):
-        source_api_info = await ApiInfo.get(params.id)
-        if source_api_info:
-            api_info = ApiInfoIn(**default_serialize(source_api_info))
-            api_info.id = None
-            api_info.name = f"copy_{api_info.name}"
-            await ApiInfoService.save_or_update(api_info)
+        source_api_info = await ApiInfo.get(params.id, to_dict=True)
+        if not source_api_info:
+            raise ParameterError("用例不存在!")
+        source_api_info.pop("id", None)
+        api_info = ApiInfoIn(**source_api_info)
+        api_info.id = None
+        api_info.name = f"copy_{api_info.name}"
+        await ApiInfoService.save_or_update(api_info)
 
     @staticmethod
     async def set_api_status(**kwargs: typing.Any):
@@ -96,6 +98,17 @@ class ApiInfoService:
         if not api_info:
             raise ValueError('当前用例不存在！')
         return api_info
+
+    @staticmethod
+    async def get_detail_by_ids(params: ApiIds) -> typing.Dict:
+        """
+        根据用例ids获取用例信息
+        :param params:
+        :return:
+        """
+        api_info_list = await ApiInfo.get_api_by_ids(params)
+
+        return api_info_list if api_info_list else []
 
     @staticmethod
     async def run_api(params: ApiRunSchema):

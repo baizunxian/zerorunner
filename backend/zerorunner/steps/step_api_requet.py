@@ -277,9 +277,9 @@ def run_api_request(runner: SessionRunner,
 
             # save step data
             step_result.session_data = runner.session.data
-        runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         runner.extracted_variables.update(extract_mapping)
         runner.with_session_variables(runner.extracted_variables)
+        runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
 
 
 def headers_to_str(headers: dict):

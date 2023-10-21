@@ -116,3 +116,16 @@
 ALTER TABLE `zerorunner`.`api_test_report` 
 ADD COLUMN `error_msg` text NULL AFTER `exec_user_name`;
 ```
+
+## 2.1.4 (2023-10-21)
+
+**Added**
+- 用例结构优化，方便扩展
+
+**Changed**
+- **其他页面优化**
+- **数据库变更 ddl**
+```sql
+ALTER TABLE `zerorunner`.`api_test_report_detail_0` 
+ADD COLUMN `source_id` bigint NULL AFTER `exec_user_name`;
+```

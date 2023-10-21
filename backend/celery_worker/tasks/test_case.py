@@ -68,7 +68,7 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         report_params = TestReportSaveSchema(
             name=case_info["name"],
             case_id=case_info["id"],
-            run_mode=20,
+            run_mode=30,
             run_type="case",
             project_id=case_info["project_id"],
             module_id=run_params.module_id,

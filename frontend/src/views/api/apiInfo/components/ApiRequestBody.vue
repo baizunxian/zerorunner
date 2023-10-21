@@ -255,7 +255,6 @@
 <script setup name="requestBody">
 import {reactive, ref, watch} from "vue";
 import {useFileApi} from '/@/api/useSystemApi/file'
-import {handleEmpty} from "/@/utils/other";
 import {ArrowDown} from '@element-plus/icons'
 
 const emit = defineEmits(["updateContentType"])

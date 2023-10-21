@@ -494,7 +494,8 @@ const runApi = () => {
         }
         state.runApiLoading = !state.runApiLoading;
       })
-      .catch((err) => {
+      .catch((exc) => {
+        console.log(exc)
         state.runApiLoading = !state.runApiLoading;
       })
 }

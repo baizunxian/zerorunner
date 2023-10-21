@@ -3,7 +3,7 @@ import json
 from fastapi import APIRouter
 
 from autotest.utils.response.http_response import partner_success
-from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema
+from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema, ApiIds
 from autotest.services.api.api_info import ApiInfoService
 from autotest.utils.current_user import current_user
 
@@ -23,6 +23,16 @@ async def get_case_info(params: ApiId):
     :return:
     """
     case_info = await ApiInfoService.detail(params)
+    return partner_success(case_info)
+
+
+@router.post('/getApiInfos', description="获接口信息详情多个")
+async def get_case_infos(params: ApiIds):
+    """
+    获取用例信息
+    :return:
+    """
+    case_info = await ApiInfoService.get_detail_by_ids(params)
     return partner_success(case_info)
 
 
