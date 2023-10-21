@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import asyncio
-# Standard Library Imports
 import asyncio as aio
 import inspect
 import sys
@@ -16,8 +15,6 @@ AnyException = typing.Union[Exception, typing.Type[Exception]]
 AnyCoroutine = typing.Coroutine[typing.Any, typing.Any, typing.Any]
 
 PY39_VERSION = sys.version_info[:2] >= (3, 9)
-
-__all__ = ("AsyncIOPool",)
 
 WorkerPoolInfo = dict[
     str,
@@ -303,3 +300,35 @@ async def sync_to_async(func, *args, **kwargs):
         return await asyncio.to_thread(func, *args, **kwargs)
     else:
         return await AsyncIOPool.loop.run_in_executor(AsyncIOPool.loop, lambda: func(*args, **kwargs))
+
+
+def async_to_sync(coroutine: typing.Awaitable, *args, **kwargs):
+    async def inner_async_function(*args, **kwargs):
+        await coroutine
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    # loop = asyncio.get_event_loop()
+    result = loop.run_until_complete(inner_async_function(*args, kwargs))
+    # new_loop_flag = False
+    # if loop is None:
+    #     try:
+    #         loop = asyncio.get_event_loop()
+    #     except RuntimeError:
+    #         loop = asyncio.new_event_loop()
+    #         new_loop_flag = True
+    # future = loop.create_future()
+    # asyncio.run_coroutine_threadsafe(coroutine, loop)
+    # if new_loop_flag:
+    #     # todo close loop
+    #     ...
+    return result
+
+
+async def _await_with_future(coroutine: typing.Awaitable, future: asyncio.Future):
+    try:
+        result = await coroutine
+    except Exception as err:
+        future.set_exception(err)
+    else:
+        future.set_result(result)

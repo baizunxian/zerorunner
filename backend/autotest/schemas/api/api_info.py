@@ -3,10 +3,9 @@ import typing
 
 from pydantic import root_validator, BaseModel, Field
 
-from autotest.exceptions.exceptions import ParameterError
 from autotest.schemas.base import BaseSchema
 from autotest.schemas.step_data import TStepData, TRequestData, ApiBaseSchema
-from zerorunner.models import ExtractData, MethodEnum, TRequest
+from zerorunner.models import ExtractData, MethodEnum
 
 
 class ApiQuery(BaseSchema):
@@ -31,7 +30,16 @@ class ApiQuery(BaseSchema):
 
 
 class ApiId(BaseModel):
-    id: int = Field(..., description="id")
+    id: int = Field(None, description="id")
+
+
+class ApiIds(BaseModel):
+    ids: typing.List[typing.Union[str, int]] = Field(None, description="id")
+
+
+class ApiDetailId(BaseModel):
+    id: int = Field(None, description="id")
+    ids: typing.List[typing.Union[str, int]] = Field(None, description="id")
 
 
 class ApiRunBodySchema(BaseModel):
@@ -103,6 +111,7 @@ class ApiRunBatchSchema(BaseModel):
             data['ids'] = list(map(int, data.get('ids')))
         return data
 
+
 class ApiValidatorsSchema(BaseModel):
     mode: str = Field("", description="")
     check: str = Field("", description="")
@@ -151,6 +160,7 @@ class ApiInfoIn(TStepData):
     # pre_steps: typing.List[typing.Annotated[TStepData, Field(discriminator="step_type")]] = Field([], description="")
     # post_steps: typing.List[typing.Annotated[TStepData, Field(discriminator="step_type")]] = Field([], description="")
     headers: typing.List[ApiBaseSchema] = Field([], description="")
+    children_steps: typing.List['ApiInfoIn'] = Field([], description="子步骤")
 
 
 class ApiRun(BaseModel):

@@ -11,7 +11,7 @@ from autotest.init.exception import init_exception
 from autotest.init.logger_init import init_logger, logger
 from autotest.init.middleware import init_middleware
 from autotest.init.mount import init_mount
-from autotest.init.redis_init import init_redis_pool
+from autotest.init.redis_init import init_async_redis_pool
 from autotest.init.routers import init_router
 from config import config
 
@@ -31,7 +31,9 @@ async def init_app():
 
     init_middleware(app)  # 注册请求响应拦截
 
-    init_cors(app)  # 初始化跨域
+    init_cors(app)  # 注册请求响应拦截
+
+    await init_async_redis_pool(app)  # 初始化跨域
 
     init_logger()
 
@@ -45,7 +47,6 @@ async def startup():
     # from autotest.models import init_db
     # await init_db()  # 初始化表
     # await init_data()  # 初始化数据
-    app.state.redis = await init_redis_pool()  # redis
 
 
 @app.on_event("shutdown")

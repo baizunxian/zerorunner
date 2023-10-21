@@ -89,7 +89,7 @@ def call_hooks(
 def run_api_request(runner: SessionRunner,
                     step: TStep,
                     step_tag: str = None,
-                    parent_step_result: StepResult = None):
+                    parent_step_result: TStepResult = None):
     step_result = TStepResult(step, step_tag=step_tag)
     step_result.start_log()
     # update headers
@@ -154,6 +154,7 @@ def run_api_request(runner: SessionRunner,
 
         parsed_request_dict["headers"].setdefault("Z-Case-Id", runner.case_id)
         parsed_request_dict["headers"].setdefault("Z-Request-Id", f"{g.trace_id}")
+        parsed_request_dict["headers"] = headers_to_str(parsed_request_dict["headers"])
         step.variables["request"] = parsed_request_dict
 
         # prepare arguments
@@ -276,9 +277,14 @@ def run_api_request(runner: SessionRunner,
 
             # save step data
             step_result.session_data = runner.session.data
-        runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         runner.extracted_variables.update(extract_mapping)
         runner.with_session_variables(runner.extracted_variables)
+        runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
+
+
+def headers_to_str(headers: dict):
+    if headers and isinstance(headers, dict):
+        return {str(key): str(value) for key, value in headers.items()}
 
 
 class StepRequestValidation(IStep):

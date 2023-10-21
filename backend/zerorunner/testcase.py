@@ -11,6 +11,7 @@ from autotest.utils.async_converter import AsyncIOPool
 from zerorunner import exceptions
 from zerorunner.model import step_model
 from zerorunner.model.result_model import TestCaseSummary
+from zerorunner.parser import Parser
 from zerorunner.reports import HtmlTestResult
 from zerorunner.runner import SessionRunner
 from zerorunner.report.stringify import stringify_summary

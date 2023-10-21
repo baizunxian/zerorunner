@@ -97,3 +97,8 @@ class LoopNotFound(NotFoundError):
 class StepRuntimeError(MyBaseError):
     """步骤运行错误"""
     pass
+
+
+class EnvInitError(MyBaseError):
+    """环境初始化失败"""
+    pass

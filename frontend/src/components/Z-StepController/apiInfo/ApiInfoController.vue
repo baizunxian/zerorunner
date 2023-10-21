@@ -9,7 +9,7 @@
     <template #header>
       <strong>步骤详情</strong>
     </template>
-    <ApiInfo :isView="true" :api_id="state.data.request.api_id"></ApiInfo>
+    <ApiInfo :isView="true" :api_id="state.data.source_id"></ApiInfo>
   </el-drawer>
 
 </template>

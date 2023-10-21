@@ -33,6 +33,27 @@ def detect_encoding(value):
         return "utf-8"
 
 
+def __default_serialize(obj: typing.Any):
+    if isinstance(obj, list):
+        return [__default_serialize(o) for o in obj]
+    if isinstance(obj, dict):
+        return {key: __default_serialize(value) for key, value in obj.items()}
+
+    elif isinstance(obj, bytes):
+        return repr(obj)
+
+    elif isinstance(obj, RequestsCookieJar):
+        return obj.get_dict()
+
+    elif obj is None:
+        return None
+
+    elif not isinstance(obj, (str, bytes, int, float, Iterable,)):
+        # class instance, e.g. MultipartEncoder()
+        return repr(obj)
+
+    return obj
+
 def __stringify_request(request_data: RequestData):
     """stringfy HTTP request data
 
@@ -80,36 +101,10 @@ def __stringify_request(request_data: RequestData):
                 pass
         elif value is None:
             pass
-        elif not isinstance(value, (str, bytes, int, float, Iterable)):
-            # class instance, e.g. MultipartEncoder()
-            value = repr(value)
-
-        elif isinstance(value, RequestsCookieJar):
-            value = value.get_dict()
+        else:
+            value = __default_serialize(value)
 
         setattr(request_data, key, value)
-
-
-def __default_serialize(obj: typing.Any):
-    if isinstance(obj, list):
-        return [__default_serialize(o) for o in obj]
-    if isinstance(obj, dict):
-        return {key: __default_serialize(value) for key, value in obj.items()}
-
-    elif isinstance(obj, bytes):
-        return repr(obj)
-
-    elif isinstance(obj, RequestsCookieJar):
-        return obj.get_dict()
-
-    elif obj is None:
-        return None
-
-    elif not isinstance(obj, (str, bytes, int, float, Iterable,)):
-        # class instance, e.g. MultipartEncoder()
-        return repr(obj)
-
-    return obj
 
 
 def __stringify_response(response_data: ResponseData):
@@ -161,13 +156,8 @@ def __stringify_response(response_data: ResponseData):
             except UnicodeDecodeError:
                 pass
 
-        elif not isinstance(value, (str, bytes, int, float, Iterable,)):
-            # class instance, e.g. MultipartEncoder()
-            if value is not None:
-                value = repr(value)
-
-        elif isinstance(value, RequestsCookieJar):
-            value = value.get_dict()
+        else:
+            value = __default_serialize(value)
 
         setattr(response_data, key, value)
 

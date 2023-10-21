@@ -3,9 +3,9 @@
     <el-col :span="24" class="com-padding">
       <div style="display: flex">
         <span style="margin: 0 8px 0 4px;font-size: 14px;"
-              :style="{color: getMethodColor(data.request.method)}"
-        >{{ data.request.method }}</span>
-        <div>{{ data.request.name }}</div>
+              :style="{color: getMethodColor(data.api_method || data.method)}"
+        >{{ data.api_method || data.method }}</span>
+        <div>{{ data.api_name || data.name }}</div>
       </div>
     </el-col>
   </el-row>

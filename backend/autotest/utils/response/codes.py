@@ -50,6 +50,7 @@ class CodeEnum(Enum):
     SUITE_NAME_EXIST = (15001, "套件名已存在，请重新命名")
     CASE_NOT_EXIST = (15002, "用例不存在")
     CASE_UPLOAD_FROM_POSTMAN = (15003, "导入失败")
+    ENV_CONF_INIT_ERROR = (15004, "环境配置初始化失败！")
 
     # 菜单管理  16000 - 17000
     MENU_HAS_MODULE_ASSOCIATION = (16000, "当前菜单下管理的子菜单，不能删除！")  #

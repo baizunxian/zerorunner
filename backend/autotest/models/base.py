@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import mapped_column
 
-from autotest.db.session import provide_session
+from autotest.db.session import provide_async_session, async_session
 from autotest.exceptions.exceptions import AccessTokenFail
 from autotest.utils.consts import DEFAULT_PAGE, DEFAULT_PER_PAGE
 from autotest.utils.current_user import current_user
@@ -43,7 +43,7 @@ class Base:
     trace_id = mapped_column(String(255), comment="trace_id")
 
     @classmethod
-    async def get(cls, id: typing.Union[int, str], to_dict=False) -> typing.Union["Base", typing.Dict, None]:
+    async def get(cls, id: typing.Union[int, str], to_dict: object = False) -> typing.Union["Base", typing.Dict, None]:
         """
         :param id: 查询id
         :param to_dict: 转字典
@@ -164,16 +164,40 @@ class Base:
         return result.rowcount
 
     @classmethod
-    @provide_session
-    async def execute(cls, stmt: Executable, params: typing.Any = None, session: AsyncSession = None) -> Result[
-        typing.Any]:
+    async def execute(cls, stmt: Executable, params: typing.Any = None) -> Result[typing.Any]:
         """
         执行sql
         :param stmt: sqlalchemy Executable 对象
         :param params: params 参数
-        :param session: session db会话链接
         :return:
         """
+        session = g.zero_db_session
+        if session:
+            return await session.execute(stmt, params)
+        return await cls.execute_by_session(stmt, params)
+
+    @classmethod
+    @provide_async_session
+    async def execute_by_session(cls, stmt: Executable, params: typing.Any = None, session: AsyncSession = None) -> \
+            Result[typing.Any]:
+        """
+        执行sql
+        :param stmt: sqlalchemy Executable 对象
+        :param params: params 参数
+        :param session: session db会话
+        :return:
+        """
+        return await session.execute(stmt, params)
+
+    @classmethod
+    async def execute_by_local(cls, stmt: Executable, params: typing.Any = None) -> Result[typing.Any]:
+        """
+        执行sql
+        :param stmt: sqlalchemy Executable 对象
+        :param params: params 参数
+        :return:
+        """
+        session = g.db_session
         return await session.execute(stmt, params)
 
     @classmethod
@@ -227,7 +251,7 @@ class Base:
         return unwrap_scalars(data) if data else None
 
 
-@provide_session
+@provide_async_session
 async def parse_pagination(
         query: select,
         page: int = None,

@@ -1,14 +1,15 @@
 import typing
 
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.api_models import ApiCase, ApiCaseStep
+from autotest.models.api_models import ApiCase, ApiStepInfo
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
-    ApiTestCaseRun, TCaseStepData, ApiCaseStepDataSchema
+    ApiTestCaseRun, ApiCaseStepDataSchema
+from autotest.schemas.step_data import TStepData
 from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
-from autotest.utils.current_user import current_user
 from autotest.utils.async_converter import sync_to_async
+from autotest.utils.current_user import current_user
 from autotest.utils.serialize import default_serialize
 from autotest.utils.snowflake import IDCenter
 from zerorunner.testcase import ZeroRunner
@@ -47,49 +48,45 @@ class ApiCaseService:
                 raise ParameterError("用例名以存在!")
         data = await ApiCase.create_or_update(params.dict(exclude={"step_data"}))
         tile_step_list = await ApiCaseService.tile_step_data(params.step_data, data.get("id"), data.get("version"))
-        await ApiCaseStep.batch_create([step.dict() for step in tile_step_list])
+        await ApiStepInfo.batch_create([step.dict() for step in tile_step_list])
         return data
 
     @staticmethod
-    async def get_step_data_tree(step_list: typing.List[typing.Dict], parent_id: int = None) -> typing.List[
-        TCaseStepData]:
+    async def get_step_data_tree(step_list: typing.List[typing.Dict], parent_id: int = None) -> typing.List[TStepData]:
         step_tree = []
         if not step_list:
             return step_tree
         for step in step_list:
-            new_step = ApiCaseStepDataSchema(**step)
-            step_data = TCaseStepData(**new_step.step_data)
-            if step_data.request:
-                step_data.request.name = step.get("api_name", None)
-                step_data.request.method = step.get("api_method", None)
-            if new_step.parent_id == parent_id:
-                sub_steps = await ApiCaseService.get_step_data_tree(step_list, new_step.step_id)
-                if sub_steps:
-                    step_data.sub_steps = sub_steps if sub_steps else []
-                step_tree.append(step_data)
+            new_step = TStepData(**step)
+            if new_step.parent_step_id == parent_id:
+                children_steps = await ApiCaseService.get_step_data_tree(step_list, new_step.step_id)
+                if children_steps:
+                    new_step.children_steps = children_steps if children_steps else []
+                step_ = new_step.dict()
+                step_['api_name'] = step.get("api_name", None)
+                step_['api_method'] = step.get("api_method", None)
+                step_tree.append(step_)
         return step_tree
 
     @staticmethod
-    async def tile_step_data(step_data: typing.List[TCaseStepData],
+    async def tile_step_data(step_data: typing.List[TStepData],
                              case_id: typing.Union[str, int],
                              version: int,
-                             parent_step_id: int = None) -> typing.List[
-        ApiCaseStepDataSchema]:
+                             parent_step_id: int = None) -> typing.List[ApiCaseStepDataSchema]:
         """处理用例步骤数据"""
         tile_step_list = []
         for step in step_data:
-            step_ = ApiCaseStepDataSchema(**step.dict())
-            step_.case_id = case_id
-            step_.version = version
-            step_.step_id = IDCenter.get_id()
-            step_.parent_id = parent_step_id
-            if step.request:
-                step_.api_id = step.request.api_id
-            step_.step_data = step.dict(exclude={"sub_steps"})
-            tile_step_list.append(step_)
-            if step.sub_steps:
+            step.case_id = case_id
+            step.version = version
+            step.step_id = IDCenter.get_id()
+            step.parent_step_id = parent_step_id
+            # if step.step_type.lower() == TStepTypeEnum.api.value:
+            #     step.url = step.request.url
+            #     step.method = step.request.method
+            tile_step_list.append(step)
+            if step.children_steps:
                 tile_step_list.extend(
-                    await ApiCaseService.tile_step_data(step.sub_steps, case_id, version, step_.step_id))
+                    await ApiCaseService.tile_step_data(step.children_steps, case_id, version, step.step_id))
         return tile_step_list
 
     @staticmethod
@@ -108,7 +105,7 @@ class ApiCaseService:
 
     @staticmethod
     async def set_step_data(api_case: typing.Dict):
-        step_data = await ApiCaseStep.get_step_by_case_id(api_case["id"], api_case["version"])
+        step_data = await ApiStepInfo.get_step_by_case_id(api_case["id"], api_case["version"])
         step_data_tree = await ApiCaseService.get_step_data_tree(step_data)
         api_case["step_data"] = step_data_tree
 
@@ -176,3 +173,8 @@ class ApiCaseService:
             return 0
         if count_info:
             return count_info.get("count", 0)
+
+    @staticmethod
+    def run_callback(*args, **kwargs):
+        print(1111)
+        ...
