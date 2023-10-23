@@ -6,7 +6,6 @@ from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, Te
     ApiTestCaseRun, ApiCaseStepDataSchema
 from autotest.schemas.step_data import TStepData
 from autotest.services.api.api_report import ReportService
-from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.utils.async_converter import sync_to_async
 from autotest.utils.current_user import current_user
@@ -117,10 +116,9 @@ class ApiCaseService:
         case_info = await ApiCase.get(params.id, to_dict=True)
         await ApiCaseService.set_step_data(case_info)
         run_params = TestCaseRun(**default_serialize(case_info), env_id=params.env_id)
-        api_case_info = await ApiCaseHandle.init(run_params)
-        await api_case_info.make_functions()
+        api_case_info = await HandelTestCase().init(run_params)
         runner = ZeroRunner()
-        testcase = api_case_info.get_testcase()
+        testcase = api_case_info.get_testcases()
         summary = await runner.run_tests(testcase)
         current_user_info = await current_user()
         summary_params = await ReportService.get_report_result(summary,

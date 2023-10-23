@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import typing
+from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator
 
 from autotest.schemas.base import BaseSchema
-from zerorunner.model.step_model import TStep, ValidatorData, TSqlRequest, TIFRequest, TLoopRequest
-from zerorunner.models import TRequest
-
-from enum import Enum
+from zerorunner.models.base import TStepTypeEnum
+from zerorunner.models.step_model import TStep, ValidatorData, TSqlRequest, TRequest, TIFRequest, TWaitRequest, \
+    TScriptRequest, TLoopRequest, TUiRequest
 
 
 class RequestMode(str, Enum):
@@ -77,13 +77,56 @@ class TStepSqlData(BaseModel):
     variable_name: str = Field(None, description="赋值的变量名称")
 
 
+TStepRequest = typing.Annotated[
+    typing.Union[TRequestData, TSqlData, TIFRequest, TWaitRequest, TScriptRequest, TLoopRequest, TUiRequest], Field(
+        discriminator='step_type')]
+
+
 class TStepData(TStep):
     """继承步骤类，方便入库存储"""
     step_type: str = Field(..., description="步骤类型")
-    setup_hooks: typing.List[typing.Union["TStepData", str]] = []
-    teardown_hooks: typing.List[typing.Union["TStepData", str]] = []
+    setup_hooks: typing.List["TStepData"] = []
+    teardown_hooks: typing.List["TStepData"] = []
     variables: typing.List[typing.Any] = Field([], description="变量")
     validators: typing.List[ValidatorData] = Field([], alias="validators")
-    request: TRequestData = Field(None, description="api请求参数")
-    sql_request: TSqlData = Field(None, description="sql请求参数")
-    children_steps: typing.List['TStepData'] = Field([], description="子步骤")
+    request: typing.Union[TStepRequest] =None
+    children_steps: typing.List["TStepData"] = Field([], description="子步骤")
+
+    # @root_validator(pre=True)
+    # def customize_serialization(cls, values):
+    #     if not values:
+    #         return values
+    #     request = values.get("request", None)
+    #     setup_hooks = values.get("setup_hooks", [])
+    #     teardown_hooks = values.get("setup_hooks", [])
+    #     children_steps = values.get("children_steps", [])
+    #     if request:
+    #         values = get_request_model(values)
+    #     values['setup_hooks'] = [get_request_model(hook) for hook in setup_hooks if setup_hooks]
+    #     values['teardown_hooks'] = [get_request_model(hook) for hook in setup_hooks if teardown_hooks]
+    #     values['children_steps'] = [get_request_model(children) for children in children_steps if children_steps]
+    #     return values
+
+
+def get_request_model(values: typing.Any) -> typing.Any:
+    request = values.get("request", None)
+    typing.Annotated
+    step_type = values.get('step_type')
+    if step_type == TStepTypeEnum.api.value:
+        new_request = TRequestData.parse_obj(request)
+    elif step_type == TStepTypeEnum.loop.value:
+        new_request = TLoopRequest.parse_obj(request)
+    elif step_type == TStepTypeEnum.sql.value:
+        new_request = TSqlData.parse_obj(request)
+    elif step_type == TStepTypeEnum.IF.value.lower():
+        new_request = TIFRequest.parse_obj(request)
+    elif step_type == TStepTypeEnum.wait.value:
+        new_request = TWaitRequest.parse_obj(request)
+    elif step_type == TStepTypeEnum.script.value:
+        new_request = TScriptRequest.parse_obj(request)
+    elif step_type == TStepTypeEnum.ui.value:
+        new_request = TUiRequest.parse_obj(request)
+    else:
+        raise ValueError(f"不支持的类型{step_type}")
+    values["request"] = new_request
+    return values

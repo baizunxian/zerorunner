@@ -3,6 +3,7 @@
 import typing
 
 from pydantic import BaseModel, Field
+
 from autotest.schemas.base import BaseSchema
 from autotest.utils.des import decrypt_rsa_password
 

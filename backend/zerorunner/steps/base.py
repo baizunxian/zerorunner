@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-from zerorunner.model.step_model import TStep
+from zerorunner.models.step_model import TStep
 
 
 class IStep(object):

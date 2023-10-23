@@ -5,9 +5,9 @@ import time
 import uuid
 
 from zerorunner.loader import load_script_content, load_module_functions
-from zerorunner.model.base import TStepLogType, TStepResultStatusEnum
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep, TScriptRequest
+from zerorunner.models.base import TStepLogType, TStepResultStatusEnum
+from zerorunner.models.result_model import StepResult
+from zerorunner.models.step_model import TStep, TScriptRequest
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
 from zerorunner.steps.step_result import TStepResult
@@ -21,13 +21,13 @@ def run_script_request(runner: SessionRunner,
     step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
-    request_dict = step.script_request.dict()
+    request_dict = step.request.dict()
     parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
-    step.script_request = TScriptRequest(**parsed_request_dict)
+    step.request = TScriptRequest.parse_obj(parsed_request_dict)
     try:
         module_name = uuid.uuid4().hex
-        script = f"{step.script_request.script_content}"
-        model, captured_output = load_script_content(step.script_request.script_content,
+        script = f"{step.request.script_content}"
+        model, captured_output = load_script_content(step.request.script_content,
                                                      f"{runner.config.case_id}_setup_code")
         script_module, _ = load_script_content(script, f"script_{module_name}")
         functions = load_module_functions(model)
@@ -48,7 +48,7 @@ class ScriptWithOptionalArgs(IStep):
         self.__step = step
 
     def with_script_content(self, script_content: int) -> "ScriptWithOptionalArgs":
-        self.__step.script_request.script_content = script_content
+        self.__step.request.script_content = script_content
         return self
 
     def struct(self) -> TStep:

@@ -1,7 +1,3 @@
-from sqlalchemy import Column, String, Integer
-from sqlalchemy.orm import aliased
-
-from autotest.models.base import Base
 #
 #
 # class DataSourceTest(Base):

@@ -17,8 +17,8 @@ from autotest.schemas.step_data import TStepData, RequestMode, ApiBaseSchema, Ra
 from autotest.utils.des import decrypt_rsa_password
 from config import config
 from zerorunner.loader import load_module_functions, load_func_content
-from zerorunner.model.base import TStepTypeEnum
-from zerorunner.model.step_model import TStep, TRequest, TSqlRequest, TIFRequest, TLoopRequest, TScriptRequest, \
+from zerorunner.models.base import TStepTypeEnum
+from zerorunner.models.step_model import TStep, TRequest, TSqlRequest, TIFRequest, TLoopRequest, TScriptRequest, \
     TWaitRequest, TestCase, TUiRequest, TConfig
 from zerorunner.parser import Parser
 from zerorunner.steps.step import Step
@@ -231,33 +231,33 @@ class HandleStepData(object):
         return Step(RunRequestStep(self.step))
 
     async def __init_ui_step(self) -> Step:
-        self.step.ui_request = TUiRequest(**self.api_info.ui_request.dict())
+        self.step.request = TUiRequest.parse_obj(self.api_info.request.dict())
         return Step(RunUiStep(self.step))
 
     async def __init_sql_step(self) -> Step:
         """sql步骤初始化"""
-        source_info = await DataSource.get(self.api_info.sql_request.source_id)
-        self.step.sql_request = TSqlRequest(**self.api_info.sql_request.dict())
+        source_info = await DataSource.get(self.api_info.request.source_id)
+        self.step.request = TSqlRequest.parse_obj(self.api_info.request.dict())
         if source_info:
-            self.step.sql_request.host = source_info.host
-            self.step.sql_request.user = source_info.user
-            self.step.sql_request.password = decrypt_rsa_password(source_info.password)
-            self.step.sql_request.port = source_info.port
+            self.step.request.host = source_info.host
+            self.step.request.user = source_info.user
+            self.step.request.password = decrypt_rsa_password(source_info.password)
+            self.step.request.port = source_info.port
         else:
             raise ValueError(f"{self.step.name} sql环境信息为空")
         return Step(RunSqlStep(self.step))
 
     async def __init_wait_step(self) -> Step:
         """wait步骤初始化"""
-        self.step.wait_request = TWaitRequest(**self.api_info.wait_request.dict())
+        self.step.request = TWaitRequest.parse_obj(self.api_info.request.dict())
         return Step(RunWaitStep(self.step))
 
     async def __init_if_step(self) -> Step:
         """if步骤初始化"""
-        self.step.if_request = TIFRequest(**self.api_info.if_request.dict())
-        self.step.if_request.check = parse_string_to_json(self.step.if_request.check)
-        self.step.if_request.comparator = parse_string_to_json(self.step.if_request.comparator)
-        self.step.if_request.expect = parse_string_to_json(self.step.if_request.expect)
+        self.step.request = TIFRequest.parse_obj(self.api_info.request.dict())
+        self.step.request.check = parse_string_to_json(self.step.request.check)
+        self.step.request.comparator = parse_string_to_json(self.step.request.comparator)
+        self.step.request.expect = parse_string_to_json(self.step.request.expect)
 
         new_children_steps = []
         for c_step in self.api_info.children_steps:
@@ -269,12 +269,12 @@ class HandleStepData(object):
 
     async def __init_loop_step(self) -> Step:
         """loop步骤初始化"""
-        self.step.loop_request = TLoopRequest(**self.api_info.loop_request.dict())
-        self.step.loop_request.for_variable_name = parse_string_to_json(self.step.loop_request.for_variable_name)
-        self.step.loop_request.for_variable = parse_string_to_json(self.step.loop_request.for_variable)
-        self.step.loop_request.while_comparator = parse_string_to_json(self.step.loop_request.while_comparator)
-        self.step.loop_request.while_variable = parse_string_to_json(self.step.loop_request.while_variable)
-        self.step.loop_request.while_value = parse_string_to_json(self.step.loop_request.while_value)
+        self.step.request = TLoopRequest.parse_obj(self.api_info.request.dict())
+        self.step.request.for_variable_name = parse_string_to_json(self.step.request.for_variable_name)
+        self.step.request.for_variable = parse_string_to_json(self.step.request.for_variable)
+        self.step.request.while_comparator = parse_string_to_json(self.step.request.while_comparator)
+        self.step.request.while_variable = parse_string_to_json(self.step.request.while_variable)
+        self.step.request.while_value = parse_string_to_json(self.step.request.while_value)
 
         new_children_steps = []
         for c_step in self.api_info.children_steps:
@@ -286,7 +286,7 @@ class HandleStepData(object):
 
     async def __init_script_step(self) -> Step:
         """script步骤初始化"""
-        self.step.script_request = TScriptRequest(**self.api_info.script_request.dict())
+        self.step.request = TScriptRequest.parse_obj(self.api_info.request.dict())
         return Step(RunScriptStep(self.step))
 
     async def init_request_headers(self):
@@ -305,7 +305,7 @@ class HandleStepData(object):
             if step.enable is False:
                 continue
             if isinstance(step, TStepData):
-                step_info = await HandleStepData().init(ApiInfoIn(**step.dict()), self.case_id)
+                step_info = await HandleStepData().init(ApiInfoIn.parse_obj(step.dict()), self.case_id)
                 self.step.setup_hooks.append(step_info.step_obj)
 
     async def init_teardown_hooks(self):
@@ -314,7 +314,7 @@ class HandleStepData(object):
             if step.enable is False:
                 continue
             if isinstance(step, TStepData):
-                step_info = await HandleStepData().init(ApiInfoIn(**step.dict()), self.case_id)
+                step_info = await HandleStepData().init(ApiInfoIn.parse_obj(step.dict()), self.case_id)
                 self.step.teardown_hooks.append(step_info.step_obj)
 
     async def init_validators(self):
@@ -398,9 +398,12 @@ class HandelTestCase(object):
             new_step = None
             step.children_steps = await HandelTestCase.handle_steps(step.children_steps)
             if step.step_type.lower() == TStepTypeEnum.api.value.lower():
+                # 处理api用例，后面会支持是否是引用模式
                 api_info = await ApiInfo.get(step.source_id, True)
                 if api_info:
-                    new_step = TStepData(**api_info)
+                    new_step = api_info
+                    new_step.update(step.dict())
+                    new_step = TStepData(**new_step)
                     new_step.source_id = api_info.get("id", None)
                     new_step.index = step.index
                 else:

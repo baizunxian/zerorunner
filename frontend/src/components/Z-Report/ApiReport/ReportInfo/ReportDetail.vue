@@ -163,12 +163,11 @@ const state = reactive({
       }, () => row.step_tag) : "-"
     },
     {
-      key: 'case_name',
+      key: 'name',
       label: '接口名称',
       width: '',
       align: 'center',
       show: true,
-      lookupCode: 'api_report_run_type'
     },
     {
       key: 'status_code', label: 'HttpCode', width: '', align: 'center', show: true,

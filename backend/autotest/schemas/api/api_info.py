@@ -5,7 +5,8 @@ from pydantic import root_validator, BaseModel, Field
 
 from autotest.schemas.base import BaseSchema
 from autotest.schemas.step_data import TStepData, TRequestData, ApiBaseSchema
-from zerorunner.models import ExtractData, MethodEnum
+from zerorunner.models.base import MethodEnum
+from zerorunner.models.step_model import ExtractData
 
 
 class ApiQuery(BaseSchema):
@@ -42,32 +43,6 @@ class ApiDetailId(BaseModel):
     ids: typing.List[typing.Union[str, int]] = Field(None, description="id")
 
 
-class ApiRunBodySchema(BaseModel):
-    """"""
-    name: str = Field(None, description="id")
-    # user_id: int = Field(None, description="id")
-    case_status: int = Field(None, description="id")
-    case_type: int = Field(None, description="id")
-    code: str = Field(None, description="id")
-    run_type: int = Field(None, description="id")
-    include: str = Field(None, description="id")
-    testcase: str = Field(None, description="id")
-    code_id: int = Field(None, description="id")
-    priority: int = Field(None, description="id")
-    config_id: int = Field(None, description="id")
-    project_id: int = Field(None, description="id")
-    module_id: int = Field(None, description="id")
-    created_by: int = Field(None, description="id")
-
-    @root_validator
-    def root_validator(cls, data):
-        if data['testcase']:
-            data['testcase'] = json.loads(data['testcase'])
-        if 'include' in data:
-            data["include"] = list(map(int, data["include"].split(","))) if data["include"] else []
-        return data
-
-
 class ApiRunSchema(BaseModel):
     """运行用例"""
 
@@ -76,7 +51,7 @@ class ApiRunSchema(BaseModel):
     env_id: str = Field(None, description="环境id")
     name: str = Field(None, description="名称")
     run_type: str = Field("api", description="运行模式")
-    run_mode: int = Field(None, description="运行类型 10 同步， 20 异步")
+    run_mode: int = Field(None, description="运行类型 10 同步， 20 异步, 30定时任务")
     number_of_run: int = Field(None, description="运行次数")
     exec_user_id: int = Field(None, description="执行人id")
     exec_user_name: str = Field(None, description="执行人")
