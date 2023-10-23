@@ -13,8 +13,8 @@ from requests import Response
 
 from zerorunner import exceptions
 from zerorunner.exceptions import ValidationFailure, ParamsError, ExtractFailure
-from zerorunner.model.base import CheckModeEnum, ExtractTypeEnum
-from zerorunner.models import VariablesMapping, Validators, FunctionsMapping, ExtractData
+from zerorunner.models.base import CheckModeEnum, ExtractTypeEnum, VariablesMapping, FunctionsMapping, Validators
+from zerorunner.models.step_model import ExtractData
 from zerorunner.parser import parse_data, parse_string_value, Parser
 
 

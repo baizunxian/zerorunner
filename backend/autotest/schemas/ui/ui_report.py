@@ -29,7 +29,7 @@ class UiReportSaveSchema(BaseModel):
     start_time: str = Field(None, description="")
     duration: float = Field(None, description="")
     case_id: typing.Union[str, int] = Field(None, description="")
-    run_type: int = Field(None, description="运行类型 10 同步， 20 异步")
+    run_mode: int = Field(None, description="运行类型 10 同步， 20 异步")
     success: bool = Field(False, description="")
     run_count: int = Field(0, description="")
     run_success_count: int = Field(0, description="")

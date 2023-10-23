@@ -22,7 +22,7 @@ from autotest.utils.consts import TEST_EXECUTE_SET, TEST_EXECUTE_STATS, CACHE_WE
 from autotest.utils.local import g
 from celery_worker.worker import celery
 from config import config
-from zerorunner.model.step_model import TestCase
+from zerorunner.models.step_model import TestCase
 from zerorunner.testcase import ZeroRunner
 
 executor_worker = ThreadPoolExecutor(max_workers=4)
@@ -54,6 +54,8 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
     """
     exec_user_id = kwargs.get("exec_user_id", None)
     exec_user_name = kwargs.get("exec_user_name", None)
+    run_mode = kwargs.get("run_mode", 20)
+    run_type = kwargs.get("run_type", "case")
     r: MyAsyncRedis = g.redis
     if not case_id:
         raise ValueError("id 不能为空！")
@@ -68,8 +70,8 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         report_params = TestReportSaveSchema(
             name=case_info["name"],
             case_id=case_info["id"],
-            run_mode=30,
-            run_type="case",
+            run_mode=run_mode,
+            run_type=run_type,
             project_id=case_info["project_id"],
             module_id=run_params.module_id,
             env_id=run_params.env_id,
@@ -111,7 +113,11 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         summary_params = TestReportSaveSchema(**report_params.dict())
         summary_params.success = summary.success
         await ReportService.save_report_info(summary_params)
-        await ReportService.save_report_detail(summary, report_id)
+        await ReportService.save_report_detail(summary,
+                                               report_id,
+                                               case_name=case_info.get("name", None),
+                                               exec_user_id=exec_user_id,
+                                               exec_user_name=exec_user_name)
     else:
         report_params.duration = report_params.duration if report_params.duration else 0
         testcase = api_case_info.get_testcases()

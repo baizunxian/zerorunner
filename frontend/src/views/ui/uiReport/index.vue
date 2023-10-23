@@ -80,7 +80,7 @@ const state = reactive({
       align: 'center',
       width: '',
       showTooltip: true,
-      lookupCode: 'api_report_run_type'
+      lookupCode: 'api_report_run_mode'
     },
     {key: 'run_count', label: '运行数', align: 'center', width: '', show: true},
     // {key: 'successes', label: '执行结果', width: '', showTooltip: true},

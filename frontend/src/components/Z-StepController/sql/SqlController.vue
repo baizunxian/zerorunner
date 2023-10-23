@@ -9,7 +9,7 @@
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="运行环境" prop="project_id">
                 <el-select size="small"
-                           v-model="step.sql_request.env_id"
+                           v-model="step.request.env_id"
                            placeholder="运行环境"
                            filterable
                            style="width: 100%;"
@@ -27,7 +27,7 @@
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="数据源名称" prop="module_id">
-                <el-select size="small" v-model="step.sql_request.source_id" placeholder="请选择" filterable
+                <el-select size="small" v-model="step.request.source_id" placeholder="请选择" filterable
                            style="width: 100%;">
                   <el-option
                       v-for="source in state.sourceList"
@@ -42,7 +42,7 @@
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="超时时间" prop="config_id">
-                <el-input-number size="small" v-model="step.sql_request.timeout" placeholder="秒"/>
+                <el-input-number size="small" v-model="step.request.timeout" placeholder="秒"/>
               </el-form-item>
             </el-col>
           </el-row>
@@ -52,11 +52,11 @@
               <el-form-item label="存储结果" prop="variable_name">
                 <el-input size="small"
                           style="width: 100%"
-                          v-model="step.sql_request.variable_name"
+                          v-model="step.request.variable_name"
                           placeholder="查询结果赋值的变量名称">
                   <template #suffix>
-                    <span v-show="step.sql_request.variable_name.length > 0" class="el-input__suffix-inner"
-                          @click="copyText('${'+ step.sql_request.variable_name +'}')">
+                    <span v-show="step.request.variable_name.length > 0" class="el-input__suffix-inner"
+                          @click="copyText('${'+ step.request.variable_name +'}')">
                     <el-icon color="#303133">
                       <ele-DocumentCopy/>
                     </el-icon>
@@ -72,7 +72,8 @@
             <z-monaco-editor
                 style="height: 150px"
                 ref="monacoEditRef"
-                v-model:value="step.sql_request.sql"
+                lang="sql"
+                v-model:value="step.request.sql"
                 :options="{minimap: {enabled: false}}"
             />
           </div>
@@ -127,7 +128,7 @@ const selectEnv = (env_id) => {
     state.dataSourceQuery.env_id = env_id
     getDataSourceList()
   }
-  step.value.sql_request.source_id = null
+  step.value.request.source_id = null
 }
 
 // 初始化env
@@ -149,8 +150,8 @@ const getDataSourceList = () => {
 onMounted(() => {
   getEnvList()
   nextTick(() => {
-    if (props.step.sql_request?.env_id) {
-      state.dataSourceQuery.env_id = step.value.sql_request.env_id
+    if (props.step.request?.env_id) {
+      state.dataSourceQuery.env_id = step.value.request.env_id
       getDataSourceList()
     }
   })

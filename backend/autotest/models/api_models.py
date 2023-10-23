@@ -198,10 +198,6 @@ class ApiInfo(Base):
     extracts = mapped_column(JSON, comment='提取')
     export = mapped_column(JSON, comment='输出')
     request = mapped_column(JSON, comment='请求参数')
-    sql_request = mapped_column(JSON, comment='sql请求参数')
-    loop_data = mapped_column(JSON, comment='sql请求参数')
-    if_data = mapped_column(JSON, comment='sql请求参数')
-    wait_data = mapped_column(JSON, comment='sql请求参数')
 
     @classmethod
     async def get_list(cls, params: ApiQuery):
@@ -366,12 +362,12 @@ class ApiStepInfo(Base):
     project_id = mapped_column(BigInteger, nullable=False, comment='所属项目')
     module_id = mapped_column(BigInteger, nullable=False, comment='所属模块')
     status = mapped_column(Integer, comment='用例状态 10, 生效 ， 20 失效', default=10)
-    code_id = mapped_column(BigInteger, comment='关联接口id')
     code = mapped_column(String(255), comment='接口code')
+    code_id = mapped_column(BigInteger, comment='关联接口id')
     priority = mapped_column(Integer, comment='优先级', default=3)
-    tags = mapped_column(JSON, comment='用例标签')
     url = mapped_column(String(255), nullable=False, comment='请求地址')
     method = mapped_column(String(255), comment='请求方式')
+    tags = mapped_column(JSON, comment='用例标签')
     remarks = mapped_column(String(255), comment='描述')
     step_type = mapped_column(String(255), comment='描述')
     pre_steps = mapped_column(JSON, comment='前置步骤')
@@ -386,10 +382,6 @@ class ApiStepInfo(Base):
     extracts = mapped_column(JSON, comment='提取')
     export = mapped_column(JSON, comment='输出')
     request = mapped_column(JSON, comment='请求参数')
-    sql_request = mapped_column(JSON, comment='sql请求参数')
-    loop_request = mapped_column(JSON, comment='loop请求参数')
-    if_request = mapped_column(JSON, comment='if请求参数')
-    wait_request = mapped_column(JSON, comment='wait请求参数')
     step_id = mapped_column(BigInteger, comment='步骤id')
     parent_step_id = mapped_column(BigInteger, comment='父步骤id')
     index = mapped_column(Integer, comment='步骤顺序')
@@ -533,11 +525,12 @@ class ApiCase(Base):
                       cls.updated_by,
                       cls.updation_date,
                       cls.enabled_flag,
-                      func.count(distinct(ApiCaseStep.id)).label('step_count'),
+                      func.count(distinct(ApiStepInfo.id)).label('step_count'),
                       User.nickname.label('created_by_name'),
                       u.nickname.label('updated_by_name'),
                       ProjectInfo.name.label('project_name')).where(*q) \
-            .outerjoin(ApiCaseStep, and_(ApiCaseStep.case_id == cls.id, cls.version == ApiCaseStep.version)) \
+            .outerjoin(ApiStepInfo, and_(ApiStepInfo.case_id == cls.id, cls.version == ApiStepInfo.version,
+                                         ApiStepInfo.parent_step_id.is_(None))) \
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
@@ -868,7 +861,7 @@ class ApiTestReportDetail:
 
                     stmt = select(
                         # 总步骤数
-                        func.count('1').label("count_step"),
+                        func.count('*').label("count_step"),
                         # 成功步骤数
                         func.sum(func.if_(cls.status == "SUCCESS" == 1, 1, 0)).label(
                             "count_step_success"),
@@ -884,8 +877,7 @@ class ApiTestReportDetail:
                         # 总执行时长
                         func.sum(cls.duration).label("count_request_time"),
                         # 用例数
-                        func.sum(func.if_(cls.step_type == 'api', func.if_(cls.status != "SKIP", 1, 0), 0)).label(
-                            "count_case"),
+                        func.count(distinct(cls.case_id)).label("count_case"),
                         # 成功用例数
                         func.sum(
                             func.if_(cls.step_type == 'api', func.if_(cls.status == "SUCCESS", 1, 0), 0)).label(

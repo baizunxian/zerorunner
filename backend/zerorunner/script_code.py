@@ -2,7 +2,7 @@
 # @author: xiaobai
 import typing
 
-from zerorunner.model.step_model import TStep
+from zerorunner.models.step_model import TStep
 from zerorunner.response import ResponseObject
 from zerorunner.runner import SessionRunner
 

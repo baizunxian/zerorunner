@@ -1,7 +1,7 @@
 <template>
   <el-row>
     <el-col :span="20" class="com-padding">
-      <el-radio-group v-model="data.loop_request.loop_type" @click.stop>
+      <el-radio-group v-model="data.request.loop_type" @click.stop>
         <el-radio label="count">次数循环</el-radio>
         <el-radio label="for">for循环</el-radio>
         <el-radio label="while">while循环</el-radio>

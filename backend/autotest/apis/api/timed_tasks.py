@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from autotest.db.session import provide_async_session_router
 from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, TimedTasksInSchema, TimedTasksId, CrontabSaveSchema
 from autotest.services.api.timed_task import TimedTasksService, CrontabService
@@ -14,6 +15,7 @@ async def timed_tasks_list(params: TimedTasksQuerySchema):
 
 
 @router.post('/saveOrUpdate', description="新增，修改定时任务")
+@provide_async_session_router
 async def save_or_update(params: TimedTasksInSchema):
     data = await TimedTasksService.save_or_update(params)
     return partner_success(data)

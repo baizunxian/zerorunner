@@ -12,7 +12,7 @@ from json import JSONDecodeError
 
 from loguru import logger
 from zerorunner import loader, utils, exceptions
-from zerorunner.model.base import VariablesMapping, FunctionsMapping
+from zerorunner.models.base import VariablesMapping, FunctionsMapping
 from zerorunner.utils import default_serialize
 
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)

@@ -186,7 +186,7 @@ class UiReports(Base):
     start_time = mapped_column(DateTime, comment='执行时间')
     duration = mapped_column(DECIMAL(), comment='执行耗时')
     case_id = mapped_column(Integer(), comment='用例id', index=True)
-    run_type = mapped_column(Integer, comment='运行类型， 10 同步， 20 异步，30 定时任务')
+    run_mode = mapped_column(Integer, comment='运行类型， 10 同步， 20 异步，30 定时任务')
     success = mapped_column(Integer(), comment='是否成功')
     run_count = mapped_column(Integer, comment='运行步骤数')
     run_success_count = mapped_column(Integer, comment='运行成功数')

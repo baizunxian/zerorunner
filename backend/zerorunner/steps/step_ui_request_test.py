@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-from zerorunner.model.step_model import TStep, TUiRequest
-from zerorunner.models import TConfig
+from zerorunner.models.step_model import TStep, TUiRequest, TConfig
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.step import Step
 from zerorunner.steps.step_ui_requet import RunUiStep

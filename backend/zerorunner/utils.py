@@ -20,7 +20,7 @@ from requests_toolbelt import MultipartEncoder
 from sqlalchemy import Row
 from sqlalchemy.orm import DeclarativeMeta
 from zerorunner import exceptions, __version__
-from zerorunner.models import VariablesMapping
+from zerorunner.models.base import VariablesMapping
 
 
 def set_os_environ(variables_mapping):

@@ -38,7 +38,7 @@
 
             </template>
             <div v-if="step.step_type === 'sql'">
-              {{ step.sql_session_data?.sql }}
+              {{ step.session_data?.sql }}
             </div>
             {{ step.message }}
           </el-collapse-item>
@@ -83,7 +83,7 @@
 
             </template>
             <div v-if="step.step_type === 'sql'">
-              {{ step.sql_session_data?.sql }}
+              {{ step.session_data?.sql }}
             </div>
             {{ step.message }}
           </el-collapse-item>

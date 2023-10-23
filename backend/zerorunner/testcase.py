@@ -9,8 +9,8 @@ from loguru import logger
 
 from autotest.utils.async_converter import AsyncIOPool
 from zerorunner import exceptions
-from zerorunner.model import step_model
-from zerorunner.model.result_model import TestCaseSummary
+from zerorunner.models import step_model
+from zerorunner.models.result_model import TestCaseSummary
 from zerorunner.parser import Parser
 from zerorunner.reports import HtmlTestResult
 from zerorunner.runner import SessionRunner

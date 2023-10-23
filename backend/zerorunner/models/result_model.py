@@ -4,8 +4,8 @@ import typing
 
 from pydantic import BaseModel, Field
 
-from zerorunner.model.base import VariablesMapping, MethodEnum, Url, Headers, Cookies
-from zerorunner.model.step_model import TSqlRequest
+from zerorunner.models.base import VariablesMapping, MethodEnum, Url, Headers, Cookies
+from zerorunner.models.step_model import TSqlRequest
 
 
 class RequestStat(BaseModel):
@@ -36,10 +36,10 @@ class ResponseData(BaseModel):
     """响应数据"""
     status_code: int = Field(..., description="状态码")
     headers: typing.Dict = Field(..., description="响应头")
-    cookies: typing.Optional[Cookies] = Field(..., description="cookies")
+    cookies: typing.Optional[Cookies] = Field(None, description="cookies")
     encoding: typing.Union[str, None] = Field(None, description="encoding")
     content_type: str = Field(..., description="类型")
-    body: typing.Union[str, bytes, typing.List, typing.Dict, None] = Field(..., description="body")
+    body: typing.Union[str, bytes, typing.List, typing.Dict, None] = Field(None, description="body")
 
 
 class ReqRespData(BaseModel):
@@ -50,12 +50,12 @@ class ReqRespData(BaseModel):
 
 class SessionData(BaseModel):
     """请求会话数据，包括请求、响应、验证器和stat数据"""
-
     success: bool = Field(False, description="是否成功")
     req_resp: ReqRespData = Field({}, description="请求，响应数据")
     stat: RequestStat = Field(RequestStat(), description="时间")
     address: AddressData = Field(AddressData(), description="地址")
     validators: typing.Dict = Field({}, description="校验")
+    extracts: typing.List = Field([], description="提取")
 
 
 class SqlSessionData(TSqlRequest):
@@ -80,29 +80,30 @@ class UiSessionData(BaseModel):
 class StepResult(BaseModel):
     """测试步骤数据"""
 
+    index: int = Field(None, description="index")
     name: str = Field("", description="步骤名称")
-    case_id: str = Field("", description="case_id")
+    step_id: typing.Union[str, int] = Field(None, description="步骤id")
+    parent_step_id: typing.Union[str, int] = Field(None, description="父步骤id")
+    case_id: typing.Union[str, int] = Field(None, description="case_id")
     source_id: typing.Union[int, str] = Field(None, description="来源id")
-    index: int = Field(0, description="index")
     start_time: float = Field(0, description="开始时间")
     duration: float = Field(0, description="执行耗时")
     success: bool = Field(False, description="是否成功")
     status: str = Field("", description="步骤状态  success 成功  fail 失败  skip 跳过  err 错误")
     step_type: str = Field("", description="步骤类型")
     step_tag: typing.Union[str, None] = Field(None, description="步骤标签")
-    message: str = Field("", description="错误信息等")
     env_variables: VariablesMapping = Field({}, description="环境变量")
     variables: VariablesMapping = Field({}, description="变量")
     case_variables: VariablesMapping = Field({}, description="用例变量")
     step_result: typing.List['StepResult'] = Field([], description="步骤结果")
-    session_data: SessionData = Field(None, description="请求信息")
-    ui_session_data: UiSessionData = Field(None, description="ui请求数据")
-    sql_session_data: SqlSessionData = Field(None, description="sql会话数据")
+    session_data: typing.Union[SessionData, SqlSessionData, UiSessionData] = Field(None, description="请求信息")
     setup_hook_results: typing.List['StepResult'] = Field([], description="前置hook")
     teardown_hook_results: typing.List['StepResult'] = Field([], description="后置hook")
     export_vars: VariablesMapping = Field({}, description="")
+    message: str = Field("", description="错误信息等")
     log: str = Field("", description="执行log")
-    attachment: str = Field("", description="附件")
+
+    # attachment: str = Field("", description="附件")
 
     def dict(self, *args, **kwargs):
         """获取报告时去除 请求信息 避免报告数据太大"""

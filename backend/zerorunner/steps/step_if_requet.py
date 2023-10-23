@@ -4,9 +4,9 @@
 import time
 import typing
 from zerorunner import exceptions
-from zerorunner.model.base import TStepLogType, TStepResultStatusEnum
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep, TIFRequest
+from zerorunner.models.base import TStepLogType, TStepResultStatusEnum
+from zerorunner.models.result_model import StepResult
+from zerorunner.models.step_model import TStep, TIFRequest
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
 from zerorunner.steps.step_result import TStepResult
@@ -22,10 +22,10 @@ def run_if_request(runner: SessionRunner,
     step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
-    request_dict = step.if_request.dict()
+    request_dict = step.request.dict()
     parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
     try:
-        if_request_obj = TIFRequest(**parsed_request_dict)
+        if_request_obj = TIFRequest.parse_obj(parsed_request_dict)
         if not if_request_obj.comparator:
             raise ValueError("条件控制器--> 条件不能为空！")
         c_result = runner.comparators(if_request_obj.check, if_request_obj.expect, if_request_obj.comparator)
@@ -65,22 +65,22 @@ class IFWithOptionalArgs(IStep):
 
     def with_check(self, check: typing.Any) -> "IFWithOptionalArgs":
         """校验变量"""
-        self.__step.if_request.check = check
+        self.__step.request.check = check
         return self
 
     def with_comparator(self, comparator: str) -> "IFWithOptionalArgs":
         """对比规则"""
-        self.__step.if_request.comparator = comparator
+        self.__step.request.comparator = comparator
         return self
 
     def with_expect(self, expect: typing.Any) -> "IFWithOptionalArgs":
         """对比值"""
-        self.__step.if_request.expect = expect
+        self.__step.request.expect = expect
         return self
 
     def with_remarks(self, remarks: str) -> "IFWithOptionalArgs":
         """对比值"""
-        self.__step.if_request.remarks = remarks
+        self.__step.request.remarks = remarks
         return self
 
     def struct(self) -> TStep:

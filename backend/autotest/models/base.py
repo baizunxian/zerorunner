@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import as_declarative
 from sqlalchemy.orm import mapped_column
 
-from autotest.db.session import provide_async_session, async_session
+from autotest.db.session import provide_async_session
 from autotest.exceptions.exceptions import AccessTokenFail
 from autotest.utils.consts import DEFAULT_PAGE, DEFAULT_PER_PAGE
 from autotest.utils.current_user import current_user
