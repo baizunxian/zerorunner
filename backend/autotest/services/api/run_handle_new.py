@@ -13,7 +13,7 @@ from autotest.models.api_models import Env, DataSource, ApiInfo, EnvFunc
 from autotest.models.system_models import FileInfo
 from autotest.schemas.api.api_case import TestCaseRun
 from autotest.schemas.api.api_info import ApiInfoIn
-from autotest.schemas.step_data import TStepData, RequestMode, ApiBaseSchema, RawLanguageEnum
+from autotest.schemas.step_data import TStepData, RequestMode, ApiBaseSchema, RawLanguageEnum, TRequestData, TSqlData
 from autotest.utils.des import decrypt_rsa_password
 from config import config
 from zerorunner.loader import load_module_functions, load_func_content
@@ -155,7 +155,7 @@ class HandleStepData(object):
         exclude_set = {"case_id", "request", "sql_request", "if_request", "loop_request", "wait_request", "script_request",
                        "ui_request", "variables", "setup_hooks", "teardown_hooks", "validators", "children_steps"}
         self.case_id = case_id
-        self.step = TStep(**params.dict(exclude=exclude_set), case_id=self.case_id)
+        self.step = TStep(case_id=self.case_id).parse_obj(params.dict(exclude=exclude_set))
         self.api_info = params
         self.step_obj = None
         await self.init_step()
@@ -188,24 +188,25 @@ class HandleStepData(object):
         self.step_obj = step_obj
 
     async def __init_api_step(self) -> Step:
-        self.step.request = TRequest(method=self.api_info.request.method, url=self.api_info.request.url)
-        request_mode = self.api_info.request.mode.lower()
+        request_data = TRequestData.parse_obj(self.api_info.request)
+        self.step.request = TRequest.parse_obj(self.api_info.request)
+        request_mode = request_data.mode.lower()
         if request_mode == RequestMode.RAW.value.lower():
             # json
-            if self.api_info.request.language.lower() == RawLanguageEnum.JSON.value:
+            if request_data.language.lower() == RawLanguageEnum.JSON.value:
                 try:
-                    self.step.request.req_json = json.loads(self.api_info.request.data)
+                    self.step.request.req_json = json.loads(request_data.data)
                 except Exception:
                     logger.error(traceback.format_exc())
-                    self.step.request.data = self.api_info.request.data
+                    self.step.request.data = request_data.data
             # # text
             # elif self.api_info.request.language.lower() == RawLanguageEnum.TEXT.value:
             #     self.step.request.data = self.api_info.request.data
             else:
-                self.step.request.data = self.api_info.request.data
+                self.step.request.data = request_data.data
         elif request_mode == RequestMode.FORM_DATA.value:
             upload_dict = {}
-            for data in self.api_info.request.data or []:
+            for data in request_data.data or []:
                 if data.type == RequestMode.FILE.value:
                     file_value_info = data.value
                     file_info = await FileInfo.get(file_value_info.id)
@@ -222,7 +223,7 @@ class HandleStepData(object):
             self.step.request.upload = upload_dict
         elif request_mode == RequestMode.X_WWW_FORM_URLENCODED.value:
             form_urlencoded_dict = {}
-            for data in self.api_info.request.data or []:
+            for data in request_data.data or []:
                 form_urlencoded_dict[data.key] = data.value
             self.step.request.data = form_urlencoded_dict
 
@@ -231,13 +232,14 @@ class HandleStepData(object):
         return Step(RunRequestStep(self.step))
 
     async def __init_ui_step(self) -> Step:
-        self.step.request = TUiRequest.parse_obj(self.api_info.request.dict())
+        self.step.request = TUiRequest.parse_obj(self.api_info.request)
         return Step(RunUiStep(self.step))
 
     async def __init_sql_step(self) -> Step:
         """sql步骤初始化"""
-        source_info = await DataSource.get(self.api_info.request.source_id)
-        self.step.request = TSqlRequest.parse_obj(self.api_info.request.dict())
+        sql_request = TSqlData.parse_obj(self.api_info.request)
+        source_info = await DataSource.get(sql_request.source_id)
+        self.step.request = TSqlRequest.parse_obj(self.api_info.request)
         if source_info:
             self.step.request.host = source_info.host
             self.step.request.user = source_info.user
@@ -249,12 +251,12 @@ class HandleStepData(object):
 
     async def __init_wait_step(self) -> Step:
         """wait步骤初始化"""
-        self.step.request = TWaitRequest.parse_obj(self.api_info.request.dict())
+        self.step.request = TWaitRequest.parse_obj(self.api_info.request)
         return Step(RunWaitStep(self.step))
 
     async def __init_if_step(self) -> Step:
         """if步骤初始化"""
-        self.step.request = TIFRequest.parse_obj(self.api_info.request.dict())
+        self.step.request = TIFRequest.parse_obj(self.api_info.request)
         self.step.request.check = parse_string_to_json(self.step.request.check)
         self.step.request.comparator = parse_string_to_json(self.step.request.comparator)
         self.step.request.expect = parse_string_to_json(self.step.request.expect)
@@ -269,7 +271,7 @@ class HandleStepData(object):
 
     async def __init_loop_step(self) -> Step:
         """loop步骤初始化"""
-        self.step.request = TLoopRequest.parse_obj(self.api_info.request.dict())
+        self.step.request = TLoopRequest.parse_obj(self.api_info.request)
         self.step.request.for_variable_name = parse_string_to_json(self.step.request.for_variable_name)
         self.step.request.for_variable = parse_string_to_json(self.step.request.for_variable)
         self.step.request.while_comparator = parse_string_to_json(self.step.request.while_comparator)
@@ -286,12 +288,12 @@ class HandleStepData(object):
 
     async def __init_script_step(self) -> Step:
         """script步骤初始化"""
-        self.step.request = TScriptRequest.parse_obj(self.api_info.request.dict())
+        self.step.request = TScriptRequest.parse_obj(self.api_info.request)
         return Step(RunScriptStep(self.step))
 
     async def init_request_headers(self):
         """初始化请求头"""
-        step_headers = handle_headers_or_validators(self.api_info.request.headers, type="headers")
+        step_headers = handle_headers_or_validators(self.api_info.request.get("headers", []), type="headers")
         self.step.request.headers = step_headers
 
     async def init_variables(self):

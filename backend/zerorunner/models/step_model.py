@@ -5,7 +5,7 @@ import typing
 from pydantic import BaseModel, Field, root_validator
 
 from zerorunner.models.base import MethodEnum, Url, Headers, Cookies, Verify, VariablesMapping, ParametersMapping, \
-    Export, BaseUrl, FunctionsMapping, Validators, Hooks, TStepTypeEnum
+    Export, BaseUrl, FunctionsMapping, TStepTypeEnum
 from zerorunner.models.base import Name
 
 
@@ -127,9 +127,7 @@ class TScriptRequest(BaseModel):
     script_content: str = Field(None, description="脚本类容")
 
 
-TStepRequest = typing.Annotated[
-    typing.Union[TRequest, TSqlRequest, TIFRequest, TWaitRequest, TScriptRequest, TLoopRequest, TUiRequest], Field(
-        discriminator='step_type')]
+TStepRequest = typing.Union[TRequest, TSqlRequest, TIFRequest, TWaitRequest, TScriptRequest, TLoopRequest, TUiRequest]
 
 
 class TStep(TStepBase):
@@ -149,7 +147,7 @@ class TStep(TStepBase):
     # used to export session variables from referenced testcase
     export: Export = Field([], description="导出")
     validators: typing.List[ValidatorData] = Field([], alias="validate")
-    request: TStepRequest = None
+    request: TStepRequest = Field(None, description="请求信息")
     sql_request: TSqlRequest = Field(None, description="sql请求")
     if_request: TIFRequest = Field(None, description="if请求")
     wait_request: TWaitRequest = Field(None, description="wait请求")
@@ -157,31 +155,6 @@ class TStep(TStepBase):
     script_request: TScriptRequest = Field(None, description="script请求")
     ui_request: TUiRequest = Field(None, description="ui请求")
     children_steps: typing.List['TStep'] = Field([], description="子步骤")
-
-    @root_validator(pre=True)
-    def customize_serialization(cls, values):
-        if not values:
-            return values
-        step_type = values.get('step_type')
-        request = values.get("request", None)
-        if request:
-            if step_type == TStepTypeEnum.api.value:
-                values['request'] = TRequest.parse_obj(request)
-            elif step_type == TStepTypeEnum.loop.value:
-                values['request'] = TLoopRequest.parse_obj(request)
-            elif step_type == TStepTypeEnum.sql.value:
-                values['request'] = TSqlRequest.parse_obj(request)
-            elif step_type == TStepTypeEnum.IF.value:
-                values['request'] = TIFRequest.parse_obj(request)
-            elif step_type == TStepTypeEnum.wait.value:
-                values['request'] = TWaitRequest.parse_obj(request)
-            elif step_type == TStepTypeEnum.script.value:
-                values['request'] = TScriptRequest.parse_obj(request)
-            elif step_type == TStepTypeEnum.ui.value:
-                values['request'] = TUiRequest.parse_obj(request)
-            else:
-                raise ValueError(f"不支持的类型{step_type}")
-        return values
 
 
 class TConfig(BaseModel):
