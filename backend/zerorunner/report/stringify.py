@@ -2,6 +2,8 @@ import json
 import typing
 from base64 import b64encode
 
+from zerorunner.models.result_model import RequestData, ResponseData, StepResult, TestCaseSummary
+
 try:
     from collections import Iterable
 except ImportError:
@@ -9,8 +11,6 @@ except ImportError:
 from json import JSONDecodeError
 from jinja2 import escape
 from requests.cookies import RequestsCookieJar
-
-from zerorunner.models import TestCaseSummary, StepResult, RequestData, ResponseData
 
 
 def dumps_json(value):
@@ -53,6 +53,7 @@ def __default_serialize(obj: typing.Any):
         return repr(obj)
 
     return obj
+
 
 def __stringify_request(request_data: RequestData):
     """stringfy HTTP request data

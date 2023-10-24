@@ -4,9 +4,9 @@
 import time
 
 from loguru import logger
-from zerorunner.model.base import TStepLogType, TStepResultStatusEnum
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep
+
+from zerorunner.models.base import TStepResultStatusEnum
+from zerorunner.models.step_model import TStep
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.base import IStep
 from zerorunner.steps.step_result import TStepResult
@@ -22,15 +22,15 @@ def run_wait_request(runner: SessionRunner,
     step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
-    request_dict = step.wait_request.dict()
+    request_dict = step.request.dict()
     parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
     try:
         wait_time = parsed_request_dict.get("wait_time", None)
         if wait_time or wait_time == 0:
             time.sleep(wait_time)
-            logger.info(f"等待控制器---> {wait_time}m")
-            step_result.set_step_log(f"等待控制器---> {wait_time}m")
-            step_result.step_tag = f"wait[{wait_time}m]"
+            logger.info(f"等待控制器---> {wait_time}s")
+            step_result.set_step_log(f"等待控制器---> {wait_time}s")
+            step_result.step_tag = f"wait[{wait_time}s]"
             step_result.set_step_result_status(TStepResultStatusEnum.success)
 
         else:
@@ -52,7 +52,7 @@ class WaitWithOptionalArgs(IStep):
         self.__step = step
 
     def with_wait_time(self, wait_time: int) -> "WaitWithOptionalArgs":
-        self.__step.wait_request.wait_time = wait_time
+        self.__step.request.wait_time = wait_time
         return self
 
     def struct(self) -> TStep:

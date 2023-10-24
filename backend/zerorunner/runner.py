@@ -16,10 +16,10 @@ from zerorunner import exceptions
 from zerorunner.client import HttpSession
 from zerorunner.exceptions import ValidationFailure
 from zerorunner.ext.zero_driver.driver import ZeroDriver
-from zerorunner.model.base import TStepResultStatusEnum, VariablesMapping, FunctionsMapping, TStepControllerDict, \
+from zerorunner.models.base import TStepResultStatusEnum, VariablesMapping, FunctionsMapping, TStepControllerDict, \
     TStepLogType
-from zerorunner.model.result_model import StepResult, TestCaseSummary, TestCaseInOut
-from zerorunner.model.step_model import TStep, TConfig
+from zerorunner.models.result_model import StepResult, TestCaseSummary, TestCaseInOut
+from zerorunner.models.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
     Parser, parse_variables_mapping
 from zerorunner.response import uniform_validator

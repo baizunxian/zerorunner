@@ -3,7 +3,7 @@ import typing
 from loguru import logger
 
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.api_models import ApiInfo, ApiCaseStep
+from autotest.models.api_models import ApiInfo, ApiCaseStep, ApiCaseStep
 from autotest.schemas.api.api_info import ApiQuery, ApiId, ApiInfoIn, ApiRunSchema, ApiIds
 from autotest.services.api.api_report import ReportService
 from autotest.services.api.run_handle_new import HandelRunApiStep
@@ -60,7 +60,7 @@ class ApiInfoService:
         if not source_api_info:
             raise ParameterError("用例不存在!")
         source_api_info.pop("id", None)
-        api_info = ApiInfoIn(**source_api_info)
+        api_info = ApiInfoIn.parse_obj(source_api_info)
         api_info.id = None
         api_info.name = f"copy_{api_info.name}"
         await ApiInfoService.save_or_update(api_info)
@@ -151,7 +151,7 @@ class ApiInfoService:
         :return:
         """
         case_info = await ApiInfo.get(params.id)
-        run_params = ApiInfoIn(**default_serialize(case_info), env_id=params.env_id)
+        run_params = ApiInfoIn(env_id=params.env_id, step_type="api").parse_obj(default_serialize(case_info))
         case_info = await HandelRunApiStep().init(run_params)
         runner = ZeroRunner()
         summary = runner.run_tests(case_info.get_testcase())
@@ -197,7 +197,7 @@ class ApiInfoService:
                 "user_id": get_user_id_by_token(),
                 "testcase": testcase.dict(),
             }
-            parsed_data = ApiInfoIn(**case).dict()
+            parsed_data = ApiInfoIn.parse_obj(case).dict()
             case_info = ApiInfo()
             case_info.update(**parsed_data)
         return len(coll.case_list)

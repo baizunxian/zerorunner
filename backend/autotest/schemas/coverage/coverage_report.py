@@ -1,4 +1,3 @@
-import typing
 from enum import Enum
 
 from pydantic import Field, BaseModel

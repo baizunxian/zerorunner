@@ -144,7 +144,7 @@ const appendTreeDate = (data) => {
 }
 
 const getStepData = () => {
-  let stepData = {
+  return {
     id: null,
     name: "",
     case_id: null,
@@ -168,7 +168,6 @@ const getStepData = () => {
     is_quotation: true,
     children_step: []
   }
-  return stepData
 }
 
 // 获取步骤
@@ -177,11 +176,11 @@ const getAddData = (optType) => {
   data.name = `${optType}_${getRandomStr()}`
   data.step_type = optType
   if (optType === "script") {
-    data.script_request = {
+    data.request = {
       script_content: ""
     }
   } else if (optType === "sql") {
-    data.sql_request = {
+    data.request = {
       env_id: null,
       source_id: null,
       sql: "",
@@ -189,19 +188,19 @@ const getAddData = (optType) => {
       variable_name: ""
     }
   } else if (optType === "wait") {
-    data.wait_request = {
+    data.request = {
       wait_time: 0
     }
 
   } else if (optType === "if") {
-    data.if_request = {
+    data.request = {
       check: "",
       comparator: "",
       expect: "",
       remarks: ""
     }
   } else if (optType === "loop") {
-    data.loop_request = {
+    data.request = {
       // loop_type = count
       loop_type: "count",
       count_number: 0,
@@ -236,9 +235,8 @@ const addApiStep = async () => {
     if (data && data.length > 0) {
       data.forEach(apiInfo => {
         let stepData = Object.assign({}, apiInfo)
-        console.log(apiInfo)
         stepData.id = null
-        stepData.step_type = 'api'
+        stepData.step_type = "api"
         stepData.source_id = apiInfo.id
         stepData.enable = true
         appendTreeDate(stepData)

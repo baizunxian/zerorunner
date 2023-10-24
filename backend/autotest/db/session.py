@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-import traceback
-from asyncio import current_task
 import functools
+import traceback
 import typing
+from asyncio import current_task
 
+from loguru import logger
+from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scoped_session, async_sessionmaker
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from autotest.utils.local import g
 from config import config
 
 # 创建表引擎
-from loguru import logger
 
 async_engine = create_async_engine(
     url=config.DATABASE_URI,  # 数据库uri
@@ -74,6 +74,7 @@ def provide_async_session(func: typing.Callable):
                     await session.rollback()
                     raise
                 except Exception:
+                    logger.error(traceback.format_exc())
                     await session.rollback()
                     raise
                 finally:
@@ -97,11 +98,12 @@ def provide_async_session_router(func: typing.Callable):
             try:
                 return await func(*args, **kwargs)
             except IntegrityError:
-                logger.error(traceback.format_exc())
                 await session.rollback()
+                logger.error(traceback.format_exc())
                 raise
             except Exception:
                 await session.rollback()
+                logger.error(traceback.format_exc())
                 raise
             finally:
                 await session.commit()

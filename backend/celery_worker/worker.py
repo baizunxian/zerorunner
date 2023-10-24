@@ -25,19 +25,6 @@ from config import config
 WorkerPool = AsyncIOPool()
 
 
-class TaskRequest(Request):
-    """重写task request 设置 trace_id 这里可以设置所有透传过来的参数"""
-
-    def __init__(self, *args, **kwargs):
-        super(TaskRequest, self).__init__(*args, **kwargs)
-        self.set_trace_id()
-
-    def set_trace_id(self):
-        """这里为了设置消息发送是的trace_id能与请求保持一致特殊处理"""
-        trace_id = self.request_dict.get("trace_id", str(uuid.uuid4()))
-        g.trace_id = trace_id
-
-
 # @celeryd_after_setup.connect
 # def setup_direct_queue(sender, instance, **kwargs):
 #     """此信号在工作实例设置之后但在它调用运行之前发送。这意味着该选项中的任何队列都已启用，日志记录已设置等"""
@@ -105,6 +92,19 @@ def receiver_task_pre_run(task: Task, *args, **kwargs):
 def setup_loggers(*args, **kwargs):
     """logger 初始化统一处理日志格式"""
     logging.basicConfig(handlers=[InterceptHandler()], level=config.LOGGER_LEVEL)
+
+
+class TaskRequest(Request):
+    """重写task request 设置 trace_id 这里可以设置所有透传过来的参数"""
+
+    def __init__(self, *args, **kwargs):
+        super(TaskRequest, self).__init__(*args, **kwargs)
+        self.set_trace_id()
+
+    def set_trace_id(self):
+        """这里为了设置消息发送是的trace_id能与请求保持一致特殊处理"""
+        trace_id = self.request_dict.get("trace_id", str(uuid.uuid4()))
+        g.trace_id = trace_id
 
 
 def create_celery():

@@ -47,8 +47,8 @@ import sys
 
 from loguru import logger
 
-from zerorunner.model.step_model import TStep
-from zerorunner.models import FunctionsMapping
+from zerorunner.models.base import FunctionsMapping
+from zerorunner.models.step_model import TStep
 from zerorunner.parser import parse_variables_mapping, parse_data
 
 try:

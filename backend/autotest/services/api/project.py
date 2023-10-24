@@ -66,9 +66,10 @@ class ProjectService:
         for project in project_list:
             project["children"] = []
             project["disabled"] = True
-            for module in module_list:
-                if module["project_id"] == project["id"]:
-                    project["children"].append(module)
-                    project["disabled"] = False
+            if module_list:
+                for module in module_list:
+                    if module["project_id"] == project["id"]:
+                        project["children"].append(module)
+                        project["disabled"] = False
             project_tree_list.append(project)
         return project_tree_list

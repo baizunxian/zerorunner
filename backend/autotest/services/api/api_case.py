@@ -1,12 +1,11 @@
 import typing
 
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.api_models import ApiCase, ApiStepInfo
+from autotest.models.api_models import ApiCase, ApiCaseStep
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
     ApiTestCaseRun, ApiCaseStepDataSchema
 from autotest.schemas.step_data import TStepData
 from autotest.services.api.api_report import ReportService
-from autotest.services.api.run_handle import ApiCaseHandle
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.utils.async_converter import sync_to_async
 from autotest.utils.current_user import current_user
@@ -48,7 +47,7 @@ class ApiCaseService:
                 raise ParameterError("用例名以存在!")
         data = await ApiCase.create_or_update(params.dict(exclude={"step_data"}))
         tile_step_list = await ApiCaseService.tile_step_data(params.step_data, data.get("id"), data.get("version"))
-        await ApiStepInfo.batch_create([step.dict() for step in tile_step_list])
+        await ApiCaseStep.batch_create([step.dict() for step in tile_step_list])
         return data
 
     @staticmethod
@@ -57,7 +56,7 @@ class ApiCaseService:
         if not step_list:
             return step_tree
         for step in step_list:
-            new_step = TStepData(**step)
+            new_step = TStepData.parse_obj(step)
             if new_step.parent_step_id == parent_id:
                 children_steps = await ApiCaseService.get_step_data_tree(step_list, new_step.step_id)
                 if children_steps:
@@ -105,7 +104,7 @@ class ApiCaseService:
 
     @staticmethod
     async def set_step_data(api_case: typing.Dict):
-        step_data = await ApiStepInfo.get_step_by_case_id(api_case["id"], api_case["version"])
+        step_data = await ApiCaseStep.get_step_by_case_id(api_case["id"], api_case["version"])
         step_data_tree = await ApiCaseService.get_step_data_tree(step_data)
         api_case["step_data"] = step_data_tree
 
@@ -116,11 +115,10 @@ class ApiCaseService:
             raise ValueError("id 不能为空！")
         case_info = await ApiCase.get(params.id, to_dict=True)
         await ApiCaseService.set_step_data(case_info)
-        run_params = TestCaseRun(**default_serialize(case_info), env_id=params.env_id)
-        api_case_info = await ApiCaseHandle.init(run_params)
-        await api_case_info.make_functions()
+        run_params = TestCaseRun(env_id=params.env_id).parse_obj(default_serialize(case_info))
+        api_case_info = await HandelTestCase().init(run_params)
         runner = ZeroRunner()
-        testcase = api_case_info.get_testcase()
+        testcase = api_case_info.get_testcases()
         summary = await runner.run_tests(testcase)
         current_user_info = await current_user()
         summary_params = await ReportService.get_report_result(summary,

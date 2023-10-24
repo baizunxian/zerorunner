@@ -9,8 +9,8 @@ from autotest.apis.websocket.connection_manager import websocket_manager
 from autotest.schemas.ui.ui_case import UiDebugCaseIn
 from autotest.services.ui.ui_case import UiCaseServer
 from zerorunner.ext.zero_driver.driver import DriverSetting, ZeroDriver
-from zerorunner.model.step_model import TConfig
-from zerorunner.models import StepResult
+from zerorunner.models.result_model import StepResult
+from zerorunner.models.step_model import TConfig
 from zerorunner.runner import SessionRunner
 
 router = APIRouter()
@@ -29,7 +29,7 @@ async def websocket_endpoint(websocket: WebSocket, id: str):
         while True:
             data = await websocket.receive_text()
             try:
-                new_data = UiDebugCaseIn(**json.loads(data))
+                new_data = UiDebugCaseIn.parse_obj(json.loads(data))
                 ui_case_info = await UiCaseServer.handel_ui_case2run_schemas(new_data.data)
                 if id not in driver_app_obj:
                     driver_setting = DriverSetting(

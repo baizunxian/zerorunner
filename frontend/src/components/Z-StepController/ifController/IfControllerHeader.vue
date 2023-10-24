@@ -1,11 +1,11 @@
 <template>
   <el-row @click.stop>
     <el-col :span="6" class="com-padding">
-      <el-input v-model="data.if_request.check" placeholder="变量,例如：${var}"/>
+      <el-input v-model="data.request.check" placeholder="变量,例如：${var}"/>
     </el-col>
     <el-col :span="6" class="com-padding">
       <el-select size="small"
-                 v-model="data.if_request.comparator"
+                 v-model="data.request.comparator"
                  placeholder=""
                  filterable
                  class="w100">
@@ -19,10 +19,10 @@
       </el-select>
     </el-col>
     <el-col :span="6" class="com-padding">
-      <el-input v-model="data.if_request.expect" placeholder="值"/>
+      <el-input v-model="data.request.expect" placeholder="值"/>
     </el-col>
     <el-col :span="6" class="com-padding">
-      <el-input v-model="data.if_request.remarks" placeholder="备注"/>
+      <el-input v-model="data.request.remarks" placeholder="备注"/>
     </el-col>
   </el-row>
 </template>

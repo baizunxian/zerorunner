@@ -13,11 +13,11 @@ from autotest.utils.local import g
 from zerorunner import exceptions, utils
 from zerorunner.ext.uploader import prepare_upload_step
 from zerorunner.loader import load_script_content
-from zerorunner.model.base import TStepResultStatusEnum, Hooks
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep
-from zerorunner.model.step_model import VariablesMapping, TRequest, MethodEnum
-from zerorunner.parser import build_url, Parser, parse_variables_mapping
+from zerorunner.models.base import TStepResultStatusEnum, Hooks
+from zerorunner.models.result_model import StepResult
+from zerorunner.models.step_model import TStep
+from zerorunner.models.step_model import VariablesMapping, TRequest, MethodEnum
+from zerorunner.parser import build_url, Parser
 from zerorunner.response import ResponseObject
 from zerorunner.runner import SessionRunner
 from zerorunner.script_code import Zero

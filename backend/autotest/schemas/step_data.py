@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import typing
+from enum import Enum
 
 from pydantic import BaseModel, Field
 
 from autotest.schemas.base import BaseSchema
-from zerorunner.model.step_model import TStep, ValidatorData, TSqlRequest, TIFRequest, TLoopRequest
-from zerorunner.models import TRequest
-
-from enum import Enum
+from zerorunner.models.step_model import TStep, ValidatorData, TSqlRequest, TRequest, TIFRequest, TWaitRequest, \
+    TScriptRequest, TLoopRequest, TUiRequest
 
 
 class RequestMode(str, Enum):
@@ -77,13 +76,15 @@ class TStepSqlData(BaseModel):
     variable_name: str = Field(None, description="赋值的变量名称")
 
 
+TStepRequest = typing.Union[TRequestData, TSqlData, TIFRequest, TWaitRequest, TScriptRequest, TLoopRequest, TUiRequest]
+
+
 class TStepData(TStep):
     """继承步骤类，方便入库存储"""
     step_type: str = Field(..., description="步骤类型")
-    setup_hooks: typing.List[typing.Union["TStepData", str]] = []
-    teardown_hooks: typing.List[typing.Union["TStepData", str]] = []
+    setup_hooks: typing.List["TStepData"] = []
+    teardown_hooks: typing.List["TStepData"] = []
     variables: typing.List[typing.Any] = Field([], description="变量")
-    validators: typing.List[ValidatorData] = Field([], alias="validators")
-    request: TRequestData = Field(None, description="api请求参数")
-    sql_request: TSqlData = Field(None, description="sql请求参数")
-    children_steps: typing.List['TStepData'] = Field([], description="子步骤")
+    validators: typing.List[ValidatorData] = Field([], alias="验证")
+    request: typing.Union[TStepRequest] = Field(None, description="请求信息")
+    children_steps: typing.List["TStepData"] = Field([], description="子步骤")

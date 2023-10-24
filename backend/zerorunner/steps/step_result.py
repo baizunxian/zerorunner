@@ -5,20 +5,17 @@ import time
 import traceback
 from datetime import datetime
 
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep
-from zerorunner.models import TStepResultStatusEnum
+from zerorunner.models.result_model import StepResult
+from zerorunner.models.step_model import TStep
+from zerorunner.models.base import TStepResultStatusEnum
 
 
 class TStepResult:
 
     def __init__(self, step: TStep, step_tag: str):
-        self.result = StepResult(name=step.name,
-                                 index=step.index,
-                                 step_type=step.step_type,
-                                 start_time=time.time(),
-                                 step_tag=step_tag,
-                                 )
+        self.result = StepResult.parse_obj(step.dict())
+        self.result.start_time = time.time()
+        self.result.step_tag = step_tag
         if hasattr(step, "case_id"):
             self.result.case_id = step.case_id
 

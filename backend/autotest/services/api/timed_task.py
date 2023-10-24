@@ -5,13 +5,12 @@ import typing
 from celery.schedules import crontab as celery_crontab
 from loguru import logger
 
-from autotest.utils.local import g
-from autotest.utils.response.codes import CodeEnum
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.celery_beat_models import TimedTask, Crontab, IntervalSchedule, PeriodicTaskChanged
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, CrontabSaveSchema, TimedTasksInSchema, TimedTasksId, \
     TaskKwargsIn, IntervalIn
 from autotest.utils.current_user import current_user
+from autotest.utils.response.codes import CodeEnum
 from celery_worker.worker import celery
 
 
@@ -132,8 +131,8 @@ class TimedTasksService:
                 ui_ids=params.ui_ids,
                 ui_env_id=params.ui_env_id,
                 project_id=params.project_id,
-                run_type=30,
-                run_mode=params.run_mode,
+                run_type="timed_task",
+                run_mode=30,
                 exec_user_id=user_info.get("id"),
                 exec_user_name=user_info.get("nickname"),
             )
