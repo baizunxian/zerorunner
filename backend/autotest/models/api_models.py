@@ -486,12 +486,11 @@ class ApiCaseStep(Base):
         """获取关联关系，那些case 使用了对应的api"""
         q = [cls.enabled_flag == 1]
         stmt = select(
-            cls.id.label("case_step_id"),
-            ApiCase.id.label("case_id"),
-            ApiCase.name.label("case_name"),
+            func.any_value(cls.id.label("case_step_id")),
+            func.any_value(ApiCase.id).label("case_id"),
+            func.any_value(ApiCase.name).label("case_name"),
             ApiCase.creation_date,
-            func.concat("case_", ApiCase.id).label("relation_id"),
-            func.concat("case").label('type'),
+            func.any_value(func.concat("case_", ApiCase.id)).label("relation_id"),
         ) \
             .join(ApiCase, and_(cls.case_id == ApiCase.id,
                                 cls.version == ApiCase.version,
