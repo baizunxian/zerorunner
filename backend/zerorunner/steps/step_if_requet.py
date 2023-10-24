@@ -23,8 +23,8 @@ def run_if_request(runner: SessionRunner,
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
     request_dict = step.request.dict()
-    parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
     try:
+        parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
         if_request_obj = TIFRequest.parse_obj(parsed_request_dict)
         if not if_request_obj.comparator:
             raise ValueError("条件控制器--> 条件不能为空！")

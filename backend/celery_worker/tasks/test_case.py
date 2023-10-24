@@ -64,7 +64,7 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         logger.error(f"用例id: {case_id} 不存在！")
         return
     await ApiCaseService.set_step_data(case_info)
-    run_params = TestCaseRun(**case_info, env_id=kwargs.get('case_env_id', None))
+    run_params = TestCaseRun(env_id=kwargs.get('case_env_id', None)).parse_obj(case_info)
     if not report_id:
         """没有报告id创建报告"""
         report_params = TestReportSaveSchema(
@@ -81,11 +81,11 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         )
         report_info = await ReportService.save_report_info(report_params)
         report_id = report_info.get("id")
-        report_params = TestReportSaveSchema(**report_info)
+        report_params = TestReportSaveSchema.parse_obj(report_info)
     else:
 
         report_info = await ApiTestReport.get(report_id, to_dict=True)
-        report_params = TestReportSaveSchema(**report_info)
+        report_params = TestReportSaveSchema.parse_obj(report_info)
 
     # 初始化用例
     try:
@@ -110,7 +110,7 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         report_params.duration = summary.duration
         report_params.start_time = summary.start_time
         report_params.actual_run_count = summary.actual_run_count
-        summary_params = TestReportSaveSchema(**report_params.dict())
+        summary_params = TestReportSaveSchema.parse_obj(report_params.dict())
         summary_params.success = summary.success
         await ReportService.save_report_info(summary_params)
         await ReportService.save_report_detail(summary,
@@ -162,7 +162,7 @@ async def run_case_step(report_id: typing.Union[str, int], callback: typing.Call
         while await r.llen(testcase_list_key):
             testcase_dict = await r.cus_lpop_by_pickle(testcase_list_key)
             if testcase_dict:
-                testcase = TestCase(**testcase_dict)
+                testcase = TestCase.parse_obj(testcase_dict)
                 runner = ZeroRunner()
                 summary = runner.run_tests(testcase)
 
@@ -196,7 +196,7 @@ async def run_case_step(report_id: typing.Union[str, int], callback: typing.Call
             report_info = await ApiTestReport.get(report_id, to_dict=True)
             static_dict = await r.get(testcase_static_key)
             report_info.update(static_dict)
-            summary_params = TestReportSaveSchema(**report_info)
+            summary_params = TestReportSaveSchema.parse_obj(report_info)
             summary_params.success = static_dict["run_err_count"] == 0 and static_dict["run_fail_count"] == 0
             await ReportService.save_report_info(summary_params)
             await r.delete(testcase_static_key)

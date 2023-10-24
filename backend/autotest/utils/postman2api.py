@@ -111,7 +111,7 @@ class Collection:
         self.prepare_test_steps(t_collection)
 
     def load(self):
-        collection = TCollection(**self.postman_body)
+        collection = TCollection.parse_obj(self.postman_body)
         return collection
 
     def prepare_test_steps(self, t_collection: TCollection):

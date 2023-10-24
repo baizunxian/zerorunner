@@ -221,7 +221,6 @@ const getAddData = (optType) => {
   } else if (optType === "api") {
     selectApiRef.value.onOpenApiList()
   }
-  data.request.request_type = optType
   return data
 }
 
@@ -238,7 +237,6 @@ const addApiStep = async () => {
         let stepData = Object.assign({}, apiInfo)
         stepData.id = null
         stepData.step_type = "api"
-        stepData.request.request_type = "api"
         stepData.source_id = apiInfo.id
         stepData.enable = true
         appendTreeDate(stepData)

@@ -353,9 +353,9 @@ class ApiInfo(Base):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
 
-class ApiStepInfo(Base):
+class ApiCaseStep(Base):
     """步骤信息表"""
-    __tablename__ = 'api_step_info'
+    __tablename__ = 'api_case_step'
     case_id = mapped_column(BigInteger, nullable=False, comment='用例id')
     source_id = mapped_column(BigInteger, nullable=False, comment='源id')
     name = mapped_column(String(255), nullable=False, comment="用例名称", index=True)
@@ -481,6 +481,27 @@ class ApiStepInfo(Base):
     def get_all_count(cls):
         return cls.query.filter(cls.enabled_flag == 1).count()
 
+    @classmethod
+    async def get_relation_by_api_id(cls, api_id: typing.Union[str, int]):
+        """获取关联关系，那些case 使用了对应的api"""
+        q = [cls.enabled_flag == 1]
+        stmt = select(
+            cls.id.label("case_step_id"),
+            ApiCase.id.label("case_id"),
+            ApiCase.name.label("case_name"),
+            ApiCase.creation_date,
+            func.concat("case_", ApiCase.id).label("relation_id"),
+            func.concat("case").label('type'),
+        ) \
+            .join(ApiCase, and_(cls.case_id == ApiCase.id,
+                                cls.version == ApiCase.version,
+                                ApiCase.enabled_flag == 1
+                                )) \
+            .where(*q, cls.source_id == api_id) \
+            .group_by(ApiCase.id) \
+            .order_by(ApiCase.id.desc())
+        return await cls.get_result(stmt)
+
 
 class ApiCase(Base):
     """测试用例，集合"""
@@ -525,12 +546,12 @@ class ApiCase(Base):
                       cls.updated_by,
                       cls.updation_date,
                       cls.enabled_flag,
-                      func.count(distinct(ApiStepInfo.id)).label('step_count'),
+                      func.count(distinct(ApiCaseStep.id)).label('step_count'),
                       User.nickname.label('created_by_name'),
                       u.nickname.label('updated_by_name'),
                       ProjectInfo.name.label('project_name')).where(*q) \
-            .outerjoin(ApiStepInfo, and_(ApiStepInfo.case_id == cls.id, cls.version == ApiStepInfo.version,
-                                         ApiStepInfo.parent_step_id.is_(None))) \
+            .outerjoin(ApiCaseStep, and_(ApiCaseStep.case_id == cls.id, cls.version == ApiCaseStep.version,
+                                         ApiCaseStep.parent_step_id.is_(None))) \
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
@@ -568,96 +589,6 @@ class ApiCase(Base):
                            User.nickname.label('username'),
                            ) \
             .filter(cls.enabled_flag == 1)
-
-
-class ApiCaseStep(Base):
-    """用例步骤"""
-    __tablename__ = 'api_case_step'
-
-    name = mapped_column(String(64), nullable=False, comment='名称', index=True)
-    case_id = mapped_column(BigInteger, comment='case_id')
-    step_type = mapped_column(String(255), comment='步骤类型')
-    api_id = mapped_column(BigInteger, comment='api_id')
-    step_id = mapped_column(BigInteger, comment='步骤级id')
-    parent_id = mapped_column(BigInteger, comment='父级步骤id')
-    step_data = mapped_column(JSON, comment='步骤数据')
-    enable = mapped_column(Integer, comment='是否生效')
-    index = mapped_column(Integer, comment='顺序')
-    node_id = mapped_column(String(255), comment='节点id')
-    version = mapped_column(Integer, comment='版本', default=0)
-
-    @classmethod
-    def get_list(cls, name=None, user_ids=None, project_id=None, created_by=None, suite_type=None,
-                 created_by_name=None, project_ids=None, ids=None):
-        q = list()
-        if name:
-            q.append(cls.name.like(f'%{name}%'))
-        if suite_type:
-            q.append(cls.suite_type == suite_type)
-        if project_id:
-            q.append(cls.project_id == project_id)
-        if created_by:
-            q.append(User.nickname.like(f'%{created_by}%'))
-        if user_ids:
-            q.append(cls.created_by.in_(user_ids))
-        if project_ids:
-            q.append(cls.project_id.in_(project_ids))
-        if created_by_name:
-            q.append(User.nickname.like(f'%{created_by_name}%'))
-        if ids:
-            q.append(cls.id.in_(ids))
-        u = aliased(User)
-        return cls.query.filter(*q, cls.enabled_flag == 1) \
-            .outerjoin(User, User.id == cls.created_by) \
-            .outerjoin(u, u.id == cls.updated_by) \
-            .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
-            .with_entities(cls.id,
-                           cls.name,
-                           cls.project_id,
-                           cls.headers,
-                           cls.variables,
-                           cls.created_by,
-                           cls.creation_date,
-                           cls.updated_by,
-                           cls.updation_date,
-                           cls.enabled_flag,
-                           User.nickname.label('created_by_name'),
-                           u.nickname.label('updated_by_name'),
-                           ProjectInfo.name.label('project_name')) \
-            .order_by(cls.creation_date.desc())
-
-    @classmethod
-    async def get_step_by_case_id(cls, case_id: int, version: int):
-        stmt = (select(cls.get_table_columns(),
-                       ApiInfo.name.label('api_name'),
-                       ApiInfo.method.label('api_method'),
-                       )
-                .outerjoin(ApiInfo, and_(ApiInfo.id == cls.api_id, ApiInfo.enabled_flag == 1))
-                .where(cls.case_id == case_id,
-                       cls.version == version,
-                       cls.enabled_flag == 1).order_by(cls.index.asc()))
-        return await cls.get_result(stmt)
-
-    @classmethod
-    async def get_relation_by_api_id(cls, api_id: typing.Union[str, int]):
-        """获取关联关系，那些case 使用了对应的api"""
-        q = [cls.enabled_flag == 1]
-        stmt = select(
-            cls.id.label("case_step_id"),
-            ApiCase.id.label("case_id"),
-            ApiCase.name.label("case_name"),
-            ApiCase.creation_date,
-            func.concat("case_", ApiCase.id).label("relation_id"),
-            func.concat("case").label('type'),
-        ) \
-            .join(ApiCase, and_(cls.case_id == ApiCase.id,
-                                cls.version == ApiCase.version,
-                                ApiCase.enabled_flag == 1
-                                )) \
-            .where(*q, ApiCaseStep.api_id == api_id) \
-            .group_by(ApiCase.id) \
-            .order_by(ApiCase.id.desc())
-        return await cls.get_result(stmt)
 
 
 class ApiTestReport(Base):

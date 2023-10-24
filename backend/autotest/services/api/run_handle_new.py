@@ -66,7 +66,7 @@ def handle_headers_or_validators(param: typing.List[ApiBaseSchema], type: str = 
         return data
     for p in param:
         if isinstance(p, dict):
-            p = ApiBaseSchema(**p)
+            p = ApiBaseSchema.parse_obj(p)
         if type == "headers" and not isinstance(p.value, str):
             p.value = str(p.value)
         data[p.key] = p.value
@@ -145,17 +145,16 @@ class HandleConfig(object):
 class HandleStepData(object):
     api_info: TStepData
     config: TConfig
-    step: TStep = TStep()
+    step: TStep = None
     step_obj: typing.Union[Step, None] = None
 
     # 排除需要处理的参数
 
     async def init(self, params: TStepData, case_id: typing.Union[str, int] = None) -> "HandleStepData":
         # 过滤需要处理的数据 其他参数一次性赋值给TStep对象
-        exclude_set = {"case_id", "request", "sql_request", "if_request", "loop_request", "wait_request", "script_request",
-                       "ui_request", "variables", "setup_hooks", "teardown_hooks", "validators", "children_steps"}
+        exclude_set = {"case_id", "variables", "setup_hooks", "teardown_hooks", "validators", "children_steps"}
         self.case_id = case_id
-        self.step = TStep(case_id=self.case_id).parse_obj(params.dict(exclude=exclude_set))
+        self.step = TStep(case_id=self.case_id, step_type=params.step_type).parse_obj(params.dict(exclude=exclude_set))
         self.api_info = params
         self.step_obj = None
         await self.init_step()
@@ -188,25 +187,24 @@ class HandleStepData(object):
         self.step_obj = step_obj
 
     async def __init_api_step(self) -> Step:
-        request_data = TRequestData.parse_obj(self.api_info.request)
-        self.step.request = TRequest.parse_obj(self.api_info.request)
-        request_mode = request_data.mode.lower()
+        self.step.request = TRequest.parse_obj(self.api_info.request.dict())
+        request_mode = self.api_info.request.mode.lower()
         if request_mode == RequestMode.RAW.value.lower():
             # json
-            if request_data.language.lower() == RawLanguageEnum.JSON.value:
+            if self.api_info.request.language.lower() == RawLanguageEnum.JSON.value:
                 try:
-                    self.step.request.req_json = json.loads(request_data.data)
+                    self.step.request.req_json = json.loads(self.api_info.request.data)
                 except Exception:
                     logger.error(traceback.format_exc())
-                    self.step.request.data = request_data.data
+                    self.step.request.data = self.api_info.request.data
             # # text
             # elif self.api_info.request.language.lower() == RawLanguageEnum.TEXT.value:
             #     self.step.request.data = self.api_info.request.data
             else:
-                self.step.request.data = request_data.data
+                self.step.request.data = self.api_info.request.data
         elif request_mode == RequestMode.FORM_DATA.value:
             upload_dict = {}
-            for data in request_data.data or []:
+            for data in self.api_info.request.data or []:
                 if data.type == RequestMode.FILE.value:
                     file_value_info = data.value
                     file_info = await FileInfo.get(file_value_info.id)
@@ -223,7 +221,7 @@ class HandleStepData(object):
             self.step.request.upload = upload_dict
         elif request_mode == RequestMode.X_WWW_FORM_URLENCODED.value:
             form_urlencoded_dict = {}
-            for data in request_data.data or []:
+            for data in self.api_info.request.data or []:
                 form_urlencoded_dict[data.key] = data.value
             self.step.request.data = form_urlencoded_dict
 
@@ -232,13 +230,12 @@ class HandleStepData(object):
         return Step(RunRequestStep(self.step))
 
     async def __init_ui_step(self) -> Step:
-        self.step.request = TUiRequest.parse_obj(self.api_info.request)
+        self.step.request = TUiRequest.parse_obj(self.api_info.request.dict())
         return Step(RunUiStep(self.step))
 
     async def __init_sql_step(self) -> Step:
         """sql步骤初始化"""
-        sql_request = TSqlData.parse_obj(self.api_info.request)
-        source_info = await DataSource.get(sql_request.source_id)
+        source_info = await DataSource.get(self.api_info.request.source_id)
         self.step.request = TSqlRequest.parse_obj(self.api_info.request)
         if source_info:
             self.step.request.host = source_info.host
@@ -256,7 +253,7 @@ class HandleStepData(object):
 
     async def __init_if_step(self) -> Step:
         """if步骤初始化"""
-        self.step.request = TIFRequest.parse_obj(self.api_info.request)
+        self.step.request = TIFRequest.parse_obj(self.api_info.request.dict())
         self.step.request.check = parse_string_to_json(self.step.request.check)
         self.step.request.comparator = parse_string_to_json(self.step.request.comparator)
         self.step.request.expect = parse_string_to_json(self.step.request.expect)
@@ -271,7 +268,7 @@ class HandleStepData(object):
 
     async def __init_loop_step(self) -> Step:
         """loop步骤初始化"""
-        self.step.request = TLoopRequest.parse_obj(self.api_info.request)
+        self.step.request = TLoopRequest.parse_obj(self.api_info.request.dict())
         self.step.request.for_variable_name = parse_string_to_json(self.step.request.for_variable_name)
         self.step.request.for_variable = parse_string_to_json(self.step.request.for_variable)
         self.step.request.while_comparator = parse_string_to_json(self.step.request.while_comparator)
@@ -293,7 +290,7 @@ class HandleStepData(object):
 
     async def init_request_headers(self):
         """初始化请求头"""
-        step_headers = handle_headers_or_validators(self.api_info.request.get("headers", []), type="headers")
+        step_headers = handle_headers_or_validators(self.api_info.request.headers, type="headers")
         self.step.request.headers = step_headers
 
     async def init_variables(self):
@@ -350,10 +347,12 @@ class HandelRunApiStep(object):
         if isinstance(steps, ApiInfoIn):
             steps.case_id = steps.id
             step_info = await HandleStepData().init(steps)
+            step_info.step.source_id = steps.id
             self.teststeps.append(step_info.step_obj)
         elif isinstance(steps, list):
             for step in steps:
                 step_info = await HandleStepData().init(step)
+                step_info.step.source_id = step.id
                 self.teststeps.append(step_info.step_obj)
 
     def get_testcase(self) -> "TestCase":
@@ -405,13 +404,13 @@ class HandelTestCase(object):
                 if api_info:
                     new_step = api_info
                     new_step.update(step.dict())
-                    new_step = TStepData(**new_step)
+                    new_step = TStepData.parse_obj(new_step)
                     new_step.source_id = api_info.get("id", None)
                     new_step.index = step.index
                 else:
                     logger.error(f"没找到用例 {step.source_id}")
             else:
-                new_step = TStepData(**step.dict())
+                new_step = TStepData.parse_obj(step.dict())
             if new_step:
                 new_step_data.append(new_step)
         return new_step_data

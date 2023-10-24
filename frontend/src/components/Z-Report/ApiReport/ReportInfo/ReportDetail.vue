@@ -377,7 +377,7 @@ const showReport = () => {
 }
 
 const toApiInfo = (row) => {
-  router.push({name: "EditApiInfo", query: {editType: "update", id: row.case_id}})
+  router.push({name: "EditApiInfo", query: {editType: "update", id: row.source_id}})
 }
 
 // 获取报告状态，通过，不通过

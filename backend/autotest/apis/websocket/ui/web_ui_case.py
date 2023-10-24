@@ -29,7 +29,7 @@ async def websocket_endpoint(websocket: WebSocket, id: str):
         while True:
             data = await websocket.receive_text()
             try:
-                new_data = UiDebugCaseIn(**json.loads(data))
+                new_data = UiDebugCaseIn.parse_obj(json.loads(data))
                 ui_case_info = await UiCaseServer.handel_ui_case2run_schemas(new_data.data)
                 if id not in driver_app_obj:
                     driver_setting = DriverSetting(
