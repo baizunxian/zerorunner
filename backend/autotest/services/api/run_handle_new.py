@@ -152,7 +152,8 @@ class HandleStepData(object):
 
     async def init(self, params: TStepData, case_id: typing.Union[str, int] = None) -> "HandleStepData":
         # 过滤需要处理的数据 其他参数一次性赋值给TStep对象
-        exclude_set = {"case_id", "variables", "setup_hooks", "teardown_hooks", "validators", "children_steps"}
+        exclude_set = {"case_id", "request", "variables", "setup_hooks", "teardown_hooks", "validators",
+                       "children_steps"}
         self.case_id = case_id
         self.step = TStep(case_id=self.case_id, step_type=params.step_type).parse_obj(params.dict(exclude=exclude_set))
         self.api_info = params
@@ -187,7 +188,7 @@ class HandleStepData(object):
         self.step_obj = step_obj
 
     async def __init_api_step(self) -> Step:
-        self.step.request = TRequest.parse_obj(self.api_info.request.dict())
+        self.step.request = TRequest(method=self.api_info.request.method, url=self.api_info.request.url)
         request_mode = self.api_info.request.mode.lower()
         if request_mode == RequestMode.RAW.value.lower():
             # json

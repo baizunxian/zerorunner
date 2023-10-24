@@ -250,7 +250,8 @@ class ResponseObjectBase(object):
 
     def _search_jsonpath(self, expr: ExtractData) -> typing.Any:
         try:
-            check_value = jsonpath(self.body, expr.path)
+            expr_path = expr.path.replace('"', "'")
+            check_value = jsonpath(self.body, expr_path)
             if not check_value:
                 raise ValueError(f"💔{expr.path} 没有提取到数据！")
             if expr.continue_extract:

@@ -16,7 +16,7 @@ class TStepBase(BaseModel):
     is_quotation: int = Field(0, description="是否引用 0 否 1 是")
     source_id: typing.Union[str, int] = Field(None, description="源id")
     case_id: typing.Union[str, int] = Field(None, description="用例id")
-    step_type: str = Field("", description="步骤类型 api if loop sql wait 等")
+    step_type: str = Field("", description="步骤类型 api if loop sql wait ui 等")
     name: Name = Field("", description="步骤名称")
     index: int = Field(0, description="排序")
     retry_times: int = Field(0, description="重试次数")
@@ -48,8 +48,8 @@ class TRequest(BaseModel):
     """api 请求模型"""
     request_type_: typing.Literal["api"] = Field(None, description="api", exclude=True)
 
-    method: typing.Union[str, MethodEnum] = Field(None, description="请求方法")
-    url: Url = Field(None, description="请求url")
+    method: typing.Union[str, MethodEnum] = Field(..., description="请求方法")
+    url: Url = Field(..., description="请求url")
     params: typing.Dict[str, str] = Field({}, description="参数")
     headers: Headers = Field({}, description="请求头")
     req_json: typing.Union[typing.Dict, typing.List, str] = Field(None, alias="json", description="json数据")
@@ -162,21 +162,16 @@ class TStep(TStepBase):
     export: Export = Field([], description="导出")
     validators: typing.List[ValidatorData] = Field([], alias="validate")
     request: TStepRequest = Field(None, description="请求信息", discriminator="request_type_")
-    sql_request: TSqlRequest = Field(None, description="sql请求")
-    if_request: TIFRequest = Field(None, description="if请求")
-    wait_request: TWaitRequest = Field(None, description="wait请求")
-    loop_request: TLoopRequest = Field(None, description="loop请求")
-    script_request: TScriptRequest = Field(None, description="script请求")
-    ui_request: TUiRequest = Field(None, description="ui请求")
     children_steps: typing.List['TStep'] = Field([], description="子步骤")
 
     @root_validator(pre=True)
     def insert_request_type(cls, values):
         request = values.get('request', {})
         step_type = values.get('step_type', None)
-        if not step_type:
-            raise ValueError("step_type is required")
-        values['request'] = {'request_type_': step_type} | request
+        if request:
+            if not step_type:
+                raise ValueError("step_type is required")
+            values['request'] = {'request_type_': step_type} | request
         return values
 
 
