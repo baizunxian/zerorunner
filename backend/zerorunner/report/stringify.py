@@ -164,7 +164,7 @@ def __stringify_response(response_data: ResponseData):
 
 
 def __stringify_step_data(step_data: StepResult):
-    if step_data.session_data and step_data.session_data.req_resp:
+    if step_data.session_data and hasattr(step_data.session_data, "req_resp"):
         __stringify_request(step_data.session_data.req_resp.request)
         __stringify_response(step_data.session_data.req_resp.response)
 

@@ -110,8 +110,15 @@ def load_script_content(content: str, module_name: str, params: dict = None) -> 
     mod = sys.modules.setdefault(module_name, types.ModuleType(module_name))
     output_buffer = StringIO()
     log_handler = CapturingLogHandler(output_buffer)
-    temp_logger = logger.add(log_handler)
-    params["logger"] = temp_logger
+    fmt = "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{line}</cyan> | <level>{message}</level>"
+    temp_logger = logger.add(log_handler, format=fmt)
+
+    if not params:
+        params = {}
+    if "requests" not in params:
+        import requests
+        params["requests"] = requests
+    params["logger"] = logger
     if params:
         mod.__dict__.update(params)
     try:

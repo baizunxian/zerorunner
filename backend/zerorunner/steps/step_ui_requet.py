@@ -51,7 +51,7 @@ def run_ui_request(runner: SessionRunner,
         step_result.end_log()
         step_result = step_result.get_step_result()
         if parent_step_result:
-            parent_step_result.set_step_log(step_result.log, show_time=False)
+            parent_step_result.set_step_log_not_show_time(step_result.log)
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
 

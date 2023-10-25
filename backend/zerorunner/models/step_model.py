@@ -136,7 +136,7 @@ class TLoopRequest(BaseModel):
 
 class TScriptRequest(BaseModel):
     """脚本请求"""
-    request_type_: typing.Literal["script"] = Field(..., description="script", exclude=True)
+    request_type_: typing.Literal["script"] = Field(None, description="script", exclude=True)
 
     script_content: str = Field(None, description="脚本类容")
 

@@ -35,9 +35,9 @@ def run_wait_request(runner: SessionRunner,
 
         else:
             raise ValueError("等待时间不能为空！")
-    except Exception as err:
+    except Exception as exc:
         step_result.set_step_result_status(TStepResultStatusEnum.err)
-        raise
+        raise exc
     finally:
         step_result.end_log()
         step_result = step_result.get_step_result()

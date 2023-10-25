@@ -167,10 +167,12 @@ const getAddData = (optType) => {
   data.name = `${optType}_${getRandomStr()}`
   data.step_type = optType
   if (optType === "script") {
+    data.name = "自定义脚本"
     data.request = {
       script_content: ""
     }
   } else if (optType === "sql") {
+    data.name = "数据库操作"
     data.request = {
       env_id: null,
       source_id: null,

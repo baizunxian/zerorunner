@@ -180,6 +180,8 @@ class HandleStepData(object):
             step_obj = await self.__init_script_step()
         elif step_type == TStepTypeEnum.ui.value.lower():
             step_obj = await self.__init_ui_step()
+        else:
+            raise ValueError(f"步骤类型错误：{step_type}")
 
         await self.init_variables()
         await self.init_setup_hooks()

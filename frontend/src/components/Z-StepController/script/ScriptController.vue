@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-row>
-      <el-col :span="18">
+      <el-col :span="20">
         <div style="border: 1px solid #E6E6E6">
           <z-monaco-editor
               style="height: 500px"
@@ -12,7 +12,7 @@
         </div>
       </el-col>
 
-      <el-col :span="6">
+      <el-col :span="4">
         <div style="padding: 8px;">
           <div>代码片段</div>
           <div v-for="menu in sideMenu" :key="menu.label">
@@ -26,7 +26,7 @@
 
 <script setup name="ScriptController">
 
-import {computed, reactive, watch} from "vue";
+import {computed, reactive} from "vue";
 
 const emit = defineEmits(['update:codeContent'])
 
@@ -76,13 +76,13 @@ const state = reactive({
     {label: "打印日志", content: "logger.info('logger')"},
   ],
   caseMenu: [
-    {label: "添加请求", content: "res = request.post('https://xiaobaicodes.com/api/list').json()"},
+    {label: "添加请求", content: "res = requests.post('https://xiaobaicodes.com/api/list').json()"},
+    {label: "打印日志", content: "logger.info('logger')"},
   ]
 
 })
 
 const sideMenu = computed(() => {
-  console.log(props.useType, "props.useType")
   switch (props.useType) {
     case "setup":
       return state.setupMenu
@@ -99,13 +99,6 @@ const sideMenu = computed(() => {
 const handlerCode = (row) => {
   o_content.value = o_content.value ? o_content.value + `\n${row.content}` : row.content
 }
-
-watch(
-    () => props.useType,
-    (val) => {
-      console.log(val, "val")
-    }
-)
 
 </script>
 
