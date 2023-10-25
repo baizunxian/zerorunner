@@ -26,7 +26,7 @@
 
 <script setup name="ScriptController">
 
-import {computed, reactive} from "vue";
+import {computed, reactive, watch} from "vue";
 
 const emit = defineEmits(['update:codeContent'])
 
@@ -75,17 +75,37 @@ const state = reactive({
     {label: "设置变量", content: "zero.variables.set('key', 'value')"},
     {label: "打印日志", content: "logger.info('logger')"},
   ],
+  caseMenu: [
+    {label: "添加请求", content: "res = request.post('https://xiaobaicodes.com/api/list').json()"},
+  ]
 
 })
 
 const sideMenu = computed(() => {
-  return props.useType === "setup" ? state.setupMenu : state.teardownMenu
+  console.log(props.useType, "props.useType")
+  switch (props.useType) {
+    case "setup":
+      return state.setupMenu
+    case "teardown":
+      return state.teardownMenu
+    case "case":
+      return state.caseMenu
+    default:
+      return []
+  }
 })
 
 // 处理code
 const handlerCode = (row) => {
   o_content.value = o_content.value ? o_content.value + `\n${row.content}` : row.content
 }
+
+watch(
+    () => props.useType,
+    (val) => {
+      console.log(val, "val")
+    }
+)
 
 </script>
 

@@ -115,7 +115,7 @@ export function getStepTypesByUse(use_type) {
 			stepTypeMapping = objectFilter(stepTypes, stepContain)
 			break
 		case "case":
-			stepContain = ["api", "if", "loop", "wait"]
+			stepContain = ["api", "if", "loop", "wait", "script", "sql"]
 			stepTypeMapping = objectFilter(stepTypes, stepContain)
 			break
 		default:

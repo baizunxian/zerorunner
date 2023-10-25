@@ -155,13 +155,7 @@ const getStepData = () => {
     export: [],
     validators: [],
     request: null,
-    sql_request: null,
-    loop_request: null,
-    if_request: null,
-    wait_request: null,
-    script_request: null,
     showDetail: false,
-    ui_request: null,
     is_quotation: true,
     children_step: []
   }

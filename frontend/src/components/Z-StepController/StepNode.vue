@@ -92,7 +92,7 @@
       </div>
 
       <div class="step-details" draggable="true" @dragstart="stepDetailsDrag">
-        <ScriptController v-if="step.step_type === 'script'" :data="step"/>
+        <ScriptHeader v-if="step.step_type === 'script'" :step="step"/>
         <SqlController v-if="step.step_type === 'sql'" :step="step"/>
         <!--        <ExtractController v-if="step.step_type === 'extract'" :extracts="step"/>-->
         <!--        <ApiInfoController v-if="data.step_type === 'api'" :data="data"/>-->
@@ -105,7 +105,7 @@
 </template>
 
 <script setup name="StepNode">
-import ScriptController from "/@/components/Z-StepController/script/ScriptController.vue";
+import ScriptHeader from "/@/components/Z-StepController/script/ScriptHeader.vue";
 import SqlController from "/@/components/Z-StepController/sql/SqlController.vue";
 import WaitHeader from "/@/components/Z-StepController/wait/WaitHeader.vue";
 import IfControllerHeader from "/@/components/Z-StepController/ifController/IfControllerHeader.vue";
