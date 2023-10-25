@@ -15,22 +15,6 @@
           <div class="el-step__icon-inner">{{ step.$index }}</div>
         </div>
 
-        <!--        <span v-if="!data.edit">-->
-        <!--            <svgIcon name="ele-EditPen" @click.stop="editeName(data)" style="margin-right: 5px; top:2px"></svgIcon>-->
-        <!--          &lt;!&ndash;            <i class="ele-EditPen"&ndash;&gt;-->
-        <!--          &lt;!&ndash;               @click.stop="editeName(data)"&ndash;&gt;-->
-        <!--          &lt;!&ndash;               style="margin-right: 5px">&ndash;&gt;-->
-        <!--          &lt;!&ndash;            </i>&ndash;&gt;-->
-        <!--            <span>{{ data.name }}</span>-->
-        <!--          </span>-->
-        <!--        <el-input v-else-->
-        <!--                  :id="`editeName_${data.index}`"-->
-        <!--                  v-model="data.name"-->
-        <!--                  style="width: 200px;"-->
-        <!--                  @click.stop.native=""-->
-        <!--                  @blur="nameEditBlur(data)">-->
-        <!--        </el-input>-->
-
         <div class="step-header__tag">
           <i :class="getStepTypeInfo(step.step_type, 'icon')"
              style="padding: 0 5px 0 5px; font-size: 18px"
@@ -45,6 +29,7 @@
           </svg-icon>
         </div>
         <!--脚本名称-->
+
         <div class="step-header__content">
           <template v-if="step.step_type === 'api'">
             <ApiHeader :data="step"/>
@@ -63,7 +48,20 @@
           </template>
 
           <template v-else>
-            <span>{{ step.name }}</span>
+            <span v-if="!step.edit && (step.step_type ==='sql' || step.step_type === 'script')">
+              <span>{{ step.name }}</span>
+              <svgIcon name="ele-EditPen"
+                       @click.stop="editeName(step)"
+                       style="margin-left: 5px; top:2px"></svgIcon>
+            </span>
+            <el-input v-else
+                      :id="`editeName_${step.index}`"
+                      v-model="step.name"
+                      style="width: 200px;"
+                      @click.stop.native=""
+                      @blur="nameEditBlur(step)">
+            </el-input>
+            <!--            <span >{{ step.name }}</span>-->
           </template>
         </div>
 
@@ -114,6 +112,7 @@ import LoopController from "/@/components/Z-StepController/loop/LoopController.v
 import {getStepTypeInfo} from "/@/utils/case";
 import ApiHeader from "/@/components/Z-StepController/apiInfo/ApiHeader.vue";
 import useVModel from "/@/utils/useVModel";
+import {nextTick} from "vue";
 
 const emit = defineEmits(['copy-node', 'deleted-node'])
 
@@ -134,18 +133,18 @@ const props = defineProps({
 
 const step = useVModel(props, 'step', emit)
 
-// const editeName = (data: any) => {
-//   data.edit = true
-//   nextTick(() => {
-//     let inputRef = document.getElementById("editeName_" + data.index)
-//     if (inputRef) inputRef.focus();
-//   })
-// }
+const editeName = (step) => {
+  step.edit = true
+  nextTick(() => {
+    let inputRef = document.getElementById("editeName_" + step.index)
+    if (inputRef) inputRef.focus();
+  })
+}
 
 // 编辑失去焦点时触发
-// const nameEditBlur = (data: any) => {
-//   data.edit = false
-// }
+const nameEditBlur = (step) => {
+  step.edit = false
+}
 
 const copyNode = (data) => {
   emit("copy-node", data)
