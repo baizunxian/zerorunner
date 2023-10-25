@@ -32,7 +32,7 @@
   </div>
 </template>
 
-<script setup  name="CoverageDetail">
+<script setup name="CoverageDetail">
 import {computed, h, nextTick, onMounted, reactive, ref, watch} from 'vue';
 import {ArrowRight} from '@element-plus/icons';
 import {ElButton} from 'element-plus';
@@ -237,21 +237,23 @@ const getBackgroundImageStyle = (type) => {
 }
 
 watch(
-    () => route.query.id,
-    (id) => {
-      if (!id) return
-      useCoverageReportApi().getReportById({id: id}).then((res) => {
-            state.reportDetail = res.data
-            state.breadcrumbs = []
-            getCoverageDetail({
-              name: res.data?.name,
-              el_type: "report",
-              report_id: id,
-            })
-          }
-      )
-    },
-    {deep: true, immediate: true}
+    // () => route.query.id,
+    // (id) => {
+    //   console.log("id", id)
+    //
+    //   if (!id) return
+    //   useCoverageReportApi().getReportById({id: id}).then((res) => {
+    //         state.reportDetail = res.data
+    //         state.breadcrumbs = []
+    //         getCoverageDetail({
+    //           name: res.data?.name,
+    //           el_type: "report",
+    //           report_id: id,
+    //         })
+    //       }
+    //   )
+    // },
+    {deep: true}
 )
 
 // 页面加载时
