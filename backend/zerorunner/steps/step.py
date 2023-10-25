@@ -47,6 +47,12 @@ class Step(object):
     def struct(self) -> TStep:
         return self.__step.struct()
 
+    def set_index(self, index):
+        self.__step.struct().index = index
+
+    def get_index(self):
+        return self.__step.struct().index
+
     @property
     def name(self) -> str:
         return self.__step.name()
@@ -56,4 +62,3 @@ class Step(object):
 
     def run(self, runner: SessionRunner, **kwargs):
         return self.__step.run(runner, **kwargs)
-

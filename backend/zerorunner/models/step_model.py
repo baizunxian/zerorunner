@@ -11,6 +11,7 @@ from zerorunner.models.base import Name
 
 class TStepBase(BaseModel):
     """步骤基类"""
+    index: int = Field(0, description="排序")
     enable: bool = Field(True, description="是否有效")  # 是否有效
     version: int = Field(0, description="版本")
     is_quotation: int = Field(0, description="是否引用 0 否 1 是")
@@ -18,7 +19,6 @@ class TStepBase(BaseModel):
     case_id: typing.Union[str, int] = Field(None, description="用例id")
     step_type: str = Field("", description="步骤类型 api if loop sql wait ui 等")
     name: Name = Field("", description="步骤名称")
-    index: int = Field(0, description="排序")
     retry_times: int = Field(0, description="重试次数")
     retry_interval: int = Field(0, description="重试间隔")
     step_id: int = Field(None, description="步骤id")

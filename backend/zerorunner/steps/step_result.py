@@ -12,8 +12,9 @@ from zerorunner.models.base import TStepResultStatusEnum
 
 class TStepResult:
 
-    def __init__(self, step: TStep, step_tag: str):
-        self.result = StepResult.parse_obj(step.dict())
+    def __init__(self, step: TStep, runner, step_tag: str):
+        self.result: StepResult = StepResult.parse_obj(step.dict())
+        self.result.index = runner.get_step_run_index()
         self.result.start_time = time.time()
         self.result.step_tag = step_tag
         if hasattr(step, "case_id"):

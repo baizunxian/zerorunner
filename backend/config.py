@@ -74,6 +74,7 @@ class Configs(BaseSettings):
     broker_pool_limit: int = 10
     # 传递给底层传输的附加选项的字典。设置可见性超时的示例（Redis 和 SQS 传输支持）
     result_backend_transport_options: typing.Dict[str, typing.Any] = {'visibility_timeout': 3600}
+    worker_cancel_long_running_tasks_on_connection_loss: bool = True
     include: typing.List[str] = [
         'celery_worker.tasks.test_case',
         'celery_worker.tasks.common',

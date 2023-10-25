@@ -103,17 +103,14 @@ const nodeClick = (data, node) => {
 }
 
 // 计算index，保持拖动后顺序
-const computeDataIndex = (data, parent_index) => {
+const computeDataIndex = (data, parent_index = 0) => {
   if (data) {
+    data.index = parent_index
+    parent_index = parent_index + 1
     data.forEach((e, index) => {
       e.$index = index + 1
-      if (parent_index) {
-        e.index = parseInt(`${parent_index}${index}`)
-      } else {
-        e.index = index + 1
-      }
       if (e.children_steps) {
-        computeDataIndex(e.children_steps, e.index)
+        computeDataIndex(e.children_steps, parent_index)
       } else {
         e.children_steps = []
       }

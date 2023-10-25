@@ -384,7 +384,7 @@ class ApiCaseStep(Base):
     request = mapped_column(JSON, comment='请求参数')
     step_id = mapped_column(BigInteger, comment='步骤id')
     parent_step_id = mapped_column(BigInteger, comment='父步骤id')
-    index = mapped_column(Integer, comment='步骤顺序')
+    index = mapped_column(String(255), comment='步骤顺序')
     node_id = mapped_column(String(255), comment='节点id')
     enable = mapped_column(Boolean, default=1, comment='是否启用 0 否 1 是')
     is_quotation = mapped_column(Integer, default=1, comment='是否引用 0 否 1 是')
@@ -743,7 +743,7 @@ class ApiTestReportDetail:
                 post_hook_data = mapped_column(JSON, comment='后置步骤')
                 setup_hook_results = mapped_column(JSON, comment='前置hook结果')
                 teardown_hook_results = mapped_column(JSON, comment='后置hook结果')
-                index = mapped_column(Integer, comment='顺序')
+                index = mapped_column(String(255), comment='顺序')
                 status_code = mapped_column(Integer, comment='顺序')
                 response_time_ms = mapped_column(DECIMAL(), comment='响应耗时')
                 elapsed_ms = mapped_column(DECIMAL(), comment='请求耗时')
@@ -768,8 +768,8 @@ class ApiTestReportDetail:
                         q.append(cls.status.in_(params.status_list))
                     if params.parent_step_id:
                         q.append(cls.parent_step_id == params.parent_step_id)
-                    else:
-                        q.append(cls.parent_step_id == None)
+                    # else:
+                    #     q.append(cls.parent_step_id == None)
 
                     stmt = select(cls.get_table_columns(),
                                   ApiInfo.name.label("case_name"),

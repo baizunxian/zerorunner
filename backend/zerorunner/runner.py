@@ -43,6 +43,7 @@ class SessionRunner(object):
     __step_results: typing.List[StepResult] = []
     __session_variables: VariablesMapping = {}
     __merge_variable_pool: VariablesMapping = {}
+    __step_run_index = 0
     # time
     __start_time: float = 0
     __duration: float = 0
@@ -242,6 +243,9 @@ class SessionRunner(object):
 
         return export_vars_mapping
 
+    def get_step_run_index(self):
+        return self.__step_run_index
+
     def get_summary(self) -> TestCaseSummary:
         """获取测试用例结果摘要"""
         start_at_timestamp = self.__start_time
@@ -284,6 +288,7 @@ class SessionRunner(object):
             self.__start_time = time.time()
         for i in range(step.retry_times + 1):
             try:
+                self.__step_run_index += 1
                 step.run(self, step_tag=step_tag, parent_step_result=parent_step_result)
             except ValidationFailure:
                 if i == step.retry_times:
@@ -313,6 +318,8 @@ class SessionRunner(object):
         :return:
         """
         for step in steps:
+            if hasattr(step, "set_index") and hasattr(step, "get_index"):
+                step.set_index(step.get_index() + 1)
             self.run_step(step, step_tag=step_tag, parent_step_result=parent_step_result)
 
     def test_start(self, param: typing.Dict = None) -> "SessionRunner":
