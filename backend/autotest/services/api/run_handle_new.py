@@ -404,7 +404,7 @@ class HandelTestCase(object):
                 api_info = await ApiInfo.get(step.source_id, True)
                 if api_info:
                     new_step = api_info
-                    new_step.update(step.dict(exclude={"request"} if step.is_quotation else {}))
+                    new_step.update(step.dict(exclude={"request"} if not step.is_quotation else {}))
                     new_step = TStepData.parse_obj(new_step)
                     new_step.source_id = api_info.get("id", None)
                     new_step.index = step.index
