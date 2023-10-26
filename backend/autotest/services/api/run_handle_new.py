@@ -155,7 +155,9 @@ class HandleStepData(object):
         exclude_set = {"case_id", "request", "variables", "setup_hooks", "teardown_hooks", "validators",
                        "children_steps"}
         self.case_id = case_id
-        self.step = TStep(case_id=self.case_id, step_type=params.step_type).parse_obj(params.dict(exclude=exclude_set))
+        self.step = TStep.parse_obj(params.dict(exclude=exclude_set))
+        self.step.case_id = self.case_id
+        self.step.step_type = params.step_type
         self.api_info = params
         self.step_obj = None
         await self.init_step()
