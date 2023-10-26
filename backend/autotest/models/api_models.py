@@ -1,7 +1,7 @@
 import typing
 
 from sqlalchemy import Integer, String, Text, DateTime, BigInteger, func, \
-    distinct, text, and_, JSON, DECIMAL, select, update, Boolean
+    distinct, text, and_, JSON, DECIMAL, select, update, Boolean, case
 from sqlalchemy.orm import aliased, mapped_column
 
 from autotest.models.base import Base
@@ -782,52 +782,73 @@ class ApiTestReportDetail:
 
                 @classmethod
                 async def statistics(cls, params: TestReportDetailQuery):
-                    q = [cls.enabled_flag == 1]
-                    q.append(cls.report_id == params.id)
+                    q = [cls.enabled_flag == 1, cls.report_id == params.id]
                     if params.parent_step_id:
                         q.append(cls.parent_step_id == params.parent_step_id)
-                    else:
-                        q.append(cls.parent_step_id == None)
+
+                    sub_stmt = (select(
+                        # 用例
+                        # 用例步骤成功数
+                        cls.case_id.label("case_id"),
+                        func.count(func.if_(cls.case_id.is_not(None), 1, None)).label("case_count_1"),
+                        func.sum(func.if_(and_(cls.status == "SUCCESS", cls.case_id.is_not(None)), 1, 0)).label(
+                            "case_step_success_count"),
+                        # 用例步骤成功数
+                        func.sum(func.if_(and_(cls.status != "SUCCESS", cls.case_id.is_not(None)), 1, 0)).label(
+                            "case_step_fail_count"),
+
+                        # 步骤 -------------------------------------------------
+                        # 总步骤数
+                        func.count('*').label("step_count"),
+                        func.count(func.if_(cls.status != "SKIP", 1, None)).label("effective_step_count"),
+                        # 成功步骤数
+                        func.sum(func.if_(and_(cls.status == "SUCCESS", cls.status != "SKIP"), 1, 0)).label(
+                            "step_success_count"),
+                        # 失败步骤数
+                        func.sum(func.if_(cls.status == "FAILURE", 1, 0)).label(
+                            "step_fail_count"),
+                        # 跳过步骤数
+                        func.sum(func.if_(cls.status == "SKIP", 1, 0)).label("step_skip_count"),
+
+                        # 错误步骤数
+                        func.sum(func.if_(cls.status == "ERROR", 1, 0)).label("step_error_count"),
+
+                        # 平均请求时长
+                        func.round(func.IFNULL(func.avg(cls.elapsed_ms), 0), 2).label("avg_request_time"),
+                        # 总执行时长
+                        func.sum(cls.duration).label("request_time_count"))
+                                .where(*q).group_by(cls.case_id).subquery())
 
                     stmt = select(
-                        # 总步骤数
-                        func.count('*').label("count_step"),
-                        # 成功步骤数
-                        func.sum(func.if_(cls.status == "SUCCESS" == 1, 1, 0)).label(
-                            "count_step_success"),
-                        # 失败步骤数
-                        func.sum(func.if_(cls.status == "FAILURE" == 1, 1, 0)).label(
-                            "count_step_failure"),
-                        # 跳过步骤数
-                        func.sum(func.if_(cls.status == "SKIP" == 1, 1, 0)).label("count_step_skip"),
-                        # 错误步骤数
-                        func.sum(func.if_(cls.status == "ERROR" == 1, 1, 0)).label("count_step_error"),
-                        # 平均请求时长
-                        func.round(func.avg(cls.elapsed_ms), 2).label("avg_request_time"),
-                        # 总执行时长
-                        func.sum(cls.duration).label("count_request_time"),
-                        # 用例数
-                        func.count(distinct(cls.case_id)).label("count_case"),
-                        # 成功用例数
+                        func.count(func.if_(sub_stmt.c.case_id.is_not(None), 1, None)).label("case_count"),
+                        func.sum(sub_stmt.c.step_count).label("step_count"),
+                        func.round(func.avg(sub_stmt.c.avg_request_time), 2).label("avg_request_time"),
+                        func.sum(sub_stmt.c.request_time_count).label("request_time_count"),
+
                         func.sum(
-                            func.if_(cls.step_type == 'api', func.if_(cls.status == "SUCCESS", 1, 0), 0)).label(
-                            "count_case_success"),
-                        # 失败用例数
-                        func.sum(
-                            func.if_(cls.step_type == 'api', func.if_(cls.status == "FAILURE", 1, 0), 0)).label(
-                            "count_case_fail"),
-                        # 测试用例通过率
+                            func.if_(and_(
+                                sub_stmt.c.case_count_1 > 0,
+                                sub_stmt.c.case_step_fail_count == 0), 1, 0))
+                        .label("case_success_count"),
+
+                        (func.count(func.if_(sub_stmt.c.case_id.is_not(None), 1, None)) - func.sum(
+                            func.if_(and_(
+                                sub_stmt.c.case_count_1 > 0,
+                                sub_stmt.c.case_step_fail_count == 0), 1, 0))).label("case_fail_count"),
+
+                        func.sum(sub_stmt.c.step_success_count).label("step_success_count"),
+                        (func.sum(sub_stmt.c.step_fail_count)).label("step_fail_count"),
+                        func.sum(sub_stmt.c.step_skip_count).label("step_skip_count"),
+                        func.sum(sub_stmt.c.step_error_count).label("step_error_count"),
                         func.round(
-                            func.sum(
-                                func.if_(cls.step_type == 'api',
-                                         func.if_(cls.status == "SUCCESS", func.if_(cls.status != "SKIP", 1, 0), 0),
-                                         0)) / func.sum(
-                                func.if_(cls.step_type == 'api', func.if_(cls.status != "SKIP", 1, 0), 0)) * 100,
-                            2).label("case_pass_rate"),
-                        # 测试步骤通过率
+                            func.sum(sub_stmt.c.step_success_count) / func.sum(sub_stmt.c.effective_step_count) * 100,
+                            2).label("step_pass_rate"),
                         func.round(
-                            func.sum(func.if_(cls.status == "SUCCESS", 1, 0)) / func.count('1') * 100, 2).label(
-                            "step_pass_rate")).where(*q)
+                            (func.sum(func.if_(sub_stmt.c.case_step_fail_count == 0, 1, 0))) / func.count(
+                                func.if_(sub_stmt.c.case_id.is_not(None), 1, None)) * 100,
+                            2).label(
+                            "case_pass_rate")
+                    )
 
                     return await cls.get_result(stmt, first=True)
 

@@ -277,16 +277,16 @@ const getStatisticsDataByDebug = (step_results) => {
   let reportInfo = props.reportInfo
   let statisticsData = {
     actual_run_count: reportInfo.actual_run_count,
-    count_step: step_results.length,
-    count_step_success: reportInfo.run_success_count,
-    count_step_failure: reportInfo.run_fail_count,
-    count_step_skip: reportInfo.run_skip_count,
-    count_step_error: reportInfo.run_err_count,
+    step_count: step_results.length,
+    step_success_count: reportInfo.run_success_count,
+    step_fail_count: reportInfo.run_fail_count,
+    step_skip_count: reportInfo.run_skip_count,
+    step_error_count: reportInfo.run_err_count,
     avg_request_time: 0,
     count_request_time: 0,
-    count_case: 0,
-    count_case_success: 0,
-    count_case_fail: 0,
+    case_count: 0,
+    case_success_count: 0,
+    case_fail_count: 0,
     case_pass_rate: 0,
     step_pass_rate: 0,
     start_time: reportInfo.start_time,
@@ -294,7 +294,7 @@ const getStatisticsDataByDebug = (step_results) => {
     success: reportInfo.success
   }
   let elapsed_ms = 0
-  statisticsData.step_pass_rate = Math.round((statisticsData.count_step_success / statisticsData.actual_run_count) * 100)
+  statisticsData.step_pass_rate = Math.round((statisticsData.step_success_count / statisticsData.actual_run_count) * 100)
 
   step_results.forEach((e) => {
     if (e.step_type === 'api') {
@@ -303,18 +303,18 @@ const getStatisticsDataByDebug = (step_results) => {
       e.status_code = e.session_data.req_resp.response.status_code
       e.elapsed_ms = e.session_data.stat.elapsed_ms
       elapsed_ms += e.session_data.stat.elapsed_ms
-      statisticsData.count_request_time += e.duration
-      statisticsData.count_case++
+      statisticsData.request_time_count += e.duration
+      statisticsData.case_count++
       if (e.status === "SUCCESS") {
-        statisticsData.count_case_success += 1
+        statisticsData.case_success_count += 1
       } else {
-        statisticsData.count_case_fail += 1
+        statisticsData.case_fail_count += 1
       }
     }
   })
-  statisticsData.count_request_time = Math.round(statisticsData.count_request_time * 100) / 100
-  statisticsData.avg_request_time = Math.round((elapsed_ms / statisticsData.count_case) * 100) / 100
-  statisticsData.case_pass_rate = Math.round((statisticsData.count_case_success / statisticsData.count_case) * 100)
+  statisticsData.request_time_count = Math.round(statisticsData.request_time_count * 100) / 100
+  statisticsData.avg_request_time = Math.round((elapsed_ms / statisticsData.case_count) * 100) / 100
+  statisticsData.case_pass_rate = Math.round((statisticsData.case_success_count / statisticsData.case_count) * 100)
 
   return statisticsData
 }
