@@ -5,7 +5,7 @@ import typing
 from pydantic import BaseModel, Field, root_validator
 
 from zerorunner.models.base import MethodEnum, Url, Headers, Cookies, Verify, VariablesMapping, ParametersMapping, \
-    Export, BaseUrl, FunctionsMapping, TStepTypeEnum
+    Export, BaseUrl, FunctionsMapping
 from zerorunner.models.base import Name
 
 
@@ -14,7 +14,7 @@ class TStepBase(BaseModel):
     index: int = Field(0, description="排序")
     enable: bool = Field(True, description="是否有效")  # 是否有效
     version: int = Field(0, description="版本")
-    is_quotation: int = Field(0, description="是否引用 0 否 1 是")
+    is_quotation: int = Field(1, description="是否引用 0 否 1 是")
     source_id: typing.Union[str, int] = Field(None, description="源id")
     case_id: typing.Union[str, int] = Field(None, description="用例id")
     step_type: str = Field("", description="步骤类型 api if loop sql wait ui 等")
