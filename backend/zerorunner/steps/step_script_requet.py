@@ -17,28 +17,28 @@ def run_script_request(runner: SessionRunner,
                        step: TStep,
                        step_tag: str = None,
                        parent_step_result: TStepResult = None):
-    step_result = TStepResult(step, step_tag=step_tag)
+    step_result = TStepResult(step, runner, step_tag=step_tag)
     step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
     request_dict = step.request.dict()
     parsed_request_dict = runner.parser.parse_data(request_dict, step_variables)
-    step.request = TScriptRequest.parse_obj(parsed_request_dict)
     try:
+        step.request = TScriptRequest.parse_obj(parsed_request_dict)
         module_name = uuid.uuid4().hex
-        script = f"{step.request.script_content}"
-        model, captured_output = load_script_content(step.request.script_content,
-                                                     f"{runner.config.case_id}_setup_code")
-        script_module, _ = load_script_content(script, f"script_{module_name}")
+        model, captured_output = load_script_content(step.request.script_content, f"script_{module_name}")
+        step_result.set_step_log_not_show_time(captured_output)
         functions = load_module_functions(model)
         runner.with_functions(functions)
-    except Exception as err:
+        step_result.set_step_result_status(TStepResultStatusEnum.success)
+    except Exception as exc:
         step_result.set_step_result_status(TStepResultStatusEnum.err)
+        raise exc
     finally:
         step_result.end_log()
         step_result = step_result.get_step_result()
         if parent_step_result:
-            parent_step_result.set_step_log(step_result.log, show_time=False)
+            parent_step_result.set_step_log_not_show_time(step_result.log)
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
 

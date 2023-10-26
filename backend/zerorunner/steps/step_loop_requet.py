@@ -22,7 +22,7 @@ def run_loop_request(runner: SessionRunner,
                      parent_step_result: TStepResult = None):
     """循环控制器"""
     step.name = "循环控制器"
-    step_result = TStepResult(step, step_tag=step_tag)
+    step_result = TStepResult(step, runner, step_tag=step_tag)
     step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
@@ -108,15 +108,15 @@ def run_loop_request(runner: SessionRunner,
 
         step_result.set_step_result_status(TStepResultStatusEnum.success)
 
-    except Exception as err:
+    except Exception as exc:
         step_result.set_step_result_status(TStepResultStatusEnum.err)
-        raise
+        raise exc
 
     finally:
         step_result.end_log()
         step_result = step_result.get_step_result()
         if parent_step_result:
-            parent_step_result.set_step_log(step_result.log, show_time=False)
+            parent_step_result.set_step_log_not_show_time(step_result.log)
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         # 将数据平铺出来

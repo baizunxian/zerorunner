@@ -21,7 +21,7 @@ def run_ui_request(runner: SessionRunner,
     """运行ui request"""
     # 清空step result 避免获取结果时出错
     runner.clear_step_results()
-    step_result = TStepResult(step, step_tag=step_tag)
+    step_result = TStepResult(step, runner, step_tag=step_tag)
     step_result.start_log()
     step_result.session_data = UiSessionData()
     step_result.session_data.action = step.request.action
@@ -51,7 +51,7 @@ def run_ui_request(runner: SessionRunner,
         step_result.end_log()
         step_result = step_result.get_step_result()
         if parent_step_result:
-            parent_step_result.set_step_log(step_result.log, show_time=False)
+            parent_step_result.set_step_log_not_show_time(step_result.log)
         step_result.duration = time.time() - start_time
         runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
 

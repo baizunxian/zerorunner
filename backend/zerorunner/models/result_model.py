@@ -80,7 +80,7 @@ class UiSessionData(BaseModel):
 class StepResult(BaseModel):
     """测试步骤数据"""
 
-    index: int = Field(None, description="index")
+    index: int = Field(0, description="index")
     name: str = Field("", description="步骤名称")
     step_id: typing.Union[str, int] = Field(None, description="步骤id")
     parent_step_id: typing.Union[str, int] = Field(None, description="父步骤id")

@@ -151,7 +151,7 @@ class ApiInfoService:
         :return:
         """
         case_info = await ApiInfo.get(params.id)
-        run_params = ApiInfoIn(env_id=params.env_id, step_type="api").parse_obj(default_serialize(case_info))
+        run_params = ApiInfoIn(**default_serialize(case_info), env_id=params.env_id, step_type="api")
         case_info = await HandelRunApiStep().init(run_params)
         runner = ZeroRunner()
         summary = runner.run_tests(case_info.get_testcase())

@@ -103,17 +103,14 @@ const nodeClick = (data, node) => {
 }
 
 // 计算index，保持拖动后顺序
-const computeDataIndex = (data, parent_index) => {
+const computeDataIndex = (data, parent_index = 0) => {
   if (data) {
+    data.index = parent_index
+    parent_index = parent_index + 1
     data.forEach((e, index) => {
       e.$index = index + 1
-      if (parent_index) {
-        e.index = parseInt(`${parent_index}${index}`)
-      } else {
-        e.index = index + 1
-      }
       if (e.children_steps) {
-        computeDataIndex(e.children_steps, e.index)
+        computeDataIndex(e.children_steps, parent_index)
       } else {
         e.children_steps = []
       }
@@ -158,13 +155,7 @@ const getStepData = () => {
     export: [],
     validators: [],
     request: null,
-    sql_request: null,
-    loop_request: null,
-    if_request: null,
-    wait_request: null,
-    script_request: null,
     showDetail: false,
-    ui_request: null,
     is_quotation: true,
     children_step: []
   }
@@ -176,10 +167,12 @@ const getAddData = (optType) => {
   data.name = `${optType}_${getRandomStr()}`
   data.step_type = optType
   if (optType === "script") {
+    data.name = "自定义脚本"
     data.request = {
       script_content: ""
     }
   } else if (optType === "sql") {
+    data.name = "数据库操作"
     data.request = {
       env_id: null,
       source_id: null,

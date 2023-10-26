@@ -167,7 +167,7 @@ class UiSteps(Base):
     """步骤表"""
     __tablename__ = 'ui_steps'
 
-    index = mapped_column(Integer, nullable=False, comment='步骤排序', index=True)
+    index = mapped_column(String(255), nullable=False, comment='步骤排序', index=True)
     operation = mapped_column(String(255), comment='操作')
     input_data = mapped_column(String(255), comment='输入数据')
     location_method = mapped_column(String(255), comment='定位元素方式')
@@ -301,7 +301,7 @@ class UiReportDetail:
                 __tablename__ = class_name
 
                 name = mapped_column(String(255), nullable=False, comment='报告名', index=True)
-                index = mapped_column(Integer, comment='步骤顺序')
+                index = mapped_column(String(255), comment='步骤顺序')
                 variables = mapped_column(JSON, comment='步骤变量')
                 data = mapped_column(String(500), comment='步骤数据')
                 action = mapped_column(String(255), comment='步骤动作')

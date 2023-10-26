@@ -12,8 +12,10 @@ from zerorunner.models.base import TStepResultStatusEnum
 
 class TStepResult:
 
-    def __init__(self, step: TStep, step_tag: str):
-        self.result = StepResult.parse_obj(step.dict())
+    def __init__(self, step: TStep, runner, step_tag: str):
+        self.err_limit = 1
+        self.result: StepResult = StepResult.parse_obj(step.dict())
+        self.result.index = runner.get_step_run_index()
         self.result.start_time = time.time()
         self.result.step_tag = step_tag
         if hasattr(step, "case_id"):
@@ -46,7 +48,7 @@ class TStepResult:
             self.result.success = False
             self.result.status = TStepResultStatusEnum.err.value
             self.result.message = msg if msg else str(exc_value)
-            self.err_log(traceback.format_exc())
+            self.err_log(traceback.format_exc(limit=self.err_limit))
 
     def get_step_result(self):
         return self.result
@@ -60,6 +62,12 @@ class TStepResult:
         if message:
             message = message if message.endswith('\n') else message + '\n'
             self.result.log += f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ':' if show_time else ''}{message}"
+
+    def set_step_log_not_show_time(self, message):
+        """设置日志，不在日志前加时间"""
+        if message:
+            message = message if message.endswith('\n') else message + '\n'
+            self.result.log += message
 
     def start_log(self, message: str = None):
         new_msg = f"\n{message}" if message else ""

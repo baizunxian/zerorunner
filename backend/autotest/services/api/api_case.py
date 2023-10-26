@@ -115,7 +115,7 @@ class ApiCaseService:
             raise ValueError("id 不能为空！")
         case_info = await ApiCase.get(params.id, to_dict=True)
         await ApiCaseService.set_step_data(case_info)
-        run_params = TestCaseRun(env_id=params.env_id).parse_obj(default_serialize(case_info))
+        run_params = TestCaseRun(**default_serialize(case_info), env_id=params.env_id)
         api_case_info = await HandelTestCase().init(run_params)
         runner = ZeroRunner()
         testcase = api_case_info.get_testcases()

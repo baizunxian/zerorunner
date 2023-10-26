@@ -85,6 +85,6 @@ class TStepData(TStep):
     setup_hooks: typing.List["TStepData"] = []
     teardown_hooks: typing.List["TStepData"] = []
     variables: typing.List[typing.Any] = Field([], description="变量")
-    validators: typing.List[ValidatorData] = Field([], alias="验证")
+    validators: typing.List[ValidatorData] = Field([], description="校验", alias="validators")
     request: typing.Union[TStepRequest] = Field(None, description="请求信息")
     children_steps: typing.List["TStepData"] = Field([], description="子步骤")

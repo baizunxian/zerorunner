@@ -64,7 +64,7 @@ async def async_run_testcase(case_id: typing.Union[str, int], report_id: [str, i
         logger.error(f"用例id: {case_id} 不存在！")
         return
     await ApiCaseService.set_step_data(case_info)
-    run_params = TestCaseRun(env_id=kwargs.get('case_env_id', None)).parse_obj(case_info)
+    run_params: TestCaseRun = TestCaseRun.parse_obj(**case_info, env_id=kwargs.get('case_env_id', None))
     if not report_id:
         """没有报告id创建报告"""
         report_params = TestReportSaveSchema(

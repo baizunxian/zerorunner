@@ -12,7 +12,7 @@
           </template>
 
           <template #extra>
-            <el-dropdown class="pr12">
+            <el-dropdown :hide-on-click="false" class="pr12">
               <el-button type="warning">
                 添加步骤
                 <el-icon class="el-icon--right">
@@ -355,7 +355,7 @@ const getEnvList = () => {
 const debugApiCase = () => {
   formRef.value.validate((valid) => {
     if (valid) {
-      if (state.form.step_data.length == 0) {
+      if (state.form.step_data.length === 0) {
         ElMessage.warning("请先添加步骤！")
         return
       }
@@ -402,8 +402,8 @@ const goBack = () => {
 }
 
 onActivated(() => {
-  if (state.timeStamp != route.query.timeStamp) {
-    state.timeStamp = route.query.timeStamp
+  if (state.timestamp !== route.query.timestamp) {
+    state.timestamp = route.query.timestamp
     initData()
   }
 })

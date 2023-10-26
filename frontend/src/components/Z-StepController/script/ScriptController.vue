@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-row>
-      <el-col :span="18">
+      <el-col :span="20">
         <div style="border: 1px solid #E6E6E6">
           <z-monaco-editor
               style="height: 500px"
@@ -12,7 +12,7 @@
         </div>
       </el-col>
 
-      <el-col :span="6">
+      <el-col :span="4">
         <div style="padding: 8px;">
           <div>代码片段</div>
           <div v-for="menu in sideMenu" :key="menu.label">
@@ -75,11 +75,24 @@ const state = reactive({
     {label: "设置变量", content: "zero.variables.set('key', 'value')"},
     {label: "打印日志", content: "logger.info('logger')"},
   ],
+  caseMenu: [
+    {label: "添加请求", content: "res = requests.post('https://xiaobaicodes.com/api/list').json()"},
+    {label: "打印日志", content: "logger.info('logger')"},
+  ]
 
 })
 
 const sideMenu = computed(() => {
-  return props.useType === "setup" ? state.setupMenu : state.teardownMenu
+  switch (props.useType) {
+    case "setup":
+      return state.setupMenu
+    case "teardown":
+      return state.teardownMenu
+    case "case":
+      return state.caseMenu
+    default:
+      return []
+  }
 })
 
 // 处理code

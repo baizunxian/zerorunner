@@ -152,7 +152,8 @@ class HandleStepData(object):
 
     async def init(self, params: TStepData, case_id: typing.Union[str, int] = None) -> "HandleStepData":
         # 过滤需要处理的数据 其他参数一次性赋值给TStep对象
-        exclude_set = {"case_id", "variables", "setup_hooks", "teardown_hooks", "validators", "children_steps"}
+        exclude_set = {"case_id", "request", "variables", "setup_hooks", "teardown_hooks", "validators",
+                       "children_steps"}
         self.case_id = case_id
         self.step = TStep(case_id=self.case_id, step_type=params.step_type).parse_obj(params.dict(exclude=exclude_set))
         self.api_info = params
@@ -179,6 +180,8 @@ class HandleStepData(object):
             step_obj = await self.__init_script_step()
         elif step_type == TStepTypeEnum.ui.value.lower():
             step_obj = await self.__init_ui_step()
+        else:
+            raise ValueError(f"步骤类型错误：{step_type}")
 
         await self.init_variables()
         await self.init_setup_hooks()
@@ -187,7 +190,7 @@ class HandleStepData(object):
         self.step_obj = step_obj
 
     async def __init_api_step(self) -> Step:
-        self.step.request = TRequest.parse_obj(self.api_info.request.dict())
+        self.step.request = TRequest(method=self.api_info.request.method, url=self.api_info.request.url)
         request_mode = self.api_info.request.mode.lower()
         if request_mode == RequestMode.RAW.value.lower():
             # json
@@ -402,9 +405,10 @@ class HandelTestCase(object):
                 # 处理api用例，后面会支持是否是引用模式
                 api_info = await ApiInfo.get(step.source_id, True)
                 if api_info:
-                    new_step = api_info
-                    new_step.update(step.dict())
-                    new_step = TStepData.parse_obj(new_step)
+                    if step.is_quotation:
+                        new_step = TStepData.parse_obj(api_info)
+                    else:
+                        new_step = TStepData.parse_obj(step.dict())
                     new_step.source_id = api_info.get("id", None)
                     new_step.index = step.index
                 else:

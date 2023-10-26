@@ -37,7 +37,7 @@ class TStepTypeEnum(str, Enum):
     api = "api"
     case = "case"
     wait = "wait"
-    script = "db_script"
+    script = "script"
     sql = "sql"
     extract = "extract"
     loop = "loop"

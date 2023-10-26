@@ -90,7 +90,7 @@ def run_api_request(runner: SessionRunner,
                     step: TStep,
                     step_tag: str = None,
                     parent_step_result: TStepResult = None):
-    step_result = TStepResult(step, step_tag=step_tag)
+    step_result = TStepResult(step, runner, step_tag=step_tag)
     step_result.start_log()
     # update headers
     merge_headers = copy.deepcopy(runner.config.headers)

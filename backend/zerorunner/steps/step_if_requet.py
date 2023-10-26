@@ -18,7 +18,7 @@ def run_if_request(runner: SessionRunner,
                    parent_step_result: TStepResult = None):
     """条件控制器"""
     step.name = "条件控制器"
-    step_result = TStepResult(step, step_tag=step_tag)
+    step_result = TStepResult(step, runner, step_tag=step_tag)
     step_result.start_log()
     start_time = time.time()
     step_variables = runner.get_merge_variable(step)
