@@ -405,9 +405,10 @@ class HandelTestCase(object):
                 # 处理api用例，后面会支持是否是引用模式
                 api_info = await ApiInfo.get(step.source_id, True)
                 if api_info:
-                    new_step = api_info
-                    new_step.update(step.dict(exclude={"request"} if not step.is_quotation else {}))
-                    new_step = TStepData.parse_obj(new_step)
+                    if step.is_quotation:
+                        new_step = TStepData.parse_obj(api_info)
+                    else:
+                        new_step = TStepData.parse_obj(step.dict())
                     new_step.source_id = api_info.get("id", None)
                     new_step.index = step.index
                 else:
