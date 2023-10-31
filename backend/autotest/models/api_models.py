@@ -526,8 +526,7 @@ class ApiCaseStep(Base):
                                 )) \
             .outerjoin(User, User.id == ApiCase.created_by) \
             .outerjoin(ApiInfo, ApiInfo.id == cls.source_id) \
-            .where(*q, cls.case_id.in_(case_ids), cls.step_type == 'api') \
-            .group_by(ApiInfo.id)
+            .where(*q, cls.case_id.in_(case_ids), cls.step_type == 'api')
         return await cls.get_result(stmt)
 
 
