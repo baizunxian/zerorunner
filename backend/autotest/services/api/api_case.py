@@ -2,6 +2,7 @@ import typing
 
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.api_models import ApiCase, ApiCaseStep
+from autotest.models.celery_beat_models import TimedTaskCase
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
     ApiTestCaseRun, ApiCaseStepDataSchema
 from autotest.schemas.step_data import TStepData
@@ -176,3 +177,44 @@ class ApiCaseService:
     def run_callback(*args, **kwargs):
         print(1111)
         ...
+
+    @staticmethod
+    async def use_case_relation(params: ApiCaseId):
+        api_info = await ApiCase.get_api_by_id(params.id)
+        if not api_info:
+            raise ValueError('不存在当前用例！')
+        relation_timed_task_ids = set()
+        line_list = []
+        node_list = [dict(id=f"case_{params.id}",
+                          data=dict(id=params.id,
+                                    type="case",
+                                    name=api_info.get("name"),
+                                    created_by_name=api_info.get("created_by_name"),
+                                    creation_date=api_info.get("creation_date")))]
+        # case - timed task 关联
+        timed_task_case_list = await TimedTaskCase.get_relation_by_case_ids([params.id]) or []
+        for timed_task_case in timed_task_case_list:
+            task_id = timed_task_case.get('id')
+            case_id = timed_task_case.get("case_id")
+            relation_id = f"timed_task_{task_id}"
+            node_data = dict(id=relation_id,
+                             data=dict(id=task_id,
+                                       type="timed_task",
+                                       name=timed_task_case.get("task_name"),
+                                       created_by_name=timed_task_case.get("created_by_name"),
+                                       creation_date=timed_task_case.get("creation_date")))
+            node_list.append(node_data)
+            line_list.append({
+                "from": f"case_{case_id}",
+                "to": relation_id,
+                "text": "关联定时任务"
+            })
+            relation_timed_task_ids.add(task_id)
+
+        data = {
+            "rootId": f"api_{params.id}",
+            "nodes": node_list,
+            "lines": line_list,
+            "timed_task_count": len(relation_timed_task_ids)
+        }
+        return data

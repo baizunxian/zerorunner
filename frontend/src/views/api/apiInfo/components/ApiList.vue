@@ -117,20 +117,8 @@
     </el-dialog>
 
     <!--    关系弹窗-->
-    <el-dialog
-        draggable
-        v-if="state.showApiRelation"
-        v-model="state.showApiRelation"
-        width="60%"
-        class="relation-draggable"
-        top="5vh"
-        destroy-on-close
-        :close-on-click-modal="false">
-      <template #header>
-        <strong>接口关系</strong>
-      </template>
-      <ApiRelationGraph :data="state.relationData"></ApiRelationGraph>
-    </el-dialog>
+
+    <ApiRelationGraph ref="ApiRelationGraphRef"></ApiRelationGraph>
 
     <!--    postman 导入 import-->
     <el-dialog
@@ -215,7 +203,17 @@
 
 <script setup name="apiInfoList">
 import {defineAsyncComponent, h, onMounted, reactive, ref} from 'vue';
-import {ElButton, ElMessage, ElMessageBox, ElTag, ElPopover, ElIcon} from 'element-plus';
+import {
+  ElButton,
+  ElMessage,
+  ElMessageBox,
+  ElTag,
+  ElPopover,
+  ElIcon,
+  ElDropdown,
+  ElDropdownMenu,
+  ElDropdownItem
+} from 'element-plus';
 import {MoreFilled} from "@element-plus/icons"
 import {useApiInfoApi} from "/@/api/useAutoApi/apiInfo";
 import {useRouter} from "vue-router";
@@ -232,6 +230,7 @@ const userInfoStore = useUserInfo()
 const ReportDetail = defineAsyncComponent(() => import("/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"))
 
 const reportDetailRef = ref();
+const ApiRelationGraphRef = ref();
 const importFormRef = ref();
 const tableRef = ref();
 const router = useRouter();
@@ -283,58 +282,54 @@ const state = reactive({
           }
         }, () => '复制'),
 
-        h(ElPopover, {
-          trigger: "hover"
-        }, {
-          default: () => h('div', {}, [
-            h('div', {}, h(ElButton, {
-              link: true,
-              type: "primary",
-              onClick: () => {
-                onOpenSaveOrUpdate("update", row)
-              }
-            }, () => '编辑')),
-
-            h('div', {}, h(ElButton, {
+        h(ElDropdown, {
               style: {
-                color: "#626aef"
-              },
-              link: true,
-              onClick: () => {
-                getRelationData(row)
+                verticalAlign: "middle",
+                marginLeft: "12px"
               }
-            }, () => '血缘关系')),
-
-            h('div', {}, h(ElButton, {
-              type: "danger",
-              link: true,
-              onClick: () => {
-                deleted(row)
-              }
-            }, () => '删除')),
-          ]),
-          reference: () =>
-              h(ElButton, {
+            },
+            {
+              default: () => h(ElButton, {
+                style: {},
                 link: true,
                 icon: MoreFilled
               }),
-        }),
-
-
-        // h(ElButton, {
-        //   type: "primary",
-        //   color: "#626aef",
-        //   onClick: () => {
-        //     getRelationData(row)
-        //   }
-        // }, () => '血缘关系'),
-        //
-        // h(ElButton, {
-        //   type: "danger",
-        //   onClick: () => {
-        //     deleted(row)
-        //   }
-        // }, () => '删除')
+              dropdown: () => h(ElDropdownMenu, {
+                    style: {
+                      minWidth: "100px"
+                    },
+                  },
+                  {
+                    default: () => [
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-primary)"
+                        },
+                        onClick: () => {
+                          onOpenSaveOrUpdate("update", row)
+                        }
+                      }, () => '编辑'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "#626aef"
+                        },
+                        onClick: () => {
+                          viewRelationGraph(row)
+                        }
+                      }, () => '血缘关系'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-danger)"
+                        },
+                        onClick: () => {
+                          deleted(row)
+                        }
+                      }, () => '删除'),
+                    ]
+                  }
+              )
+            }
+        ),
       ])
     },
   ],
@@ -550,12 +545,8 @@ const oneSelfChange = (val) => {
   getList()
 }
 
-const getRelationData = (row) => {
-  useApiInfoApi().getUseApiRelation({id: row.id}).then(res => {
-    console.log(res.data, 'res.data')
-    state.relationData = res.data
-    state.showApiRelation = true
-  })
+const viewRelationGraph = (row) => {
+  ApiRelationGraphRef.value.openDialog(row.id, "api")
 }
 
 defineExpose({
@@ -643,7 +634,4 @@ onMounted(() => {
   }
 }
 
-:deep(.relation-draggable .el-dialog__body) {
-  height: 80vh;
-}
 </style>

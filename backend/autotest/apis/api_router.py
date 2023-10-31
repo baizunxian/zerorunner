@@ -3,7 +3,18 @@
 
 
 from fastapi import APIRouter
-from autotest.apis.api import project, module, api_info, api_case, api_report, data_source, env, functions, timed_tasks
+from autotest.apis.api import (
+    project,
+    module,
+    api_info,
+    api_case,
+    api_report,
+    data_source,
+    env,
+    functions,
+    timed_tasks,
+    relation_graph
+)
 from autotest.apis.system import user, menu, roles, lookup, id_center, file, statistics
 from autotest.apis.ui import ui_page, ui_element, ui_case, ui_report
 from autotest.apis.coverage import coverage_report, repository_manager
@@ -24,6 +35,7 @@ app_router.include_router(functions.router, prefix="/functions", tags=["function
 app_router.include_router(timed_tasks.router, prefix="/timedTasks", tags=["TimedTasks"])
 app_router.include_router(env.router, prefix="/env", tags=["env"])
 app_router.include_router(statistics.router, prefix="/statistics", tags=["statistics"])
+app_router.include_router(relation_graph.router, prefix="/relationGraph", tags=["relationGraph"])
 
 # ui
 app_router.include_router(ui_page.router, prefix="/uiPage", tags=["uiPage"])
@@ -42,7 +54,6 @@ app_router.include_router(file.router, prefix="/file", tags=["file"])
 # coverage
 app_router.include_router(coverage_report.router, prefix="/coverage/report", tags=["coverage"])
 app_router.include_router(repository_manager.router, prefix="/coverage/repository", tags=["repository"])
-
 
 # job
 app_router.include_router(task_record.router, prefix="/job", tags=["job"])

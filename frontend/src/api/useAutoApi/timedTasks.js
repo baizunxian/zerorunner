@@ -49,5 +49,12 @@ export function useTimedTasksApi() {
         data,
       });
     },
+    getTaskCaseInfo: (data) => {
+      return request({
+        url: '/timedTasks/getTaskCaseInfo',
+        method: 'POST',
+        data,
+      });
+    },
   };
 }

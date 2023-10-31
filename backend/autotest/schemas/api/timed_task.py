@@ -100,3 +100,8 @@ class TaskKwargsIn(BaseSchema):
     env_id: int = Field(None, description="环境id")
     exec_user_id: int = Field(None, description="执行人id")
     exec_user_name: str = Field(None, description="执行人名称")
+
+
+class TimedTaskCaseQuery(BaseSchema):
+    task_id: int = Field(..., description="任务id")
+    type: str = Field(..., description="类型")

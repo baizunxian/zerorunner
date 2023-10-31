@@ -38,7 +38,6 @@
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useEnvApi} from "/@/api/useAutoApi/env";
-import {useRouter} from "vue-router";
 import EditEnv from './components/EditEnv.vue';
 
 const EditEnvRef = ref();

@@ -120,8 +120,8 @@
         <el-col :span="14" class="task-card">
           <el-card>
             <el-tabs v-model="state.activeTabName">
-              <el-tab-pane label="API" name="api">
-                <CaseInfo :caseIds="state.form.case_ids"
+              <el-tab-pane label="用例" name="case">
+                <CaseInfo :task_id="state.form.id"
                           :envId="state.form.case_env_id"
                           ref="taskCaseInfoRef"></CaseInfo>
               </el-tab-pane>
@@ -210,7 +210,7 @@ const state = reactive({
   editTag: false,
   tagValue: "",
   // tabs
-  activeTabName: 'api',
+  activeTabName: 'case',
 
   // crontab
   isCheckCrontab: false,
@@ -243,6 +243,11 @@ const openDialog = (type, row) => {
   } else {
     state.form = createForm()
   }
+
+  nextTick(() => {
+    taskCaseInfoRef.value.initData(state.form.id, state.form.case_env_id)
+  })
+
   onDialog();
 };
 // 关闭弹窗

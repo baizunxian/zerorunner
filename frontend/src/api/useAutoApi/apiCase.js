@@ -57,5 +57,12 @@ export function useApiCaseApi() {
         data,
       });
     },
+    getUseCaseRelation: (data) => {
+      return request({
+        url: `${BaseApiPath}/getUseCaseRelation`,
+        method: 'POST',
+        data,
+      });
+    },
   };
 }

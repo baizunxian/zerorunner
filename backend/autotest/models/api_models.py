@@ -487,18 +487,47 @@ class ApiCaseStep(Base):
         q = [cls.enabled_flag == 1]
         stmt = select(
             func.any_value(cls.id.label("case_step_id")),
-            func.any_value(ApiCase.id).label("case_id"),
-            func.any_value(ApiCase.name).label("case_name"),
+            func.any_value(ApiCase.id).label("id"),
+            func.any_value(ApiCase.name).label("name"),
+            func.any_value(func.concat('case_', ApiCase.id)).label("relation_id"),
+            func.any_value(func.concat('api_', api_id)).label("from_relation_id"),
+            func.any_value(func.concat('case_', ApiCase.id)).label("to_relation_id"),
+            func.any_value(User.nickname).label("created_by_name"),
             ApiCase.creation_date,
-            func.any_value(func.concat("case_", ApiCase.id)).label("relation_id"),
         ) \
             .join(ApiCase, and_(cls.case_id == ApiCase.id,
                                 cls.version == ApiCase.version,
                                 ApiCase.enabled_flag == 1
                                 )) \
+            .outerjoin(User, User.id == ApiCase.created_by) \
             .where(*q, cls.source_id == api_id) \
             .group_by(ApiCase.id) \
             .order_by(ApiCase.id.desc())
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_relation_by_case_ids(cls, case_ids: typing.List[typing.Union[str, int]]):
+        """获取关联关系，那些case 使用了对应的api"""
+        q = [cls.enabled_flag == 1]
+        stmt = select(
+            func.any_value(cls.id.label("case_step_id")),
+            func.any_value(ApiInfo.id).label("id"),
+            func.any_value(func.concat('api_', ApiInfo.id)).label("relation_id"),
+            func.any_value(func.concat('api_', ApiInfo.id)).label("from_relation_id"),
+            func.any_value(func.concat('case_', ApiCase.id)).label("to_relation_id"),
+            func.any_value(ApiInfo.name).label("name"),
+            func.any_value(ApiInfo.creation_date).label("creation_date"),
+            func.any_value(User.nickname).label("created_by_name"),
+            func.any_value(ApiCase.creation_date),
+        ) \
+            .join(ApiCase, and_(cls.case_id == ApiCase.id,
+                                cls.version == ApiCase.version,
+                                ApiCase.enabled_flag == 1
+                                )) \
+            .outerjoin(User, User.id == ApiCase.created_by) \
+            .outerjoin(ApiInfo, ApiInfo.id == cls.source_id) \
+            .where(*q, cls.case_id.in_(case_ids), cls.step_type == 'api') \
+            .group_by(ApiInfo.id)
         return await cls.get_result(stmt)
 
 
@@ -557,6 +586,17 @@ class ApiCase(Base):
             .group_by(cls.id) \
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
+
+    @classmethod
+    async def get_api_by_id(cls, id: int):
+        u = aliased(User)
+        stmt = select(cls.get_table_columns(),
+                      User.nickname.label('created_by_name'),
+                      u.nickname.label('updated_by_name')) \
+            .where(cls.id == id, cls.enabled_flag == 1) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by)
+        return await cls.get_result(stmt, True)
 
     @classmethod
     async def get_case_by_ids(cls, ids: typing.List[int]):
@@ -772,10 +812,13 @@ class ApiTestReportDetail:
                     #     q.append(cls.parent_step_id == None)
 
                     stmt = select(cls.get_table_columns(),
-                                  ApiInfo.name.label("case_name"),
-                                  ApiInfo.created_by.label('case_created_by'),
-                                  User.nickname.label('case_created_by_name'), ).where(*q) \
-                        .outerjoin(ApiInfo, ApiInfo.id == cls.case_id) \
+                                  func.if_(ApiTestReport.run_type != 'api', ApiTestReport.name.label("case_name"),
+                                           None),
+                                  ApiInfo.name.label("api_name"),
+                                  ApiInfo.created_by.label('api_created_by'),
+                                  User.nickname.label('api_created_by_name'), ).where(*q) \
+                        .outerjoin(ApiInfo, ApiInfo.id == cls.source_id) \
+                        .outerjoin(ApiTestReport, ApiTestReport.id == cls.report_id) \
                         .outerjoin(User, User.id == ApiInfo.created_by) \
                         .order_by(cls.index)
                     return await cls.pagination(stmt)
@@ -904,7 +947,7 @@ class Env(Base):
 
 
 class EnvDataSource(Base):
-    """环境数据源管理表"""
+    """环境数据源关联表"""
     __tablename__ = 'env_data_source'
 
     env_id = mapped_column(Integer, nullable=False, index=True, comment='环境id')

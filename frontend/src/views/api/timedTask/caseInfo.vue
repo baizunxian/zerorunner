@@ -48,12 +48,12 @@ import SelectCase from "/@/components/Z-StepController/caseInfo/SelectCase.vue"
 import {h, onMounted, reactive, ref, watch} from "vue";
 import {ElButton} from "element-plus";
 import {useEnvApi} from "/@/api/useAutoApi/env";
-import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
+import {useTimedTasksApi} from "/@/api/useAutoApi/timedTasks";
 
 const props = defineProps({
-  caseIds: {
-    type: Array,
-    default: () => []
+  taskId: {
+    type: Number,
+    default: () => null
   },
   envId: {
     type: Number,
@@ -71,6 +71,8 @@ const state = reactive({
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {key: 'name', label: '用例名称', width: '', align: 'center', show: true},
     {key: 'remarks', label: '用例描述', width: '', align: 'center', show: true},
+    {key: 'creation_date', label: '创建时间', width: '', align: 'center', show: true},
+    {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', width: '80', align: 'center',
       render: (row, index) => h("div", null, [
@@ -86,7 +88,7 @@ const state = reactive({
           onClick: () => {
             deletedCase(index)
           }
-        }, () => '删除')
+        }, () => '移除')
       ])
     },
   ],
@@ -99,13 +101,14 @@ const state = reactive({
 })
 
 
-const initData = () => {
-  console.log("props---", props)
-  state.env_id = props.envId
-  useApiCaseApi().getCaseByIds({ids: props.caseIds})
-      .then(res => {
-          state.caseList = res.data.length? res.data : []
-      })
+const initData = (taskId, envId) => {
+  state.env_id = envId
+  if (taskId) {
+    useTimedTasksApi().getTaskCaseInfo({task_id: taskId, type: 'case'})
+        .then(res => {
+          state.caseList = res.data.length ? res.data : []
+        })
+  }
 }
 
 
@@ -124,7 +127,7 @@ const addCase = () => {
   if (selectCaseData) {
     selectCaseData.forEach((caseInfo) => {
       if (state.caseList) {
-        let existCaseInfo = state.caseList.find((e) => e.id == caseInfo.id)
+        let existCaseInfo = state.caseList.find((e) => e.id === caseInfo.id)
         if (!existCaseInfo) {
           state.caseList.push(caseInfo)
         }
@@ -145,31 +148,13 @@ const getCaseEnvId = () => {
 
 const getCaseIds = () => {
   let caseIds = []
-  state.caseList.forEach((c) => {
-    caseIds.push(c.id)
-  })
+  if (state.caseList.length > 0) {
+    caseIds = state.caseList.map(e => {
+      return e.id
+    })
+  }
   return caseIds
 }
-
-
-watch(
-    () => props.envId,
-    (val) => {
-      initData()
-    }, {
-      deep: true
-    }
-);
-
-watch(
-    () => props.caseIds,
-    (val) => {
-      initData()
-    }, {
-      deep: true
-    }
-);
-
 
 // 页面加载时
 onMounted(() => {
