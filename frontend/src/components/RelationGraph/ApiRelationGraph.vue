@@ -28,6 +28,9 @@
                      :style="{backgroundColor: getStepTypeInfo('timed_task', 'color')}"></el-button>
           <span class="label-itme-text">定时任务数：{{ state.relationGraphData?.timed_task_count }}</span>
         </div>
+        <el-button style="width: 20px;height: 15px" @click="setNode"
+        >设置节点
+        </el-button>
       </div>
 
       <div class="relationGraphBox" ref="relationGraphBox" @click="state.isShowNodeMenuPanel = false">
@@ -145,7 +148,7 @@ const state = reactive({
         from: 'left',
         levelDistance: "350,350,350,500",
         'min_per_width': 600, // 根据节点的宽度设置，这个是让图谱看起来偏亮的关键
-        'min_per_height': 70,
+        'min_per_height': 80,
 
       }
     ],
@@ -167,6 +170,17 @@ const initData = () => {
     relationGraph$.value.onGraphResize()
     relationGraph$.value.refresh()
   })
+}
+
+const setNode = () => {
+  // relationGraph$.value.getInstance().setCheckedNode("api_1")
+  console.log(relationGraph$.value.getInstance().getNodes())
+  const nodes = relationGraph$.value.getInstance().getNodes()
+  nextTick(() => {
+    relationGraph$.value.getInstance().setCheckedNode("api_1")
+    // relationGraph$.value.refresh()
+  })
+
 }
 
 const openDialog = (id, type) => {
