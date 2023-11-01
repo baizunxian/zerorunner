@@ -129,3 +129,12 @@ ADD COLUMN `error_msg` text NULL AFTER `exec_user_name`;
 ALTER TABLE `zerorunner`.`api_test_report_detail_0` 
 ADD COLUMN `source_id` bigint NULL AFTER `exec_user_name`;
 ```
+
+## 2.1.5 (2023-11-01)
+
+**Added**
+- 血缘关系完善
+
+**Changed**
+- **bugfix**
+

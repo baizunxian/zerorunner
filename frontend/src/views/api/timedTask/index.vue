@@ -42,18 +42,24 @@
 
     </el-dialog>
 
+    <!--    关系弹窗-->
+    <ApiRelationGraph ref="ApiRelationGraphRef"></ApiRelationGraph>
+
   </div>
 </template>
 
 <script setup name="TimedTask">
 import {h, onMounted, reactive, ref} from 'vue';
-import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
+import {ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElMessage, ElMessageBox} from 'element-plus';
 import EditTimedTask from './EditTimedTask.vue';
 import {useTimedTasksApi} from "/@/api/useAutoApi/timedTasks";
 import {formatLookup} from "/@/utils/lookup";
 import TaskRecord from "/@/views/job/taskRecord/index.vue";
+import {MoreFilled} from "@element-plus/icons";
+import ApiRelationGraph from "/@/components/RelationGraph/ApiRelationGraph.vue";
 
 const saveOrUpdateRef = ref();
+const ApiRelationGraphRef = ref();
 const tableRef = ref();
 const state = reactive({
   columns: [
@@ -93,7 +99,7 @@ const state = reactive({
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
-      label: '操作', columnType: 'string', fixed: 'right', width: '340', align: 'center',
+      label: '操作', columnType: 'string', fixed: 'right', width: '250', align: 'center',
       render: ({row}) => h("div", null, [
 
         h(ElButton, {
@@ -117,19 +123,70 @@ const state = reactive({
           }
         }, () => "日志"),
 
-        h(ElButton, {
-          type: "primary",
-          onClick: () => {
-            onOpenSaveOrUpdate("update", row)
-          }
-        }, () => '编辑'),
+        // h(ElButton, {
+        //   type: "primary",
+        //   onClick: () => {
+        //     onOpenSaveOrUpdate("update", row)
+        //   }
+        // }, () => '编辑'),
 
-        h(ElButton, {
-          type: "danger",
-          onClick: () => {
-            deleted(row)
-          }
-        }, () => '删除')
+        // h(ElButton, {
+        //   type: "danger",
+        //   onClick: () => {
+        //     deleted(row)
+        //   }
+        // }, () => '删除'),
+
+        h(ElDropdown, {
+              style: {
+                verticalAlign: "middle",
+                marginLeft: "12px"
+              }
+            },
+            {
+              default: () => h(ElButton, {
+                style: {},
+                link: true,
+                icon: MoreFilled
+              }),
+              dropdown: () => h(ElDropdownMenu, {
+                    style: {
+                      minWidth: "100px"
+                    },
+                  },
+                  {
+                    default: () => [
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-primary)"
+                        },
+                        onClick: () => {
+                          onOpenSaveOrUpdate("update", row)
+                        }
+                      }, () => '编辑'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "#626aef"
+                        },
+                        onClick: () => {
+                          viewRelationGraph(row)
+                        }
+                      }, () => '血缘关系'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-danger)"
+                        },
+                        onClick: () => {
+                          deleted(row)
+                        }
+                      }, () => '删除'),
+                    ]
+                  }
+              )
+            }
+        ),
+
+
       ])
     },
   ],
@@ -217,6 +274,10 @@ const handleTaskType = (row) => {
   } else if (row.task_type === 'interval') {
     return `${row.task_type}[${row.interval_every} ${row.interval_period}]`;
   }
+}
+
+const viewRelationGraph = (row) => {
+  ApiRelationGraphRef.value.openDialog(row.id, 'timed_task')
 }
 
 const viewRunLog = (row) => {

@@ -63,3 +63,13 @@ async def deleted(params: ApiCaseId):
 async def get_case_info(params: ApiCaseId):
     data = await ApiCaseService.get_case_info(params)
     return partner_success(data)
+
+
+@router.post('/getUseCaseRelation', description="case使用关系")
+async def use_api_relation(params: ApiCaseId):
+    """
+    测试报告
+    :return:
+    """
+    data = await ApiCaseService.use_case_relation(params)
+    return partner_success(data)

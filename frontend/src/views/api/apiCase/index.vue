@@ -56,18 +56,25 @@
 
     <!--    <RelationGraph></RelationGraph>-->
 
+    <!--    关系弹窗-->
+    <ApiRelationGraph ref="ApiRelationGraphRef"></ApiRelationGraph>
+
+
   </div>
 </template>
 
 <script setup name="apiCase">
 import {h, onMounted, reactive, ref} from 'vue';
-import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
+import {ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElMessage, ElMessageBox} from 'element-plus';
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRouter} from 'vue-router'
 import {useEnvApi} from "/@/api/useAutoApi/env";
-import RelationGraph from "/@/components/RelationGraph/index.vue";
+import ApiRelationGraph from "/@/components/RelationGraph/ApiRelationGraph.vue";
+import {MoreFilled} from "@element-plus/icons";
+
 
 const tableRef = ref();
+const ApiRelationGraphRef = ref();
 const router = useRouter();
 const state = reactive({
   columns: [
@@ -99,12 +106,12 @@ const state = reactive({
           }
         }, () => '运行'),
 
-        h(ElButton, {
-          type: "primary",
-          onClick: () => {
-            onOpenSaveOrUpdate("update", row)
-          }
-        }, () => '编辑'),
+        // h(ElButton, {
+        //   type: "primary",
+        //   onClick: () => {
+        //     onOpenSaveOrUpdate("update", row)
+        //   }
+        // }, () => '编辑'),
 
         // h(ElButton, {
         //   type: "warning",
@@ -112,13 +119,68 @@ const state = reactive({
         //     toViewReport(row)
         //   }
         // }, () => '查看报告'),
-
         h(ElButton, {
-          type: "danger",
+          color: "#626aef",
           onClick: () => {
-            deleted(row)
+            viewRelationGraph(row)
           }
-        }, () => '删除')
+        }, () => '血缘关系'),
+
+        // h(ElButton, {
+        //   type: "danger",
+        //   onClick: () => {
+        //     deleted(row)
+        //   }
+        // }, () => '删除'),
+
+        h(ElDropdown, {
+              style: {
+                verticalAlign: "middle",
+                marginLeft: "12px"
+              }
+            },
+            {
+              default: () => h(ElButton, {
+                style: {},
+                link: true,
+                icon: MoreFilled
+              }),
+              dropdown: () => h(ElDropdownMenu, {
+                    style: {
+                      minWidth: "100px"
+                    },
+                  },
+                  {
+                    default: () => [
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-primary)"
+                        },
+                        onClick: () => {
+                          onOpenSaveOrUpdate("update", row)
+                        }
+                      }, () => '编辑'),
+                      // h(ElDropdownItem, {
+                      //   style: {
+                      //     color: "#626aef"
+                      //   },
+                      //   onClick: () => {
+                      //     viewRelationGraph(row)
+                      //   }
+                      // }, () => '血缘关系'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-danger)"
+                        },
+                        onClick: () => {
+                          deleted(row)
+                        }
+                      }, () => '删除'),
+                    ]
+                  }
+              )
+            }
+        ),
       ])
     },
   ],
@@ -218,9 +280,20 @@ const runApiTestCase = () => {
   })
 };
 
+const viewRelationGraph = (row) => {
+  ApiRelationGraphRef.value.openDialog(row.id, 'case')
+}
+
+
 // 页面加载时
 onMounted(() => {
   getList();
 });
 
 </script>
+
+<style lang="scss" scoped>
+:deep(.relation-draggable .el-dialog__body) {
+  height: 80vh;
+}
+</style>

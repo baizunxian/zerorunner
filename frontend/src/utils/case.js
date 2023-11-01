@@ -29,6 +29,7 @@ export function getStepTypeInfo(stepType, type) {
 		extract: {color: "#015478FF", background: "#E6EEF2FF", icon: ''},
 		sql: {color: "#783887FF", background: "#F2ECF3FF", icon: 'iconfont icon-suffix-sql'},
 		if: {color: "#E6A23C", background: "#FCF6EE", icon: 'iconfont icon-fenzhijiedian'},
+		timed_task: {color: "#AE445A", background: "#AE445A", icon: 'iconfont icon-time'},
 	}
 	return obj[stepType][type]
 }

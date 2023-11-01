@@ -2,7 +2,8 @@ from fastapi import APIRouter
 
 from autotest.db.session import provide_async_session_router
 from autotest.utils.response.http_response import partner_success
-from autotest.schemas.api.timed_task import TimedTasksQuerySchema, TimedTasksInSchema, TimedTasksId, CrontabSaveSchema
+from autotest.schemas.api.timed_task import TimedTasksQuerySchema, TimedTasksInSchema, TimedTasksId, CrontabSaveSchema, \
+    TimedTaskCaseQuery
 from autotest.services.api.timed_task import TimedTasksService, CrontabService
 
 router = APIRouter()
@@ -43,4 +44,10 @@ async def check_crontab(params: CrontabSaveSchema):
 @router.post('/runOnceJob', description="定时任务运行一次任务")
 async def run_once_job(params: TimedTasksId):
     data = await TimedTasksService.run_once_job(params)
+    return partner_success(data)
+
+
+@router.post('/getTaskCaseInfo', description="获取定时任务关联case")
+async def get_task_case_info(params: TimedTaskCaseQuery):
+    data = await TimedTasksService.get_task_case_info(params)
     return partner_success(data)

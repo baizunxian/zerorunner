@@ -1416,4 +1416,26 @@ CREATE TABLE `user_login_record`  (
 -- Records of user_login_record
 -- ----------------------------
 
+-- ----------------------------
+-- Table structure for timed_task_case
+-- ----------------------------
+DROP TABLE IF EXISTS `timed_task_case`;
+CREATE TABLE `timed_task_case`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `task_id` bigint(20) NULL DEFAULT NULL,
+  `case_id` bigint(20) NULL DEFAULT NULL,
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '类型, case, ui, script, api',
+  `creation_date` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `updation_date` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `enabled_flag` tinyint(1) NULL DEFAULT 1 COMMENT '是否删除',
+  `created_by` int(11) NULL DEFAULT NULL,
+  `updated_by` int(11) NULL DEFAULT NULL,
+  `trace_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of timed_task_case
+-- ----------------------------
+
 SET FOREIGN_KEY_CHECKS = 1;

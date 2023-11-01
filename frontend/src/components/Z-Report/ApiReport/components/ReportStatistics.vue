@@ -14,7 +14,7 @@
               </div>
               <div class="echarts-item__info">
                 <strong>执行总耗时：</strong>
-                <span class="echarts-item__info__number">{{ data.count_request_time }} m</span>
+                <span class="echarts-item__info__number">{{ data.request_time_count }} m</span>
               </div>
             </div>
           </el-col>
@@ -32,12 +32,12 @@
                   <el-col :span="12">
                     <div>
                       <strong>测试用例：</strong>
-                      <span class="echarts-item__info__number">{{ data.count_case }}</span>
+                      <span class="echarts-item__info__number">{{ data.case_count }}</span>
                     </div>
 
                     <div class="echarts-item__info">
                       <span>成功：</span>
-                      <span class="">{{ data.count_case_success }}</span>
+                      <span class="">{{ data.case_success_count }}</span>
                     </div>
 
                   </el-col>
@@ -45,12 +45,14 @@
 
                     <div>
                       <strong>通过率：</strong>
-                      <span class="echarts-item__info__number">{{ data.case_pass_rate }}%</span>
+                      <span class="echarts-item__info__number">{{
+                          `${data.case_pass_rate == null ? '--' : data.case_pass_rate + '%'}`
+                        }}</span>
                     </div>
 
                     <div class="echarts-item__info">
                       <span>失败：</span>
-                      <span class="">{{ data.count_case_fail }}</span>
+                      <span class="">{{ data.case_fail_count }}</span>
                     </div>
 
                   </el-col>
@@ -72,15 +74,15 @@
                   <el-col :span="12">
                     <div>
                       <strong>测试步骤：</strong>
-                      <span class="echarts-item__info__number">{{ data.count_step }}</span>
+                      <span class="echarts-item__info__number">{{ data.step_count }}</span>
                     </div>
                     <div>
                       <span>成功：</span>
-                      <span class="">{{ data.count_step_success }}</span>
+                      <span class="">{{ data.step_success_count }}</span>
                     </div>
                     <div>
                       <span>跳过：</span>
-                      <span class="">{{ data.count_step_skip }}</span>
+                      <span class="">{{ data.step_skip_count }}</span>
                     </div>
 
                   </el-col>
@@ -92,12 +94,12 @@
 
                     <div>
                       <span>失败：</span>
-                      <span class="">{{ data.count_step_failure }}</span>
+                      <span class="">{{ data.step_fail_count }}</span>
                     </div>
 
                     <div>
                       <span>错误：</span>
-                      <span class="">{{ data.count_step_error }}</span>
+                      <span class="">{{ data.step_error_count }}</span>
                     </div>
 
                   </el-col>
@@ -199,7 +201,7 @@ const getOption = (value) => {
       left: "center",
       top: "45%",
       style: {
-        text: `${value}%`,
+        text: value == null ? '--' : value + '%',
         textAlign: "center",
         // fill: "#333",
         fontSize: 12,
