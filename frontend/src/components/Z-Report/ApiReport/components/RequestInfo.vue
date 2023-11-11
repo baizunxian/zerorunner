@@ -2,7 +2,7 @@
   <div class="request">
     <div class="request-info">
       <el-tag effect="dark" type="success">{{ request.method }}</el-tag>
-      {{ request.url }}
+       <el-text class="mx-1 ml10" type=""> {{ request.url }}</el-text>
     </div>
 
     <el-collapse v-model="state.accordionName">

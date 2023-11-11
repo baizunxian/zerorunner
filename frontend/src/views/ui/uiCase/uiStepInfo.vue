@@ -1,10 +1,8 @@
 <template>
-  <el-table
-      v-if="state.showStepTable"
+    <el-table
       class="ui-case-step"
       v-model:data="stepData"
       rowKey="index"
-      key="ui-step-info-key"
       ref="tableRef">
 
     <el-table-column width="40" align="center">

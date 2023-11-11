@@ -21,9 +21,9 @@
       <div>请求头</div>
 
       <el-popover placement="right" :width="400" trigger="click" @show="showBulk">
-        <template #reference>
-          <el-button type="primary" link>批量添加</el-button>
-        </template>
+<!--        <template #reference>-->
+<!--          <el-button type="primary" link>批量添加</el-button>-->
+<!--        </template>-->
         <el-input type="textarea" rows="20" show-word-limit v-model="state.headersBulk"></el-input>
         <el-button type="primary" link @click="addHeaders">添加</el-button>
       </el-popover>

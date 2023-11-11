@@ -94,7 +94,6 @@ const handleDrop = (node, event) => {
 }
 
 const nodeClick = (data, node) => {
-  console.log(node, 'node ----')
   if (data.step_type === "api") {
     ApiInfoControllerRef.value.onOpenApiInfoPage(data)
   } else {
@@ -105,10 +104,9 @@ const nodeClick = (data, node) => {
 // 计算index，保持拖动后顺序
 const computeDataIndex = (data, parent_index = 0) => {
   if (data) {
-    data.index = parent_index
-    parent_index = parent_index + 1
     data.forEach((e, index) => {
       e.$index = index + 1
+      e.index = index
       if (e.children_steps) {
         computeDataIndex(e.children_steps, parent_index)
       } else {
@@ -256,6 +254,7 @@ const copyNode = (data) => {
 watch(
     () => steps.value,
     (value) => {
+      console.log(1111)
       computeDataIndex(steps.value)
     },
     {deep: true}

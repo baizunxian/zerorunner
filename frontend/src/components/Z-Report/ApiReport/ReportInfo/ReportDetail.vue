@@ -58,6 +58,7 @@
             :data="state.listData"
             row-key="id"
             :lazy="true"
+            :show-page="!isDebug"
             :showPlaceholder="true"
             :loading="state.tableLoading"
             :load="getChildrenData"
