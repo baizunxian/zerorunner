@@ -174,7 +174,6 @@ const stringToKeyValue = () => {
         }
       })
     }
-    console.log(headers, '111111')
   }
   emit("update:data", headers)
 }
@@ -218,6 +217,18 @@ watch(
     (val) => {
       if (val) {
         headerBlur()
+      }
+    },
+    {
+      deep: true,
+      immediate: true,
+    }
+);
+watch(
+    () => state.headersContent,
+    (val) => {
+      if (val) {
+        stringToKeyValue()
       }
     },
     {
