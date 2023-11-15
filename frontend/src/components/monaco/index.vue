@@ -317,7 +317,7 @@ const setLineColor = () => {
 
 const setOptions = (options = {}) => {
   toRaw(editor.value).updateOptions({
-    renderSideBySide: false,
+    // renderSideBySide: false,  // 并排显示
     ...options,
   });
 }
