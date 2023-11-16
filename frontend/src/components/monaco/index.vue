@@ -165,7 +165,7 @@ const initEditor = () => {
     toRaw(editor.value.getModifiedEditor()).updateOptions({readOnly: props.readOnly});
     toRaw(editor.value.getOriginalEditor()).updateOptions({readOnly: props.readOnly});
 
-    setOptions()
+    // setOptions()
 
   } else {
     editor.value = monaco.editor.create(monacoEditorRef.value, options)
@@ -177,10 +177,8 @@ const initEditor = () => {
       const content = getValue();
       state.contentBackup = content;
       emit("update:value", content)
-      // emit("update:modelValue", content)
 
     })
-    console.log(modEditor, "modEditor")
   }
 }
 
@@ -318,6 +316,7 @@ const setLineColor = () => {
 const setOptions = (options = {}) => {
   toRaw(editor.value).updateOptions({
     // renderSideBySide: false,  // 并排显示
+    ...props.options,
     ...options,
   });
 }

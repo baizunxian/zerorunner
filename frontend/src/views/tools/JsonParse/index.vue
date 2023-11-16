@@ -18,6 +18,7 @@
       <z-monaco-editor :lang="'json'"
                        ref="monacoEditorRef"
                        :is-diff="isDiff"
+                       :readOnly="false"
                        v-model:value="jsonData">
       </z-monaco-editor>
     </el-card>
