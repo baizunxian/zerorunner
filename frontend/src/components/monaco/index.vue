@@ -200,7 +200,7 @@ const setValue = (val) => {
     }]);
     getModel().undoStack = undoStack;
   }
-  // setLineColor()
+  setLineColor()
 }
 
 const getSelectionValue = () => {
@@ -298,7 +298,7 @@ const setLineColor = () => {
   toRaw(editor.value).createDecorationsCollection([
     {
       options: {
-        className: 'monaco-content-class',
+        // className: 'monaco-content-class',
         isWholeLine: true,
         backgroundColor: '#FFA500'
       },
