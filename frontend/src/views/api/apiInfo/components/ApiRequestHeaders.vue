@@ -1,5 +1,5 @@
 <template>
-  <HeadersController :data="state.headers"></HeadersController>
+  <HeadersController v-model:data="state.headers"></HeadersController>
 </template>
 
 <script setup name="apiRequestHeaders">

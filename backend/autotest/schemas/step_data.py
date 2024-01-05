@@ -45,6 +45,7 @@ class ApiBaseSchema(BaseModel):
     key: str = Field(None, description="")
     value: typing.Any = Field(None, description="")
     remarks: str = Field(None, description="")
+    type: str = Field(None, description="")
 
 
 class TRequestData(TRequest):

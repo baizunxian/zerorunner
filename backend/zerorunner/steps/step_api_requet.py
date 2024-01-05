@@ -146,7 +146,8 @@ def run_api_request(runner: SessionRunner,
         # 前置步骤后再执行下合并 避免前置步骤中复制变量获取不到
         merge_variable = runner.get_merge_variable(step=step)
         if upload_variables:
-            merge_variable = runner.get_merge_variable(variables_mapping=upload_variables)
+            merge_variable = {key: value for key, value in merge_variable.items()}
+            merge_variable.update(runner.parser.parse_variables(upload_variables))
 
         parsed_request_dict = runner.parser.parse_data(
             request_dict, merge_variable

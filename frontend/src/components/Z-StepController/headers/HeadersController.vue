@@ -1,53 +1,83 @@
 <template>
   <div>
-    <el-row justify="space-between"
-            v-for="(header, index) in data"
-            :key="index"
-            align="middle"
-            class="el-row--flex"
-            style="padding: 5px 0"
-    >
-      <el-col :span="7">
-        <el-input type="primary"
-                  size="small"
-                  maxlength="200"
-                  placeholder="键"
-                  v-model="header.key">
-          <template #suffix>
-            {{ header.key.length }}/200
-          </template>
-        </el-input>
-      </el-col>
-      <el-col :span="7">
-        <el-input type="primary"
-                  size="small"
-                  placeholder="值"
-                  v-model="header.value">
-        </el-input>
-      </el-col>
 
-      <el-col :span="7">
-        <el-input type="primary"
-                  size="small"
-                  placeholder="备注"
-                  v-model="header.remarks">
-        </el-input>
-      </el-col>
+    <z-table
+        v-if="!state.isBulk"
+        :columns="state.columns"
+        v-model:data="data"
+        :show-page="false"
+    />
 
-      <el-col :span="1">
-        <el-button type="danger" circle @click="deleteHeaders(index)" :disabled="data.length === index  + 1 ">
-          <el-icon>
-            <ele-Delete/>
-          </el-icon>
+    <div v-show="state.isBulk">
+      <div class="bulk-edit-header">
+        <el-text>批量编辑</el-text>
+        <el-button link
+                   type="primary"
+                   @click="keyValueEdit">
+          <span>Key-Value Edit</span>
         </el-button>
-      </el-col>
-    </el-row>
+      </div>
+      <div>
+        <el-input v-model="state.headersContent"
+                  type="textarea"
+                  ref="headersContentRef"
+                  :autosize="{ minRows: 20 }">
+        </el-input>
+      </div>
+    </div>
+
+
+    <!--    <el-row justify="space-between"-->
+    <!--            v-for="(header, index) in data"-->
+    <!--            :key="index"-->
+    <!--            align="middle"-->
+    <!--            class="el-row&#45;&#45;flex"-->
+    <!--            style="padding: 5px 0"-->
+    <!--    >-->
+    <!--      <el-col :span="7">-->
+    <!--        <el-input type="primary"-->
+    <!--                  size="small"-->
+    <!--                  maxlength="200"-->
+    <!--                  placeholder="键"-->
+    <!--                  v-model="header.key">-->
+    <!--          <template #suffix>-->
+    <!--            {{ header.key.length }}/200-->
+    <!--          </template>-->
+    <!--        </el-input>-->
+    <!--      </el-col>-->
+    <!--      <el-col :span="7">-->
+    <!--        <el-input type="primary"-->
+    <!--                  size="small"-->
+    <!--                  placeholder="值"-->
+    <!--                  v-model="header.value">-->
+    <!--        </el-input>-->
+    <!--      </el-col>-->
+
+    <!--      <el-col :span="7">-->
+    <!--        <el-input type="primary"-->
+    <!--                  size="small"-->
+    <!--                  placeholder="备注"-->
+    <!--                  v-model="header.remarks">-->
+    <!--        </el-input>-->
+    <!--      </el-col>-->
+
+    <!--      <el-col :span="1">-->
+    <!--        <el-button type="danger" circle @click="deleteHeaders(index)" :disabled="data.length === index  + 1 ">-->
+    <!--          <el-icon>-->
+    <!--            <ele-Delete/>-->
+    <!--          </el-icon>-->
+    <!--        </el-button>-->
+    <!--      </el-col>-->
+    <!--    </el-row>-->
   </div>
 </template>
 
 <script setup name="HeadersController">
-import {reactive, watch} from 'vue';
+import {computed, h, nextTick, reactive, ref, watch} from 'vue';
+import {ElButton, ElInput} from "element-plus";
+import {Delete} from "@element-plus/icons";
 
+const headersContentRef = ref()
 
 const emit = defineEmits(["update:data"])
 
@@ -60,19 +90,79 @@ const props = defineProps({
   },
 })
 
+const data = computed({
+  get: () => props.data,
+  set: (val) => emit("update:data", val)
+})
+
+
 const state = reactive({
-  headersBulk: '',  // bulk内容
+  headersContent: '',  // bulk内容
+  isBulk: false,
+  columns: [
+    {
+      key: 'key', label: 'key', width: '', align: 'center', show: true,
+      render: ({row, $index}) => h(ElInput, {
+        modelValue: row.key
+      })
+    },
+    {
+      key: 'value', label: 'value', width: '', align: 'center', show: true,
+      render: ({row, $index}) => h(ElInput, {
+        modelValue: row.value
+      })
+    },
+    {
+      key: 'remarks', label: '备注', width: '', align: 'center', show: true,
+      render: ({row, $index}) => h(ElInput, {
+        modelValue: row.remarks
+      })
+    },
+    {
+      label: '操作', fixed: 'right', width: '140', align: 'center',
+      renderHeader: () => h("div", null, [
+        h(ElButton, {
+          type: "primary",
+          link: true,
+          onClick: () => {
+            bulkEdit()
+          },
+        }, () => "Bulk Edit")
+      ]),
+      render: ({row, $index}) => h("div", null, [
+        h(ElButton, {
+          type: "danger",
+          icon: Delete,
+          disabled: props.data.length === $index + 1,
+          circle: true,
+          onClick: () => {
+            deleteHeaders($index)
+          }
+        },)
+      ]),
+
+    },
+  ]
 });
 
 // bulk 转换
 const bulkEdit = () => {
-  keyValueToBulk()
+  keyValueToString()
+  state.isBulk = true
+  nextTick(() => {
+    headersContentRef.value.focus()
+  })
+}
+// bulk 转换
+const keyValueEdit = () => {
+  stringToKeyValue()
+  state.isBulk = false
 }
 
-const bulkToKeyValue = (headersBulk => {
-  if (headersBulk.length > 0) {
-    let snsArr = headersBulk.split(/[(\r\n|\n|\r)]+/)
-    let headers = []
+const stringToKeyValue = () => {
+  let headers = []
+  if (state.headersContent.length > 0) {
+    let snsArr = state.headersContent.split(/[(\r\n|\n|\r)]+/)
     if (snsArr.length > 0) {
       snsArr.forEach(data => {
         let keyValue = data.split(':')
@@ -84,27 +174,28 @@ const bulkToKeyValue = (headersBulk => {
         }
       })
     }
-    emit("update:data", headers)
   }
-})
+  emit("update:data", headers)
+}
 
-const keyValueToBulk = () => {
-  let bulk = ''
+const keyValueToString = () => {
+  let newHeadersContent = ""
   if (props.data.length > 0) {
     props.data.forEach((data) => {
       if (data.key !== '') {
-        bulk += `${data.key}:${data.value}\r\n`
+        newHeadersContent += `${data.key}:${data.value}\n`
       }
     })
   }
-  return bulk
+  if (state.headersContent === newHeadersContent) {
+    return false
+  }
+  state.headersContent = newHeadersContent
 }
 
 // Headers
 const addHeaders = () => {
   props.data.push({key: '', value: '', remarks: ""})
-
-
 }
 const deleteHeaders = (index) => {
   props.data.splice(index, 1)
@@ -133,9 +224,31 @@ watch(
       immediate: true,
     }
 );
+watch(
+    () => state.headersContent,
+    (val) => {
+      if (val) {
+        stringToKeyValue()
+      }
+    },
+    {
+      deep: true,
+      immediate: true,
+    }
+);
 
 </script>
 
 <style lang="scss" scoped>
+.bulk-edit-header {
+  width: 100%;
+  display: flex;
+  height: 34px;
+  padding: 4px;
+  justify-content: space-between;
+  line-height: 34px;
+  //border-bottom: 1px solid #ebeef5;
+  border-top: 1px solid #ebeef5;
+}
 
 </style>

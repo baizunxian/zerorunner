@@ -165,6 +165,8 @@ const initEditor = () => {
     toRaw(editor.value.getModifiedEditor()).updateOptions({readOnly: props.readOnly});
     toRaw(editor.value.getOriginalEditor()).updateOptions({readOnly: props.readOnly});
 
+    // setOptions()
+
   } else {
     editor.value = monaco.editor.create(monacoEditorRef.value, options)
     modEditor = editor.value
@@ -175,7 +177,6 @@ const initEditor = () => {
       const content = getValue();
       state.contentBackup = content;
       emit("update:value", content)
-      // emit("update:modelValue", content)
 
     })
   }
@@ -199,6 +200,7 @@ const setValue = (val) => {
     }]);
     getModel().undoStack = undoStack;
   }
+  setLineColor()
 }
 
 const getSelectionValue = () => {
@@ -248,17 +250,20 @@ const registerCustomEvent = (editor) => {
   }
 
   editor.onDidChangeCursorPosition((event) => {
-    let value = getValue()
-    let offSet = toRaw(getModel()).getOffsetAt(event.position)
-    let language = props.lang;
+    if (!props.isDiff) {
+      let value = getValue()
+      let offSet = toRaw(getModel()).getOffsetAt(event.position)
+      let language = props.lang;
 
-    if (props.value !== value && language === 'json') {
-      emit('on-cursor-change', {offSet: offSet})
+      if (props.value !== value && language === 'json') {
+        emit('on-cursor-change', {offSet: offSet})
+      }
+      if (language === 'json' && offSet !== 0) {
+        state.jsonPath = getJsonPath(value, offSet)
+        // emit('on-jsonpath-change', {jsonPath: state.jsonPath})
+      }
     }
-    if (language === 'json' && offSet !== 0) {
-      state.jsonPath = getJsonPath(value, offSet)
-      // emit('on-jsonpath-change', {jsonPath: state.jsonPath})
-    }
+
   })
 
   editor.onMouseWheel((e) => {
@@ -288,6 +293,34 @@ const copyToClipboard = () => {
   }
 }
 
+
+const setLineColor = () => {
+  toRaw(editor.value).createDecorationsCollection([
+    {
+      options: {
+        // className: 'monaco-content-class',
+        isWholeLine: true,
+        backgroundColor: '#FFA500'
+      },
+      // 装饰位置
+      range: {
+        startColumn: 1,
+        endColumn: 30,
+        startLineNumber: 1,
+        endLineNumber: 2
+      }
+    }
+  ])
+}
+
+const setOptions = (options = {}) => {
+  toRaw(editor.value).updateOptions({
+    // renderSideBySide: false,  // 并排显示
+    ...props.options,
+    ...options,
+  });
+}
+
 watch(
     () => props.value,
     (newVal) => {
@@ -309,8 +342,8 @@ watch(
     () => props.lang,
     (newVal) => {
       if (props.isDiff) {
-        toRaw(editor.value).getOriginalEditor().setModelLanguage(toRaw(editor.value).getOriginalEditor().getModel(), newVal)
-        toRaw(editor.value).getModifiedEditor().setModelLanguage(toRaw(editor.value).getModifiedEditor().getModel(), newVal)
+        // toRaw(editor.value).getOriginalEditor().setModelLanguage(toRaw(editor.value).getOriginalEditor().getModel(), newVal)
+        // toRaw(editor.value).getModifiedEditor().setModelLanguage(toRaw(editor.value).getModifiedEditor().getModel(), newVal)
       } else {
         monaco.editor.setModelLanguage(toRaw(editor.value).getModel(), newVal)
       }
@@ -374,9 +407,14 @@ defineExpose({
   getSelectionValue,
 })
 </script>
-<style scoped>
+<style>
 .monaco-editor {
   width: 100%;
   height: 100%;
+}
+
+.monaco-content-class {
+  background-color: #FFA500;
+  opacity: 0.5;
 }
 </style>

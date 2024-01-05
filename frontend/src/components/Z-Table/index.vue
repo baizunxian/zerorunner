@@ -2,6 +2,8 @@
   <el-table
       :data="listData"
       :size="size"
+      ref="ZTableRef"
+      class="z-table"
       :tree-props="treeProps"
       :row-key="rowKey || ''"
       v-bind="attrs"
@@ -14,7 +16,18 @@
       @row-click="handleRowClick"
       @cell-click="handleCellClick"
       @sort-change="handleSortChange">
+    <el-table-column width="40" align="center" v-if="sortable">
+      <template #default="">
+        <div class="move" style="cursor: all-scroll">
+          <el-icon class="step-rank">
+            <Rank></Rank>
+          </el-icon>
+        </div>
+      </template>
+    </el-table-column>
+
     <template v-for="(col, index) in columns">
+
       <!---复选框, 序号 (START)-->
       <el-table-column
           :key="index"
@@ -122,12 +135,29 @@
   </div>
 </template>
 <script setup name="z-table">
-import {computed, reactive} from 'vue'
+import {computed, nextTick, onMounted, reactive, ref} from 'vue'
 import {useAttrs} from "vue";
 import {formatLookup} from '/@/utils/lookup'
+import Sortable from "sortablejs";
+import {Rank} from "@element-plus/icons";
+import useVModel from "/@/utils/useVModel";
 
+const ZTableRef = ref()
 const attrs = useAttrs()
 
+const emit = defineEmits([
+  "update:data",
+  "update:pageSize",
+  "update:page",
+  "update:loading",
+  "pagination-change",
+  "current-change",
+  "command",
+  "selection-change",
+  "row-click",
+  "cell-click",
+  "sort-change",
+])
 const props = defineProps({
   // 列表
   data: {
@@ -241,12 +271,40 @@ const props = defineProps({
     default: () => {
       return false
     }
-  }
+  },
+  sortable: {
+    type: Boolean,
+    default: () => {
+      return false
+    }
+  },
+
 })
 
-const listData = computed(() => {
-  return props.data.constructor === Array ? props.data : []
-})
+const getRowKey = (row) => {
+  if (props.rowKey) {
+    return props.rowKey
+  }
+  // if (row) {
+  //   if (!row._secondId) {
+  //     row._secondId = Math.random() + ''
+  //   }
+  //   return row._secondId
+  // } else {
+  //   return Math.random() + ''
+  // }
+}
+
+
+const listData = useVModel(props, 'data', emit)
+// const listData = computed({
+//   get: () => {
+//     return props.data.constructor === Array ? props.data : []
+//   },
+//   set: (val) => {
+//     emit('update:data', val)
+//   }
+// })
 
 const state = reactive({
   tableLoading: false,
@@ -256,18 +314,28 @@ const tableLoading = computed(() => {
   return props.loading || state.tableLoading
 })
 
-const emit = defineEmits([
-  "update:pageSize",
-  "update:page",
-  "update:loading",
-  "pagination-change",
-  "current-change",
-  "command",
-  "selection-change",
-  "row-click",
-  "cell-click",
-  "sort-change",
-])
+
+const createSortable = () => {
+  if (!props.sortable) return
+  const el = ZTableRef.value.$el.querySelector('.z-table .el-table__body-wrapper tbody')
+  if (el) {
+    Sortable.create(el, {
+      animation: 200,
+      sort: true,
+      handle: ".move",
+      fallbackClass: "custom-fallback-class",
+      forceFallback: true,
+      onEnd: ({newIndex, oldIndex}) => {
+        let newStepData = listData.value
+        const currRow = newStepData.splice(oldIndex, 1)[0]
+        newStepData.splice(newIndex, 0, currRow)
+        nextTick(() => {
+          listData.value = [...newStepData]
+        })
+      }
+    });
+  }
+}
 
 
 // 自定义索引
@@ -331,6 +399,12 @@ const closeLoading = () => {
     state.tableLoading = false
   }
 }
+
+onMounted(() => {
+  nextTick(() => {
+    createSortable()
+  })
+})
 
 defineExpose({
   openLoading,

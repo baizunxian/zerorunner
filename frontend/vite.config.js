@@ -3,6 +3,8 @@ import {resolve} from 'path';
 import {defineConfig, loadEnv} from 'vite';
 import vueSetupExtend from 'vite-plugin-vue-setup-extend';
 import monacoEditorPlugin from "vite-plugin-monaco-editor"
+import {viteBuildBanner} from "./vite-build-plugin";
+
 
 import MonacoEditorNlsPlugin, {esbuildPluginMonacoEditorNls, Languages,} from '/@/components/monaco/nls';
 
@@ -29,7 +31,8 @@ const viteConfig = defineConfig((mode) => {
 				 * The weight of `localedata` is higher than that of `locale`
 				 */
 				localeData: zh_CN.contents
-			})
+			}),
+			viteBuildBanner(env),
 		],
 		optimizeDeps: {
 			/** vite >= 2.3.0 */

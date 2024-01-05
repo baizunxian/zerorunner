@@ -163,7 +163,7 @@
               <strong>请求头</strong>
               <span class="ui-badge-circle" v-show="getDataLength('headers')">{{ getDataLength('headers') }}</span>
             </template>
-            <HeadersController :data="state.form.headers"></HeadersController>
+            <HeadersController v-model:data="state.form.headers"></HeadersController>
           </el-tab-pane>
         </el-tabs>
       </el-dialog>
