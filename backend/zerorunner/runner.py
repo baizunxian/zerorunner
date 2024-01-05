@@ -16,8 +16,7 @@ from zerorunner import exceptions
 from zerorunner.client import HttpSession
 from zerorunner.exceptions import ValidationFailure
 from zerorunner.ext.zero_driver.driver import ZeroDriver
-from zerorunner.models.base import TStepResultStatusEnum, VariablesMapping, FunctionsMapping, TStepControllerDict, \
-    TStepLogType
+from zerorunner.models.base import VariablesMapping, FunctionsMapping
 from zerorunner.models.result_model import StepResult, TestCaseSummary, TestCaseInOut
 from zerorunner.models.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
@@ -62,7 +61,7 @@ class SessionRunner(object):
 
         self.case_id = self.config.case_id or str(uuid.uuid4())
         self.__step_results = []
-        self.session = self.session or HttpSession()
+        self.session = HttpSession()
         self.parser = self.parser or Parser(self.config.functions)
 
     def with_config(self, config: TConfig) -> "SessionRunner":
