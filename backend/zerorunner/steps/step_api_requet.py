@@ -127,20 +127,11 @@ def run_api_request(runner: SessionRunner,
                         request=request_dict,
                         environment=runner.config.env_variables,
                         variables=step.variables)
-            _, captured_output = load_script_content(step.setup_code,
-                                                     f"{runner.config.case_id}_setup_code",
+            _, captured_output = load_script_content(content=step.setup_code,
+                                                     module_name=f"{runner.config.case_id}_setup_code",
                                                      params={"zero": zero, "requests": requests})
             if captured_output:
                 step_result.set_step_log("前置code输出: \n" + captured_output)
-            parsed_zero_environment = runner.parser.parse_data(
-                zero.environment.get_environment(), merge_variable
-            )
-            runner.config.env_variables.update(parsed_zero_environment)
-
-            parsed_zero_variables = runner.parser.parse_data(
-                zero.variables.get_variables(), merge_variable
-            )
-            step.variables.update(parsed_zero_variables)
             step_result.set_step_log(f"前置code结束  ~~~")
 
         # 前置步骤后再执行下合并 避免前置步骤中复制变量获取不到
@@ -211,10 +202,6 @@ def run_api_request(runner: SessionRunner,
                                                      params={"zero": zero, "requests": requests, 'res': resp_obj})
             if captured_output:
                 step_result.set_step_log("后置code输出: \n" + captured_output)
-            parsed_zero_variables = runner.parser.parse_data(
-                zero.variables.get_variables(), merge_variable
-            )
-            step.variables.update(parsed_zero_variables)
             # code  执行完成后重新合并变量
             merge_variable = runner.get_merge_variable(step=step)
             step_result.set_step_log("后置code结束~~~")
