@@ -4,9 +4,13 @@
 import json
 import pickle
 import typing
+
 from aioredis import Redis, DataError
-from redis.typing import KeyT, FieldT, EncodableT, AnyFieldT
+from fastapi import FastAPI
 from redis import Redis as SyncRedis
+from redis.typing import KeyT, FieldT, EncodableT, AnyFieldT
+
+from config import config
 
 
 class MyAsyncRedis(Redis):
@@ -112,3 +116,40 @@ class MySyncRedis(SyncRedis):
     def get(self, name: str) -> typing.Any:
         data = super(MySyncRedis, self).get(name)
         return json.loads(data) if data else None
+
+
+class RedisPool:
+    redis: MyAsyncRedis = None
+
+    def init_app(self, app: FastAPI):
+        if self.redis:
+            return self.redis
+        if not hasattr(app.config, "REDIS_URI"):
+            raise Exception("配置REDIS_URL不能为空！~")
+        return self._form_url(app.config.REDIS_URI)
+
+    def init_by_config(self, config):
+        if self.redis:
+            return self.redis
+        if not hasattr(config, "REDIS_URI"):
+            raise Exception("配置REDIS_URL不能为空！~")
+        return self._form_url(config.REDIS_URI)
+
+    def _form_url(self, url: str):
+        if not url:
+            raise Exception("配置REDIS_URL不能为空！~")
+        try:
+            self.redis = MyAsyncRedis.from_url(url=url, health_check_interval=30)
+            return self.redis
+        except Exception as e:
+            raise Exception(f"连接redis失败: {e}")
+
+    def get_redis(self):
+        if not self.redis:
+            raise Exception("请先初始化redis连接池！~, 请调用init_app或init_by_config方法")
+        return self.redis
+
+
+redis_pool = RedisPool()
+redis_pool.init_by_config(config=config)
+my_redis = redis_pool.get_redis()

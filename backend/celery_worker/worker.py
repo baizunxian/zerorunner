@@ -14,7 +14,6 @@ from celery.signals import setup_logging, task_prerun
 from celery.worker.request import Request
 
 from autotest.init.logger_init import InterceptHandler, logger
-from autotest.init.redis_init import init_async_redis_pool
 from autotest.schemas.job.task_record import TaskRecordIn
 from autotest.services.job.task_record import TaskRecordServer
 from autotest.utils.async_converter import AsyncIOPool
@@ -180,7 +179,6 @@ def create_celery():
             g.trace_id = self.request.trace_id
             _task_stack.push(self)
             self.push_request(args=args, kwargs=kwargs)
-            g.redis = WorkerPool.run(init_async_redis_pool())
             try:
                 if asyncio.iscoroutinefunction(self.run):
                     return WorkerPool.run(self.run(*args, **kwargs))
