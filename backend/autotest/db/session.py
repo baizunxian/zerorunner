@@ -4,6 +4,7 @@ import functools
 import traceback
 import typing
 from asyncio import current_task
+from contextvars import ContextVar
 
 from loguru import logger
 from sqlalchemy import create_engine
@@ -13,6 +14,9 @@ from sqlalchemy.orm import sessionmaker
 
 from autotest.utils.local import g
 from config import config
+
+SQLAlchemySession: ContextVar[typing.Optional[AsyncSession]] = ContextVar('SQLAlchemySession', default=None)
+
 
 # 创建表引擎
 
@@ -110,3 +114,4 @@ def provide_async_session_router(func: typing.Callable):
                 await async_session.remove()
 
     return wrapper
+
