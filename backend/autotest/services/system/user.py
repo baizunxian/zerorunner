@@ -5,6 +5,7 @@ from datetime import datetime
 
 from loguru import logger
 
+from autotest.db.my_redis import redis_pool
 from autotest.models.system_models import User, Menu, Roles, UserLoginRecord
 from autotest.schemas.system.user import UserLogin, UserIn, UserResetPwd, UserDel, UserQuery, \
     UserLoginRecordIn, UserLoginRecordQuery, UserTokenIn
@@ -49,7 +50,7 @@ class UserService:
             login_time=login_time,
             remarks=user_info["remarks"]
         )
-        await g.redis.set(TEST_USER_INFO.format(token), token_user_info.dict(), CACHE_DAY)
+        await redis_pool.redis.set(TEST_USER_INFO.format(token), token_user_info.dict(), CACHE_DAY)
         logger.info('用户 [{}] 登录了系统'.format(user_info["username"]))
 
         try:
@@ -78,7 +79,7 @@ class UserService:
         """
         token = g.request.headers.get('token', None)
         try:
-            await g.redis.delete(TEST_USER_INFO.format(token))
+            await redis_pool.redis.delete(TEST_USER_INFO.format(token))
         except Exception as err:
             logger.error(traceback.format_exc())
 
@@ -135,7 +136,7 @@ class UserService:
                 login_time=current_user_info.get("login_time"),
                 remarks=user_info.remarks
             )
-            await g.redis.set(TEST_USER_INFO.format(g.token), token_user_info.dict(), CACHE_DAY)
+            await redis_pool.redis.set(TEST_USER_INFO.format(g.token), token_user_info.dict(), CACHE_DAY)
         return user_info
 
     @staticmethod
@@ -157,7 +158,7 @@ class UserService:
         :param token: token
         :return:
         """
-        user_info = await g.redis.get(TEST_USER_INFO.format(token))
+        user_info = await redis_pool.redis.get(TEST_USER_INFO.format(token))
         if not user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
 
@@ -185,7 +186,7 @@ class UserService:
     @staticmethod
     async def get_user_info_by_token(token: str) -> UserTokenIn:
         """根据token获取用户信息"""
-        token_user_info = await g.redis.get(TEST_USER_INFO.format(token))
+        token_user_info = await redis_pool.redis.get(TEST_USER_INFO.format(token))
         if not token_user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
         user_info = await User.get(token_user_info.get("id"))
