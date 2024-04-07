@@ -6,7 +6,6 @@ import pickle
 import typing
 
 from aioredis import Redis, DataError
-from fastapi import FastAPI
 from redis import Redis as SyncRedis
 from redis.typing import KeyT, FieldT, EncodableT, AnyFieldT
 
@@ -119,14 +118,11 @@ class MySyncRedis(SyncRedis):
 
 
 class RedisPool:
-    redis: MyAsyncRedis = None
+    _redis: MyAsyncRedis = None
 
-    def init_app(self, app: FastAPI):
-        if self.redis:
-            return self.redis
-        if not hasattr(app.config, "REDIS_URI"):
-            raise Exception("配置REDIS_URL不能为空！~")
-        return self._form_url(app.config.REDIS_URI)
+    @property
+    def redis(self):
+        return self._redis
 
     def init_by_config(self, config):
         if self.redis:
@@ -139,7 +135,7 @@ class RedisPool:
         if not url:
             raise Exception("配置REDIS_URL不能为空！~")
         try:
-            self.redis = MyAsyncRedis.from_url(url=url, health_check_interval=30)
+            self._redis = MyAsyncRedis.from_url(url=url, health_check_interval=30)
             return self.redis
         except Exception as e:
             raise Exception(f"连接redis失败: {e}")
@@ -152,4 +148,3 @@ class RedisPool:
 
 redis_pool = RedisPool()
 redis_pool.init_by_config(config=config)
-my_redis = redis_pool.get_redis()

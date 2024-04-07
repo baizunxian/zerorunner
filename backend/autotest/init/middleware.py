@@ -17,7 +17,6 @@ def init_middleware(app: FastAPI):
         g.trace_id = get_str_uuid()
         start_time = time.time()
         token = request.headers.get("token", None)
-        g.redis = app.state.redis
         g.token = token
         remote_addr = request.headers.get("X-Real-IP", request.client.host)
         logger.info(f"访问记录:IP:{remote_addr}-method:{request.method}-url:{request.url}")

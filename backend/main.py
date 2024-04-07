@@ -5,13 +5,13 @@ import click
 import uvicorn
 from fastapi import FastAPI, Depends
 
+from autotest.db.my_redis import redis_pool
 from autotest.init.cors import init_cors
 from autotest.init.dependencies import login_verification
 from autotest.init.exception import init_exception
 from autotest.init.logger_init import init_logger, logger
 from autotest.init.middleware import init_middleware
 from autotest.init.mount import init_mount
-from autotest.init.redis_init import init_async_redis_pool
 from autotest.init.routers import init_router
 from config import config
 
@@ -33,7 +33,7 @@ async def init_app():
 
     init_cors(app)  # 注册请求响应拦截
 
-    await init_async_redis_pool(app)  # 初始化跨域
+    redis_pool.init_by_config(config=config)
 
     init_logger()
 
@@ -51,7 +51,7 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
-    await app.state.redis.close()  # 关闭 redis
+    await redis_pool.redis.close()  # 关闭 redis
 
 
 # gunicorn main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8101

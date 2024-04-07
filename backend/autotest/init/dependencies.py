@@ -3,6 +3,7 @@
 from fastapi import Request, Security
 from fastapi.security import APIKeyHeader
 
+from autotest.db.my_redis import redis_pool
 from autotest.exceptions.exceptions import AccessTokenFail
 from autotest.utils.consts import TEST_USER_INFO, CACHE_DAY
 from autotest.utils.local import g
@@ -23,11 +24,11 @@ class MyAPIKeyHeader(APIKeyHeader):
         token: str = request.headers.get("token")
         if not token:
             raise AccessTokenFail()
-        user_info = await g.redis.get(TEST_USER_INFO.format(token))
+        user_info = await redis_pool.redis.get(TEST_USER_INFO.format(token))
         if not user_info:
             raise AccessTokenFail()
         # 重置token时间
-        await g.redis.set(TEST_USER_INFO.format(token), user_info, CACHE_DAY)
+        await redis_pool.redis.set(TEST_USER_INFO.format(token), user_info, CACHE_DAY)
         return
 
 
