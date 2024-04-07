@@ -56,4 +56,4 @@ async def shutdown():
 
 # gunicorn main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8101
 if __name__ == '__main__':
-    uvicorn.run(app='main:app', host="127.0.0.1", port=8102, reload=True)
+    uvicorn.run(app='main:app', host="127.0.0.1", port=8101, reload=True)
