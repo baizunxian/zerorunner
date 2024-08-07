@@ -189,8 +189,10 @@ class Crontab(Base):
 
     @classmethod
     async def get_crontab_by_parameter(cls, minute, hour, day_of_week, day_of_month, month_of_year):
-        stmt = select(cls).where(cls.minute == minute, cls.hour == hour, cls.day_of_week == day_of_week,
-                                 cls.day_of_month == day_of_month, cls.month_of_year == month_of_year)
+        stmt = select(cls.get_table_columns()).where(cls.minute == minute, cls.hour == hour,
+                                                     cls.day_of_week == day_of_week,
+                                                     cls.day_of_month == day_of_month,
+                                                     cls.month_of_year == month_of_year)
         return await cls.get_result(stmt, first=True)
 
 
@@ -210,7 +212,7 @@ class IntervalSchedule(Base):
 
     @classmethod
     async def get_interval_by_parameter(cls, every, period):
-        stmt = select(cls).where(cls.every == every, cls.period == period)
+        stmt = select(cls.get_table_columns()).where(cls.every == every, cls.period == period)
         return await cls.get_result(stmt, first=True)
 
 
