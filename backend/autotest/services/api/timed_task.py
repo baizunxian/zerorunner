@@ -153,9 +153,9 @@ class TimedTasksService:
             task_kwargs = TaskKwargsIn(
                 name=params.name,
                 case_ids=params.case_ids,
-                project_env_id=params.project_env_id,
-                project_ids=params.project_ids,
-                module_ids=params.module_ids,
+                # project_env_id=params.project_env_id,
+                # project_ids=params.project_ids,
+                # module_ids=params.module_ids,
                 case_env_id=params.case_env_id,
                 ui_ids=params.ui_ids,
                 ui_env_id=params.ui_env_id,

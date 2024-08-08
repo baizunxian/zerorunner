@@ -93,7 +93,7 @@ const viteConfig = defineConfig((mode) => {
 		server: {
 			host: '0.0.0.0',
 			port: env.VITE_PORT,
-			open: env.VITE_OPEN,
+			open: JSON.parse(env.VITE_OPEN),
 			hmr: true,
 			proxy: {
 				// '/gitee': {

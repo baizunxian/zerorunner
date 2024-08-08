@@ -68,7 +68,7 @@ class TimedTasksInSchema(BaseSchema):
     project_id: int = Field(None, description="")
     run_mode: str = Field(None, description="")
     crontab: str = Field(None, description="")
-    module_ids: str = Field(None, description="")
+    # module_ids: str = Field(None, description="")
     name: str = Field(..., description="")
     task: str = Field(None, description="")
     description: str = Field(None, description="")
