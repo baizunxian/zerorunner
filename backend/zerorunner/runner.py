@@ -61,7 +61,7 @@ class SessionRunner(object):
 
         self.case_id = self.config.case_id or str(uuid.uuid4())
         self.__step_results = []
-        self.session = HttpSession()
+        self.session = self.session or HttpSession()
         self.parser = self.parser or Parser(self.config.functions)
 
     def with_config(self, config: TConfig) -> "SessionRunner":
