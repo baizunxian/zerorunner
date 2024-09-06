@@ -1025,7 +1025,7 @@ CREATE TABLE `project_info`  (
   INDEX `id_index`(`id`) USING BTREE,
   INDEX `name_index`(`name`) USING BTREE,
   INDEX `enabled_flag_index`(`enabled_flag`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1699677678757617616 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of project_info
