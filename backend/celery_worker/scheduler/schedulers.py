@@ -207,7 +207,7 @@ class ModelEntry(ScheduleEntry):
 
         **entry sample:
 
-            {'task': 'job.backend_cleanup',
+            {'task': 'celery.backend_cleanup',
              'schedule': schedules.crontab('0', '4', '*'),
              'options': {'expires': 43200}}
 
@@ -240,7 +240,7 @@ class ModelEntry(ScheduleEntry):
 
         **entry sample:
 
-            {'task': 'job.backend_cleanup',
+            {'task': 'celery.backend_cleanup',
              'schedule': <crontab: 0 4 * * * (m/h/d/dM/MY)>,
              'options': {'expires': 43200}}
 
@@ -387,7 +387,7 @@ class DatabaseScheduler(Scheduler):
     def update_from_dict(self, mapping):
         s = {}
         for name, entry_fields in items(mapping):
-            # {'task': 'job.backend_cleanup',
+            # {'task': 'celery.backend_cleanup',
             #  'schedule': schedules.crontab('0', '4', '*'),
             #  'options': {'expires': 43200}}
             try:
@@ -406,8 +406,8 @@ class DatabaseScheduler(Scheduler):
         entries = {}
         if self.app.conf.result_expires:
             entries.setdefault(
-                'job.backend_cleanup', {
-                    'task': 'job.backend_cleanup',
+                'celery.backend_cleanup', {
+                    'task': 'celery.backend_cleanup',
                     'schedule': schedules.crontab('0', '4', '*'),
                     'options': {'expires': 12 * 3600},
                 },
