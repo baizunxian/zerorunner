@@ -9,6 +9,7 @@ from zerorunner.models.base import TStepLogType, TStepResultStatusEnum
 from zerorunner.models.result_model import StepResult
 from zerorunner.models.step_model import TStep, TScriptRequest
 from zerorunner.runner import SessionRunner
+from zerorunner.script_code import Zero
 from zerorunner.steps.base import IStep
 from zerorunner.steps.step_result import TStepResult
 
@@ -26,7 +27,17 @@ def run_script_request(runner: SessionRunner,
     try:
         step.request = TScriptRequest.parse_obj(parsed_request_dict)
         module_name = uuid.uuid4().hex
-        model, captured_output = load_script_content(step.request.script_content, f"script_{module_name}")
+        zero = Zero(runner=runner,
+                    step=step,
+                    request=request_dict,
+                    environment=runner.config.env_variables,
+                    variables=runner.get_merge_variable_pool())
+        module_params = {"zero": zero}
+        if runner.config.functions:
+            module_params.update(runner.config.functions)
+        model, captured_output = load_script_content(content=step.setup_code,
+                                                     module_name=f"script_{module_name}",
+                                                     params=module_params)
         step_result.set_step_log_not_show_time(captured_output)
         functions = load_module_functions(model)
         runner.with_functions(functions)

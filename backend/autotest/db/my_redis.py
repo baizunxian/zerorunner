@@ -5,8 +5,8 @@ import json
 import pickle
 import typing
 
-from aioredis import Redis, DataError
-from redis import Redis as SyncRedis
+from redis.asyncio import Redis
+from redis import Redis as SyncRedis, DataError
 from redis.typing import KeyT, FieldT, EncodableT, AnyFieldT
 
 from config import config
