@@ -14,7 +14,7 @@ from autotest.init.logger_init import init_logger, logger
 from autotest.init.middleware import init_middleware
 from autotest.init.mount import init_mount
 from autotest.init.routers import init_router
-from config import config, project_banner
+from config import config
 
 
 @asynccontextmanager
