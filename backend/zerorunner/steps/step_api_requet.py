@@ -106,9 +106,7 @@ def run_api_request(runner: SessionRunner,
         # 合并变量
         merge_variable = runner.get_merge_variable(step=step)
         # parse
-        upload_variables = prepare_upload_step(step, runner.config.functions, merge_variable)
         request_dict = step.request.dict()
-        request_dict.pop("upload", None)
 
         # setup hooks
         if step.setup_hooks:
@@ -136,10 +134,12 @@ def run_api_request(runner: SessionRunner,
 
         # 前置步骤后再执行下合并 避免前置步骤中复制变量获取不到
         merge_variable = runner.get_merge_variable(step=step)
+        upload_variables = prepare_upload_step(step, runner.config.functions, merge_variable)
         if upload_variables:
             merge_variable = {key: value for key, value in merge_variable.items()}
             merge_variable.update(runner.parser.parse_variables(upload_variables))
-
+            request_dict = step.request.dict()
+        request_dict.pop("upload", None)
         parsed_request_dict = runner.parser.parse_data(
             request_dict, merge_variable
         )
