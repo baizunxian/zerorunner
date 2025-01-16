@@ -16,7 +16,7 @@
         <ApiInfo ref="ApiInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug"/>
 
         <el-collapse-transition>
-          <div v-show="state.showRequestBody">
+          <div v-if="state.showRequestBody">
             <el-card>
               <template #header>
                 <strong>Request</strong>
@@ -26,7 +26,7 @@
                   <el-tab-pane name='ApiRequestBody'>
                     <template #label>
                       <strong>请求体</strong>
-                      <span class="ui-badge-status-dot" v-show="getDataLength('body')"></span>
+                      <span class="ui-badge-status-dot" v-if="getDataLength('body')"></span>
                     </template>
                     <div class="case-tabs">
                       <ApiRequestBody ref="ApiRequestBodyRef" @updateContentType="updateContentType"/>
@@ -36,7 +36,7 @@
                   <el-tab-pane name='ApiRequestHeaders'>
                     <template #label>
                       <strong>请求头</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('header')">{{
+                      <span class="ui-badge-circle" v-if="getDataLength('header')">{{
                           getDataLength('header')
                         }}</span>
                     </template>
@@ -48,7 +48,7 @@
                   <el-tab-pane name='ApiVariables'>
                     <template #label>
                       <strong>变量</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('variables')">{{
+                      <span class="ui-badge-circle" v-if="getDataLength('variables')">{{
                           getDataLength('variables')
                         }}</span>
                     </template>
@@ -60,7 +60,7 @@
                   <el-tab-pane name='extracts' class="h100">
                     <template #label>
                       <strong>提取</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('extracts')">{{
+                      <span class="ui-badge-circle" v-if="getDataLength('extracts')">{{
                           getDataLength('extracts')
                         }}</span>
                     </template>
@@ -72,7 +72,7 @@
                   <el-tab-pane name='Code' class="h100">
                     <template #label>
                       <strong>Code</strong>
-                      <span class="ui-badge-status-dot" v-show="getDataLength('code')"></span>
+                      <span class="ui-badge-status-dot" v-if="getDataLength('code')"></span>
                     </template>
                     <ApiCode ref="ApiCodeRef"/>
                   </el-tab-pane>
@@ -80,7 +80,7 @@
                   <el-tab-pane name='Hook' class="h100">
                     <template #label>
                       <strong>Hook</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('hook')">{{ getDataLength('hook') }}</span>
+                      <span class="ui-badge-circle" v-if="getDataLength('hook')">{{ getDataLength('hook') }}</span>
                     </template>
                     <ApiHooks ref="ApiHookRef"/>
                   </el-tab-pane>
@@ -117,7 +117,7 @@
                   <el-tab-pane name='assertController' class="h100">
                     <template #label>
                       <strong>断言规则</strong>
-                      <span class="ui-badge-circle" v-show="getDataLength('validators')">{{
+                      <span class="ui-badge-circle" v-if="getDataLength('validators')">{{
                           getDataLength('validators')
                         }}</span>
                     </template>
@@ -133,7 +133,7 @@
         </el-collapse-transition>
 
 
-        <el-card id="Response" ref="ResponseRef" v-show="state.reportData" style="margin-top: 20px">
+        <el-card id="Response" ref="ResponseRef" v-if="state.reportData" style="margin-top: 20px">
           <template #header>
             <div style="display: flex; justify-content: space-between">
               <div>
