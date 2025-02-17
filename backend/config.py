@@ -4,7 +4,8 @@ import os
 import typing
 from pathlib import Path
 
-from pydantic import AnyHttpUrl, Field, BaseSettings
+from pydantic import BaseSettings, AnyHttpUrl, Field, ValidationError
+
 
 project_banner = """
 ███████╗███████╗██████╗  ██████╗ ██████╗ ██╗   ██╗███╗   ██╗███╗   ██╗███████╗██████╗
@@ -112,4 +113,7 @@ class Configs(BaseSettings):
         env_file_encoding = "utf-8"
 
 
-config = Configs()
+try:
+    config = Configs()
+except ValidationError as e:
+    raise ValueError(f"配置文件错误 请检查是否创建.env文件以及配置是否存在: {e}")
