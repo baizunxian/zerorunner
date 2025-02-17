@@ -44,7 +44,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="cropper">
+<script setup name="cropper">
 import {reactive, nextTick} from 'vue';
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
@@ -57,11 +57,11 @@ const state = reactive({
   cropperImg: '',
   blobUrl: '',
   cropperImgBase64: '',
-  cropper: '' as RefType,
+  cropper: '',
 });
 
 // 打开弹窗
-const openDialog = (imgs: string) => {
+const openDialog = (imgs) => {
   // if (!imgs) {
   //   return
   // }
@@ -87,7 +87,7 @@ const onSubmit = () => {
 };
 // 初始化cropperjs图片裁剪
 const initCropper = () => {
-  const letImg = <HTMLImageElement>document.getElementById("AvatarRef");
+  const letImg = document.getElementById("AvatarRef");
   state.cropper = new Cropper(letImg, {
     viewMode: 1,
     dragMode: 'none',
@@ -108,7 +108,7 @@ const preview = () => {
   state.cropperImgBase64 = state.cropper.getCroppedCanvas().toDataURL('image/jpeg');
 }
 
-const beforeUpload = (file: Blob) => {
+const beforeUpload = (file) => {
   const reader = new FileReader()
   reader.readAsDataURL(file)
   reader.onload = () => {

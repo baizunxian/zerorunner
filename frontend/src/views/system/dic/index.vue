@@ -53,7 +53,7 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="systemDic">
+<script setup name="systemDic">
 import { defineAsyncComponent, reactive, onMounted, ref } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 
@@ -95,15 +95,15 @@ const getTableData = () => {
 	}, 500);
 };
 // 打开新增字典弹窗
-const onOpenAddDic = (type: string) => {
+const onOpenAddDic = (type) => {
 	dicDialogRef.value.openDialog(type);
 };
 // 打开修改字典弹窗
-const onOpenEditDic = (type: string, row: RowDicType) => {
+const onOpenEditDic = (type, row) => {
 	dicDialogRef.value.openDialog(type, row);
 };
 // 删除字典
-const onRowDel = (row: RowDicType) => {
+const onRowDel = (row) => {
 	ElMessageBox.confirm(`此操作将永久删除字典名称：“${row.dicName}”，是否继续?`, '提示', {
 		confirmButtonText: '确认',
 		cancelButtonText: '取消',
@@ -116,12 +116,12 @@ const onRowDel = (row: RowDicType) => {
 		.catch(() => {});
 };
 // 分页改变
-const onHandleSizeChange = (val: number) => {
+const onHandleSizeChange = (val) => {
 	state.tableData.param.pageSize = val;
 	getTableData();
 };
 // 分页改变
-const onHandleCurrentChange = (val: number) => {
+const onHandleCurrentChange = (val) => {
 	state.tableData.param.pageNum = val;
 	getTableData();
 };

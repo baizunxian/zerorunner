@@ -97,7 +97,28 @@
     </el-dialog>
 
     <!--    测试报告-->
-    <ReportDetail :report-info="state.reportInfo" ref="reportDetailRef"/>
+    <el-dialog
+        draggable
+        v-if="state.showReportDialog"
+        v-model="state.showReportDialog"
+        width="90%"
+        top="5vh"
+        destroy-on-close
+        :close-on-click-modal="false">
+      <template #header>
+        <strong>报告详情</strong>
+        <!--      <el-button class="ml5" style="font-size: 12px" type="primary" link @click="state.showLog=!state.showLog">-->
+        <!--        执行日志-->
+        <!--      </el-button>-->
+      </template>
+
+      <ReportDetail :report-id="state.reportInfo.id" ref="reportDetailRef"/>
+
+    </el-dialog>
+
+    <!--    关系弹窗-->
+
+    <ApiRelationGraph ref="ApiRelationGraphRef"></ApiRelationGraph>
 
     <!--    postman 导入 import-->
     <el-dialog
@@ -180,9 +201,20 @@
   </div>
 </template>
 
-<script setup lang="ts" name="apiInfoList">
+<script setup name="apiInfoList">
 import {defineAsyncComponent, h, onMounted, reactive, ref} from 'vue';
-import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
+import {
+  ElButton,
+  ElMessage,
+  ElMessageBox,
+  ElTag,
+  ElPopover,
+  ElIcon,
+  ElDropdown,
+  ElDropdownMenu,
+  ElDropdownItem
+} from 'element-plus';
+import {MoreFilled} from "@element-plus/icons"
 import {useApiInfoApi} from "/@/api/useAutoApi/apiInfo";
 import {useRouter} from "vue-router";
 import {useEnvApi} from "/@/api/useAutoApi/env";
@@ -190,12 +222,15 @@ import {useModuleApi} from "/@/api/useAutoApi/module";
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {getMethodColor} from "/@/utils/case";
 import {useUserInfo} from '/@/stores/userInfo';
+import ApiRelationGraph from "/@/components/RelationGraph/ApiRelationGraph.vue";
+
 
 const userInfoStore = useUserInfo()
 
 const ReportDetail = defineAsyncComponent(() => import("/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"))
 
 const reportDetailRef = ref();
+const ApiRelationGraphRef = ref();
 const importFormRef = ref();
 const tableRef = ref();
 const router = useRouter();
@@ -207,7 +242,7 @@ const state = reactive({
     {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
     {
       key: 'name', label: '用例名', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -217,7 +252,7 @@ const state = reactive({
     },
     {
       key: 'method', label: '请求方式', width: '', show: true,
-      render: ({row}: any) => h(ElTag, {
+      render: ({row}) => h(ElTag, {
         type: "",
         style: {"background": getMethodColor(row.method), color: "#ffffff",}
       }, () => row.method)
@@ -231,8 +266,8 @@ const state = reactive({
     {key: 'creation_date', label: '创建时间', width: '150', show: true},
     {key: 'created_by_name', label: '创建人', width: 'auto', show: true},
     {
-      label: '操作', fixed: 'right', width: '200', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      label: '操作', fixed: 'right', width: '180', align: 'center',
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -241,18 +276,60 @@ const state = reactive({
         }, () => '运行'),
 
         h(ElButton, {
-          type: "primary",
+          type: "warning",
           onClick: () => {
-            onOpenSaveOrUpdate("update", row)
+            copyApi(row)
           }
-        }, () => '编辑'),
+        }, () => '复制'),
 
-        h(ElButton, {
-          type: "danger",
-          onClick: () => {
-            deleted(row)
-          }
-        }, () => '删除')
+        h(ElDropdown, {
+              style: {
+                verticalAlign: "middle",
+                marginLeft: "12px"
+              }
+            },
+            {
+              default: () => h(ElButton, {
+                style: {},
+                link: true,
+                icon: MoreFilled
+              }),
+              dropdown: () => h(ElDropdownMenu, {
+                    style: {
+                      minWidth: "100px"
+                    },
+                  },
+                  {
+                    default: () => [
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-primary)"
+                        },
+                        onClick: () => {
+                          onOpenSaveOrUpdate("update", row)
+                        }
+                      }, () => '编辑'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "#626aef"
+                        },
+                        onClick: () => {
+                          viewRelationGraph(row)
+                        }
+                      }, () => '血缘关系'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-danger)"
+                        },
+                        onClick: () => {
+                          deleted(row)
+                        }
+                      }, () => '删除'),
+                    ]
+                  }
+              )
+            }
+        ),
       ])
     },
   ],
@@ -280,6 +357,7 @@ const state = reactive({
     api_run_mode: "one",  // one, batch
   },
   // report
+  showReportDialog: false,
   reportInfo: {},
 
   //project
@@ -314,6 +392,9 @@ const state = reactive({
   },
   // oneSelf
   oneSelf: false,
+  //Relation
+  showApiRelation: false,
+  relationData: [],
 });
 
 
@@ -331,7 +412,7 @@ const getList = () => {
 };
 
 // 选择用例
-const selectionChange = (val: any) => {
+const selectionChange = (val) => {
   state.selectionData = val
 }
 // 获取选中用例
@@ -339,16 +420,27 @@ const getSelectionData = () => {
   return state.selectionData
 }
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any | null) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (editType, row) => {
+  let query = {}
   query.editType = editType
+  if (query.editType === 'save') {
+    query.timestamp = new Date().getTime()
+  }
   if (row) query.id = row.id
   router.push({name: 'EditApiInfo', query: query})
 
 };
 
+//复制
+const copyApi = (row) => {
+  useApiInfoApi().copyApi({id: row.id}).then(() => {
+    getList()
+    ElMessage.success('复制成功 🎉')
+  })
+}
+
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -366,7 +458,7 @@ const deleted = (row: any) => {
 };
 
 // 打开运行页面
-const onOpenRunPage = (row: any) => {
+const onOpenRunPage = (row) => {
   state.showRunPage = true;
   state.runForm.api_run_mode = 'one'
   state.runForm.id = row.id;
@@ -377,7 +469,7 @@ const onOpenRunPage = (row: any) => {
 const onOpenBatchRunPage = () => {
   state.showRunPage = true;
   state.runForm.api_run_mode = 'batch'
-  state.runForm.ids = state.selectionData.map((item: any) => item.id);
+  state.runForm.ids = state.selectionData.map((item) => item.id);
   getEnvList();
 };
 // 获取环境信息
@@ -391,11 +483,13 @@ const getEnvList = () => {
 const runApi = () => {
   state.runApiLoading = !state.runApiLoading;
   useApiInfoApi().runApi(state.runForm)
-      .then((res: any) => {
+      .then((res) => {
         if (state.runForm.run_mode === 10 && state.runForm.api_run_mode === 'one') {
           ElMessage.success('运行成功');
           state.reportInfo = res.data
-          reportDetailRef.value.showReport()
+          console.log(state.reportInfo, 'state.reportInfo')
+          state.showReportDialog = !state.showReportDialog;
+          // reportDetailRef.value.showReport()
           state.showRunPage = !state.showRunPage;
         } else {
           ElMessage.success("执行成功~");
@@ -403,8 +497,8 @@ const runApi = () => {
         }
         state.runApiLoading = !state.runApiLoading;
       })
-      .catch((err: any) => {
-        ElMessage.error(err.message);
+      .catch((exc) => {
+        console.log(exc)
         state.runApiLoading = !state.runApiLoading;
       })
 }
@@ -429,7 +523,7 @@ const getProjectList = () => {
       })
 }
 // 选择项目
-const selectProject = (project_id: any) => {
+const selectProject = (project_id) => {
   state.moduleQuery.project_id = project_id
   state.moduleList = []
   state.importForm.module_id = ''
@@ -446,9 +540,13 @@ const getModuleList = () => {
 }
 
 // 只看自己
-const oneSelfChange = (val: boolean) => {
+const oneSelfChange = (val) => {
   state.listQuery.created_by = val ? userInfoStore.userInfos.id : null
   getList()
+}
+
+const viewRelationGraph = (row) => {
+  ApiRelationGraphRef.value.openDialog(row.id, "api")
 }
 
 defineExpose({

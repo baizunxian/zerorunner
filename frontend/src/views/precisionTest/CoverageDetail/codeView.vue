@@ -6,7 +6,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="codeView">
+<script setup name="codeView">
 import '/@/theme/jacoco/prettify';
 import '/@/theme/jacoco/prettify.css';
 import '/@/theme/jacoco/report.css';
@@ -30,7 +30,7 @@ const state = reactive({
 });
 
 
-const locationEl = (offset: number) => {
+const locationEl = (offset) => {
   window.prettyPrint()
   let element = codeContentRef.value.querySelector(`#L${offset}`)
   if (element) {

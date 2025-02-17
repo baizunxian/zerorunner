@@ -7,7 +7,7 @@ from autotest.utils.async_http import AsyncHttp
 
 
 class JacocoServiceApiEnum(Enum):
-    StartApi = f"{config.JACOCO_SERVICE_URL}/coverage/report/start"
+    StartApi = f"{config.JACOCO_SERVER_URL}/coverage/report/start"
 
 
 class CoverageReportService:

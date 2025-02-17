@@ -47,8 +47,8 @@ import sys
 
 from loguru import logger
 
-from zerorunner.model.step_model import TStep
-from zerorunner.models import FunctionsMapping
+from zerorunner.models.base import FunctionsMapping
+from zerorunner.models.step_model import TStep
 from zerorunner.parser import parse_variables_mapping, parse_data
 
 try:
@@ -73,7 +73,7 @@ def ensure_upload_ready():
     sys.exit(1)
 
 
-def prepare_upload_step(step: TStep, functions: FunctionsMapping):
+def prepare_upload_step(step: TStep, functions: FunctionsMapping, merge_variables: dict):
     """ preprocess for upload test
         replace `upload` info with MultipartEncoder
 
@@ -94,6 +94,7 @@ def prepare_upload_step(step: TStep, functions: FunctionsMapping):
                 }
             }
         functions: functions mapping
+        merge_variables: merge_variables mapping
 
     """
     if not step.request.upload:
@@ -101,7 +102,7 @@ def prepare_upload_step(step: TStep, functions: FunctionsMapping):
 
     # parse upload info
     step.request.upload = parse_data(
-        step.request.upload, step.variables, functions
+        step.request.upload, merge_variables, functions
     )
 
     ensure_upload_ready()
@@ -117,7 +118,7 @@ def prepare_upload_step(step: TStep, functions: FunctionsMapping):
     # parse variables
     step.variables = parse_variables_mapping(step.variables, functions)
 
-    step.request.headers["Content-Type"] = "${multipart_content_type(${m_encoder})}"
+    step.request.headers["Content-Type"] = "${multipart_content_type($m_encoder)}"
 
     step.request.data = "$m_encoder"
     return upload_variables
@@ -142,7 +143,7 @@ def multipart_encoder(**kwargs):
     fields_dict = {}
     for key, value in kwargs.items():
 
-        if os.path.isabs(value):
+        if isinstance(value, str) and os.path.isabs(value):
             # value is absolute file path
             _file_path = value
             is_exists_file = os.path.isfile(value)
@@ -156,7 +157,7 @@ def multipart_encoder(**kwargs):
             # is_exists_file = os.path.isfile(_file_path)
 
             # 修改 不支持相对路径
-            _file_path = os.path.join('', value)
+            _file_path = os.path.join('', value) if isinstance(value, str) else str(value)
             is_exists_file = ''
 
         if is_exists_file:
@@ -167,7 +168,7 @@ def multipart_encoder(**kwargs):
             file_handler = open(_file_path, "rb")
             fields_dict[key] = (filename, file_handler, mime_type)
         else:
-            fields_dict[key] = value
+            fields_dict[key] = str(value) if not isinstance(value, str) else value
 
     return MultipartEncoder(fields=fields_dict)
 

@@ -2,6 +2,8 @@ import json
 import typing
 from base64 import b64encode
 
+from zerorunner.models.result_model import RequestData, ResponseData, StepResult, TestCaseSummary
+
 try:
     from collections import Iterable
 except ImportError:
@@ -9,8 +11,6 @@ except ImportError:
 from json import JSONDecodeError
 from jinja2 import escape
 from requests.cookies import RequestsCookieJar
-
-from zerorunner.models import TestCaseSummary, StepResult, RequestData, ResponseData
 
 
 def dumps_json(value):
@@ -31,6 +31,28 @@ def detect_encoding(value):
         return json.detect_encoding(value)
     except AttributeError:
         return "utf-8"
+
+
+def __default_serialize(obj: typing.Any):
+    if isinstance(obj, list):
+        return [__default_serialize(o) for o in obj]
+    if isinstance(obj, dict):
+        return {key: __default_serialize(value) for key, value in obj.items()}
+
+    elif isinstance(obj, bytes):
+        return repr(obj)
+
+    elif isinstance(obj, RequestsCookieJar):
+        return obj.get_dict()
+
+    elif obj is None:
+        return None
+
+    elif not isinstance(obj, (str, bytes, int, float, Iterable,)):
+        # class instance, e.g. MultipartEncoder()
+        return repr(obj)
+
+    return obj
 
 
 def __stringify_request(request_data: RequestData):
@@ -80,36 +102,10 @@ def __stringify_request(request_data: RequestData):
                 pass
         elif value is None:
             pass
-        elif not isinstance(value, (str, bytes, int, float, Iterable)):
-            # class instance, e.g. MultipartEncoder()
-            value = repr(value)
-
-        elif isinstance(value, RequestsCookieJar):
-            value = value.get_dict()
+        else:
+            value = __default_serialize(value)
 
         setattr(request_data, key, value)
-
-
-def __default_serialize(obj: typing.Any):
-    if isinstance(obj, list):
-        return [__default_serialize(o) for o in obj]
-    if isinstance(obj, dict):
-        return {key: __default_serialize(value) for key, value in obj.items()}
-
-    elif isinstance(obj, bytes):
-        return repr(obj)
-
-    elif isinstance(obj, RequestsCookieJar):
-        return obj.get_dict()
-
-    elif obj is None:
-        return None
-
-    elif not isinstance(obj, (str, bytes, int, float, Iterable,)):
-        # class instance, e.g. MultipartEncoder()
-        return repr(obj)
-
-    return obj
 
 
 def __stringify_response(response_data: ResponseData):
@@ -161,19 +157,14 @@ def __stringify_response(response_data: ResponseData):
             except UnicodeDecodeError:
                 pass
 
-        elif not isinstance(value, (str, bytes, int, float, Iterable,)):
-            # class instance, e.g. MultipartEncoder()
-            if value is not None:
-                value = repr(value)
-
-        elif isinstance(value, RequestsCookieJar):
-            value = value.get_dict()
+        else:
+            value = __default_serialize(value)
 
         setattr(response_data, key, value)
 
 
 def __stringify_step_data(step_data: StepResult):
-    if step_data.session_data and step_data.session_data.req_resp:
+    if step_data.session_data and hasattr(step_data.session_data, "req_resp"):
         __stringify_request(step_data.session_data.req_resp.request)
         __stringify_response(step_data.session_data.req_resp.response)
 

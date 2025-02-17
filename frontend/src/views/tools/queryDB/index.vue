@@ -25,7 +25,7 @@
 
 </template>
 
-<script lang="ts" setup name="QueryDB">
+<script setup name="QueryDB">
 import {reactive, ref} from 'vue';
 import dbList from '/@/views/tools/queryDB/components/dbList.vue';
 import containerTop from '/@/views/tools/queryDB/components/containerTop.vue';
@@ -39,11 +39,11 @@ const state = reactive({
   bodyStyle: {height: "100%"}
 });
 
-const winChange = (changeType: string, $event: any) => {
+const winChange = (changeType, $event) => {
   containerRef.value.$nextTick(() => {
     let topHeight = containerRef.value.$el.offsetHeight
     let BottomHeight = containerRef.value.$el.offsetHeight
-    if (changeType == 'resize') {
+    if (changeType === 'resize') {
       topHeight = containerRef.value.$el.offsetHeight * $event[0].size / 100
       BottomHeight = containerRef.value.$el.offsetHeight * $event[1].size / 100
     } else {

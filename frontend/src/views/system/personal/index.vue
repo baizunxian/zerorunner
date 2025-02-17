@@ -6,10 +6,12 @@
         <el-card>
           <div class="personal-user">
             <div class="personal-user-avatar" @click="onCropperDialogOpen">
-              <!--              <el-upload class="h100 personal-user-left-upload" action="https://jsonplaceholder.typicode.com/posts/"-->
-              <!--                         multiple :limit="1">-->
-              <img :src="state.personalForm.avatar"/>
-              <!--              </el-upload>-->
+
+              <el-avatar :size="100"
+                         :src="state.personalForm.avatar"
+                         title="点击更换头像"
+                         style="cursor: pointer"/>
+
             </div>
             <div class="personal-user-right">
               <el-row>
@@ -53,7 +55,7 @@
                 <el-col :span="24">
                   <div class="personal-item">
                     <div class="personal-item-label">登录时间：</div>
-                    <div class="personal-item-value">2021-02-05 18:47:26</div>
+                    <div class="personal-item-value">{{ userInfos.login_time }}</div>
                   </div>
                 </el-col>
 
@@ -61,7 +63,7 @@
                   <div class="personal-item">
                     <div class="personal-item-label">密码：</div>
                     <div class="personal-item-value">
-                      <el-button text type="primary">修改密码</el-button>
+                      <el-button text type="primary" @click="updatePassword">修改密码</el-button>
                     </div>
                   </div>
                 </el-col>
@@ -185,26 +187,31 @@
     </el-dialog>
 
     <SeePictures ref="SeePicturesRef" @updateAvatar="updateAvatar"></SeePictures>
+
+    <ResetPassword ref="ResetPasswordRef"></ResetPassword>
   </div>
 </template>
 
-<script setup lang="ts" name="personal">
+<script setup name="personal">
 import {computed, defineAsyncComponent, nextTick, onMounted, reactive, ref} from 'vue';
 import {formatAxis} from '/@/utils/formatTime';
 import {useUserInfo} from "/@/stores/userInfo";
 import {useUserApi} from "/@/api/useSystemApi/user";
 import {ElMessage} from "element-plus";
+import {storeToRefs} from "pinia";
+import ResetPassword from "/@/views/system/personal/ResetPassword.vue";
 
 const SeePictures = defineAsyncComponent(() => import("/@/components/seePictures/index.vue"))
 const SeePicturesRef = ref();
-const UserTagInputRef = ref()
-
+const UserTagInputRef = ref();
+const ResetPasswordRef = ref();
 // 用户信息
 const userStores = useUserInfo()
+const {userInfos} = storeToRefs(userStores);
 
 
 // 定义变量内容
-const state = reactive<PersonalState>({
+const state = reactive({
   newsInfoList: [],
   recommendList: [],
   personalForm: {
@@ -245,11 +252,11 @@ const onCropperDialogOpen = () => {
 const showEditTag = () => {
   state.editTag = true
   nextTick(() => {
-    UserTagInputRef.value!.input!.focus()
+    UserTagInputRef.value?.input.focus()
   })
 }
 
-const removeTag = (tag: string) => {
+const removeTag = (tag) => {
   state.personalForm.tags.splice(state.personalForm.tags.indexOf(tag), 1)
 }
 
@@ -266,12 +273,17 @@ const save = async () => {
   let {data} = await useUserApi().saveOrUpdate(state.personalForm)
   await userStores.setUserInfos(data)
   await getUserInfo()
-  ElMessage.success("更新成功!")
+  ElMessage.success("更新成功!╰(*°▽°*)╯😍")
+  state.showEditPage = !state.showEditPage
 }
 
-const updateAvatar = (img: String) => {
+const updateAvatar = (img) => {
   state.personalForm.avatar = img
   save()
+}
+
+const updatePassword = () => {
+  ResetPasswordRef.value.openDialog(userInfos.value)
 }
 
 onMounted(() => {

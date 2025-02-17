@@ -10,7 +10,7 @@ x-env: &env
 
 services:
   db:
-    image: mysql:8.0.21
+    image: mysql:5.7.43
     container_name: docker_db
     environment:
       # 设置默认数据库和root默认密码,如果宿主机中/var/lib/mysql已经存在,这两个设置都不会生效

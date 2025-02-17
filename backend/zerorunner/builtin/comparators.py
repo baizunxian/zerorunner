@@ -43,6 +43,13 @@ def not_equal(check_value: typing.Any, expect_value: typing.Any, message: str = 
     assert check_value != expect_value, message
 
 
+def not_none(check_value: typing.Any, expect_value: typing.Any, message: str = ""):
+    assert check_value is not None or check_value != "", message
+
+def is_none(check_value: typing.Any, expect_value: typing.Any, message: str = ""):
+    assert check_value is None or check_value == "", message
+
+
 def string_equals(check_value: str, expect_value: typing.Any, message: str = ""):
     assert str(check_value) == str(expect_value), message
 

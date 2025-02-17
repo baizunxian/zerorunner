@@ -52,9 +52,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="iconSelector">
+<script setup name="iconSelector">
 import {defineAsyncComponent, ref, reactive, onMounted, nextTick, computed, watch} from 'vue';
-import type {TabsPaneContext} from 'element-plus';
 import initIconfont from '/@/utils/getStyleSheets';
 import '/@/theme/iconSelector.scss';
 
@@ -132,7 +131,7 @@ const onIconFocus = () => {
 const onIconBlur = () => {
   const list = fontIconTabNameList();
   setTimeout(() => {
-    const icon = list.filter((icon: string) => icon === state.fontIconSearch);
+    const icon = list.filter((icon) => icon === state.fontIconSearch);
     if (icon.length <= 0) state.fontIconSearch = '';
   }, 300);
 };
@@ -141,13 +140,13 @@ const fontIconSheetsFilterList = computed(() => {
   const list = fontIconTabNameList();
   if (!state.fontIconSearch) return list;
   let search = state.fontIconSearch.trim().toLowerCase();
-  return list.filter((item: string) => {
+  return list.filter((item) => {
     if (item.toLowerCase().indexOf(search) !== -1) return item;
   });
 });
 // 根据 tab name 类型设置图标
 const fontIconTabNameList = () => {
-  let iconList: any = [];
+  let iconList = [];
   if (state.fontIconTabActive === 'ali') iconList = state.fontIconList.ali;
   else if (state.fontIconTabActive === 'ele') iconList = state.fontIconList.ele;
   else if (state.fontIconTabActive === 'awe') iconList = state.fontIconList.awe;
@@ -155,39 +154,39 @@ const fontIconTabNameList = () => {
 };
 // 处理 icon 双向绑定数值回显
 const initModeValueEcho = () => {
-  if (props.modelValue === '') return ((<string | undefined>state.fontIconPlaceholder) = props.placeholder);
-  (<string | undefined>state.fontIconPlaceholder) = props.modelValue;
-  (<string | undefined>state.fontIconPrefix) = props.modelValue;
+  if (props.modelValue === '') return ((state.fontIconPlaceholder) = props.placeholder);
+  state.fontIconPlaceholder = props.modelValue;
+  state.fontIconPrefix = props.modelValue;
 };
 // 处理 icon 类型，用于回显时，tab 高亮与初始化数据
 const initFontIconName = () => {
   let name = 'ali';
-  if (props.modelValue!.indexOf('iconfont') > -1) name = 'ali';
-  else if (props.modelValue!.indexOf('ele-') > -1) name = 'ele';
-  else if (props.modelValue!.indexOf('fa') > -1) name = 'awe';
+  if (props.modelValue?.indexOf('iconfont') > -1) name = 'ali';
+  else if (props.modelValue?.indexOf('ele-') > -1) name = 'ele';
+  else if (props.modelValue?.indexOf('fa') > -1) name = 'awe';
   // 初始化 tab 高亮回显
   state.fontIconTabActive = name;
   return name;
 };
 // 初始化数据
-const initFontIconData = async (name: string) => {
+const initFontIconData = async (name) => {
   if (name === 'ali') {
     // 阿里字体图标使用 `iconfont xxx`
     if (state.fontIconList.ali.length > 0) return;
-    await initIconfont.ali().then((res: any) => {
-      state.fontIconList.ali = res.map((i: string) => `iconfont ${i}`);
+    await initIconfont.ali().then((res) => {
+      state.fontIconList.ali = res.map((i) => `iconfont ${i}`);
     });
   } else if (name === 'ele') {
     // element plus 图标
     if (state.fontIconList.ele.length > 0) return;
-    await initIconfont.ele().then((res: any) => {
+    await initIconfont.ele().then((res) => {
       state.fontIconList.ele = res;
     });
   } else if (name === 'awe') {
     // fontawesome字体图标使用 `fa xxx`
     if (state.fontIconList.awe.length > 0) return;
-    await initIconfont.awe().then((res: any) => {
-      state.fontIconList.awe = res.map((i: string) => `fa ${i}`);
+    await initIconfont.awe().then((res) => {
+      state.fontIconList.awe = res.map((i) => `fa ${i}`);
     });
   }
   // 初始化 input 的 placeholder
@@ -197,12 +196,12 @@ const initFontIconData = async (name: string) => {
   initModeValueEcho();
 };
 // 图标点击切换
-const onIconClick = (pane: TabsPaneContext) => {
-  initFontIconData(pane.paneName as string);
+const onIconClick = (pane) => {
+  initFontIconData(pane.paneName);
   inputWidthRef.value.focus();
 };
 // 获取当前点击的 icon 图标
-const onColClick = (v: string) => {
+const onColClick = (v) => {
   state.fontIconPlaceholder = v;
   state.fontIconPrefix = v;
   emit('get', state.fontIconPrefix);

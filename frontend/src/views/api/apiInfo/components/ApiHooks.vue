@@ -82,7 +82,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="preOperation">
+<script setup name="preOperation">
 import {reactive, ref} from 'vue';
 import {handleEmpty} from "/@/utils/other";
 import {ArrowDown} from "@element-plus/icons";
@@ -99,7 +99,7 @@ const state = reactive({
 });
 
 // init hook
-const setData = (setup_hooks: any, teardown_hooks: any, case_id: number) => {
+const setData = (setup_hooks, teardown_hooks, case_id) => {
   state.setup_hooks = setup_hooks ? setup_hooks : []
   state.teardown_hooks = teardown_hooks ? teardown_hooks : []
   state.case_id = case_id ? case_id : 0
@@ -117,7 +117,7 @@ const getData = () => {
   }
 }
 
-const handleAddData = (hook_type: string, optType: string) => {
+const handleAddData = (hook_type, optType) => {
   if (hook_type === "setup") {
     setupHooksRef.value.handleAddData(optType)
   } else if (hook_type === "teardown") {

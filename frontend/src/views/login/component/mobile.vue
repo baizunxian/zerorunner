@@ -31,7 +31,7 @@
 	</el-form>
 </template>
 
-<script setup lang="ts" name="loginMobile">
+<script setup name="loginMobile">
 import { reactive } from 'vue';
 
 // 定义变量内容

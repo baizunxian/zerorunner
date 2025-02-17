@@ -42,24 +42,30 @@
 
     </el-dialog>
 
+    <!--    关系弹窗-->
+    <ApiRelationGraph ref="ApiRelationGraphRef"></ApiRelationGraph>
+
   </div>
 </template>
 
-<script lang="ts" setup name="TimedTask">
+<script setup name="TimedTask">
 import {h, onMounted, reactive, ref} from 'vue';
-import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
+import {ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElMessage, ElMessageBox} from 'element-plus';
 import EditTimedTask from './EditTimedTask.vue';
 import {useTimedTasksApi} from "/@/api/useAutoApi/timedTasks";
 import {formatLookup} from "/@/utils/lookup";
 import TaskRecord from "/@/views/job/taskRecord/index.vue";
+import {MoreFilled} from "@element-plus/icons";
+import ApiRelationGraph from "/@/components/RelationGraph/ApiRelationGraph.vue";
 
 const saveOrUpdateRef = ref();
+const ApiRelationGraphRef = ref();
 const tableRef = ref();
 const state = reactive({
   columns: [
     {
       key: 'name', label: '任务名称', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         type: "primary",
         link: true,
         onClick: () => {
@@ -73,7 +79,7 @@ const state = reactive({
       width: '',
       align: 'center',
       show: true,
-      render: ({row}: any) => handleTaskType(row)
+      render: ({row}) => handleTaskType(row)
     },
     {key: 'project_name', label: '所属项目', width: '', align: 'center', show: true},
     {
@@ -82,7 +88,7 @@ const state = reactive({
       width: '',
       align: 'center',
       show: true,
-      render: ({row}: any) => {
+      render: ({row}) => {
         let value = formatLookup("api_timed_task_status", row.enabled)
         return h("span", {style: {color: row.enabled ? '#0cbb52' : '#e6a23c'}}, value)
       }
@@ -93,8 +99,8 @@ const state = reactive({
     {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
-      label: '操作', columnType: 'string', fixed: 'right', width: '340', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      label: '操作', columnType: 'string', fixed: 'right', width: '250', align: 'center',
+      render: ({row}) => h("div", null, [
 
         h(ElButton, {
           type: "",
@@ -117,19 +123,70 @@ const state = reactive({
           }
         }, () => "日志"),
 
-        h(ElButton, {
-          type: "primary",
-          onClick: () => {
-            onOpenSaveOrUpdate("update", row)
-          }
-        }, () => '编辑'),
+        // h(ElButton, {
+        //   type: "primary",
+        //   onClick: () => {
+        //     onOpenSaveOrUpdate("update", row)
+        //   }
+        // }, () => '编辑'),
 
-        h(ElButton, {
-          type: "danger",
-          onClick: () => {
-            deleted(row)
-          }
-        }, () => '删除')
+        // h(ElButton, {
+        //   type: "danger",
+        //   onClick: () => {
+        //     deleted(row)
+        //   }
+        // }, () => '删除'),
+
+        h(ElDropdown, {
+              style: {
+                verticalAlign: "middle",
+                marginLeft: "12px"
+              }
+            },
+            {
+              default: () => h(ElButton, {
+                style: {},
+                link: true,
+                icon: MoreFilled
+              }),
+              dropdown: () => h(ElDropdownMenu, {
+                    style: {
+                      minWidth: "100px"
+                    },
+                  },
+                  {
+                    default: () => [
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-primary)"
+                        },
+                        onClick: () => {
+                          onOpenSaveOrUpdate("update", row)
+                        }
+                      }, () => '编辑'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "#626aef"
+                        },
+                        onClick: () => {
+                          viewRelationGraph(row)
+                        }
+                      }, () => '血缘关系'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-danger)"
+                        },
+                        onClick: () => {
+                          deleted(row)
+                        }
+                      }, () => '删除'),
+                    ]
+                  }
+              )
+            }
+        ),
+
+
       ])
     },
   ],
@@ -161,12 +218,12 @@ const getList = () => {
 };
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
+const onOpenSaveOrUpdate = (editType, row) => {
   saveOrUpdateRef.value.openDialog(editType, row);
 };
 
 // 新增或修改
-const taskSwitch = (row: any) => {
+const taskSwitch = (row) => {
   ElMessageBox.confirm(`${row.enabled ? '停止' : '启动'}当前任务, 是否继续?`, '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -182,7 +239,7 @@ const taskSwitch = (row: any) => {
 };
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -199,7 +256,7 @@ const deleted = (row: any) => {
       });
 };
 
-const runOnceJob = (row: any) => {
+const runOnceJob = (row) => {
   ElMessageBox.confirm("即将手动调度任务, 是否继续？", '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -211,7 +268,7 @@ const runOnceJob = (row: any) => {
   })
 }
 
-const handleTaskType = (row: any) => {
+const handleTaskType = (row) => {
   if (row.task_type === 'crontab') {
     return `${row.task_type}[${row.crontab}]`
   } else if (row.task_type === 'interval') {
@@ -219,7 +276,11 @@ const handleTaskType = (row: any) => {
   }
 }
 
-const viewRunLog = (row: any) => {
+const viewRelationGraph = (row) => {
+  ApiRelationGraphRef.value.openDialog(row.id, 'timed_task')
+}
+
+const viewRunLog = (row) => {
   state.business_id = row.id
   state.showRunLogPage = true
 }

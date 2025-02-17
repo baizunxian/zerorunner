@@ -54,24 +54,34 @@
       </template>
     </el-dialog>
 
+    <!--    <RelationGraph></RelationGraph>-->
+
+    <!--    关系弹窗-->
+    <ApiRelationGraph ref="ApiRelationGraphRef"></ApiRelationGraph>
+
+
   </div>
 </template>
 
-<script lang="ts" setup name="apiCase">
+<script setup name="apiCase">
 import {h, onMounted, reactive, ref} from 'vue';
-import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
+import {ElButton, ElDropdown, ElDropdownItem, ElDropdownMenu, ElMessage, ElMessageBox} from 'element-plus';
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRouter} from 'vue-router'
 import {useEnvApi} from "/@/api/useAutoApi/env";
+import ApiRelationGraph from "/@/components/RelationGraph/ApiRelationGraph.vue";
+import {MoreFilled} from "@element-plus/icons";
+
 
 const tableRef = ref();
+const ApiRelationGraphRef = ref();
 const router = useRouter();
 const state = reactive({
   columns: [
     {key: 'id', label: 'ID', width: '55', align: 'center', show: true},
     {
       key: 'name', label: '用例名称', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -88,7 +98,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', width: '200', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -96,12 +106,12 @@ const state = reactive({
           }
         }, () => '运行'),
 
-        h(ElButton, {
-          type: "primary",
-          onClick: () => {
-            onOpenSaveOrUpdate("update", row)
-          }
-        }, () => '编辑'),
+        // h(ElButton, {
+        //   type: "primary",
+        //   onClick: () => {
+        //     onOpenSaveOrUpdate("update", row)
+        //   }
+        // }, () => '编辑'),
 
         // h(ElButton, {
         //   type: "warning",
@@ -109,13 +119,68 @@ const state = reactive({
         //     toViewReport(row)
         //   }
         // }, () => '查看报告'),
-
         h(ElButton, {
-          type: "danger",
+          color: "#626aef",
           onClick: () => {
-            deleted(row)
+            viewRelationGraph(row)
           }
-        }, () => '删除')
+        }, () => '血缘关系'),
+
+        // h(ElButton, {
+        //   type: "danger",
+        //   onClick: () => {
+        //     deleted(row)
+        //   }
+        // }, () => '删除'),
+
+        h(ElDropdown, {
+              style: {
+                verticalAlign: "middle",
+                marginLeft: "12px"
+              }
+            },
+            {
+              default: () => h(ElButton, {
+                style: {},
+                link: true,
+                icon: MoreFilled
+              }),
+              dropdown: () => h(ElDropdownMenu, {
+                    style: {
+                      minWidth: "100px"
+                    },
+                  },
+                  {
+                    default: () => [
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-primary)"
+                        },
+                        onClick: () => {
+                          onOpenSaveOrUpdate("update", row)
+                        }
+                      }, () => '编辑'),
+                      // h(ElDropdownItem, {
+                      //   style: {
+                      //     color: "#626aef"
+                      //   },
+                      //   onClick: () => {
+                      //     viewRelationGraph(row)
+                      //   }
+                      // }, () => '血缘关系'),
+                      h(ElDropdownItem, {
+                        style: {
+                          color: "var(--el-color-danger)"
+                        },
+                        onClick: () => {
+                          deleted(row)
+                        }
+                      }, () => '删除'),
+                    ]
+                  }
+              )
+            }
+        ),
       ])
     },
   ],
@@ -159,9 +224,12 @@ const search = () => {
 }
 
 // 新增或修改
-const onOpenSaveOrUpdate = (editType: string, row: any) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (editType, row) => {
+  let query = {}
   query.editType = editType
+  if (query.editType === 'save') {
+    query.timestamp = new Date().getTime()
+  }
   if (row) query.id = row.id
   router.push({name: 'EditApiCase', query: query})
 };
@@ -172,7 +240,7 @@ const toViewReport = (row) => {
 }
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -190,7 +258,7 @@ const deleted = (row: any) => {
 };
 
 // 打开运行页面
-const onOpenRunPage = (row: any) => {
+const onOpenRunPage = (row) => {
   state.showRunPage = true;
   state.runForm.id = row.id;
   getEnvList();
@@ -212,9 +280,20 @@ const runApiTestCase = () => {
   })
 };
 
+const viewRelationGraph = (row) => {
+  ApiRelationGraphRef.value.openDialog(row.id, 'case')
+}
+
+
 // 页面加载时
 onMounted(() => {
   getList();
 });
 
 </script>
+
+<style lang="scss" scoped>
+:deep(.relation-draggable .el-dialog__body) {
+  height: 80vh;
+}
+</style>

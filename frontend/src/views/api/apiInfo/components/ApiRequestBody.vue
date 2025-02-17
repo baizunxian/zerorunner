@@ -11,6 +11,7 @@
         >
           <el-radio label="none">none</el-radio>
           <el-radio label="form_data">form-data</el-radio>
+          <el-radio label="x_www_form_urlencoded">x-www-form-urlencoded</el-radio>
           <el-radio label="raw">raw</el-radio>
 
           <el-dropdown @command="handleLanguage"
@@ -125,6 +126,53 @@
         </el-row>
       </div>
     </div>
+    <!---------------------------x-www-form-urlencoded------------------------------------>
+    <div v-if="state.mode === 'x_www_form_urlencoded'">
+      <div>
+        <el-row justify="space-between"
+                v-for="(data, index) in state.x_www_form_urlencoded"
+                :key="index"
+                align="middle"
+                style="padding: 5px 0;"
+        >
+          <!--            参数名-->
+          <el-col :span="8">
+            <div class="mt-4">
+              <el-input
+                  v-model="data.key"
+                  placeholder="Key"
+                  class="input-with-select"
+              >
+              </el-input>
+            </div>
+          </el-col>
+
+          <!--参数值-->
+          <el-col :span="8">
+            <el-input size="small"
+                      placeholder="Value"
+                      v-model="data.value"></el-input>
+          </el-col>
+
+          <el-col :span="5">
+            <el-input size="small"
+                      maxlength="200"
+                      placeholder="备注"
+                      v-model="data.remarks">
+            </el-input>
+          </el-col>
+
+          <el-col :span="1">
+            <el-button type="danger" circle @click="deleteXFormData(index)"
+                       :disabled="state.x_www_form_urlencoded.length === index  + 1 ">
+              <el-icon>
+                <ele-Delete/>
+              </el-icon>
+            </el-button>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
     <!---------------------------raw------------------------------------>
     <div v-if="state.mode === 'raw'" style="padding-top: 8px;">
       <div style="border: 1px solid #E6E6E6">
@@ -204,32 +252,16 @@
   </el-form>
 </template>
 
-<script lang="ts" setup name="requestBody">
+<script setup name="requestBody">
 import {reactive, ref, watch} from "vue";
 import {useFileApi} from '/@/api/useSystemApi/file'
-import {handleEmpty} from "/@/utils/other";
 import {ArrowDown} from '@element-plus/icons'
 
 const emit = defineEmits(["updateContentType"])
 
-interface StateData {
-  mode: string,
-  language: string,
-  languageList: Array<string>,
-  popoverOpen: boolean,
-  bodyData: Array<any>,
-  rawData: string,
-  paramsData: Array<any>,
-  dataTypeOptions: Array<string>,
-  formData: Array<any>,
-  formDatatypeOptions: Array<string>,
-  fileData: object,
-  lang: string,
-}
-
 const monacoEditRef = ref()
 
-const state = reactive<StateData>({
+const state = reactive({
   mode: 'raw',
   language: 'JSON',
   languageList: ['JSON', 'Text'],
@@ -243,6 +275,8 @@ const state = reactive<StateData>({
   formData: [],
   formDatatypeOptions: ['text', 'file'],
   fileData: {},
+  // x_www_form_urlencoded
+  x_www_form_urlencoded: [],
 
   //monaco
   lang: 'json',
@@ -254,18 +288,20 @@ const initData = () => {
   state.language = "JSON"
   state.rawData = ""
   state.formData = []
+  state.x_www_form_urlencoded = []
   state.fileData = {}
 }
 // 初始化表单
-const setData = (data: any) => {
-  console.log("data,", data)
+const setData = (data) => {
   initData()
   if (!data) return
-
   let mode = state.mode = data.mode
   switch (mode) {
     case 'form_data':
       state.formData = data.data ? data.data : []
+      break
+    case 'x_www_form_urlencoded':
+      state.x_www_form_urlencoded = data.data ? data.data : []
       break
     case 'raw':
       state.rawData = data.data
@@ -278,26 +314,17 @@ const setData = (data: any) => {
   }
 }
 
-// 获取是否填写状态
-const getStatus = () => {
-  let formDataList: Array<any> = handleEmpty(state.formData)
-  switch (state.mode) {
-    case 'form_data':
-      return formDataList.length > 0
-    case 'raw':
-      return state.rawData !== ''
-  }
-}
-
 // 获取表单数据
 const getData = () => {
-  let requestData: any = {}
+  let requestData = {}
   requestData.mode = state.mode
   if (state.mode === 'raw') {
     requestData.data = state.rawData
     requestData.language = state.language
   } else if (state.mode === 'form_data') {
-    requestData.data = state.formData.filter((e: any) => e.key !== "" || e.value !== "")
+    requestData.data = state.formData.filter((e) => e.key !== "" || e.value !== "")
+  } else if (state.mode === 'x_www_form_urlencoded') {
+    requestData.data = state.x_www_form_urlencoded.filter((e) => e.key !== "" || e.value !== "")
   } else if (state.mode === 'none') {
     requestData.data = null
   }
@@ -305,14 +332,14 @@ const getData = () => {
 }
 
 // 参数类型变更
-const radioChange = (value: any) => {
+const radioChange = (value) => {
   state.mode = value
   state.popoverOpen = false
   updateContentType(value === 'none' || value === 'form_data')
 }
 
 // 处理raw 语言
-const handleLanguage = (language: any) => {
+const handleLanguage = (language) => {
   state.popoverOpen = !state.popoverOpen
   // rawPopoverRef.value.hide()
   state.language = language
@@ -320,7 +347,7 @@ const handleLanguage = (language: any) => {
 }
 
 // 处理头信息
-const updateContentType = (remove: any = false) => {
+const updateContentType = (remove = false) => {
   emit('updateContentType', state.mode, state.language, remove)
 }
 
@@ -328,7 +355,7 @@ const updateContentType = (remove: any = false) => {
 const addData = () => {
   state.bodyData.push({key: '', type: 'string', value: ''})
 }
-const deleteData = (index: number) => {
+const deleteData = (index) => {
   state.bodyData.splice(index, 1)
 }
 
@@ -336,7 +363,7 @@ const deleteData = (index: number) => {
 const addParams = () => {
   state.paramsData.push({key: '', type: 'string', value: ''})
 }
-const deleteParams = (index: number) => {
+const deleteParams = (index) => {
   state.paramsData.splice(index, 1)
 }
 
@@ -344,9 +371,16 @@ const deleteParams = (index: number) => {
 const addFormData = () => {
   state.formData.push({key: '', type: 'text', value: ''})
 }
+// formData
+const addXFormData = () => {
+  state.x_www_form_urlencoded.push({key: '', value: ''})
+}
 // 删除
-const deleteFormData = (index: number) => {
+const deleteFormData = (index) => {
   state.formData.splice(index, 1)
+}// 删除
+const deleteXFormData = (index) => {
+  state.x_www_form_urlencoded.splice(index, 1)
 }
 const formDataBlur = () => {
   if (state.formData.length > 0) {
@@ -358,35 +392,45 @@ const formDataBlur = () => {
     addFormData()
   }
 }
+const xFormDataBlur = () => {
+  if (state.x_www_form_urlencoded.length > 0) {
+    let endData = state.x_www_form_urlencoded[state.x_www_form_urlencoded.length - 1]
+    if (!endData || (endData.key !== "" || endData.value !== "")) {
+      addXFormData()
+    }
+  } else {
+    addXFormData()
+  }
+}
 
 // 选择文件时触发，上传文件，回写地址
-const fileChange = (e: any, row: any, index: number) => {
+const fileChange = (e, row, index) => {
   state.fileData = e.target.files[0]
-  let file: any = e.target.files[0]
+  let file = e.target.files[0]
   let formData = new FormData
   // formData.append('name', file.name)
   formData.append('file', file)
   useFileApi().upload(formData)
-      .then((res: any) => {
+      .then((res) => {
         row.value = res.data
       })
       .catch(() => {
-        let fileRef: any = document.getElementById('selectFile' + index)
+        let fileRef = document.getElementById('selectFile' + index)
         if (fileRef) fileRef.value = ''
         row.value = ""
       })
 
 }
 // 删除文件处理
-const deletedFile = (row: any, index: number) => {
-  let fileRef: any = document.getElementById('selectFile' + index)
+const deletedFile = (row, index) => {
+  let fileRef = document.getElementById('selectFile' + index)
   useFileApi().deleted({name: row.value.name})
   row.value = {}
   if (fileRef) fileRef.value = ''
 }
 
 // 选择文件
-const selectFile = (index: number) => {
+const selectFile = (index) => {
   let fileRef = document.getElementById('selectFile' + index)
   if (fileRef) fileRef.click()
 }
@@ -425,11 +469,21 @@ watch(
       deep: true
     }
 );
+watch(
+    () => state.x_www_form_urlencoded,
+    () => {
+      xFormDataBlur()
+    }, {
+      deep: true
+    }
+);
 
 const getDataLength = () => {
   let dataLength = 0
   if (state.mode === 'form_data') {
     dataLength = state.formData?.length || 0
+  } else if (state.mode === 'x_www_form_urlencoded') {
+    dataLength = state.x_www_form_urlencoded?.length || 0
   } else if (state.mode === 'raw') {
     dataLength = state.rawData.length || 0
   } else if (state.mode === 'none') {

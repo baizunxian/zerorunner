@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-import time
 import typing
-from datetime import datetime
 
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep, TRequest
-from zerorunner.models import TStepResultStatusEnum
+from zerorunner.models.step_model import TStep, TRequest
 from zerorunner.runner import SessionRunner
 from zerorunner.steps.step_api_requet import RunRequestStep, StepRequestValidation, StepRequestExtraction, \
     RequestWithOptionalArgs
@@ -51,6 +47,12 @@ class Step(object):
     def struct(self) -> TStep:
         return self.__step.struct()
 
+    def set_index(self, index):
+        self.__step.struct().index = index
+
+    def get_index(self):
+        return self.__step.struct().index
+
     @property
     def name(self) -> str:
         return self.__step.name()
@@ -60,4 +62,3 @@ class Step(object):
 
     def run(self, runner: SessionRunner, **kwargs):
         return self.__step.run(runner, **kwargs)
-

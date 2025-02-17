@@ -39,7 +39,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ScriptController">
+<script setup name="ScriptController">
 
 import {computed, reactive} from "vue";
 
@@ -58,7 +58,7 @@ const o_content = computed({
       get() {
         return props.codeContent
       },
-      set(val: any) {
+      set(val) {
         emit("update:codeContent", val)
       }
     }
@@ -69,30 +69,30 @@ const state = reactive({
 })
 
 
-const headers = (type: string) => {
-  let content: string
+const headers = (type) => {
+  let content
   let setContent = o_content.value ? '\nzero.headers.set("key", "value")' : 'zero.headers.set("key", "value")'
   let getContent = o_content.value ? '\nzero.headers.get("key")' : 'zero.headers.get("key")'
-  content = type == "set" ? setContent : getContent
+  content = type === "set" ? setContent : getContent
   o_content.value = o_content.value + content
   console.log(props.codeContent, "codeContent")
   console.log(o_content.value, "o_content")
 }
 
 // 设置环境变量
-const environment = (type: string) => {
-  let content: string
+const environment = (type) => {
+  let content
   let setContent = o_content.value ? '\nzero.environment.set("key", "value")' : 'zero.environment.set("key", "value")'
   let getContent = o_content.value ? '\nzero.environment.get("key")' : 'zero.environment.get("key")'
-  content = type == "set" ? setContent : getContent
+  content = type === "set" ? setContent : getContent
   o_content.value += content
 }
 
-const variables = (type: string) => {
-  let content: string
+const variables = (type) => {
+  let content
   let setContent = o_content.value ? '\nzero.variables.set("key", "value")' : 'zero.variables.set("key", "value")'
   let getContent = o_content.value ? '\nzero.variables.get("key")' : 'zero.variables.get("key")'
-  content = type == "set" ? setContent : getContent
+  content = type === "set" ? setContent : getContent
   o_content.value += content
 }
 

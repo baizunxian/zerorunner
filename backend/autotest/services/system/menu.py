@@ -7,7 +7,7 @@ from autotest.utils.local import g
 from autotest.utils.response.codes import CodeEnum
 from autotest.models.system_models import Menu
 from autotest.schemas.system.menu import MenuIn, MenuDel, MenuViews
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
 
 
 class MenuService:
@@ -73,7 +73,7 @@ class MenuService:
         if not menu.get('meta', None):
             menu['meta'] = {
                 'title': menu.get('title', None),
-                'isLink': menu.pop('isLink', None),
+                'isLink': menu.pop('linkUrl', ""),
                 'isHide': menu.pop('isHide', None),
                 'isKeepAlive': menu.pop('isKeepAlive', None),
                 'isAffix': menu.pop('isAffix', None),

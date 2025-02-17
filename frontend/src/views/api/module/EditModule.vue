@@ -74,7 +74,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="saveOrUpdateModule">
+<script setup name="saveOrUpdateModule">
 import {defineExpose, reactive, ref} from 'vue';
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {useModuleApi} from "/@/api/useAutoApi/module";
@@ -120,7 +120,7 @@ const getProjectList = () => {
 };
 
 // 打开弹窗
-const openDialog = (type: string, row: any) => {
+const openDialog = (type, row) => {
   // 获取项目列表
   getProjectList()
   state.editType = type
@@ -137,7 +137,7 @@ const onDialog = () => {
 };
 // 新增
 const saveOrUpdate = () => {
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
       useModuleApi().saveOrUpdate(state.form)
           .then(() => {
@@ -147,8 +147,6 @@ const saveOrUpdate = () => {
           })
     }
   })
-  console.log(state.form, 'state.menuForm')
-  // setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
 };
 
 defineExpose({

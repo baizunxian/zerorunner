@@ -20,7 +20,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="CoverageList">
+<script setup name="CoverageList">
 import {h, onMounted, reactive, ref} from 'vue';
 import {useRouter} from "vue-router";
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
@@ -34,7 +34,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
     {
       key: 'name', label: '项目名称', align: 'center', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -44,7 +44,7 @@ const state = reactive({
     },
     {
       key: 'coverage_type', label: '覆盖类型', align: 'center', width: '', show: true,
-      render: ({row}: any) => h(ElTag, {
+      render: ({row}) => h(ElTag, {
         type: row.coverage_type === 10 ? "warning" : "success",
       }, () => row.coverage_type === 10 ? "全量" : "增量")
     },
@@ -57,7 +57,7 @@ const state = reactive({
 
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -103,12 +103,12 @@ const search = () => {
 }
 
 // 新增或修改角色
-const onOpenReportDetail = (row: any) => {
+const onOpenReportDetail = (row) => {
   router.push({path: '/precisionTest/CoverageDetail', query: {id: row.id}})
 };
 
 // 删除角色
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

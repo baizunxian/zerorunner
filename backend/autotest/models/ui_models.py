@@ -167,7 +167,7 @@ class UiSteps(Base):
     """步骤表"""
     __tablename__ = 'ui_steps'
 
-    index = mapped_column(Integer, nullable=False, comment='步骤排序', index=True)
+    index = mapped_column(String(255), nullable=False, comment='步骤排序', index=True)
     operation = mapped_column(String(255), comment='操作')
     input_data = mapped_column(String(255), comment='输入数据')
     location_method = mapped_column(String(255), comment='定位元素方式')
@@ -186,7 +186,7 @@ class UiReports(Base):
     start_time = mapped_column(DateTime, comment='执行时间')
     duration = mapped_column(DECIMAL(), comment='执行耗时')
     case_id = mapped_column(Integer(), comment='用例id', index=True)
-    run_type = mapped_column(Integer, comment='运行类型， 10 同步， 20 异步，30 定时任务')
+    run_mode = mapped_column(Integer, comment='运行类型， 10 同步， 20 异步，30 定时任务')
     success = mapped_column(Integer(), comment='是否成功')
     run_count = mapped_column(Integer, comment='运行步骤数')
     run_success_count = mapped_column(Integer, comment='运行成功数')
@@ -301,7 +301,7 @@ class UiReportDetail:
                 __tablename__ = class_name
 
                 name = mapped_column(String(255), nullable=False, comment='报告名', index=True)
-                index = mapped_column(Integer, comment='步骤顺序')
+                index = mapped_column(String(255), comment='步骤顺序')
                 variables = mapped_column(JSON, comment='步骤变量')
                 data = mapped_column(String(500), comment='步骤数据')
                 action = mapped_column(String(255), comment='步骤动作')

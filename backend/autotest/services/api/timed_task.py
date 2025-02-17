@@ -5,13 +5,12 @@ import typing
 from celery.schedules import crontab as celery_crontab
 from loguru import logger
 
-from autotest.utils.local import g
-from autotest.utils.response.codes import CodeEnum
 from autotest.exceptions.exceptions import ParameterError
-from autotest.models.celery_beat_models import TimedTask, Crontab, IntervalSchedule, PeriodicTaskChanged
+from autotest.models.celery_beat_models import TimedTask, Crontab, IntervalSchedule, PeriodicTaskChanged, TimedTaskCase
 from autotest.schemas.api.timed_task import TimedTasksQuerySchema, CrontabSaveSchema, TimedTasksInSchema, TimedTasksId, \
-    TaskKwargsIn, IntervalIn
-from autotest.utils import current_user
+    TaskKwargsIn, IntervalIn, TimedTaskCaseQuery
+from autotest.utils.current_user import current_user
+from autotest.utils.response.codes import CodeEnum
 from celery_worker.worker import celery
 
 
@@ -88,7 +87,28 @@ class TimedTasksService:
                 task_tags = data.get("task_tags", None)
                 data["task_tags"] = task_tags.split(',') if task_tags else []
 
+            data['project_env_id'] = None
+            data['project_ids'] = []
+            data['module_ids'] = []
+            if 'kwargs' in data:
+                kwargs = json.loads(data['kwargs'])
+                data['project_env_id'] = kwargs.get("project_env_id", None)
+                data['project_ids'] = kwargs.get("project_ids", [])
+                data['module_ids'] = kwargs.get("module_ids", [])
+
         return result
+
+    @staticmethod
+    async def get_task_case_info(params: TimedTaskCaseQuery):
+        if params.type == "case":
+            data = await TimedTaskCase.get_by_case(params)
+        elif params.type == 'ui':
+            data = []
+        elif params.type == "script":
+            data = []
+        else:
+            raise ValueError("type参数错误！")
+        return data
 
     @staticmethod
     async def save_or_update(params: TimedTasksInSchema) -> typing.Dict:
@@ -118,31 +138,57 @@ class TimedTasksService:
             if params.task_type == "crontab":
                 crontab = await CrontabService.save_or_update(CrontabSaveSchema(crontab=params.crontab))
                 params.crontab_id = crontab.get("id")
+                params.interval_id = None
+                params.interval_every = None
+                params.interval_period = None
             elif params.task_type == "interval":
                 interval = await IntervalService.save_or_update(
                     IntervalIn(every=params.interval_every, period=params.interval_period))
                 params.interval_id = interval.get("id")
+                params.crontab_id = None
+                params.crontab = None
             else:
                 raise ParameterError("请选择调度类型！")
 
             task_kwargs = TaskKwargsIn(
                 name=params.name,
                 case_ids=params.case_ids,
+                # project_env_id=params.project_env_id,
+                # project_ids=params.project_ids,
+                # module_ids=params.module_ids,
                 case_env_id=params.case_env_id,
                 ui_ids=params.ui_ids,
                 ui_env_id=params.ui_env_id,
                 project_id=params.project_id,
-                run_type=30,
-                run_mode=params.run_mode,
+                module_id=params.module_id,
+                run_type="case",
+                run_mode=30,
                 exec_user_id=user_info.get("id"),
                 exec_user_name=user_info.get("nickname"),
             )
-
+            case_ids = params.case_ids
+            ui_ids = params.ui_ids
+            task_case_params = []
             params.case_ids = ','.join(params.case_ids)
             params.task_tags = ','.join(params.task_tags)
             params.kwargs = task_kwargs.json()
-            timed_task = await TimedTask.create_or_update(params.dict())
+            timed_task = await TimedTask.create_or_update(params.dict(exclude_none=False))
+            task_id = timed_task.get("id")
             await TaskChangedService.update_changed()
+            if case_ids:
+                task_case_params.extend([dict(task_id=task_id,
+                                              case_id=case_id,
+                                              type="case") for case_id in case_ids])
+
+            if ui_ids:
+                task_case_params.extend([dict(task_id=task_id,
+                                              case_id=case_id,
+                                              type="ui") for case_id in
+                                         ui_ids])
+            if task_case_params:
+                await TimedTaskCase.deleted_by_task_id(task_id)
+                await TimedTaskCase.batch_create(task_case_params)
+
             return timed_task
         except Exception as err:
             logger.error(f"保存定时任务错误：\n{traceback.format_exc()}")

@@ -86,7 +86,7 @@
             <strong>{{ row.func_args }}</strong>
           </template>
         </el-table-column>
-        <el-table-column prop="func_doc" label="函数说明" show-overflow-tooltip align="left">
+        <el-table-column prop="func_doc" label="函数说明" :show-overflow-tooltip="true" align="left">
           <template #default="{row}">
             <div v-html="row.func_doc"></div>
           </template>
@@ -136,7 +136,6 @@
           </el-descriptions-item>
           <el-descriptions-item width="150px" label="执行结果">
             <z-monaco-editor
-                ref="monacoEdit"
                 :options="state.options"
                 style="height: 300px;"
                 v-model:value="state.debugFuncResult"
@@ -151,7 +150,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="ApiFunctions">
+<script setup name="ApiFunctions">
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useFunctionsApi} from "/@/api/useAutoApi/functions";
@@ -169,7 +168,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', width: 'auto', align: 'center', show: true},
     {
       key: 'name', label: '函数名称', width: 'auto', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -186,7 +185,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', width: '160', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -229,7 +228,7 @@ const state = reactive({
   // monaco
   options: {
     lineNumbers: 'off',
-    readOnly: true,
+    // readOnly: true,
     lineDecorationsWidth: 1,
     lineNumbersMinChars: 1,
     minimap: {
@@ -261,8 +260,8 @@ const search = () => {
 }
 
 // 新增或修改
-const onOpenSaveOrUpdate = (row: any) => {
-  let query: any = {}
+const onOpenSaveOrUpdate = (row) => {
+  let query = {}
   if (row) {
     query.id = row.id
   } else {
@@ -273,7 +272,7 @@ const onOpenSaveOrUpdate = (row: any) => {
 };
 
 // 删除角色
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -291,7 +290,7 @@ const deleted = (row: any) => {
 };
 
 // 打开函数列表页面
-const openFuncList = (row: any) => {
+const openFuncList = (row) => {
   state.funcQuery.id = null
   if (row) state.funcQuery.id = row.id
   state.debugFuncListShow = !state.debugFuncListShow
@@ -305,8 +304,8 @@ const getFuncList = () => {
       })
 }
 //函数页面初始化
-const showDebugFunc = (row: any) => {
-  state.debugFuncResult = ''
+const showDebugFunc = (row) => {
+  state.debugFuncResult = ""
   state.funcArgsInfo = {}
   state.funcArgsInfo = row.args_info
   state.debugFuncShow = !state.debugFuncShow
@@ -322,17 +321,18 @@ const debugFunc = () => {
   useFunctionsApi().debugFunc(state.debugFuncForm)
       .then(res => {
         state.debugFuncResult = JSON.stringify(res.data.result)
+        console.log("state.debugFuncResult", state.debugFuncResult)
       })
 }
 
 // 复制函数
-const copyFunc = (row: any) => {
+const copyFunc = (row) => {
   let funcContent = '${' + `${row.func_name}${row.func_args}` + '}'
   funcContent = funcContent.replace(/'/g, '"')
   copyText(funcContent)
 }
 // 列表选中触发
-const selectionChange = (val: any) => {
+const selectionChange = (val) => {
   state.selectChangeList = val
   emit("selectionChange", val)
 }

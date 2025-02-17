@@ -1,21 +1,24 @@
 <template>
-  <el-input-number v-model="data.wait_request.wait_time"
+  <el-input-number v-model="data.request.wait_time"
                    controls-position="right"
                    @click.stop=""/>
-  <span style="margin-left: 5px">m</span>
+  <span style="margin-left: 5px">s</span>
 </template>
 
-<script lang="ts" setup name="WaitHeader">
+<script setup name="WaitHeader">
 
-import {PropType} from "vue";
+import useVModel from "/@/utils/useVModel";
 
+const emit = defineEmits(['update:data'])
 const props = defineProps({
   data: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     default: () => {
       return {}
     }
   },
 })
+
+const data = useVModel(props, 'data', emit)
 
 </script>

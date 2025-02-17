@@ -47,8 +47,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="FuncsConfig">
-import {h, onMounted, reactive, ref} from "vue";
+<script setup name="FuncsConfig">
+import {h, onMounted, reactive} from "vue";
 import {useEnvApi} from "/@/api/useAutoApi/env";
 import {ElButton, ElMessage} from "element-plus";
 import {useFunctionsApi} from "/@/api/useAutoApi/functions";
@@ -56,7 +56,6 @@ import {useRouter} from "vue-router";
 import FuncInfo from "/@/views/api/functions/index.vue"
 
 const router = useRouter()
-const formRef = ref()
 const state = reactive({
   env_id: null,
   headersBulk: '',  // bulk内容
@@ -82,7 +81,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', width: '80', align: 'center',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "warning",
           onClick: () => {
@@ -100,7 +99,7 @@ const state = reactive({
 
 });
 
-const setData = (data: any) => {
+const setData = (data) => {
   state.env_id = data.id
   getBindFuncsList()
 }
@@ -121,12 +120,12 @@ const getFuncsList = () => {
       })
 };
 
-const selectionChange = (val: any) => {
+const selectionChange = (val) => {
   console.log(val, 1)
   state.selectionChangeList = val
 }
 
-const selectionBindChange = (val: any) => {
+const selectionBindChange = (val) => {
   state.selectionBindChangeList = val
 }
 
@@ -139,11 +138,11 @@ const bindFuncs = () => {
 
   let form = {
     env_id: state.env_id,
-    func_ids: state.selectionBindChangeList.map((e: any) => {
+    func_ids: state.selectionBindChangeList.map((e) => {
       return e.id
     }),
   }
-  useEnvApi().bindingFuncs(form).then((res: any) => {
+  useEnvApi().bindingFuncs(form).then((res) => {
     state.showBindPage = false
     ElMessage.success("关联成功!")
     getBindFuncsList()
@@ -155,7 +154,7 @@ const bindFuncs = () => {
 const unbindFuncs = () => {
   let form = {
     env_id: state.env_id,
-    func_ids: state.selectionChangeList.map((e: any) => {
+    func_ids: state.selectionChangeList.map((e) => {
       return e.func_id
     }),
   }
@@ -166,7 +165,7 @@ const unbindFuncs = () => {
 }
 
 // 查看
-const viewFuncInfo = (row: any) => {
+const viewFuncInfo = (row) => {
   router.push({path: "/api/functions/edit", query: {id: row.func_id}})
 };
 

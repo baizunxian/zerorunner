@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="preOperation">
+<script setup name="preOperation">
 import {reactive} from 'vue';
 import {handleEmpty} from "/@/utils/other";
 
@@ -15,7 +15,7 @@ const state = reactive({
 });
 
 // init suite
-const setData = (data: any, case_id: number) => {
+const setData = (data, case_id) => {
   state.preSteps = []
   state.case_id = 0
   if (data) state.preSteps = data

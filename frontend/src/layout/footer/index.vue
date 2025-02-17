@@ -7,7 +7,7 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="layoutFooter">
+<script setup name="layoutFooter">
 // 此处需有内容（注释也得），否则缓存将失败
 </script>
 

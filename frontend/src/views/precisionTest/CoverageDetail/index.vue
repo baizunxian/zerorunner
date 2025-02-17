@@ -32,7 +32,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="CoverageDetail">
+<script setup name="CoverageDetail">
 import {computed, h, nextTick, onMounted, reactive, ref, watch} from 'vue';
 import {ArrowRight} from '@element-plus/icons';
 import {ElButton} from 'element-plus';
@@ -59,7 +59,7 @@ const state = reactive({
     {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
     {
       key: 'name', label: '名称', align: 'left', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         style: getBackgroundImageStyle(row.el_type),
@@ -70,21 +70,21 @@ const state = reactive({
     },
     {
       key: 'instruction_covered', label: '指令覆盖率', align: 'center', width: '200', show: true,
-      render: ({row}: any) => getCovRender(row, "instruction")
+      render: ({row}) => getCovRender(row, "instruction")
     },
     {
       key: 'branch_covered', label: '分支覆盖率', align: 'center', width: '200', show: true,
-      render: ({row}: any) => getCovRender(row, "branch")
+      render: ({row}) => getCovRender(row, "branch")
     },
 
     // {key: 'complexity_missed', label: '遗漏的cxty', align: 'center', width: '', show: true},
     {
       key: 'line_covered', label: '行覆盖率', align: 'center', width: '', show: true,
-      render: ({row}: any) => h("span", null, `${row.line_covered}/${row.line_count}`)
+      render: ({row}) => h("span", null, `${row.line_covered}/${row.line_count}`)
     },
     {
       key: 'method_covered', label: '方法覆盖率', align: 'center', width: '', show: true,
-      render: ({row}: any) => h("span", null, `${row.method_covered}/${row.method_count}`)
+      render: ({row}) => h("span", null, `${row.method_covered}/${row.method_count}`)
     },
   ],
   columns: [],
@@ -107,7 +107,7 @@ const getColumns = computed(() => {
   state.columns = [...state.baseColumns]
   let classColumn = {
     key: 'class_covered', label: '类覆盖率', align: 'center', width: '', show: true,
-    render: ({row}: any) => h("span", null, `${row.class_covered}/${row.class_count}`)
+    render: ({row}) => h("span", null, `${row.class_covered}/${row.class_count}`)
   }
   if (state.currentBreadcrumb?.el_type !== 'class') {
     state.columns.push(classColumn)
@@ -115,7 +115,7 @@ const getColumns = computed(() => {
   return state.columns
 })
 
-const getCovRender = (row: any, column: string) => {
+const getCovRender = (row, column) => {
   const missed = row[`${column}_missed`]
   const count = row[`${column}_count`]
   let elList = [
@@ -161,8 +161,8 @@ const getCovRender = (row: any, column: string) => {
 }
 
 
-const getCoverageDetail = async (row: any) => {
-  let queryData: any = {
+const getCoverageDetail = async (row) => {
+  let queryData = {
     report_id: row.report_id,
   }
   switch (row.el_type) {
@@ -196,12 +196,12 @@ const getCoverageDetail = async (row: any) => {
     })
     return
   }
-  let {data}: any = await useCoverageReportApi().getCoverageDetail(queryData)
+  let {data} = await useCoverageReportApi().getCoverageDetail(queryData)
   state.listData = data || []
 
 }
 
-const breadcrumbChange = (item: any, index: number) => {
+const breadcrumbChange = (item, index) => {
   if (index === state.breadcrumbs.length - 1) {
     return
   }
@@ -211,11 +211,11 @@ const breadcrumbChange = (item: any, index: number) => {
 
 
 // 获取百分比
-const getPercentage = (missed: number, total: number) => {
+const getPercentage = (missed, total) => {
   return missed === 0 ? 0 : Math.round(missed / total * 100)
 }
 // 获取背景图片
-const getBackgroundImageStyle = (type: string) => {
+const getBackgroundImageStyle = (type) => {
   let imageUrl
   switch (type) {
     case "report":
@@ -237,21 +237,23 @@ const getBackgroundImageStyle = (type: string) => {
 }
 
 watch(
-    () => route.query.id,
-    (id) => {
-      if (!id) return
-      useCoverageReportApi().getReportById({id: id}).then((res: any) => {
-            state.reportDetail = res.data
-            state.breadcrumbs = []
-            getCoverageDetail({
-              name: res.data?.name,
-              el_type: "report",
-              report_id: id,
-            })
-          }
-      )
-    },
-    {deep: true, immediate: true}
+    // () => route.query.id,
+    // (id) => {
+    //   console.log("id", id)
+    //
+    //   if (!id) return
+    //   useCoverageReportApi().getReportById({id: id}).then((res) => {
+    //         state.reportDetail = res.data
+    //         state.breadcrumbs = []
+    //         getCoverageDetail({
+    //           name: res.data?.name,
+    //           el_type: "report",
+    //           report_id: id,
+    //         })
+    //       }
+    //   )
+    // },
+    {deep: true}
 )
 
 // 页面加载时

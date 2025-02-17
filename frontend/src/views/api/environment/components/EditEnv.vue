@@ -58,11 +58,9 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditEnv">
-import type {PropType} from 'vue'
+<script setup name="EditEnv">
 import {onMounted, reactive, ref} from 'vue'
 import {ElMessage} from "element-plus"
-import {useRoute, useRouter} from "vue-router"
 import {useEnvApi} from '/@/api/useAutoApi/env'
 import EnvInfo from '/@/views/api/environment/components/EnvInfo.vue'
 import HttpConfig from '/@/views/api/environment/components/HttpConfig.vue'
@@ -72,7 +70,7 @@ import FuncConfig from '/@/views/api/environment/components/FuncConfig.vue'
 
 const props = defineProps({
   env_id: {
-    type: [Number, null] as PropType<Number | null>,
+    type: [Number, null],
     default: () => null,
   },
 })
@@ -112,7 +110,7 @@ const saveOrUpdate = () => {
       ElMessage.success('保存成功！')
       EnvInfoRef.value.setId(res.data.id)
     })
-  } catch (err: any) {
+  } catch (err) {
     console.log(err)
     ElMessage.info(err || '信息表单填写不完整')
   }

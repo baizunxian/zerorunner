@@ -70,7 +70,7 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditFunc">
+<script setup name="EditFunc">
 import {onMounted, reactive} from "vue";
 import {useRoute, useRouter} from 'vue-router'
 import {useFunctionsApi} from "/@/api/useAutoApi/functions";

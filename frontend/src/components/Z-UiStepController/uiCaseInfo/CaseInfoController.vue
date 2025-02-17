@@ -7,7 +7,7 @@
   </el-collapse-transition>
 </template>
 
-<script lang="ts" setup name="apiInfoController">
+<script setup name="apiInfoController">
 import {defineAsyncComponent} from 'vue';
 
 const ApiInfo = defineAsyncComponent(()=> import("/@/views/api/apiInfo/components/EditApi.vue"))

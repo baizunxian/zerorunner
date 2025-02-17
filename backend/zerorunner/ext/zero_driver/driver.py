@@ -8,7 +8,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from zerorunner.exceptions import ParamsError, ValidationFailure
-from zerorunner.models import Validators, VariablesMapping
+from zerorunner.models.base import Validators, VariablesMapping, CheckModeEnum
+from zerorunner.models.step_model import ExtractData
 from zerorunner.parser import Parser, parse_string_value
 
 

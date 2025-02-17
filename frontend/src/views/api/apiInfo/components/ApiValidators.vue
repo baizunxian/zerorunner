@@ -2,40 +2,36 @@
   <ValidatorsController :data="state.validators"></ValidatorsController>
 </template>
 
-<script lang="ts" setup name="ApiValidators">
+<script setup name="ApiValidators">
 import {reactive} from "vue";
 import {handleEmpty} from "/@/utils/other";
 import ValidatorsController from "/@/components/Z-StepController/validators/ValidatorsController.vue"
 
-
-interface headersState {
-  validators: Array<ValidatorData>,
-}
-
-const state = reactive<headersState>({
+const state = reactive({
   // headers
   validators: [],  // 请求头数据
 
 });
 // 初始化数据
-const setData = (data: any) => {
+const setData = (data) => {
   state.validators = data ? data : []
 }
 
 // 获取表单数据
 const getData = () => {
-  state.validators.forEach((e: ValidatorData, index: number) => {
+  state.validators.forEach((e, index) => {
+    const indexNumber = index + 1
     if (e.mode === "") {
-      throw new Error(`断言: 第${index + 1}行 断言类型不能为空~🤣`)
+      throw new Error(`断言: 第${indexNumber}行 断言类型不能为空~🤣`)
     }
     if (e.check === "") {
-      throw new Error(`断言: 第${index + 1}行 提取表达式不能为空~🤣`)
+      throw new Error(`断言: 第${indexNumber}行 提取表达式不能为空~🤣`)
     }
     if (e.expect === "") {
-      throw new Error(`断言: 第${index + 1}行 期望值不能为空~🤣`)
+      throw new Error(`断言: 第${indexNumber}行 期望值不能为空~🤣`)
     }
     if (e.continue_extract && (e.continue_index === "" || e.continue_index === null)) {
-      throw new Error(`断言: 第${index + 1}行 请填写提取下标~🤣`)
+      throw new Error(`断言: 第${indexNumber}行 请填写提取下标~🤣`)
     }
   })
   return handleEmpty(state.validators)

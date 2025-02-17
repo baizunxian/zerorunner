@@ -9,12 +9,12 @@
     <template #header>
       <strong>步骤详情</strong>
     </template>
-    <ApiInfo :isView="true" :api_id="state.data.request.api_id"></ApiInfo>
+    <ApiInfo :isView="true" :api_id="state.data.source_id"></ApiInfo>
   </el-drawer>
 
 </template>
 
-<script lang="ts" setup name="apiInfoController">
+<script setup name="apiInfoController">
 import {defineAsyncComponent, reactive} from 'vue';
 
 const ApiInfo = defineAsyncComponent(() => import("/@/views/api/apiInfo/components/EditApi.vue"))
@@ -24,7 +24,7 @@ const state = reactive({
   data: null
 })
 
-const onOpenApiInfoPage = (data: any) => {
+const onOpenApiInfoPage = (data) => {
   state.data = data
   state.openApiInfoPage = !state.openApiInfoPage
 }

@@ -3,7 +3,7 @@ import typing
 
 from autotest.models.api_models import ApiTestReport, ApiTestReportDetail
 from autotest.schemas.api.api_report import TestReportQuery, TestReportId, TestReportDetailQuery, TestReportSaveSchema
-from zerorunner.model.result_model import TestCaseSummary, StepResult
+from zerorunner.models.result_model import TestCaseSummary, StepResult
 
 
 class ReportService:
@@ -83,15 +83,12 @@ class ReportService:
         :param kwargs: kwargs
         :return:
         """
-        exec_user_id = kwargs.get("exec_user_id", None)
-        exec_user_name = kwargs.get("exec_user_name", None)
         step_results = ReportService.parser_summary(summary.step_results)
         for result in step_results:
             report_detail_info = ApiTestReportDetail.model(report_id)
             report_detail_info.id = None
             result["report_id"] = report_id
-            result["exec_user_id"] = exec_user_id
-            result["exec_user_name"] = exec_user_name
+            result.update(kwargs)
             await report_detail_info.create_or_update(result)
 
     @staticmethod
@@ -117,7 +114,7 @@ class ReportService:
             if new_step.get("start_time", None):
                 new_step["start_time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(new_step["start_time"]))
             if result.session_data:
-                if result.session_data.req_resp:
+                if result.session_data and hasattr(result.session_data, "req_resp"):
                     new_step["url"] = result.session_data.req_resp.request.url
                     new_step["method"] = result.session_data.req_resp.request.method
                     new_step["status_code"] = result.session_data.req_resp.response.status_code
@@ -152,8 +149,13 @@ class ReportService:
         """
         报告统计
         """
+        report_info = await ApiTestReport.get(params.id)
         report_detail = ApiTestReportDetail.model(params.id)
         data = await report_detail.statistics(params)
+        data['exec_user_id'] = report_info.exec_user_id
+        data['exec_user_name'] = report_info.exec_user_name
+        data['start_time'] = report_info.start_time
+        data['success'] = report_info.success
         return data
 
     @staticmethod
@@ -167,8 +169,8 @@ class ReportService:
             start_time=summary.start_time,
             duration=summary.duration,
             case_id=summary.case_id,
-            run_mode="case",
-            run_type=10,
+            run_mode=10,
+            run_type="case",
             success=summary.success,
             run_count=summary.run_count,
             actual_run_count=summary.actual_run_count,
