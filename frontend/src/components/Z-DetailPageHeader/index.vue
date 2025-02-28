@@ -18,9 +18,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="DetailPageHeader">
-import {computed, reactive} from 'vue';
-import {useSlots} from 'vue'
+<script setup name="DetailPageHeader">
+import {computed, useSlots} from 'vue';
 import {useRoute, useRouter} from 'vue-router'
 
 const route = useRoute()
@@ -29,9 +28,6 @@ const slots = useSlots()
 const props = defineProps({
   editType: String
 })
-const emit = defineEmits(['back'])
-
-const state = reactive({});
 
 const content = computed(() => {
   let editType = props.editType || route.query.editType

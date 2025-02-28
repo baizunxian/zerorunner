@@ -120,8 +120,8 @@
         <el-col :span="14" class="task-card">
           <el-card>
             <el-tabs v-model="state.activeTabName">
-              <el-tab-pane label="API" name="api">
-                <CaseInfo :caseIds="state.form.case_ids"
+              <el-tab-pane label="用例" name="case">
+                <CaseInfo :task_id="state.form.id"
                           :envId="state.form.case_env_id"
                           ref="taskCaseInfoRef"></CaseInfo>
               </el-tab-pane>
@@ -140,36 +140,14 @@
   </div>
 </template>
 
-<script lang="ts" setup name="saveOrUpdateTimedTasks">
+<script setup name="saveOrUpdateTimedTasks">
 import {nextTick, onMounted, reactive, ref} from 'vue';
 import {useTimedTasksApi} from "/@/api/useAutoApi/timedTasks";
 import {ElButton, ElMessage} from "element-plus";
 import {useProjectApi} from "/@/api/useAutoApi/project";
-import {useModuleApi} from "/@/api/useAutoApi/module";
-import {useTestSuiteApi} from "/@/api/useAutoApi/suite";
 import CaseInfo from "./caseInfo.vue"
 
 const emit = defineEmits(["getList"])
-
-interface taskDataState {
-  form: taskInfoState
-}
-
-interface taskInfoState {
-
-  id: null | number
-  name: string
-  project_id: null | number
-  responsible_name: string
-  run_type: string
-  case_ids: number[]
-  crontab: string
-  task_type: string
-  description: string
-  task_tags: string[]
-  threads_number: number
-  case_env_id: null | number
-}
 
 const createForm = () => {
   return {
@@ -232,7 +210,7 @@ const state = reactive({
   editTag: false,
   tagValue: "",
   // tabs
-  activeTabName: 'api',
+  activeTabName: 'case',
 
   // crontab
   isCheckCrontab: false,
@@ -257,7 +235,7 @@ const radioChange = () => {
 }
 
 // 打开弹窗
-const openDialog = (type: string, row: any) => {
+const openDialog = (type, row) => {
   // 获取项目列表
   state.editType = type
   if (row) {
@@ -265,6 +243,11 @@ const openDialog = (type: string, row: any) => {
   } else {
     state.form = createForm()
   }
+
+  nextTick(() => {
+    taskCaseInfoRef.value.initData(state.form.id, state.form.case_env_id)
+  })
+
   onDialog();
 };
 // 关闭弹窗
@@ -273,7 +256,7 @@ const onDialog = () => {
 };
 // 新增
 const saveOrUpdate = () => {
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
       let caseEnvId = taskCaseInfoRef.value.getCaseEnvId()
       let caseIds = taskCaseInfoRef.value.getCaseIds()
@@ -294,8 +277,6 @@ const saveOrUpdate = () => {
           })
     }
   })
-  console.log(state.form, 'state.menuForm')
-  // setBackEndControlRefreshRoutes() // 刷新菜单，未进行后端接口测试
 };
 
 
@@ -303,7 +284,7 @@ const saveOrUpdate = () => {
 const showEditTag = () => {
   state.editTag = true
   nextTick(() => {
-    caseTagInputRef.value!.input!.focus()
+    caseTagInputRef.value?.input.focus()
   })
 }
 
@@ -315,20 +296,20 @@ const addTag = () => {
   state.editTag = false
   state.tagValue = ''
 }
-const removeTag = (tag: string) => {
+const removeTag = (tag) => {
   state.form.task_tags.splice(state.form.task_tags.indexOf(tag), 1)
 }
 
 // checkCrontab
 const checkCrontab = () => {
-  useTimedTasksApi().checkCrontab({crontab: state.form.crontab}).then((res: any) => {
+  useTimedTasksApi().checkCrontab({crontab: state.form.crontab}).then((res) => {
     state.isCheckCrontab = true
     state.crontabRunDate = res.data
   })
 }
 
 // changeScheduleMode
-const changeScheduleMode = (val: string) => {
+const changeScheduleMode = (val) => {
   if (val === 'interval' && !state.form.interval_period) {
     state.form.interval_period = "hours"
     state.form.interval_every = 1

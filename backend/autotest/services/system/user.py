@@ -1,18 +1,20 @@
-import typing
-from datetime import datetime
 import traceback
+import typing
 import uuid
+from datetime import datetime
 
-from autotest.utils.local import g
 from loguru import logger
-from autotest.utils.response.codes import CodeEnum
-from autotest.utils.consts import TEST_USER_INFO, CACHE_DAY
+
+from autotest.db.my_redis import redis_pool
 from autotest.models.system_models import User, Menu, Roles, UserLoginRecord
 from autotest.schemas.system.user import UserLogin, UserIn, UserResetPwd, UserDel, UserQuery, \
-    UserLoginRecordIn, UserLoginRecordQuery
+    UserLoginRecordIn, UserLoginRecordQuery, UserTokenIn
 from autotest.services.system.menu import MenuService
+from autotest.utils.consts import TEST_USER_INFO, CACHE_DAY
 from autotest.utils.current_user import current_user
 from autotest.utils.des import encrypt_rsa_password, decrypt_rsa_password
+from autotest.utils.local import g
+from autotest.utils.response.codes import CodeEnum
 from autotest.utils.serialize import default_serialize
 
 
@@ -20,7 +22,7 @@ class UserService:
     """用户类"""
 
     @staticmethod
-    async def login(params: UserLogin) -> typing.Dict[typing.Text, typing.Any]:
+    async def login(params: UserLogin) -> UserTokenIn:
         """
         登录
         :return:
@@ -33,23 +35,22 @@ class UserService:
         if not user_info:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         u_password = decrypt_rsa_password(user_info["password"])
-
         if u_password != password:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
         token = str(uuid.uuid4())
         login_time = default_serialize(datetime.now())
-        tags = user_info.get("tags", None)
-        roles = user_info.get("roles", None)
-        token_user_info = {
-            "id": user_info["id"],
-            "token": token,
-            "login_time": login_time,
-            "username": user_info["username"],
-            "nickname": user_info["nickname"],
-            "roles": roles if roles else [],
-            "tags": tags if tags else []
-        }
-        await g.redis.set(TEST_USER_INFO.format(token), token_user_info, CACHE_DAY)
+        token_user_info = UserTokenIn(
+            id=user_info["id"],
+            token=token,
+            avatar=user_info["avatar"],
+            username=user_info["username"],
+            nickname=user_info["nickname"],
+            roles=user_info.get("roles", []),
+            tags=user_info.get("tags", []),
+            login_time=login_time,
+            remarks=user_info["remarks"]
+        )
+        await redis_pool.redis.set(TEST_USER_INFO.format(token), token_user_info.dict(), CACHE_DAY)
         logger.info('用户 [{}] 登录了系统'.format(user_info["username"]))
 
         try:
@@ -78,7 +79,7 @@ class UserService:
         """
         token = g.request.headers.get('token', None)
         try:
-            await g.redis.delete(TEST_USER_INFO.format(token))
+            await redis_pool.redis.delete(TEST_USER_INFO.format(token))
         except Exception as err:
             logger.error(traceback.format_exc())
 
@@ -88,7 +89,7 @@ class UserService:
         user_info = await User.get_user_by_name(user_params.username)
         if user_info:
             raise ValueError(CodeEnum.USERNAME_OR_EMAIL_IS_REGISTER.msg)
-        user = await User.create(**user_params.dict())
+        user = await User.create(user_params.dict())
         return user
 
     @staticmethod
@@ -100,10 +101,8 @@ class UserService:
         """
         data = await User.get_list(params)
         for row in data.get("rows"):
-            roles = row.get("roles", None)
-            tags = row.get("roles", None)
-            row["roles"] = roles if roles else []
-            row["tags"] = tags if tags else []
+            row["roles"] = row.get("roles", [])
+            row["tags"] = row.get("tags", [])
         return data
 
     @staticmethod
@@ -113,27 +112,32 @@ class UserService:
         :param params: 用户字段
         :return:
         """
+        exist_user = await User.get_user_by_nickname(params.nickname)
         if not params.id:
-            if User.get_user_by_name(params.nickname):
+            if exist_user:
                 raise ValueError('用户昵称已存在！')
         else:
             user_info = await User.get(params.id, to_dict=True)
-            if user_info['nickname'] != params.nickname and User.get_user_by_nickname(params.nickname):
-                raise ValueError('用户昵称已存在！')
+            if user_info['nickname'] != params.nickname:
+                if exist_user:
+                    raise ValueError('用户昵称已存在！')
         result = await User.create_or_update(params.dict())
+        user_info = await User.get(result.get("id"))
         current_user_info = await current_user()
         if current_user_info.get("id") == params.id:
-            token_user_info = {
-                "id": result["id"],
-                "token": current_user_info.get("token"),
-                "login_time": current_user_info.get("login_time"),
-                "username": result["username"],
-                "nickname": result["nickname"],
-                "roles": result["roles"],
-                "tags": result["tags"]
-            }
-            await g.redis.set(TEST_USER_INFO.format(g.token), token_user_info, CACHE_DAY)
-        return result
+            token_user_info = UserTokenIn(
+                id=user_info.id,
+                token=current_user_info.get("token"),
+                avatar=user_info.avatar,
+                username=user_info.username,
+                nickname=user_info.nickname,
+                roles=user_info.roles,
+                tags=user_info.tags,
+                login_time=current_user_info.get("login_time"),
+                remarks=user_info.remarks
+            )
+            await redis_pool.redis.set(TEST_USER_INFO.format(g.token), token_user_info.dict(), CACHE_DAY)
+        return user_info
 
     @staticmethod
     async def deleted(params: UserDel):
@@ -154,7 +158,7 @@ class UserService:
         :param token: token
         :return:
         """
-        user_info = await g.redis.get(TEST_USER_INFO.format(token))
+        user_info = await redis_pool.redis.get(TEST_USER_INFO.format(token))
         if not user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
 
@@ -177,26 +181,28 @@ class UserService:
         if params.new_pwd == pwd:
             raise ValueError(CodeEnum.NEW_PWD_NO_OLD_PWD_EQUAL.msg)
         new_pwd = encrypt_rsa_password(params.new_pwd)
-        await User.update(**{"password": new_pwd, "id": params.id})
+        await User.create_or_update({"password": new_pwd, "id": params.id})
 
     @staticmethod
-    async def get_user_info_by_token(token: str) -> typing.Union[typing.Dict[typing.Text, typing.Any], None]:
+    async def get_user_info_by_token(token: str) -> UserTokenIn:
         """根据token获取用户信息"""
-        token_user_info = await g.redis.get(TEST_USER_INFO.format(token))
+        token_user_info = await redis_pool.redis.get(TEST_USER_INFO.format(token))
         if not token_user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
         user_info = await User.get(token_user_info.get("id"))
         if not user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
-        return {
-            "id": user_info.id,
-            "avatar": user_info.avatar,
-            "username": user_info.username,
-            "nickname": user_info.nickname,
-            "roles": user_info.roles,
-            "tags": user_info.tags,
-            "login_time": token_user_info.get("login_time", None)
-        }
+        return UserTokenIn(
+            id=user_info.id,
+            token=token,
+            avatar=user_info.avatar,
+            username=user_info.username,
+            nickname=user_info.nickname,
+            roles=user_info.roles,
+            tags=user_info.tags,
+            login_time=token_user_info.get("login_time"),
+            remarks=user_info.remarks
+        )
 
     @staticmethod
     async def get_menu_by_token(token: str) -> typing.List[typing.Dict[typing.Text, typing.Any]]:

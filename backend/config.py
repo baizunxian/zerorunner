@@ -6,6 +6,7 @@ from pathlib import Path
 
 from pydantic import BaseSettings, AnyHttpUrl, Field, ValidationError
 
+
 project_banner = """
 ███████╗███████╗██████╗  ██████╗ ██████╗ ██╗   ██╗███╗   ██╗███╗   ██╗███████╗██████╗
 ╚══███╔╝██╔════╝██╔══██╗██╔═══██╗██╔══██╗██║   ██║████╗  ██║████╗  ██║██╔════╝██╔══██╗
@@ -14,7 +15,7 @@ project_banner = """
 ███████╗███████╗██║  ██║╚██████╔╝██║  ██║╚██████╔╝██║ ╚████║██║ ╚████║███████╗██║  ██║
 ╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝
 """
-__version__ = "2.1.1"
+__version__ = "2.1.5"
 
 project_desc = """
     🎉 zerorunner 管理员接口汇总 🎉
@@ -31,7 +32,7 @@ class Configs(BaseSettings):
     STATIC_DIR: str = 'static'  # 静态文件目录
     GLOBAL_ENCODING: str = 'utf8'  # 全局编码
     CORS_ORIGINS: typing.List[typing.Any] = ["*"]  # 跨域请求
-    WHITE_ROUTER = ["/api/user/login"]  # 路由白名单，不需要鉴权
+    WHITE_ROUTER: list = ["/api/user/login", "/api/file"]  # 路由白名单，不需要鉴权
 
     SECRET_KEY: str = "kPBDjVk0o3Y1wLxdODxBpjwEjo7-Euegg4kdnzFIRjc"  # 密钥(每次重启服务密钥都会改变, token解密失败导致过期, 可设置为常量)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 1  # token过期时间: 60 minutes * 24 hours * 1 days = 1 days
@@ -54,13 +55,16 @@ class Configs(BaseSettings):
     # dir
     BASEDIR: str = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 
-    # job
+    # celery worker
     broker_url: str = Field(..., env="CELERY_BROKER_URL")
-    result_backend: str = Field(..., env="CELERY_RESULT_BACKEND")
-    accept_content: typing.List[str] = ["json"]
-    result_serializer: str = "json"
+    # result_backend: str = Field(..., env="CELERY_RESULT_BACKEND")
+    task_serializer: str = "pickle"
+    result_serializer: str = "pickle"
+    accept_content: typing.Tuple = ("pickle", "json",)
+    task_protocol: int = 2
     timezone: str = "Asia/Shanghai"
     enable_utc: bool = False
+    broker_connection_retry_on_startup: bool = True
     # 并发工作进程/线程/绿色线程执行任务的数量 默认10
     worker_concurrency: int = 10
     # 一次预取多少消息乘以并发进程数 默认4
@@ -71,6 +75,7 @@ class Configs(BaseSettings):
     broker_pool_limit: int = 10
     # 传递给底层传输的附加选项的字典。设置可见性超时的示例（Redis 和 SQS 传输支持）
     result_backend_transport_options: typing.Dict[str, typing.Any] = {'visibility_timeout': 3600}
+    worker_cancel_long_running_tasks_on_connection_loss: bool = True
     include: typing.List[str] = [
         'celery_worker.tasks.test_case',
         'celery_worker.tasks.common',
@@ -94,7 +99,7 @@ class Configs(BaseSettings):
     beat_db_uri: str = Field(..., env="CELERY_BEAT_DB_URL")
 
     # jacoco service
-    JACOCO_SERVICE_URL: str = Field(None, env="JACOCO_SERVICE_URL")
+    JACOCO_SERVER_URL: str = Field(None, env="JACOCO_SERVER_URL")
 
     # gitlab
     GITLAB_URL: str = Field(None, env="GITLAB_URL")
@@ -105,6 +110,7 @@ class Configs(BaseSettings):
     class Config:
         case_sensitive = True  # 区分大小写
         env_file = ".env"
+        env_file_encoding = "utf-8"
 
 
 try:

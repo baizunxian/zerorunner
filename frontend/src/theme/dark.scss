@@ -5,6 +5,8 @@
 	--next-bg-main: #1f1f1f;
 	--next-color-white: #ffffff;
 	--next-color-disabled: #191919;
+	--next-color-columns-menu-bar: #414551;
+	//--next-color-disabled: #414551;
 	--next-color-bar: #dadada;
 	--next-color-primary: #303030;
 	--next-border-color: #424242;
@@ -23,7 +25,7 @@
 	--next-bg-menuBar: var(--next-color-disabled) !important;
 	--next-bg-menuBarColor: var(--next-color-bar) !important;
 	--next-bg-menuBarActiveColor: var(--next-color-hover-rgba) !important;
-	--next-bg-columnsMenuBar: var(--next-color-disabled) !important;
+	--next-bg-columnsMenuBar: var(--next-color-columns-menu-bar) !important;
 	--next-bg-columnsMenuBarColor: var(--next-color-bar) !important;
 	--next-border-color-light: var(--next-border-black) !important;
 	--next-color-primary-lighter: var(--next-color-primary) !important;

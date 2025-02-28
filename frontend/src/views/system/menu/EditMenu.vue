@@ -12,6 +12,7 @@
 
               <el-tree-select
                   ref="menuTreeRef"
+                  filterable
                   v-model="state.form.parent_id"
                   :data="menuTree"
                   :props="{label: 'title', value: 'id'}"
@@ -61,7 +62,7 @@
             </el-col>
             <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
               <el-form-item label="链接地址">
-                <el-input v-model="state.form.isLink" placeholder="外链/内嵌时链接地址（http:xxx.com）" clearable
+                <el-input v-model="state.form.linkUrl" placeholder="外链/内嵌时链接地址（http:xxx.com）" clearable
                           :disabled="!state.form.isLink">
                 </el-input>
               </el-form-item>
@@ -92,40 +93,40 @@
             <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
               <el-form-item label="是否隐藏">
                 <el-radio-group v-model="state.form.isHide">
-                  <el-radio :label="1">隐藏</el-radio>
-                  <el-radio :label="0">不隐藏</el-radio>
+                  <el-radio :label="true">隐藏</el-radio>
+                  <el-radio :label="false">不隐藏</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
             <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
               <el-form-item label="页面缓存">
                 <el-radio-group v-model="state.form.isKeepAlive">
-                  <el-radio :label="1">缓存</el-radio>
-                  <el-radio :label="0">不缓存</el-radio>
+                  <el-radio :label="true">缓存</el-radio>
+                  <el-radio :label="false">不缓存</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
             <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
               <el-form-item label="是否固定">
                 <el-radio-group v-model="state.form.isAffix">
-                  <el-radio :label="1">固定</el-radio>
-                  <el-radio :label="0">不固定</el-radio>
+                  <el-radio :label="true">固定</el-radio>
+                  <el-radio :label="false">不固定</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
             <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
               <el-form-item label="是否外链">
                 <el-radio-group v-model="state.form.isLink" :disabled="state.form.isIframe">
-                  <el-radio :label="1">是</el-radio>
-                  <el-radio :label="0">否</el-radio>
+                  <el-radio :label="true">是</el-radio>
+                  <el-radio :label="false">否</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
             <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
               <el-form-item label="是否内嵌">
                 <el-radio-group v-model="state.form.isIframe" @change="onSelectIframeChange">
-                  <el-radio :label="1">是</el-radio>
-                  <el-radio :label="0">否</el-radio>
+                  <el-radio :label="true">是</el-radio>
+                  <el-radio :label="false">否</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
@@ -142,8 +143,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SaveOrUpdateMenu">
-import {computed, onMounted, reactive, ref} from 'vue';
+<script setup name="SaveOrUpdateMenu">
+import {computed, nextTick, onMounted, reactive, ref} from 'vue';
 import IconSelector from '/@/components/iconSelector/index.vue';
 import {useMenuApi} from "/@/api/useSystemApi/menu";
 import {ElMessage} from "element-plus";
@@ -182,7 +183,8 @@ const createMenuForm = () => {
     isHide: 0, // 是否隐藏
     isKeepAlive: 1, // 是否缓存
     isAffix: 0, // 是否固定
-    isLink: 0, // 外链/内嵌时链接地址（http:xxx.com），开启外链条件，`1、isLink:true 2、链接地址不为空`
+    isLink: 0,
+    linkUrl: '', // 外链/内嵌时链接地址（http:xxx.com），开启外链条件，`1、isLink:true 2、链接地址不为空`
     isIframe: 0, // 是否内嵌，开启条件，`1、isIframe:true 2、链接地址不为空`
     roles: '', // 权限标识，取角色管理
     btnPower: '', // 菜单类型为按钮时，权限标识
@@ -207,7 +209,7 @@ const state = reactive({
 // 创建表单
 
 // 打开弹窗
-const openDialog = (editType: string, row: any) => {
+const openDialog = (editType, row) => {
   state.editType = editType
   if (row) {
     state.form = JSON.parse(JSON.stringify(row));
@@ -215,7 +217,9 @@ const openDialog = (editType: string, row: any) => {
     state.form = createMenuForm()
   }
   state.isShowDialog = true;
-  menuTreeRef.value.setCurrentKey(row.id)
+  nextTick(() => {
+    menuTreeRef.value.setCurrentKey(state.form.parent_id)
+  })
 };
 // 关闭弹窗
 const closeDialog = () => {

@@ -44,11 +44,11 @@
   </el-dialog>
 </template>
 
-<script setup lang="ts" name="EditPage">
+<script setup name="EditPage">
 import {onDeactivated, reactive} from "vue";
 import {ElMessage} from 'element-plus';
 import UiStepInfo from "/@/views/ui/uiCase/uiStepInfo.vue";
-import config from "/@/config/config";
+import {getWebSocketUrl} from "/@/utils/config";
 
 const props = defineProps({
   stepDataList: {
@@ -84,14 +84,13 @@ const guid = () => {
 
 const websocket = () => {
   if ('WebSocket' in window) {
-    let url = `${config.WebSocketUrl}/api/ws/uiCase/debug/${state.uid}`
-    console.log(url, 'weburl')
+    let url = `${getWebSocketUrl()}/api/ws/uiCase/debug/${state.uid}`
     let ws = new WebSocket(url)
     state.ws = ws
-    ws.onopen = (event: any) => {
+    ws.onopen = (event) => {
       console.log('已建立连接....')
     };
-    ws.onmessage = (event: any) => {
+    ws.onmessage = (event) => {
       console.log('接收信息：', event)
       //将字符串转换成 Blob对象
       let message = JSON.parse(event.data)

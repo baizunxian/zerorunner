@@ -17,7 +17,7 @@
 
 </template>
 
-<script lang="ts" setup name="SelectApi">
+<script setup name="SelectApi">
 import {reactive, ref} from 'vue';
 import ApiList from "/@/views/api/apiInfo/components/ApiList.vue"
 

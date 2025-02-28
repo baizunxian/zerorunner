@@ -1,7 +1,7 @@
 import typing
 from pydantic import root_validator, BaseModel, Field
 
-from autotest.schemas.api.api_info import ApiBaseSchema
+from autotest.schemas.api.api_info import ApiBaseSchema, ApiInfoIn
 from autotest.schemas.base import BaseSchema
 from autotest.schemas.step_data import TStepData
 
@@ -54,7 +54,7 @@ class TCaseRequestData(BaseModel):
 class TCaseStepData(TStepData):
     """测试用例数据"""
     sub_steps: typing.List['TCaseStepData'] = Field([], description="子步骤， 当前字段只对 if  loop 类型有效")
-    request: TCaseRequestData = Field(None, description="引用用例")
+    # request: TCaseRequestData = Field(None, description="引用用例")
 
 
 TCaseStepData.update_forward_refs()
@@ -68,7 +68,7 @@ class ApiCaseIn(BaseModel):
     project_id: int = Field(None, description="")
     remarks: str = Field(None, description="")
     step_rely: int = Field(1, description="")
-    step_data: typing.List[TCaseStepData] = Field(None, description="步骤类容")
+    step_data: typing.List[ApiInfoIn] = Field(None, description="步骤类容")
     headers: typing.List[ApiBaseSchema] = Field(None, description="请求头参数")
     variables: typing.List[ApiBaseSchema] = Field(None, description="变量参数")
     version: int = Field(None, description="")
@@ -81,7 +81,7 @@ class TestCaseRun(BaseModel):
     project_id: int = Field(None, description="")
     module_id: int = Field(None, description="")
     remarks: str = Field(None, description="")
-    step_data: typing.List[TCaseStepData] = Field([], description="步骤数据")
+    step_data: typing.List[TStepData] = Field([], description="步骤数据")
     step_rely: bool = Field(True, description="步骤依赖 True依赖，False 不依赖")
     headers: typing.List[ApiBaseSchema] = Field(None, description="请求头参数")
     variables: typing.List[ApiBaseSchema] = Field(None, description="变量参数")
@@ -96,15 +96,6 @@ class ApiTestCaseRun(BaseSchema):
     env_id: int = Field(None, description="环境id")
 
 
-class ApiCaseStepDataSchema(BaseModel):
-    id: int = Field(None, description="id")
+class ApiCaseStepDataSchema(TStepData):
     api_id: int = Field(None, description="api_id")
-    step_id: int = Field(None, description="步骤id")
-    parent_id: int = Field(None, description="父步骤id")
-    name: str = Field(None, description="名称")
-    step_type: str = Field(None, description="步骤类型")
-    case_id: int = Field(None, description="用例id")
-    index: int = Field(None, description="排序")
-    enable: int = Field(None, description="是否禁用")
-    step_data: dict = Field(None, description="是否禁用")
-    version: int = Field(None, description="版本")
+    step_data: TStepData = Field(None, description="步骤数据")

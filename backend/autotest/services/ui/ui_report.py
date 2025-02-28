@@ -8,7 +8,7 @@ from autotest.models.ui_models import UiReports, UiReportDetail
 from autotest.schemas.ui.ui_report import UiReportSaveSchema, UiReportQuery, UiReportId, UiReportDetailQuery
 from autotest.services.system.file import FileService
 from autotest.utils.common import get_time
-from zerorunner.model.result_model import TestCaseSummary, StepResult
+from zerorunner.models.result_model import TestCaseSummary, StepResult
 
 
 class UiReportService:
@@ -25,7 +25,7 @@ class UiReportService:
 
     @staticmethod
     async def save_report(summary: TestCaseSummary,
-                          run_type: int = 10,
+                          run_type: str = 10,
                           project_id: int = None,
                           module_id: int = None,
                           env_id: int = None,

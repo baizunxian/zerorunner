@@ -5,20 +5,20 @@ from fastapi import APIRouter
 from autotest.utils.response.http_response import partner_success
 from autotest.schemas.ui.ui_case import UiCaseQuery, UiCaseId, UiCaseIn, UiTestCaseRun
 from autotest.services.ui.ui_case import UiCaseServer
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
 from celery_worker.tasks.ui_case import async_run_ui
 
 router = APIRouter()
 
 
-@router.post("/list")
+@router.post("/list", description="获取ui用例列表")
 async def get_case_list(params: UiCaseQuery):
     """获取用例列表"""
     data = await UiCaseServer.list(params)
     return partner_success(data)
 
 
-@router.post("/getUiCaseById")
+@router.post("/getUiCaseById", description="更具id获取ui用例")
 async def get_ui_case_by_id(params: UiCaseId):
     """根据id获取用例信息"""
     data = await UiCaseServer.get_case_by_id(params)

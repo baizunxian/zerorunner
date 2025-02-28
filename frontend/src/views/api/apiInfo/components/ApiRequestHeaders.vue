@@ -1,30 +1,19 @@
 <template>
-  <HeadersController :data="state.headers"></HeadersController>
+  <HeadersController v-model:data="state.headers"></HeadersController>
 </template>
 
-<script lang="ts" setup name="apiRequestHeaders">
+<script setup name="apiRequestHeaders">
 import {reactive} from "vue";
 import {handleEmpty} from "/@/utils/other";
 import HeadersController from "/@/components/Z-StepController/headers/HeadersController.vue";
 
-
-interface baseState {
-  key: string,
-  value: string,
-  remarks: string
-}
-
-interface headersState {
-  headers: Array<baseState>,
-}
-
-const state = reactive<headersState>({
+const state = reactive({
   // headers
   headers: [],  // 请求头数据
 
 });
 // 初始化数据
-const setData = (data: any) => {
+const setData = (data) => {
   state.headers = data ? data : []
 }
 
@@ -44,24 +33,24 @@ const getStatus = () => {
 }
 
 // updateHeader {key: "Content-Type", value: "application/json"} //更新请求头
-const updateContentType = (mode: string, language: string, remove: any) => {
+const updateContentType = (mode, language, remove) => {
   let headerValue = ""
   switch (mode) {
-    case "form-data":
+    case "form_data":
       headerValue = ""
       break
-    case "x-www-form-urlencoded":
+    case "x_www_form_urlencoded":
       headerValue = "application/x-www-form-urlencoded"
       break
     case "raw":
       language = language.toLowerCase()
-      if (language == "json") {
+      if (language === "json") {
         headerValue = "application/json"
-      } else if (language == "xml") {
+      } else if (language === "xml") {
         headerValue = "application/xml"
-      } else if (language == "html") {
+      } else if (language === "html") {
         headerValue = "text/html"
-      } else if (language == "text") {
+      } else if (language === "text") {
         headerValue = "text/plain"
       }
       break

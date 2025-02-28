@@ -180,7 +180,7 @@ export default defineComponent({
         'less_than_or_equals',
         'greater_than',
         'greater_than_or_equals',
-        'not_equals',
+        'not_equal',
         'string_equals',
         'length_equals',
         'length_greater_than',

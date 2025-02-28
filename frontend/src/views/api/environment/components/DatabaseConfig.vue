@@ -49,8 +49,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="DatabaseConfig">
-import {onMounted, reactive, ref} from "vue";
+<script setup name="DatabaseConfig">
+import {onMounted, reactive} from "vue";
 import {useQueryDBApi} from "/@/api/useTools/querDB";
 import {useEnvApi} from "/@/api/useAutoApi/env";
 import {ElMessage} from "element-plus";
@@ -93,7 +93,7 @@ const state = reactive({
 
 });
 
-const setData = (data: any) => {
+const setData = (data) => {
   state.env_id = data.id
   getBindDateSourceList()
 }
@@ -114,12 +114,12 @@ const getDataSourceList = () => {
       })
 };
 
-const selectionChange = (val: any) => {
+const selectionChange = (val) => {
   console.log(val, 1)
   state.selectionChangeList = val
 }
 
-const selectionSourceChange = (val: any) => {
+const selectionSourceChange = (val) => {
   state.selectionBindChangeList = val
 }
 
@@ -132,7 +132,7 @@ const bindDataSource = () => {
 
   let form = {
     env_id: state.env_id,
-    data_source_ids: state.selectionBindChangeList.map((e: any) => {
+    data_source_ids: state.selectionBindChangeList.map((e) => {
       return e.id
     }),
   }
@@ -147,7 +147,7 @@ const bindDataSource = () => {
 const unbindDataSource = () => {
   let form = {
     env_id: state.env_id,
-    data_source_ids: state.selectionChangeList.map((e: any) => {
+    data_source_ids: state.selectionChangeList.map((e) => {
       return e.data_source_id
     }),
   }

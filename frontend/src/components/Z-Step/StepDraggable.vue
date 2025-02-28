@@ -39,7 +39,7 @@
   </VueDraggableNext>
 </template>
 
-<script lang="ts" setup name="StepNode1">
+<script setup name="StepNode1">
 import VueDraggableNext from 'vuedraggable'
 import {Rank} from "@element-plus/icons"
 

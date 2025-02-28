@@ -3,6 +3,7 @@
 import typing
 
 from pydantic import BaseModel, Field
+
 from autotest.schemas.base import BaseSchema
 from autotest.utils.des import decrypt_rsa_password
 
@@ -79,3 +80,16 @@ class UserLoginRecordQuery(BaseModel):
     ret_code: str = Field(None, description="返回code")
     address: str = Field(None, description="地址")
     source_type: str = Field(None, description="来源")
+
+
+class UserTokenIn(BaseModel):
+    id: int = Field(None, description='id')
+    token: str = Field(None, description='token')
+    avatar: str = Field(None, description='头像')
+    username: str = Field(None, description='用户名称')
+    nickname: str = Field(None, description='用户昵称')
+    roles: typing.List = Field(None, description='权限')
+    tags: typing.List = Field(None, description='标签')
+    login_time: str = Field(None, description='登录时间')
+    login_ip: str = Field(None, description='登录ip')
+    remarks: str = Field(None, description='备注')

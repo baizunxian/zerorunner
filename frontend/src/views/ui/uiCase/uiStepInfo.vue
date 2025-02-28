@@ -1,10 +1,8 @@
 <template>
-  <el-table
-      v-if="state.showStepTable"
+    <el-table
       class="ui-case-step"
       v-model:data="stepData"
       rowKey="index"
-      key="ui-step-info-key"
       ref="tableRef">
 
     <el-table-column width="40" align="center">
@@ -69,7 +67,7 @@
       <template #default="{row}">
         <el-cascader v-model.lazy="row.page_element_id"
                      style="width: 100%"
-                     @change="(value: any) => pageElementChange(value, row)"
+                     @change="(value) => pageElementChange(value, row)"
                      placeholder="请选择页面元素"
                      :clearable="true"
                      :props="{expandTrigger: 'hover',
@@ -95,7 +93,7 @@
       <template #default="{row}">
         <el-cascader v-model.lazy="row.action_value"
                      style="width: 100%"
-                     @change="(value: any) => {
+                     @change="(value) => {
                          row.action = value ? value[1] : ''
                        }"
                      placeholder="请选择动作"
@@ -143,7 +141,7 @@
 
 </template>
 
-<script setup lang="ts" name="EditPage">
+<script setup name="EditPage">
 import {ElButton, ElCascader, ElCheckbox, ElInput} from "element-plus";
 import {h, nextTick, onMounted, reactive, ref} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
@@ -173,11 +171,11 @@ const state = reactive({
   columns: [
     {
       key: 'rank', label: 'rank', prop: '', width: '60', align: 'center', show: true,
-      render: ({row}: any) => h(Rank, {}),
+      render: ({row}) => h(Rank, {}),
     },
     {
       key: 'script', prop: 'script', label: '', columnType: 'expand', width: '30', show: true,
-      render: ({row}: any) => h(MonacoEditor, {
+      render: ({row}) => h(MonacoEditor, {
         value: row.script,
         lang: 'python',
         style: {
@@ -185,7 +183,7 @@ const state = reactive({
           width: '100%',
           margin: '0 30px',
         },
-        "onUpdate:value": (val: any) => {
+        "onUpdate:value": (val) => {
           row.script = val
         },
         options: {
@@ -199,13 +197,13 @@ const state = reactive({
     {label: '序号', columnType: 'index', width: '50', show: true},
     {
       key: 'enable', label: '启用', prop: 'enable', width: '60', align: 'center', show: true,
-      render: ({row}: any) => h(ElCheckbox, {
+      render: ({row}) => h(ElCheckbox, {
         modelValue: row.enable,
       }),
     },
     {
       key: 'name', label: '步骤名称', prop: 'name', align: 'center', show: true,
-      render: ({row}: any) => h(ElInput, {
+      render: ({row}) => h(ElInput, {
         modelValue: row.name,
         placeholder: '请输入描述',
         clearable: true,
@@ -217,11 +215,11 @@ const state = reactive({
       prop: 'page_element_id',
       align: 'center',
       show: true,
-      render: ({row}: any) => h(ElCascader, {
+      render: ({row}) => h(ElCascader, {
         modelValue: row.page_element_id,
         options: state.pageElementList,
         style: {width: '100%'},
-        onChange: (value: any) => {
+        onChange: (value) => {
           row.page_id = value ? value[0] : ''
           row.element_id = value ? value[1] : ''
         },
@@ -255,10 +253,10 @@ const state = reactive({
       prop: 'action_value',
       align: 'center',
       show: true,
-      render: ({row}: any) => h(ElCascader, {
+      render: ({row}) => h(ElCascader, {
         modelValue: row.action_value,
         options: state.actions,
-        onChange: (value: any) => {
+        onChange: (value) => {
           row.action = value ? value[1] : ''
         },
         style: {width: '100%'},
@@ -276,7 +274,7 @@ const state = reactive({
       prop: 'data',
       align: 'center',
       show: true,
-      render: ({row}: any) => h(ElInput, {
+      render: ({row}) => h(ElInput, {
         modelValue: row.data,
         placeholder: '请输入数据',
         clearable: true,
@@ -284,7 +282,7 @@ const state = reactive({
     },
     {
       label: '操作', fixed: 'right', width: '', align: 'center',
-      render: ({row, $index}: any) => h("div", null, [
+      render: ({row, $index}) => h("div", null, [
         h(ElButton, {
           type: "warning",
           onClick: () => {
@@ -361,39 +359,39 @@ const addStep = () => {
 }
 
 
-const copyCaseStep = (row: any) => {
+const copyCaseStep = (row) => {
   console.log(row, 'row')
   let newRow = JSON.parse(JSON.stringify(row))
   stepData.value.push(newRow)
   // state.stepDataList.push(stepData)
 }
 
-const deletedCaseStep = (index: number) => {
+const deletedCaseStep = (index) => {
   // state.stepDataList.splice(index, 1)
   stepData.value.splice(index, 1)
 }
 
-const handelBreakpoint = (row: any) => {
+const handelBreakpoint = (row) => {
   row.breakpoint = !row.breakpoint
 }
 
 // 计算index，保持拖动后顺序
-const computeDataIndex = (data: any) => {
+const computeDataIndex = (data) => {
   if (data) {
-    data.forEach((data: any, index: number) => {
+    data.forEach((data, index) => {
       data.index = index + 1
     })
   }
 }
 
 // pageElementChange
-const pageElementChange = (value: any, row: any) => {
+const pageElementChange = (value, row) => {
   row.page_id = row.page_element_id ? row.page_element_id[0] : ''
   row.element_id = row.page_element_id ? row.page_element_id[1] : ''
-  let pageInfo = state.pageElementList.find((item: any) => item.id === row.page_id)
+  let pageInfo = state.pageElementList.find((item) => item.id === row.page_id)
   console.log(pageInfo, 'pageInfo')
   if (pageInfo && pageInfo.elements) {
-    let elementInfo = pageInfo.elements.find((item: any) => item.id === row.element_id)
+    let elementInfo = pageInfo.elements.find((item) => item.id === row.element_id)
     if (elementInfo) {
       row.location_method = elementInfo.location_method
       row.location_value = elementInfo.location_value
@@ -402,9 +400,9 @@ const pageElementChange = (value: any, row: any) => {
 }
 
 // 移动数据
-const moveStep = (index: number, type: string) => {
+const moveStep = (index, type) => {
   let deleteData = stepData.value.splice(index, 1)   //截取数组里的一个数据
-  let start: number | null = null
+  let start = null
   if (type === 'up') {
     start = index === 0 ? 0 : index - 1
   } else {
@@ -422,7 +420,7 @@ const createSortable = () => {
       handle: ".move",
       fallbackClass: "custom-fallback-class",
       forceFallback: true,
-      onEnd: ({newIndex, oldIndex}: any) => {
+      onEnd: ({newIndex, oldIndex}) => {
         let newStepData = stepData.value
         const currRow = newStepData.splice(oldIndex, 1)[0]
         newStepData.splice(newIndex, 0, currRow)

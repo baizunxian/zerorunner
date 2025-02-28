@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
-from datetime import datetime
 import typing
+from datetime import datetime
+from json import JSONEncoder
+
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import Select, select, func, literal_column, Row
 from sqlalchemy.orm import noload, DeclarativeMeta
@@ -50,11 +52,25 @@ def unwrap_scalars(items: typing.Union[typing.Sequence[Row], Row]) -> typing.Uni
     return default_serialize(items)
 
 
+class MyJsonDecode(JSONEncoder):
+    """自定义json解析器"""
+
+    def default(self, obj):
+        try:
+            return super().default(obj)
+        except:
+            return default_serialize(obj)
+
+
 def default_serialize(obj):
     """默认序序列化"""
     try:
         if isinstance(obj, int) and len(str(obj)) > 15:
             return str(obj)
+        if isinstance(obj, dict):
+            return {key: default_serialize(value) for key, value in obj.items()}
+        if isinstance(obj, list):
+            return [default_serialize(i) for i in obj]
         if isinstance(obj, datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
         if isinstance(obj, Row):
@@ -62,6 +78,8 @@ def default_serialize(obj):
             return {key: default_serialize(value) for key, value in data.items()}
         if hasattr(obj, "__class__") and isinstance(obj.__class__, DeclarativeMeta):
             return {c.name: default_serialize(getattr(obj, c.name)) for c in obj.__table__.columns}
+        if isinstance(obj, typing.Callable):
+            return repr(obj)
         return jsonable_encoder(obj)
     except TypeError as err:
         return repr(obj)

@@ -130,7 +130,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="EditPage">
+<script setup name="EditPage">
 import {ElButton, ElMessage} from "element-plus";
 import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {useUiPageApi} from "/@/api/useUiApi/uiPage";
@@ -180,7 +180,7 @@ const state = reactive({
 const showEditTag = () => {
   state.editTag = true
   nextTick(() => {
-    tagInputRef.value!.input!.focus()
+    tagInputRef.value?.input.focus()
   })
 }
 
@@ -192,7 +192,7 @@ const addTag = () => {
   state.editTag = false
   state.tagValue = ''
 }
-const removeTag = (tag: string) => {
+const removeTag = (tag) => {
   state.form.tags.splice(state.form.tags.indexOf(tag), 1)
 }
 
@@ -204,12 +204,12 @@ const getProjectTree = () => {
         state.projectTree = res.data
       })
 }
-const projectModuleChange = (value: any) => {
+const projectModuleChange = (value) => {
   state.form.project_id = value ? value[0] : ""
   state.form.module_id = value ? value[1] : ""
 }
 // 选择项目
-const selectProject = (project_id: any) => {
+const selectProject = (project_id) => {
   state.form.module_id = null
   state.moduleList = []
   state.moduleQuery.project_id = project_id
@@ -226,7 +226,7 @@ const getModuleList = () => {
 }
 
 const savePage = () => {
-  useUiPageApi().saveOrUpdate(state.form).then((res: any) => {
+  useUiPageApi().saveOrUpdate(state.form).then((res) => {
     state.form = res.data
     emit("update:data", state.form)
     ElMessage.success("保存成功")

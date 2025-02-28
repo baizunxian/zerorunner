@@ -70,39 +70,11 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SaveOrUpdateRole">
+<script setup name="SaveOrUpdateRole">
 import {reactive, ref} from 'vue';
 import {useMenuApi} from "/@/api/useSystemApi/menu";
 import {useRolesApi} from "/@/api/useSystemApi/roles";
 import {ElMessage} from "element-plus";
-
-// 定义接口来定义对象的类型
-interface MenuDataTree {
-  id: number;
-  title: string;
-  children?: MenuDataTree[];
-}
-
-interface RoleData {
-  id: string | number | null;
-  name: string;
-  role_type: number;
-  menus: Array<number>;
-  description: string;
-  status: boolean;
-}
-
-interface RoleState {
-  isShowDialog: boolean;
-  editType: any;
-  form: RoleData;
-  rules: Object;
-  menuData: Array<MenuDataTree>;
-  menuProps: {
-    children: string;
-    label: string;
-  };
-}
 
 const emit = defineEmits(['getList'])
 
@@ -118,7 +90,7 @@ let createForm = () => {
 }
 const formRef = ref()
 const roleTreeRef = ref()
-const state = reactive<RoleState>({
+const state = reactive({
   editType: null,
   isShowDialog: false,
   form: createForm(),
@@ -133,7 +105,7 @@ const state = reactive<RoleState>({
   },
 });
 // 打开弹窗
-const openDialog = (editType: string, row: RoleData) => {
+const openDialog = (editType, row) => {
   getMenuData()
   state.editType = editType
   if (row) {
@@ -153,7 +125,7 @@ const onCancel = () => {
 };
 // 更新-新增
 const saveOrUpdate = () => {
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
       useRolesApi().saveOrUpdate(state.form)
           .then(() => {

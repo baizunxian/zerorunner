@@ -60,7 +60,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="saveOrUpdateProject">
+<script setup name="saveOrUpdateProject">
 import {reactive, ref} from 'vue';
 import {useProjectApi} from "/@/api/useAutoApi/project";
 import {ElMessage} from "element-plus";
@@ -95,7 +95,7 @@ const state = reactive({
 
 
 // 打开弹窗
-const openDialog = (type: string, row: any) => {
+const openDialog = (type, row) => {
   state.editType = type
   if (row) {
     state.form = JSON.parse(JSON.stringify(row));
@@ -114,7 +114,7 @@ const onCancel = () => {
 };
 // 新增
 const saveOrUpdate = () => {
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
       useProjectApi().saveOrUpdate(state.form)
           .then(() => {

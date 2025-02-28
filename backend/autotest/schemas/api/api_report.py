@@ -32,7 +32,7 @@ class TestReportSaveSchema(BaseModel):
     duration: float = Field(None, description="")
     case_id: typing.Union[str, int] = Field(None, description="")
     source_id: typing.Union[str, int] = Field(None, description="来源id")
-    run_mode: int = Field(None, description="运行类型 10 同步， 20 异步")
+    run_mode: int = Field(None, description="运行类型 10 同步， 20 异步, 30 定时任务")
     run_type: str = Field(None, description="运行类型")
     success: bool = Field(False, description="")
     run_count: int = Field(0, description="")
@@ -47,6 +47,7 @@ class TestReportSaveSchema(BaseModel):
     env_id: int = Field(None, description="")
     exec_user_id: int = Field(None, description="")
     exec_user_name: str = Field(None, description="")
+    error_msg: str = Field(None, description="")
 
 
 class TestReportMakeSchema(BaseModel):

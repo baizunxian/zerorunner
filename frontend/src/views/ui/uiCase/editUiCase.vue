@@ -5,7 +5,6 @@
         <z-detail-page-header
             class="page-header"
             style="margin: 5px 0;"
-            @back=""
         >
         </z-detail-page-header>
       </template>
@@ -40,10 +39,10 @@
   </div>
 </template>
 
-<script setup lang="ts" name="uiCase">
+<script setup name="uiCase">
 import {onMounted, reactive, ref} from "vue";
 import {useUiCaseApi} from "/@/api/useUiApi/uiCase";
-import {useRouter, useRoute} from 'vue-router'
+import {useRoute} from 'vue-router'
 import UiCaseInfo from "./uiCaseInfo.vue";
 import UiStepInfo from "./uiStepInfo.vue";
 import {ElMessage} from "element-plus";
@@ -70,7 +69,7 @@ const getCaseById = () => {
   let case_id = props.caseId || route.query.id
   if (case_id) {
     useUiCaseApi().getUiCaseById({id: case_id})
-      .then((res: any) => {
+      .then((res) => {
         state.uiCaseData = res.data
         state.uiStepDataList = res.data.steps
         UiCaseInfoRef.value.setData(res.data)
@@ -90,7 +89,7 @@ const saveUiCase = () => {
     ...caseInfoData,
     steps: state.uiStepDataList
   }
-  useUiCaseApi().saveOrUpdate(uiCaseForm).then((res: any) => {
+  useUiCaseApi().saveOrUpdate(uiCaseForm).then((res) => {
     // UiCaseInfoRef.value.setData(res.data)
     // UiCaseStepRef.value.setData(res.data.steps)
     ElMessage.success("保存成功！")

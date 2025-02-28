@@ -6,7 +6,7 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="layoutCloseFull">
+<script setup name="layoutCloseFull">
 import { storeToRefs } from 'pinia';
 import { useTagsViewRoutes } from '/@/stores/tagsViewRoutes';
 

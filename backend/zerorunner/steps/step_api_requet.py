@@ -4,6 +4,7 @@ import copy
 import time
 import traceback
 import typing
+from unittest import SkipTest
 
 import requests
 from loguru import logger
@@ -12,11 +13,11 @@ from autotest.utils.local import g
 from zerorunner import exceptions, utils
 from zerorunner.ext.uploader import prepare_upload_step
 from zerorunner.loader import load_script_content
-from zerorunner.model.base import TStepResultStatusEnum, Hooks
-from zerorunner.model.result_model import StepResult
-from zerorunner.model.step_model import TStep
-from zerorunner.model.step_model import VariablesMapping, TRequest, MethodEnum
-from zerorunner.parser import build_url, Parser, parse_variables_mapping
+from zerorunner.models.base import TStepResultStatusEnum, Hooks
+from zerorunner.models.result_model import StepResult
+from zerorunner.models.step_model import TStep
+from zerorunner.models.step_model import VariablesMapping, TRequest, MethodEnum
+from zerorunner.parser import build_url, Parser
 from zerorunner.response import ResponseObject
 from zerorunner.runner import SessionRunner
 from zerorunner.script_code import Zero
@@ -29,7 +30,7 @@ def call_hooks(
         hooks: Hooks,
         step_variables: VariablesMapping,
         hook_msg: str,
-        parent_step_result: StepResult
+        parent_step_result: TStepResult
 ) -> typing.Union[typing.List[StepResult], typing.Any]:
     """ 调用钩子.
 
@@ -88,25 +89,24 @@ def call_hooks(
 def run_api_request(runner: SessionRunner,
                     step: TStep,
                     step_tag: str = None,
-                    parent_step_result: StepResult = None):
-    step_result = TStepResult(step, step_tag=step_tag)
+                    parent_step_result: TStepResult = None):
+    step_result = TStepResult(step, runner, step_tag=step_tag)
     step_result.start_log()
     # update headers
     merge_headers = copy.deepcopy(runner.config.headers)
     merge_headers.update(step.request.headers)
     step.request.headers = merge_headers
-    # parse
-    upload_variables = prepare_upload_step(step, runner.config.functions)
-    request_dict = step.request.dict()
-    request_dict.pop("upload", None)
     session_success = False
-    extract_mapping = {}
     # 初始化resp_obj
     resp_obj = None
+    extract_mapping = {}
     # 捕获异常
     try:
+        runner.handle_skip_feature(step)
         # 合并变量
-        merge_variable = runner.get_merge_variable(step)
+        merge_variable = runner.get_merge_variable(step=step)
+        # parse
+        request_dict = step.request.dict()
 
         # setup hooks
         if step.setup_hooks:
@@ -115,7 +115,7 @@ def run_api_request(runner: SessionRunner,
                        hooks=step.setup_hooks,
                        step_variables=merge_variable,
                        hook_msg="setup_hooks",
-                       parent_step_result=step_result.get_step_result())
+                       parent_step_result=step_result)
             step_result.set_step_log("前置hook结束~~~")
         # setup code
         if step.setup_code:
@@ -125,36 +125,28 @@ def run_api_request(runner: SessionRunner,
                         request=request_dict,
                         environment=runner.config.env_variables,
                         variables=step.variables)
-            _, captured_output = load_script_content(step.setup_code,
-                                                     f"{runner.config.case_id}_setup_code",
+            _, captured_output = load_script_content(content=step.setup_code,
+                                                     module_name=f"{runner.config.case_id}_setup_code",
                                                      params={"zero": zero, "requests": requests})
             if captured_output:
                 step_result.set_step_log("前置code输出: \n" + captured_output)
-            parsed_zero_environment = runner.parser.parse_data(
-                zero.environment.get_environment(), merge_variable
-            )
-            runner.config.env_variables.update(parsed_zero_environment)
-
-            parsed_zero_variables = runner.parser.parse_data(
-                zero.variables.get_variables(), merge_variable
-            )
-            step.variables.update(parsed_zero_variables)
             step_result.set_step_log(f"前置code结束  ~~~")
 
         # 前置步骤后再执行下合并 避免前置步骤中复制变量获取不到
-        merge_variable = runner.get_merge_variable(step)
+        merge_variable = runner.get_merge_variable(step=step)
+        upload_variables = prepare_upload_step(step, runner.config.functions, merge_variable)
         if upload_variables:
-            upload_variables = parse_variables_mapping(
-                upload_variables, runner.parser.functions_mapping
-            )
-            merge_variable.update(upload_variables)
-
+            merge_variable = {key: value for key, value in merge_variable.items()}
+            merge_variable.update(runner.parser.parse_variables(upload_variables))
+            request_dict = step.request.dict()
+        request_dict.pop("upload", None)
         parsed_request_dict = runner.parser.parse_data(
             request_dict, merge_variable
         )
 
         parsed_request_dict["headers"].setdefault("Z-Case-Id", runner.case_id)
         parsed_request_dict["headers"].setdefault("Z-Request-Id", f"{g.trace_id}")
+        parsed_request_dict["headers"] = headers_to_str(parsed_request_dict["headers"])
         step.variables["request"] = parsed_request_dict
 
         # prepare arguments
@@ -191,8 +183,8 @@ def run_api_request(runner: SessionRunner,
 
         # extract
         extractors = step.extracts
-        extract_mapping = resp_obj.extract(extractors, step.variables, runner.config.functions)
-        step_result.export_vars = extract_mapping
+        extract_mapping = resp_obj.extract(extractors, merge_variable, runner.config.functions)
+        step_result.result.export_vars = extract_mapping
         merge_variable.update(extract_mapping)
 
         # teardown code
@@ -210,12 +202,8 @@ def run_api_request(runner: SessionRunner,
                                                      params={"zero": zero, "requests": requests, 'res': resp_obj})
             if captured_output:
                 step_result.set_step_log("后置code输出: \n" + captured_output)
-            parsed_zero_variables = runner.parser.parse_data(
-                zero.variables.get_variables(), merge_variable
-            )
-            step.variables.update(parsed_zero_variables)
             # code  执行完成后重新合并变量
-            merge_variable = runner.get_merge_variable(step)
+            merge_variable = runner.get_merge_variable(step=step)
             step_result.set_step_log("后置code结束~~~")
 
         # teardown hooks
@@ -225,10 +213,10 @@ def run_api_request(runner: SessionRunner,
                        hooks=step.teardown_hooks,
                        step_variables=merge_variable,
                        hook_msg="teardown_hooks",
-                       parent_step_result=step_result.get_step_result())
+                       parent_step_result=step_result)
             step_result.set_step_log("后置hook结束~~~")
             # code teardown 执行完成后重新合并变量
-            merge_variable = runner.get_merge_variable(step)
+            merge_variable = runner.get_merge_variable(step=step)
 
         # validate
         validators = step.validators
@@ -250,6 +238,10 @@ def run_api_request(runner: SessionRunner,
         step_result.set_step_result_status(TStepResultStatusEnum.err)
         raise
 
+    except SkipTest as err:
+        step_result.set_step_result_status(TStepResultStatusEnum.skip)
+        raise
+
     except Exception as err:
         step_result.set_step_result_status(TStepResultStatusEnum.err)
         raise
@@ -269,12 +261,18 @@ def run_api_request(runner: SessionRunner,
             # save request & response meta data
             runner.session.data.success = session_success
             runner.session.data.validators = resp_obj.validation_results if resp_obj else {}
+            runner.session.data.extracts = resp_obj.extract_results if resp_obj else []
 
             # save step data
             step_result.session_data = runner.session.data
-        runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
         runner.extracted_variables.update(extract_mapping)
         runner.with_session_variables(runner.extracted_variables)
+        runner.append_step_result(step_result=step_result, step_tag=step_tag, parent_step_result=parent_step_result)
+
+
+def headers_to_str(headers: dict):
+    if headers and isinstance(headers, dict):
+        return {str(key): str(value) for key, value in headers.items()}
 
 
 class StepRequestValidation(IStep):

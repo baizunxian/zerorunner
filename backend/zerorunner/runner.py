@@ -8,6 +8,7 @@ import traceback
 import typing
 import uuid
 from datetime import datetime
+from unittest import SkipTest
 
 from loguru import logger
 
@@ -15,13 +16,13 @@ from zerorunner import exceptions
 from zerorunner.client import HttpSession
 from zerorunner.exceptions import ValidationFailure
 from zerorunner.ext.zero_driver.driver import ZeroDriver
-from zerorunner.model.base import TStepResultStatusEnum, VariablesMapping, FunctionsMapping, TStepControllerDict, \
-    TStepLogType
-from zerorunner.model.result_model import StepResult, TestCaseSummary, TestCaseInOut
-from zerorunner.model.step_model import TStep, TConfig
+from zerorunner.models.base import VariablesMapping, FunctionsMapping
+from zerorunner.models.result_model import StepResult, TestCaseSummary, TestCaseInOut
+from zerorunner.models.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
     Parser, parse_variables_mapping
 from zerorunner.response import uniform_validator
+from zerorunner.steps.step_result import TStepResult
 from zerorunner.utils import merge_variables
 
 
@@ -41,6 +42,7 @@ class SessionRunner(object):
     __step_results: typing.List[StepResult] = []
     __session_variables: VariablesMapping = {}
     __merge_variable_pool: VariablesMapping = {}
+    __step_run_index = 0
     # time
     __start_time: float = 0
     __duration: float = 0
@@ -92,15 +94,15 @@ class SessionRunner(object):
     def get_session_variables(self):
         return self.__session_variables
 
-    def append_step_result(self, step_result: StepResult, step_tag: str = None, parent_step_result: StepResult = None):
+    def append_step_result(self, step_result: StepResult, step_tag: str = None, parent_step_result: TStepResult = None):
         """setup_hooks teardown_hooks"""
         if parent_step_result:
             if step_tag and step_tag == "setup_hooks":
-                parent_step_result.setup_hook_results.append(step_result)
+                parent_step_result.get_step_result().setup_hook_results.append(step_result)
             elif step_tag and step_tag == "teardown_hooks":
-                parent_step_result.teardown_hook_results.append(step_result)
+                parent_step_result.get_step_result().teardown_hook_results.append(step_result)
             else:
-                parent_step_result.step_result.append(step_result)
+                parent_step_result.get_step_result().step_result.append(step_result)
         else:
             self.__step_results.append(step_result)
 
@@ -158,7 +160,7 @@ class SessionRunner(object):
     def get_merge_variable_pool(self):
         return self.__merge_variable_pool
 
-    def get_merge_variable(self, step: TStep = None):
+    def get_merge_variable(self, step: TStep = None, variables_mapping: VariablesMapping = None):
         """
         获取合并的变量
         优先级
@@ -177,9 +179,12 @@ class SessionRunner(object):
         # 合并会话变量
         merge_variable_pool = merge_variables(self.__session_variables, merge_variable_pool)
         # 合并用例变量
+        merge_variable_pool = merge_variables(self.__session_variables, merge_variable_pool)
+        # 合并用例变量
         if step:
             merge_variable_pool = merge_variables(step.variables, merge_variable_pool)
-
+        if variables_mapping:
+            merge_variable_pool = merge_variables(variables_mapping, merge_variable_pool)
         merge_variable_pool = parse_variables_mapping(
             merge_variable_pool, self.parser.functions_mapping
         )
@@ -212,6 +217,16 @@ class SessionRunner(object):
         """清空步骤结果"""
         self.__step_results.clear()
 
+    def handle_skip_feature(self, step: TStep):
+        """ handle skip feature for testcase
+            - skip: skip current test unconditionally
+            - skipIf: skip current test if condition is true
+            - skipUnless: skip current test unless condition is true
+        """
+        skip_reason = None
+        if skip_reason:
+            raise SkipTest(skip_reason)
+
     def get_export_variables(self) -> typing.Dict:
         """获取导出的变量"""
         # override testcase export vars with step export
@@ -226,6 +241,9 @@ class SessionRunner(object):
             export_vars_mapping[var_name] = self.__session_variables[var_name]
 
         return export_vars_mapping
+
+    def get_step_run_index(self):
+        return self.__step_run_index
 
     def get_summary(self) -> TestCaseSummary:
         """获取测试用例结果摘要"""
@@ -255,7 +273,7 @@ class SessionRunner(object):
         )
         return testcase_summary
 
-    def run_step(self, step, step_tag: str = None, parent_step_result: StepResult = None):
+    def run_step(self, step, step_tag: str = None, parent_step_result: TStepResult = None):
         """运行步骤，可以运行实现IStep run 方法的任何步骤
         Args:
             step (Step): obj IStep
@@ -269,6 +287,7 @@ class SessionRunner(object):
             self.__start_time = time.time()
         for i in range(step.retry_times + 1):
             try:
+                self.__step_run_index += 1
                 step.run(self, step_tag=step_tag, parent_step_result=parent_step_result)
             except ValidationFailure:
                 if i == step.retry_times:
@@ -289,7 +308,7 @@ class SessionRunner(object):
     def execute_loop(self,
                      steps: typing.List[object],
                      step_tag=None,
-                     parent_step_result: StepResult = None):
+                     parent_step_result: TStepResult = None):
         """
         执行循环
         :param steps: 步骤
@@ -298,6 +317,8 @@ class SessionRunner(object):
         :return:
         """
         for step in steps:
+            if hasattr(step, "set_index") and hasattr(step, "get_index"):
+                step.set_index(step.get_index() + 1)
             self.run_step(step, step_tag=step_tag, parent_step_result=parent_step_result)
 
     def test_start(self, param: typing.Dict = None) -> "SessionRunner":

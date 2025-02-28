@@ -1,12 +1,33 @@
 # -*- coding: utf-8 -*-
 # @author: xiaobai
 import typing
+from enum import Enum
 
 from pydantic import BaseModel, Field
 
 from autotest.schemas.base import BaseSchema
-from zerorunner.model.step_model import TStep, ValidatorData, TSqlRequest, TIFRequest, TLoopRequest
-from zerorunner.models import TRequest
+from zerorunner.models.step_model import TStep, ValidatorData, TSqlRequest, TRequest, TIFRequest, TWaitRequest, \
+    TScriptRequest, TLoopRequest, TUiRequest
+
+
+class RequestMode(str, Enum):
+    """请求模式"""
+    RAW = "raw"
+    FORM_DATA = "form_data"
+    FILE = "file"
+    X_WWW_FORM_URLENCODED = "x_www_form_urlencoded"
+    none = "none"
+
+
+class RawLanguageEnum(str, Enum):
+    """raw语言"""
+    JSON = "json"
+    TEXT = "text"
+    HTML = "html"
+    XML = "xml"
+    JAVASCRIPT = "javascript"
+    CSS = "css"
+    none = "none"
 
 
 class ApiBodyFileValueSchema(BaseSchema):
@@ -20,11 +41,18 @@ class ApiBodyFileDataSchema(BaseSchema):
     type: str = Field("", description="类型 file text")
 
 
+class ApiBaseSchema(BaseModel):
+    key: str = Field(None, description="")
+    value: typing.Any = Field(None, description="")
+    remarks: str = Field(None, description="")
+    type: str = Field(None, description="")
+
+
 class TRequestData(TRequest):
-    mode: str = Field("", description="模式 raw  form-data 等")
-    data: typing.Union[str, typing.List[ApiBodyFileDataSchema]] = Field(None,
-                                                                        description="数据json 数据 或者form-data数据等")
-    language: str = Field("", description="raw 中包含json text 等")
+    mode: typing.Union[RequestMode, str] = Field("", description="模式 raw  form-data 等")
+    data: typing.Union[str, typing.List[typing.Union[ApiBodyFileDataSchema, ApiBaseSchema]]] = Field(None,
+                                                                                                     description="数据json 数据 或者form-data数据等")
+    language: typing.Union[RawLanguageEnum, str] = Field("", description="raw 中包含json text 等")
     upload: typing.Dict = Field({}, description="上传文件的数据")
     headers: typing.List[typing.Any] = Field([], description="请求头")
 
@@ -32,14 +60,6 @@ class TRequestData(TRequest):
 class TSqlData(TSqlRequest):
     env_id: typing.Optional[int] = None
     source_id: typing.Optional[int] = None
-
-
-class TIFStepData(TIFRequest):
-    teststeps: typing.List["TStepData"] = Field([], description='步骤')
-
-
-class TLoopStepData(TLoopRequest):
-    teststeps: typing.List["TStepData"] = Field([], description='步骤')
 
 
 class TStepSqlData(BaseModel):
@@ -57,20 +77,15 @@ class TStepSqlData(BaseModel):
     variable_name: str = Field(None, description="赋值的变量名称")
 
 
+TStepRequest = typing.Union[TRequestData, TSqlData, TIFRequest, TWaitRequest, TScriptRequest, TLoopRequest, TUiRequest]
+
+
 class TStepData(TStep):
     """继承步骤类，方便入库存储"""
-    enable: bool = True  # 是否有效
     step_type: str = Field(..., description="步骤类型")
-    setup_hooks: typing.List[typing.Union["TStepData", str]] = []
-    teardown_hooks: typing.List[typing.Union["TStepData", str]] = []
+    setup_hooks: typing.List["TStepData"] = []
+    teardown_hooks: typing.List["TStepData"] = []
     variables: typing.List[typing.Any] = Field([], description="变量")
-    validators: typing.List[ValidatorData] = Field([], alias="validators")
-    request: TRequestData = Field(None, description="api请求参数")
-    sql_request: TSqlData = Field(None, description="sql请求参数")
-    if_request: TIFStepData = Field(None, description="if请求参数")
-    loop_request: TLoopStepData = Field(None, description="loop请求参数")
-
-
-TIFStepData.update_forward_refs()
-TLoopStepData.update_forward_refs()
-TStepData.update_forward_refs()
+    validators: typing.List[ValidatorData] = Field([], description="校验", alias="validators")
+    request: typing.Union[TStepRequest] = Field(None, description="请求信息")
+    children_steps: typing.List["TStepData"] = Field([], description="子步骤")

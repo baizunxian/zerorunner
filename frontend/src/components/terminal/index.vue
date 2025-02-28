@@ -2,8 +2,8 @@
   <div ref="terminalRef"></div>
 </template>
 
-<script setup lang="ts" name="webSsh">
-import {nextTick, onBeforeUnmount, onMounted, onUnmounted, reactive, ref, onDeactivated} from "vue"
+<script setup name="webSsh">
+import {nextTick, onDeactivated, onMounted, reactive, ref} from "vue"
 import {Terminal} from "xterm"
 import {FitAddon} from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
@@ -138,7 +138,7 @@ const websocket = () => {
 }
 
 const userWrite = () => {
-  stata.term.onData((e: any) => {
+  stata.term.onData((e) => {
     console.log("e", JSON.stringify(e))
     switch (e) {
       case '\u0003': // Ctrl+C
@@ -171,7 +171,7 @@ const userWrite = () => {
   });
 }
 
-const writeOfColor = (txt: string, fontCss = "", bgColor = "") => {
+const writeOfColor = (txt, fontCss = "", bgColor = "") => {
   // 在Linux脚本中以 \x1B[ 开始，中间前部分是样式+内容，以 \x1B[0m 结尾
   // 示例 \x1B[1;3;31m 内容 \x1B[0m
   // fontCss

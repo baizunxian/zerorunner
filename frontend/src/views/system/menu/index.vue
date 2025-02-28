@@ -29,10 +29,9 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemMenu">
+<script setup name="SystemMenu">
 import {h, onMounted, reactive, ref} from 'vue';
 import {useMenuApi} from '/@/api/useSystemApi/menu';
-import {RouteRecordRaw} from 'vue-router';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import EditMenu from '/@/views/system/menu/EditMenu.vue';
 
@@ -42,7 +41,7 @@ const tableRef = ref();
 const state = reactive({
   columns: [
     {
-      key: 'title', label: '菜单名称', width: '', align: 'left', show: true, render: ({row}: any) =>
+      key: 'title', label: '菜单名称', width: '', align: 'left', show: true, render: ({row}) =>
           h(ElButton, {
             link: true,
             type: "primary",
@@ -58,7 +57,7 @@ const state = reactive({
     {key: 'sort', label: '排序', width: '', align: 'left', show: true},
     {key: 'menu_type', label: '类型', width: '', align: 'left', show: true}, {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -85,9 +84,9 @@ const state = reactive({
 });
 
 // 递归组装菜单
-const menuAssembly = (parent_menu: Array<object>, all_menu: Array<object>) => {
-  parent_menu.forEach((parent: any) => {
-    all_menu.forEach((menu: any) => {
+const menuAssembly = (parent_menu, all_menu) => {
+  parent_menu.forEach((parent) => {
+    all_menu.forEach((menu) => {
       if (menu.parent_id == parent.id) {
         parent.children = parent.children ? parent.children : [];
         parent.children.push(menu);
@@ -103,8 +102,8 @@ const getList = async () => {
   tableRef.value.openLoading()
   let res = await useMenuApi().allMenu({})
   state.allMenuList = res.data
-  let parent_menu: any = []
-  res.data.forEach((menu: any) => {
+  let parent_menu = []
+  res.data.forEach((menu) => {
     if (!menu.parent_id) {
       parent_menu.push(menu)
     }
@@ -117,11 +116,11 @@ const getList = async () => {
 //   addMenuRef.value.openDialog();
 // };
 // 打开编辑菜单弹窗
-const onOpenSaveOrUpdate = (editType: string, row: RouteRecordRaw) => {
+const onOpenSaveOrUpdate = (editType, row) => {
   EditRef.value.openDialog(editType, row);
 };
 // 删除当前行
-const deleted = (row: RouteRecordRaw) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '删除',
     cancelButtonText: '取消',

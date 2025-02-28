@@ -32,28 +32,27 @@
           @pagination-change="getList"
       />
 
-      <ReportDetail :report-info="state.reportInfo" ref="reportDetailRef"/>
+<!--      <ReportDetail :report-info="state.reportInfo"/>-->
 
     </el-card>
   </div>
 </template>
 
-<script setup lang="ts" name="apiReport">
+<script setup name="apiReport">
 import {useReportApi} from '/@/api/useAutoApi/report';
-import {h, onMounted, reactive, ref, watch} from 'vue';
-import {useRoute} from "vue-router";
+import {useRouter} from "vue-router";
+import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus'
-import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue";
+import ReportDetail from "/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"
 
-const route = useRoute()
-const reportDetailRef = ref()
 const tableRef = ref()
+const router = useRouter()
 const state = reactive({
   columns: [
     {label: '序号', columnType: 'index', align: 'center', width: 'auto', show: true},
     {
       key: 'name', label: '报告名称', align: 'center', width: '', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -63,7 +62,7 @@ const state = reactive({
     },
     {
       key: 'status', label: '运行结果', align: 'center', width: '', show: true,
-      render: ({row}: any) => h(ElTag, {
+      render: ({row}) => h(ElTag, {
         type: row.success ? "success" : "danger",
       }, () => row.success ? "通过" : "不通过",)
     },
@@ -81,7 +80,7 @@ const state = reactive({
       align: 'center',
       width: '',
       showTooltip: true,
-      lookupCode: 'api_report_run_type'
+      lookupCode: 'api_report_run_mode'
     },
     {key: 'run_count', label: '运行数', align: 'center', width: '', show: true},
     // {key: 'successes', label: '执行结果', width: '', showTooltip: true},
@@ -89,9 +88,10 @@ const state = reactive({
     {key: 'duration', label: '运行耗时(秒)', align: 'center', width: '', show: true},
     {key: 'start_time', label: '运行时间', align: 'center', width: '150', show: true},
     {key: 'exec_user_name', label: '执行人', align: 'center', width: '', show: true},
+    {key: 'error_msg', label: '错误信息', align: 'center', width: '', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'right', align: 'center', width: '140',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -148,7 +148,7 @@ const search = () => {
 }
 
 // 删除报告
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
@@ -161,9 +161,10 @@ const deleted = (row: any) => {
   })
 }
 
-const onOpenReport = (row: any) => {
+const onOpenReport = (row) => {
   state.reportInfo = row
-  reportDetailRef.value.showReport()
+  router.push({name: 'ApiReportDetail', query: {id: row.id}})
+  // reportDetailRef.value.showReport()
 }
 
 // watch(

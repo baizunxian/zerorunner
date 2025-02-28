@@ -1,13 +1,13 @@
 import typing
 
 from sqlalchemy import Integer, String, Text, DateTime, BigInteger, func, \
-    distinct, text, and_, JSON, DECIMAL, select, update
+    distinct, text, and_, JSON, DECIMAL, select, update, Boolean, case
 from sqlalchemy.orm import aliased, mapped_column
 
 from autotest.models.base import Base
 from autotest.models.system_models import User
 from autotest.schemas.api.api_case import ApiCaseQuery
-from autotest.schemas.api.api_info import ApiQuery
+from autotest.schemas.api.api_info import ApiQuery, ApiIds
 from autotest.schemas.api.api_report import TestReportQuery, TestReportDetailQuery
 from autotest.schemas.api.data_source import SourceQuery
 from autotest.schemas.api.env import EnvQuery, BindingDataSourceIn, BindingFuncIn
@@ -175,21 +175,21 @@ class ApiInfo(Base):
     __tablename__ = 'api_info'
 
     name = mapped_column(String(255), nullable=False, comment="用例名称", index=True)
-    project_id = mapped_column(Integer, nullable=False, comment='所属项目')
-    module_id = mapped_column(Integer, nullable=False, comment='所属模块')
+    project_id = mapped_column(BigInteger, nullable=False, comment='所属项目')
+    module_id = mapped_column(BigInteger, nullable=False, comment='所属模块')
     status = mapped_column(Integer, comment='用例状态 10, 生效 ， 20 失效', default=10)
     code_id = mapped_column(BigInteger, comment='关联接口id')
     code = mapped_column(String(255), comment='接口code')
     priority = mapped_column(Integer, comment='优先级', default=3)
     tags = mapped_column(JSON, comment='用例标签')
-    url = mapped_column(JSON, nullable=False, comment='请求地址')
+    url = mapped_column(String(255), nullable=False, comment='请求地址')
     method = mapped_column(String(255), comment='请求方式')
     remarks = mapped_column(String(255), comment='描述')
     step_type = mapped_column(String(255), comment='描述')
     pre_steps = mapped_column(JSON, comment='前置步骤')
     post_steps = mapped_column(JSON, comment='后置步骤')
-    setup_code = mapped_column(JSON, comment='前置code')
-    teardown_code = mapped_column(JSON, comment='后置code')
+    setup_code = mapped_column(Text, comment='前置code')
+    teardown_code = mapped_column(Text, comment='后置code')
     setup_hooks = mapped_column(JSON, comment='前置操作')
     teardown_hooks = mapped_column(JSON, comment='后置操作')
     headers = mapped_column(JSON, comment='请求头')
@@ -198,10 +198,6 @@ class ApiInfo(Base):
     extracts = mapped_column(JSON, comment='提取')
     export = mapped_column(JSON, comment='输出')
     request = mapped_column(JSON, comment='请求参数')
-    sql_request = mapped_column(JSON, comment='sql请求参数')
-    loop_data = mapped_column(JSON, comment='sql请求参数')
-    if_data = mapped_column(JSON, comment='sql请求参数')
-    wait_data = mapped_column(JSON, comment='sql请求参数')
 
     @classmethod
     async def get_list(cls, params: ApiQuery):
@@ -305,11 +301,6 @@ class ApiInfo(Base):
         return await cls.get_result(stmt)
 
     @classmethod
-    def get_api_by_ids(cls, ids: typing.List[typing.Union[int, str]]):
-        q = []
-        return cls.query.filter(cls.id.in_(ids), *q, cls.enabled_flag == 1)
-
-    @classmethod
     async def get_api_by_id(cls, id: int):
         u = aliased(User)
         stmt = select(cls.get_table_columns(),
@@ -319,6 +310,13 @@ class ApiInfo(Base):
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by)
         return await cls.get_result(stmt, True)
+
+    @classmethod
+    async def get_api_by_ids(cls, params: ApiIds):
+        if not params.ids:
+            return None
+        stmt = select(cls.get_table_columns()).where(cls.id.in_(params.ids), cls.enabled_flag == 1)
+        return await cls.get_result(stmt)
 
     @classmethod
     async def get_count_by_user_id(cls, user_id: typing.Any):
@@ -353,6 +351,183 @@ class ApiInfo(Base):
     @classmethod
     def get_all_count(cls):
         return cls.query.filter(cls.enabled_flag == 1).count()
+
+
+class ApiCaseStep(Base):
+    """步骤信息表"""
+    __tablename__ = 'api_case_step'
+    case_id = mapped_column(BigInteger, nullable=False, comment='用例id')
+    source_id = mapped_column(BigInteger, nullable=False, comment='源id')
+    name = mapped_column(String(255), nullable=False, comment="用例名称", index=True)
+    project_id = mapped_column(BigInteger, nullable=False, comment='所属项目')
+    module_id = mapped_column(BigInteger, nullable=False, comment='所属模块')
+    status = mapped_column(Integer, comment='用例状态 10, 生效 ， 20 失效', default=10)
+    code = mapped_column(String(255), comment='接口code')
+    code_id = mapped_column(BigInteger, comment='关联接口id')
+    priority = mapped_column(Integer, comment='优先级', default=3)
+    url = mapped_column(String(255), nullable=False, comment='请求地址')
+    method = mapped_column(String(255), comment='请求方式')
+    tags = mapped_column(JSON, comment='用例标签')
+    remarks = mapped_column(String(255), comment='描述')
+    step_type = mapped_column(String(255), comment='描述')
+    pre_steps = mapped_column(JSON, comment='前置步骤')
+    post_steps = mapped_column(JSON, comment='后置步骤')
+    setup_code = mapped_column(Text, comment='前置code')
+    teardown_code = mapped_column(Text, comment='后置code')
+    setup_hooks = mapped_column(JSON, comment='前置操作')
+    teardown_hooks = mapped_column(JSON, comment='后置操作')
+    headers = mapped_column(JSON, comment='请求头')
+    variables = mapped_column(JSON, comment='变量')
+    validators = mapped_column(JSON, comment='断言规则')
+    extracts = mapped_column(JSON, comment='提取')
+    export = mapped_column(JSON, comment='输出')
+    request = mapped_column(JSON, comment='请求参数')
+    step_id = mapped_column(BigInteger, comment='步骤id')
+    parent_step_id = mapped_column(BigInteger, comment='父步骤id')
+    index = mapped_column(String(255), comment='步骤顺序')
+    node_id = mapped_column(String(255), comment='节点id')
+    enable = mapped_column(Boolean, default=1, comment='是否启用 0 否 1 是')
+    is_quotation = mapped_column(Integer, default=1, comment='是否引用 0 否 1 是')
+    version = mapped_column(Integer, default=0, comment='版本号')
+
+    @classmethod
+    async def get_list(cls, params: ApiQuery):
+        q = [cls.enabled_flag == 1]
+        if params.id:
+            q.append(cls.id == params.id)
+        if params.name:
+            q.append(cls.name.like('%{}%'.format(params.name)))
+        if params.project_id:
+            q.append(cls.project_id == params.project_id)
+        if params.module_id:
+            q.append(cls.module_id == params.module_id)
+        if params.code:
+            q.append(cls.code.like('%{}%'.format(params.code)))
+        if params.module_ids:
+            q.append(cls.module_id.in_(params.module_ids))
+        if params.project_ids:
+            q.append(cls.project_id.in_(params.project_ids))
+        if params.created_by:
+            q.append(cls.created_by == params.created_by)
+        if params.created_by_name:
+            q.append(User.nickname.like('%{}%'.format(params.created_by_name)))
+        if params.priority:
+            q.append(cls.priority.in_(params.priority))
+        if params.ids:
+            q.append(cls.id.in_(params.ids))
+        if params.api_status:
+            q.append(cls.api_status == params.api_status)
+        u = aliased(User)
+
+        sort_type = 'asc' if params.sort_type == 0 else 'desc'
+
+        if not params.order_field or params.order_field == 'creation_date':
+            order_field = 'api_info.creation_date'
+        elif params.order_field == 'updation_date':
+            order_field = 'api_info.updation_date'
+        elif params.order_field == 'name':
+            order_field = 'api_info.name'
+        elif params.order_field == 'project_name':
+            order_field = 'project_info.name'
+        elif params.order_field == 'module_name':
+            order_field = 'module_info.name'
+        elif params.order_field == 'created_by_name' or params.order_field == 'updated_by_name':
+            order_field = 'user.nickname'
+        else:
+            order_field = 'api_info.id'
+        order_by = f'{order_field} {sort_type}'
+
+        stmt = select(cls.id,
+                      cls.name,
+                      cls.url,
+                      cls.method,
+                      cls.project_id,
+                      cls.module_id,
+                      cls.code_id,
+                      cls.code,
+                      cls.priority,
+                      cls.status,
+                      cls.tags,
+                      cls.updated_by,
+                      cls.created_by,
+                      cls.updation_date,
+                      cls.creation_date,
+                      cls.enabled_flag,
+                      ProjectInfo.name.label('project_name'),
+                      ModuleInfo.name.label('module_name'),
+                      User.nickname.label('created_by_name'),
+                      u.nickname.label('updated_by_name')).where(*q) \
+            .outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
+            .outerjoin(ModuleInfo, ModuleInfo.id == cls.module_id) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by) \
+            .order_by(text(order_by))
+
+        return await cls.pagination(stmt)
+
+    @classmethod
+    async def get_step_by_case_id(cls, case_id: int, version: int):
+        stmt = (select(cls.get_table_columns({"id"}),
+                       ApiInfo.name.label('api_name'),
+                       ApiInfo.method.label('api_method'),
+                       )
+                .outerjoin(ApiInfo, and_(ApiInfo.id == cls.source_id, ApiInfo.enabled_flag == 1))
+                .where(cls.case_id == case_id,
+                       cls.version == version,
+                       cls.enabled_flag == 1).order_by(cls.index.asc()))
+        return await cls.get_result(stmt)
+
+    @classmethod
+    def get_all_count(cls):
+        return cls.query.filter(cls.enabled_flag == 1).count()
+
+    @classmethod
+    async def get_relation_by_api_id(cls, api_id: typing.Union[str, int]):
+        """获取关联关系，那些case 使用了对应的api"""
+        q = [cls.enabled_flag == 1]
+        stmt = select(
+            func.any_value(cls.id.label("case_step_id")),
+            func.any_value(ApiCase.id).label("id"),
+            func.any_value(ApiCase.name).label("name"),
+            func.any_value(func.concat('case_', ApiCase.id)).label("relation_id"),
+            func.any_value(func.concat('api_', api_id)).label("from_relation_id"),
+            func.any_value(func.concat('case_', ApiCase.id)).label("to_relation_id"),
+            func.any_value(User.nickname).label("created_by_name"),
+            ApiCase.creation_date,
+        ) \
+            .join(ApiCase, and_(cls.case_id == ApiCase.id,
+                                cls.version == ApiCase.version,
+                                ApiCase.enabled_flag == 1
+                                )) \
+            .outerjoin(User, User.id == ApiCase.created_by) \
+            .where(*q, cls.source_id == api_id) \
+            .group_by(ApiCase.id) \
+            .order_by(ApiCase.id.desc())
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_relation_by_case_ids(cls, case_ids: typing.List[typing.Union[str, int]]):
+        """获取关联关系，那些case 使用了对应的api"""
+        q = [cls.enabled_flag == 1]
+        stmt = select(
+            func.any_value(cls.id.label("case_step_id")),
+            func.any_value(ApiInfo.id).label("id"),
+            func.any_value(func.concat('api_', ApiInfo.id)).label("relation_id"),
+            func.any_value(func.concat('api_', ApiInfo.id)).label("from_relation_id"),
+            func.any_value(func.concat('case_', ApiCase.id)).label("to_relation_id"),
+            func.any_value(ApiInfo.name).label("name"),
+            func.any_value(ApiInfo.creation_date).label("creation_date"),
+            func.any_value(User.nickname).label("created_by_name"),
+            func.any_value(ApiCase.creation_date),
+        ) \
+            .join(ApiCase, and_(cls.case_id == ApiCase.id,
+                                cls.version == ApiCase.version,
+                                ApiCase.enabled_flag == 1
+                                )) \
+            .outerjoin(User, User.id == ApiCase.created_by) \
+            .outerjoin(ApiInfo, ApiInfo.id == cls.source_id) \
+            .where(*q, cls.case_id.in_(case_ids), cls.step_type == 'api')
+        return await cls.get_result(stmt)
 
 
 class ApiCase(Base):
@@ -402,7 +577,8 @@ class ApiCase(Base):
                       User.nickname.label('created_by_name'),
                       u.nickname.label('updated_by_name'),
                       ProjectInfo.name.label('project_name')).where(*q) \
-            .outerjoin(ApiCaseStep, and_(ApiCaseStep.case_id == cls.id, cls.version == ApiCaseStep.version)) \
+            .outerjoin(ApiCaseStep, and_(ApiCaseStep.case_id == cls.id, cls.version == ApiCaseStep.version,
+                                         ApiCaseStep.parent_step_id.is_(None))) \
             .outerjoin(User, User.id == cls.created_by) \
             .outerjoin(u, u.id == cls.updated_by) \
             .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
@@ -411,9 +587,15 @@ class ApiCase(Base):
         return await cls.pagination(stmt)
 
     @classmethod
-    def get_case_by_id(cls, id):
-        """根据套件id查询用例"""
-        return cls.query.filter(cls.id == id, cls.enabled_flag == 1).first()
+    async def get_api_by_id(cls, id: int):
+        u = aliased(User)
+        stmt = select(cls.get_table_columns(),
+                      User.nickname.label('created_by_name'),
+                      u.nickname.label('updated_by_name')) \
+            .where(cls.id == id, cls.enabled_flag == 1) \
+            .outerjoin(User, User.id == cls.created_by) \
+            .outerjoin(u, u.id == cls.updated_by)
+        return await cls.get_result(stmt, True)
 
     @classmethod
     async def get_case_by_ids(cls, ids: typing.List[int]):
@@ -436,6 +618,7 @@ class ApiCase(Base):
 
     @classmethod
     def statistic_project_case_number(cls):
+        """统计项目用例数量"""
         return cls.query.outerjoin(ProjectInfo, ProjectInfo.id == cls.project_id) \
             .outerjoin(User, User.id == cls.created_by) \
             .with_entities(ProjectInfo.name,
@@ -444,78 +627,6 @@ class ApiCase(Base):
                            User.nickname.label('username'),
                            ) \
             .filter(cls.enabled_flag == 1)
-
-    @classmethod
-    def get_all_count(cls):
-        return cls.query.filter(cls.enabled_flag == 1).count()
-
-
-class ApiCaseStep(Base):
-    """用例步骤"""
-    __tablename__ = 'api_case_step'
-
-    name = mapped_column(String(64), nullable=False, comment='名称', index=True)
-    case_id = mapped_column(BigInteger, comment='case_id')
-    step_type = mapped_column(String(255), comment='步骤类型')
-    api_id = mapped_column(BigInteger, comment='api_id')
-    step_id = mapped_column(BigInteger, comment='步骤级id')
-    parent_id = mapped_column(BigInteger, comment='父级步骤id')
-    step_data = mapped_column(JSON, comment='步骤数据')
-    enable = mapped_column(Integer, comment='是否生效')
-    index = mapped_column(Integer, comment='顺序')
-    node_id = mapped_column(String(255), comment='节点id')
-    version = mapped_column(Integer, comment='版本', default=0)
-
-    @classmethod
-    def get_list(cls, name=None, user_ids=None, project_id=None, created_by=None, suite_type=None,
-                 created_by_name=None, project_ids=None, ids=None):
-        q = list()
-        if name:
-            q.append(cls.name.like(f'%{name}%'))
-        if suite_type:
-            q.append(cls.suite_type == suite_type)
-        if project_id:
-            q.append(cls.project_id == project_id)
-        if created_by:
-            q.append(User.nickname.like(f'%{created_by}%'))
-        if user_ids:
-            q.append(cls.created_by.in_(user_ids))
-        if project_ids:
-            q.append(cls.project_id.in_(project_ids))
-        if created_by_name:
-            q.append(User.nickname.like(f'%{created_by_name}%'))
-        if ids:
-            q.append(cls.id.in_(ids))
-        u = aliased(User)
-        return cls.query.filter(*q, cls.enabled_flag == 1) \
-            .outerjoin(User, User.id == cls.created_by) \
-            .outerjoin(u, u.id == cls.updated_by) \
-            .outerjoin(ProjectInfo, cls.project_id == ProjectInfo.id) \
-            .with_entities(cls.id,
-                           cls.name,
-                           cls.project_id,
-                           cls.headers,
-                           cls.variables,
-                           cls.created_by,
-                           cls.creation_date,
-                           cls.updated_by,
-                           cls.updation_date,
-                           cls.enabled_flag,
-                           User.nickname.label('created_by_name'),
-                           u.nickname.label('updated_by_name'),
-                           ProjectInfo.name.label('project_name')) \
-            .order_by(cls.creation_date.desc())
-
-    @classmethod
-    async def get_step_by_case_id(cls, case_id: int, version: int):
-        stmt = (select(cls.get_table_columns(),
-                       ApiInfo.name.label('api_name'),
-                       ApiInfo.method.label('api_method'),
-                       )
-                .outerjoin(ApiInfo, and_(ApiInfo.id == cls.api_id, ApiInfo.enabled_flag == 1))
-                .where(cls.case_id == case_id, cls.version == version,
-                       cls.enabled_flag == 1).order_by(cls.index.asc()))
-        return await cls.get_result(stmt)
 
 
 class ApiTestReport(Base):
@@ -541,6 +652,7 @@ class ApiTestReport(Base):
     env_id = mapped_column(Integer, comment='运行环境')
     exec_user_id = mapped_column(Integer, comment='执行人id')
     exec_user_name = mapped_column(String(255), comment='执行人昵称')
+    error_msg = mapped_column(Text, comment='错误信息')
 
     @classmethod
     async def get_list(cls, params: TestReportQuery):
@@ -670,13 +782,14 @@ class ApiTestReportDetail:
                 post_hook_data = mapped_column(JSON, comment='后置步骤')
                 setup_hook_results = mapped_column(JSON, comment='前置hook结果')
                 teardown_hook_results = mapped_column(JSON, comment='后置hook结果')
-                index = mapped_column(Integer, comment='顺序')
+                index = mapped_column(String(255), comment='顺序')
                 status_code = mapped_column(Integer, comment='顺序')
                 response_time_ms = mapped_column(DECIMAL(), comment='响应耗时')
                 elapsed_ms = mapped_column(DECIMAL(), comment='请求耗时')
                 log = mapped_column(Text, comment='运行日志')
                 exec_user_id = mapped_column(Integer, comment='执行人id')
                 exec_user_name = mapped_column(String(255), comment='执行人昵称')
+                source_id = mapped_column(BigInteger, comment='源id')
 
                 @classmethod
                 async def get_list(cls, params: TestReportDetailQuery):
@@ -694,67 +807,90 @@ class ApiTestReportDetail:
                         q.append(cls.status.in_(params.status_list))
                     if params.parent_step_id:
                         q.append(cls.parent_step_id == params.parent_step_id)
-                    else:
-                        q.append(cls.parent_step_id == None)
+                    # else:
+                    #     q.append(cls.parent_step_id == None)
 
                     stmt = select(cls.get_table_columns(),
-                                  ApiInfo.name.label("case_name"),
-                                  ApiInfo.created_by.label('case_created_by'),
-                                  User.nickname.label('case_created_by_name'), ).where(*q) \
-                        .outerjoin(ApiInfo, ApiInfo.id == cls.case_id) \
+                                  func.if_(ApiTestReport.run_type != 'api', ApiTestReport.name.label("case_name"),
+                                           None),
+                                  ApiInfo.name.label("api_name"),
+                                  ApiInfo.created_by.label('api_created_by'),
+                                  User.nickname.label('api_created_by_name'), ).where(*q) \
+                        .outerjoin(ApiInfo, ApiInfo.id == cls.source_id) \
+                        .outerjoin(ApiTestReport, ApiTestReport.id == cls.report_id) \
                         .outerjoin(User, User.id == ApiInfo.created_by) \
                         .order_by(cls.index)
                     return await cls.pagination(stmt)
 
                 @classmethod
                 async def statistics(cls, params: TestReportDetailQuery):
-                    q = [cls.enabled_flag == 1]
-                    q.append(cls.report_id == params.id)
+                    q = [cls.enabled_flag == 1, cls.report_id == params.id]
                     if params.parent_step_id:
                         q.append(cls.parent_step_id == params.parent_step_id)
-                    else:
-                        q.append(cls.parent_step_id == None)
+
+                    sub_stmt = (select(
+                        # 用例
+                        # 用例步骤成功数
+                        cls.case_id.label("case_id"),
+                        func.count(func.if_(cls.case_id.is_not(None), 1, None)).label("case_count_1"),
+                        func.sum(func.if_(and_(cls.status == "SUCCESS", cls.case_id.is_not(None)), 1, 0)).label(
+                            "case_step_success_count"),
+                        # 用例步骤成功数
+                        func.sum(func.if_(and_(cls.status != "SUCCESS", cls.case_id.is_not(None)), 1, 0)).label(
+                            "case_step_fail_count"),
+
+                        # 步骤 -------------------------------------------------
+                        # 总步骤数
+                        func.count('*').label("step_count"),
+                        func.count(func.if_(cls.status != "SKIP", 1, None)).label("effective_step_count"),
+                        # 成功步骤数
+                        func.sum(func.if_(and_(cls.status == "SUCCESS", cls.status != "SKIP"), 1, 0)).label(
+                            "step_success_count"),
+                        # 失败步骤数
+                        func.sum(func.if_(cls.status == "FAILURE", 1, 0)).label(
+                            "step_fail_count"),
+                        # 跳过步骤数
+                        func.sum(func.if_(cls.status == "SKIP", 1, 0)).label("step_skip_count"),
+
+                        # 错误步骤数
+                        func.sum(func.if_(cls.status == "ERROR", 1, 0)).label("step_error_count"),
+
+                        # 平均请求时长
+                        func.round(func.IFNULL(func.avg(cls.elapsed_ms), 0), 2).label("avg_request_time"),
+                        # 总执行时长
+                        func.sum(cls.duration).label("request_time_count"))
+                                .where(*q).group_by(cls.case_id).subquery())
 
                     stmt = select(
-                        # 总步骤数
-                        func.count('1').label("count_step"),
-                        # 成功步骤数
-                        func.sum(func.if_(cls.status == "SUCCESS" == 1, 1, 0)).label(
-                            "count_step_success"),
-                        # 失败步骤数
-                        func.sum(func.if_(cls.status == "FAILURE" == 1, 1, 0)).label(
-                            "count_step_failure"),
-                        # 跳过步骤数
-                        func.sum(func.if_(cls.status == "SKIP" == 1, 1, 0)).label("count_step_skip"),
-                        # 错误步骤数
-                        func.sum(func.if_(cls.status == "ERROR" == 1, 1, 0)).label("count_step_error"),
-                        # 平均请求时长
-                        func.round(func.avg(cls.elapsed_ms), 2).label("avg_request_time"),
-                        # 总执行时长
-                        func.sum(cls.duration).label("count_request_time"),
-                        # 用例数
-                        func.sum(func.if_(cls.step_type == 'api', func.if_(cls.status != "SKIP", 1, 0), 0)).label(
-                            "count_case"),
-                        # 成功用例数
+                        func.count(func.if_(sub_stmt.c.case_id.is_not(None), 1, None)).label("case_count"),
+                        func.sum(sub_stmt.c.step_count).label("step_count"),
+                        func.round(func.avg(sub_stmt.c.avg_request_time), 2).label("avg_request_time"),
+                        func.sum(sub_stmt.c.request_time_count).label("request_time_count"),
+
                         func.sum(
-                            func.if_(cls.step_type == 'api', func.if_(cls.status == "SUCCESS", 1, 0), 0)).label(
-                            "count_case_success"),
-                        # 失败用例数
-                        func.sum(
-                            func.if_(cls.step_type == 'api', func.if_(cls.status == "FAILURE", 1, 0), 0)).label(
-                            "count_case_fail"),
-                        # 测试用例通过率
+                            func.if_(and_(
+                                sub_stmt.c.case_count_1 > 0,
+                                sub_stmt.c.case_step_fail_count == 0), 1, 0))
+                        .label("case_success_count"),
+
+                        (func.count(func.if_(sub_stmt.c.case_id.is_not(None), 1, None)) - func.sum(
+                            func.if_(and_(
+                                sub_stmt.c.case_count_1 > 0,
+                                sub_stmt.c.case_step_fail_count == 0), 1, 0))).label("case_fail_count"),
+
+                        func.sum(sub_stmt.c.step_success_count).label("step_success_count"),
+                        (func.sum(sub_stmt.c.step_fail_count)).label("step_fail_count"),
+                        func.sum(sub_stmt.c.step_skip_count).label("step_skip_count"),
+                        func.sum(sub_stmt.c.step_error_count).label("step_error_count"),
                         func.round(
-                            func.sum(
-                                func.if_(cls.step_type == 'api',
-                                         func.if_(cls.status == "SUCCESS", func.if_(cls.status != "SKIP", 1, 0), 0),
-                                         0)) / func.sum(
-                                func.if_(cls.step_type == 'api', func.if_(cls.status != "SKIP", 1, 0), 0)) * 100,
-                            2).label("case_pass_rate"),
-                        # 测试步骤通过率
+                            func.sum(sub_stmt.c.step_success_count) / func.sum(sub_stmt.c.effective_step_count) * 100,
+                            2).label("step_pass_rate"),
                         func.round(
-                            func.sum(func.if_(cls.status == "SUCCESS", 1, 0)) / func.count('1') * 100, 2).label(
-                            "step_pass_rate")).where(*q)
+                            (func.sum(func.if_(sub_stmt.c.case_step_fail_count == 0, 1, 0))) / func.count(
+                                func.if_(sub_stmt.c.case_id.is_not(None), 1, None)) * 100,
+                            2).label(
+                            "case_pass_rate")
+                    )
 
                     return await cls.get_result(stmt, first=True)
 
@@ -810,7 +946,7 @@ class Env(Base):
 
 
 class EnvDataSource(Base):
-    """环境数据源管理表"""
+    """环境数据源关联表"""
     __tablename__ = 'env_data_source'
 
     env_id = mapped_column(Integer, nullable=False, index=True, comment='环境id')
@@ -894,7 +1030,7 @@ class EnvFunc(Base):
 class Functions(Base):
     __tablename__ = 'functions'
 
-    name = mapped_column(Integer,  nullable=False, comment='name')
+    name = mapped_column(Integer, nullable=False, comment='name')
     remarks = mapped_column(Integer, comment='备注')
     project_id = mapped_column(Integer, comment='关联项目')
     content = mapped_column(Text, comment='自定义函数内容')
@@ -938,7 +1074,7 @@ class DataSource(Base):
     __tablename__ = 'data_source'
 
     type = mapped_column(String(255), comment='数据源类型', index=True)
-    name = mapped_column(String(255),  nullable=False, comment='数据源名称', index=True)
+    name = mapped_column(String(255), nullable=False, comment='数据源名称', index=True)
     host = mapped_column(String(255), comment='ip')
     port = mapped_column(String(255), comment='端口')
     user = mapped_column(String(255), comment='用户名')

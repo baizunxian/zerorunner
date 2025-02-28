@@ -7,31 +7,21 @@ import logging
 import traceback
 import uuid
 from abc import ABC
+
 from celery import Celery, Task
 from celery._state import _task_stack
 from celery.signals import setup_logging, task_prerun
 from celery.worker.request import Request
 
-from config import config
-from autotest.utils.local import g
 from autotest.init.logger_init import InterceptHandler, logger
-from autotest.init.redis_init import init_redis_pool
 from autotest.schemas.job.task_record import TaskRecordIn
 from autotest.services.job.task_record import TaskRecordServer
 from autotest.utils.async_converter import AsyncIOPool
+from autotest.utils.local import g
+from autotest.utils.serialize import MyJsonDecode
+from config import config
 
-
-class TaskRequest(Request):
-    """重写task request 设置 trace_id 这里可以设置所有透传过来的参数"""
-
-    def __init__(self, *args, **kwargs):
-        super(TaskRequest, self).__init__(*args, **kwargs)
-        self.set_trace_id()
-
-    def set_trace_id(self):
-        """这里为了设置消息发送是的trace_id能与请求保持一致特殊处理"""
-        trace_id = self.request_dict.get("trace_id", str(uuid.uuid4()))
-        g.trace_id = trace_id
+WorkerPool = AsyncIOPool()
 
 
 # @celeryd_after_setup.connect
@@ -43,13 +33,19 @@ class TaskRequest(Request):
 # @after_task_publish.connect
 # def pre_task_received(body, **kwargs):
 #     """任务发布后触发"""
+#     time.sleep(30)
 #     queue_name = '{0}.dq'.format(body)
+#     logger.info(f'sleep 30 s {queue_name}')
+
+
 #
 #
 # @task_received.connect
 # def task_received_in(request: Request, **kwargs):
 #     """收到任务时触发"""
 #     queue_name = '{0}.dq'.format(request)
+#     time.sleep(30)
+#     logger.info(f'sleep 30 s {queue_name}')
 
 
 # @before_task_publish.connect
@@ -82,18 +78,32 @@ def receiver_task_pre_run(task: Task, *args, **kwargs):
             start_time=datetime.datetime.now(),
             status="RUNNING",
             business_id=business_id,
-            args=json.dumps(task.request.args),
-            kwargs=json.dumps(task.request.kwargs)
+            args=json.dumps(task.request.args, cls=MyJsonDecode),
+            kwargs=json.dumps(task.request.kwargs, cls=MyJsonDecode),
         )
-        AsyncIOPool.run_in_pool(TaskRecordServer.save_or_update(params))
+        WorkerPool.run(TaskRecordServer.save_or_update(params))
+        logger.info(f"异步任务提交--> task id [{task.request.id}]")
     except:
-        logger.error(f"task pre run error:\n{traceback.format_exc()}")
+        logger.error(f"t异步任务提交--> 错误 error:\n{traceback.format_exc()}")
 
 
 @setup_logging.connect
 def setup_loggers(*args, **kwargs):
     """logger 初始化统一处理日志格式"""
     logging.basicConfig(handlers=[InterceptHandler()], level=config.LOGGER_LEVEL)
+
+
+class TaskRequest(Request):
+    """重写task request 设置 trace_id 这里可以设置所有透传过来的参数"""
+
+    def __init__(self, *args, **kwargs):
+        super(TaskRequest, self).__init__(*args, **kwargs)
+        self.set_trace_id()
+
+    def set_trace_id(self):
+        """这里为了设置消息发送是的trace_id能与请求保持一致特殊处理"""
+        trace_id = self.request_dict.get("trace_id", str(uuid.uuid4()))
+        g.trace_id = trace_id
 
 
 def create_celery():
@@ -132,9 +142,6 @@ def create_celery():
             return super(ContextTask, self).apply_async(args, kwargs, task_id, producer, link, link_error,
                                                         shadow, **options)
 
-        def send_task(self):
-            ...
-
         def on_success(self, retval, task_id, args, kwargs):
             """任务成功时回调"""
             logger.info("on_success")
@@ -156,26 +163,25 @@ def create_celery():
             :return:
             """
             try:
-                record_task_info = AsyncIOPool.run_in_pool(TaskRecordServer.get_task_record_by_id(self.request.id))
+                record_task_info = WorkerPool.run(TaskRecordServer.get_task_record_by_id(self.request.id))
                 if record_task_info:
                     record_task_info["status"] = status
                     record_task_info["result"] = result
                     record_task_info["traceback"] = err
                     record_task_info["end_time"] = datetime.datetime.now()
                     params = TaskRecordIn(**record_task_info)
-                    AsyncIOPool.run_in_pool(TaskRecordServer.save_or_update(params))
+                    WorkerPool.run(TaskRecordServer.save_or_update(params))
             except:
-                logger.error(f"handel task  result error task id [{self.request.id}]:\n{traceback.format_exc()}")
+                logger.error(f"异步任务执行结果保存错误！ task id [{self.request.id}]:\n{traceback.format_exc()}")
 
         def __call__(self, *args, **kwargs):
             """重写call方法 支持异步函数的运行"""
             g.trace_id = self.request.trace_id
             _task_stack.push(self)
             self.push_request(args=args, kwargs=kwargs)
-            g.redis = AsyncIOPool.run_in_pool(init_redis_pool())
             try:
                 if asyncio.iscoroutinefunction(self.run):
-                    return AsyncIOPool.run_in_pool(self.run(*args, **kwargs))
+                    return WorkerPool.run(self.run(*args, **kwargs))
                 else:
                     return self.run(*args, **kwargs)
             finally:
@@ -184,6 +190,8 @@ def create_celery():
 
     _celery_: Celery = NewCelery("zerorunner-job-worker", task_cls=ContextTask)
     _celery_.config_from_object(config)
+    # 自动发现各个app下的tasks.py文件
+    _celery_.autodiscover_tasks()
 
     return _celery_
 
@@ -192,13 +200,13 @@ celery = create_celery()
 
 # celery_worker 专用于celery的worker
 # worker windows 启动，只能单线程
-# job -A celery_worker.worker worker --pool=solo -l INFO
+# celery -A celery_worker.worker worker --pool=solo -l INFO
 # worker linux  启动
-# job -A celery_worker.worker worker --pool=solo -c 10 -l INFO  linux 启动
+# celery -A celery_worker.worker worker --pool=solo -c 10 -l INFO  linux 启动
 # beat
-# job -A celery_worker.worker beat  -l INFO  启动节拍器，定时任务需要
+# celery -A celery_worker.worker beat  -l INFO  启动节拍器，定时任务需要
 # beat 数据库
-# job -A celery_worker.worker beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+# celery -A celery_worker.worker beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
 if __name__ == '__main__':
     import sys

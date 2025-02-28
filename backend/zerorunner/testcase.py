@@ -9,8 +9,9 @@ from loguru import logger
 
 from autotest.utils.async_converter import AsyncIOPool
 from zerorunner import exceptions
-from zerorunner.model import step_model
-from zerorunner.model.result_model import TestCaseSummary
+from zerorunner.models import step_model
+from zerorunner.models.result_model import TestCaseSummary
+from zerorunner.parser import Parser
 from zerorunner.reports import HtmlTestResult
 from zerorunner.runner import SessionRunner
 from zerorunner.report.stringify import stringify_summary
@@ -20,7 +21,7 @@ from zerorunner.steps.step import Step
 class ZeroRunner(object):
     def __init__(self, failfast: bool = False, session_runner: SessionRunner = None):
         self.exception_stage = "initialize ZeroRunner()"
-        kwargs = {"failfast": failfast, "resultclass": HtmlTestResult}
+        kwargs = {"failfast": failfast, "resultclass": HtmlTestResult, "verbosity": 0}
         self.unittest_runner = unittest.TextTestRunner(**kwargs)
         self.test_loader = unittest.TestLoader()
         self._summary = None

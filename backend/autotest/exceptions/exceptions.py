@@ -78,3 +78,10 @@ class ParameterError(MyBaseException):
     def __init__(self, err_code: typing.Union[CodeEnum, str]):
         super(ParameterError, self).__init__(err_code)
 
+
+class EnvConfInitError(MyBaseException):
+    """ 环境配置初始化失败 """
+
+    def __init__(self, err_code: typing.Union[CodeEnum, str]):
+        super(EnvConfInitError, self).__init__(err_code)
+

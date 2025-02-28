@@ -4,7 +4,7 @@
 - 基于 python3 + fastApi + celery + sqlalchemy + redis
 
 - 使用软件版本
-- python version 3.9.6
+- python version <=3.13
 - mysql version 5.7.43
 - redis version 6.0.9
 
@@ -27,7 +27,7 @@ https://gitee.com/xb_xiaobai/zerorunner
 #### ⛱️ 线上预览
 
 - ZERO AUTOTEST
-  自动化测试平台在线预览 <a href="https://xiaobaicodes.com" target="_blank">https://xiaobaicodes.com</a>
+  自动化测试平台在线预览 <a href="https://zerorunner.cn" target="_blank">https://zerorunner.cn</a>
 
 - 首页
   ![](static/img/index.png)
@@ -50,7 +50,9 @@ backend/script/zerorunner.sql
 # 执行一下语句
 set @@global.sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
-
+# 配置修改
+# 复制backend/.env.example 为 .env 文件
+# 修改对应配置
 # 修改对应的数据库地址，redis 地址
 backend/config.py
 # 或者
@@ -99,11 +101,20 @@ cd zerorunner/frontend
 # 或者
 yarn install
 
+# 修改配置
+.env.development # 开发环境
+.env.production # 生产环境
+
+VITE_API_BASE_URL # 后端接口地址
+VITE_API_PREFIX # 后端接口前缀
+VITE_WBE_SOCKET_URL # websocket 地址
+
 # 运行项目
 yarn dev
 
 # 打包发布
 yarn build
+
 ```
 
 #### 💯 学习交流加 微信 群
@@ -115,3 +126,7 @@ yarn build
 
 如果觉得框架不错，或者已经在使用了，希望你可以去 <a target="_blank" href="https://github.com/baizunxian/zerorunner">
 Github</a> 帮我点个 ⭐ Star，这将是对我极大的鼓励与支持, 平台会持续迭代更新。
+
+#### 请我喝杯咖啡
+- ![](static/img/weixinzhanshang.jpg) 
+- ![](static/img/zhifubaozhanshang.jpg)

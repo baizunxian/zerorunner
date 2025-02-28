@@ -2,9 +2,9 @@
   <div class="layout-parent">
     <router-view v-slot="{ Component }">
       <transition :name="setTransitionName" mode="out-in">
-          <keep-alive :include="getKeepAliveNames">
-            <component :is="Component" :key="state.refreshRouterViewKey" class="w100" v-show="!isIframePage"/>
-          </keep-alive>
+        <keep-alive :include="getKeepAliveNames">
+          <component :is="Component" :key="state.refreshRouterViewKey" class="w100" v-show="!isIframePage"/>
+        </keep-alive>
       </transition>
     </router-view>
     <transition :name="setTransitionName" mode="out-in">
@@ -14,8 +14,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutParentView">
-import {defineAsyncComponent, computed, reactive, onBeforeMount, onUnmounted, nextTick, watch, onMounted} from 'vue';
+<script setup name="layoutParentView">
+import {computed, defineAsyncComponent, nextTick, onBeforeMount, onMounted, onUnmounted, reactive, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {storeToRefs} from 'pinia';
 import {useKeepALiveNames} from '/@/stores/keepAliveNames';
@@ -33,7 +33,7 @@ const storesKeepAliveNames = useKeepALiveNames();
 const storesThemeConfig = useThemeConfig();
 const {keepAliveNames, cachedViews} = storeToRefs(storesKeepAliveNames);
 const {themeConfig} = storeToRefs(storesThemeConfig);
-const state = reactive<ParentViewState>({
+const state = reactive({
   refreshRouterViewKey: '', // 非 iframe tagsview 右键菜单刷新时
   iframeRefreshKey: '', // iframe tagsview 右键菜单刷新时
   keepAliveNameList: [],
@@ -65,8 +65,8 @@ const getIframeListRoutes = async () => {
 // 页面加载前，处理缓存，页面刷新时路由缓存处理
 onBeforeMount(() => {
   state.keepAliveNameList = keepAliveNames.value;
-  mittBus.on('onTagsViewRefreshRouterView', (fullPath: string) => {
-    state.keepAliveNameList = keepAliveNames.value.filter((name: string) => route.name !== name);
+  mittBus.on('onTagsViewRefreshRouterView', (fullPath) => {
+    state.keepAliveNameList = keepAliveNames.value.filter((name) => route.name !== name);
     state.refreshRouterViewKey = '';
     state.iframeRefreshKey = '';
     nextTick(() => {
@@ -82,8 +82,8 @@ onMounted(() => {
   nextTick(() => {
     setTimeout(() => {
       if (themeConfig.value.isCacheTagsView) {
-        let tagsViewArr: RouteItem[] = Session.get('tagsViewList') || [];
-        cachedViews.value = tagsViewArr.filter((item) => item.meta?.isKeepAlive).map((item) => item.name as string);
+        let tagsViewArr = Session.get('tagsViewList') || [];
+        cachedViews.value = tagsViewArr.filter((item) => item.meta?.isKeepAlive).map((item) => item.name);
       }
     }, 0);
   });
@@ -94,12 +94,12 @@ onUnmounted(() => {
   });
 });
 watch(
-  () => route.fullPath,
-  () => {
-    state.refreshRouterViewKey = decodeURI(route.fullPath);
-  },
-  {
-    immediate: true,
-  }
+    () => route.fullPath,
+    () => {
+      state.refreshRouterViewKey = decodeURI(route.fullPath);
+    },
+    {
+      immediate: true,
+    }
 );
 </script>

@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from autotest.utils import current_user
+from autotest.db.session import provide_async_session_router
+from autotest.utils.current_user import current_user
 from celery_worker.tasks.test_case import async_run_testcase
 from autotest.utils.response.http_response import partner_success
 from autotest.schemas.api.api_case import ApiCaseQuery, ApiCaseIn, ApiCaseId, TestCaseRun, ApiCaseIdsQuery, \
@@ -23,6 +24,7 @@ async def get_case_by_ids(params: ApiCaseIdsQuery):
 
 
 @router.post('/saveOrUpdate', description="更新保存用例")
+@provide_async_session_router
 async def save_or_update(params: ApiCaseIn):
     data = await ApiCaseService.save_or_update(params)
     return partner_success(data)
@@ -38,8 +40,10 @@ async def run_testcase(params: ApiTestCaseRun):
     kwargs = dict(case_id=params.id,
                   case_env_id=params.env_id,
                   exec_user_id=exec_user_id,
-                  exec_user_name=exec_user_name)
-    async_run_testcase.apply_async(kwargs=kwargs, __business_id=params.id)
+                  exec_user_name=exec_user_name,
+                  __business_id=params.id,
+                  callback=ApiCaseService.run_callback)
+    async_run_testcase.apply_async(kwargs=kwargs)
     return partner_success(msg="用例异步运行， 请稍后再测试报告列表查看 😊")
 
 
@@ -58,4 +62,14 @@ async def deleted(params: ApiCaseId):
 @router.post('/getCaseInfo', description="用例信息")
 async def get_case_info(params: ApiCaseId):
     data = await ApiCaseService.get_case_info(params)
+    return partner_success(data)
+
+
+@router.post('/getUseCaseRelation', description="case使用关系")
+async def use_api_relation(params: ApiCaseId):
+    """
+    测试报告
+    :return:
+    """
+    data = await ApiCaseService.use_case_relation(params)
     return partner_success(data)

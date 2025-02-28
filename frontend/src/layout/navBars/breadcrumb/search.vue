@@ -29,7 +29,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutBreadcrumbSearch">
+<script setup name="layoutBreadcrumbSearch">
 import {reactive, ref, nextTick} from 'vue';
 import {useRouter} from 'vue-router';
 import {storeToRefs} from 'pinia';
@@ -40,7 +40,7 @@ const storesTagsViewRoutes = useTagsViewRoutes();
 const {tagsViewRoutes} = storeToRefs(storesTagsViewRoutes);
 const layoutMenuAutocompleteRef = ref();
 const router = useRouter();
-const state = reactive<SearchState>({
+const state = reactive({
   isShowSearch: false,
   menuQuery: '',
   tagsViewList: [],
@@ -62,29 +62,29 @@ const closeSearch = () => {
   state.isShowSearch = false;
 };
 // 菜单搜索数据过滤
-const menuSearch = (queryString: string, cb: Function) => {
+const menuSearch = (queryString, cb) => {
   let results = queryString ? state.tagsViewList.filter(createFilter(queryString)) : state.tagsViewList;
   cb(results);
 };
 // 菜单搜索过滤
-const createFilter = (queryString: string) => {
-  return (restaurant: RouteItem) => {
+const createFilter = (queryString) => {
+  return (restaurant) => {
     return (
         restaurant.path.toLowerCase().indexOf(queryString.toLowerCase()) > -1 ||
-        restaurant.meta!.title!.toLowerCase().indexOf(queryString.toLowerCase()) > -1 ||
-        restaurant.meta!.title!.indexOf(queryString.toLowerCase()) > -1
+        restaurant.meta?.title?.toLowerCase().indexOf(queryString.toLowerCase()) > -1 ||
+        restaurant.meta?.title?.indexOf(queryString.toLowerCase()) > -1
     );
   };
 };
 // 初始化菜单数据
 const initTageView = () => {
   if (state.tagsViewList.length > 0) return false;
-  tagsViewRoutes.value.map((v: RouteItem) => {
+  tagsViewRoutes.value.map((v) => {
     if (!v.meta?.isHide) state.tagsViewList.push({...v});
   });
 };
 // 当前菜单选中时
-const onHandleSelect = (item: RouteItem) => {
+const onHandleSelect = (item) => {
   let {path, redirect} = item;
   if (item.meta?.isLink && !item.meta?.isIframe) window.open(item.meta?.isLink);
   else if (redirect) router.push(redirect);

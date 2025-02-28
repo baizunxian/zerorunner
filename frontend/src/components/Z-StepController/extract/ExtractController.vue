@@ -99,15 +99,14 @@
               </el-icon>
             </el-button>
           </el-col>
-
         </el-row>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup name="ExtractController">
-import {PropType, reactive} from 'vue';
+<script setup name="ExtractController">
+import {reactive} from 'vue';
 import commonFunction from '/@/utils/commonFunction';
 import {getModeTypeObj, getPlaceholder} from "/@/utils/case";
 import useVModel from "/@/utils/useVModel";
@@ -116,14 +115,14 @@ const emit = defineEmits(['update:data'])
 
 const props = defineProps({
   extracts: {
-    type: Array as PropType<Array<ExtractData>>,
+    type: Array,
     default: () => {
-      return {}
+      return []
     }
   },
 })
 
-const extracts = useVModel(props, 'extracts', emit) as any
+const extracts = useVModel(props, 'extracts', emit)
 
 
 const {copyText} = commonFunction()
@@ -137,17 +136,16 @@ const state = reactive({
 
 // add JsonPathList
 const add = () => {
-  let data: any
+  let data
   data = {name: "", path: "", extract_type: "jmespath"}
   if (extracts) {
-    console.log(extracts, "extracts")
     extracts.value.push(data)
   } else {
     emit("update:data", [data])
   }
 }
 
-const deleted = (index: any) => {
+const deleted = (index) => {
   extracts.value.splice(index, 1)
 }
 

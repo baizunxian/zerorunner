@@ -3,12 +3,13 @@
 from autotest.exceptions.exceptions import ParameterError
 from autotest.models.ui_models import UiCase
 from autotest.schemas.api.api_case import TestCaseRun, TCaseStepData
+from autotest.schemas.step_data import TStepData
 from autotest.schemas.ui.ui_case import UiCaseQuery, UiCaseId, UiCaseIn
 from autotest.services.api.run_handle_new import HandelTestCase
 from autotest.services.ui.ui_report import UiReportService
-from autotest.utils import current_user
+from autotest.utils.current_user import current_user
 from zerorunner.ext.zero_driver.driver import ZeroDriver, DriverSetting
-from zerorunner.model.step_model import TStep, TUiRequest
+from zerorunner.models.step_model import TUiRequest
 from zerorunner.runner import SessionRunner
 from zerorunner.testcase import ZeroRunner
 
@@ -48,7 +49,7 @@ class UiCaseServer:
         ui_case_info = await UiCaseServer.get_case_by_id(params)
         if not ui_case_info:
             raise ParameterError("UI用例信息不存在")
-        ui_case_info = UiCaseIn(**ui_case_info)
+        ui_case_info = UiCaseIn.parse_obj(ui_case_info)
 
         ui_case_info = await UiCaseServer.handel_ui_case2run_schemas(ui_case_info)
         session_runner = SessionRunner()
@@ -96,14 +97,14 @@ class UiCaseServer:
         step_data = []
         if ui_case.steps:
             for step in ui_case.steps:
-                case_step = TCaseStepData(
+                case_step = TStepData(
                     case_id=ui_case.id,
                     name=step.name,
                     index=step.index,
                     step_type='ui',
                     enable=step.enable,
                     variables=step.variables,
-                    ui_request=TUiRequest(
+                    request=TUiRequest(
                         action=step.action,
                         data=step.data,
                         location_value=step.location_value,

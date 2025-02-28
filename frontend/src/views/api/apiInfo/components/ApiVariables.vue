@@ -2,28 +2,17 @@
   <VariableController :data="state.variables"></VariableController>
 </template>
 
-<script lang="ts" setup name="ApiVariables">
+<script setup name="ApiVariables">
 
 import {handleEmpty} from "/@/utils/other";
 import {reactive} from "vue";
 import VariableController from "/@/components/Z-StepController/variable/VariableController.vue"
 
-
-interface baseState {
-  key: string,
-  value: string,
-  remarks: string
-}
-
-interface variablesState {
-  variables: Array<baseState>,
-}
-
-const state = reactive<variablesState>({
+const state = reactive({
   variables: [],   // 变量列表
 });
 // 初始化数据
-const setData = (data: any) => {
+const setData = (data) => {
   state.variables = data ? data : []
 }
 

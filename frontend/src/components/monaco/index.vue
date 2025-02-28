@@ -1,13 +1,13 @@
 <template>
   <div class="monaco-editor" ref="monacoEditorRef"></div>
 </template>
-<script lang="ts" setup name="monacoEditor">
+<script setup name="monacoEditor">
 import * as monaco from 'monaco-editor'
 import {onMounted, onUnmounted, reactive, ref, toRaw, watch} from 'vue'
-
 import SQLSnippets from "./core/sql.js"
 import {getJsonPath} from '/@/utils/jsonPath'
 import {ElMessage} from "element-plus";
+import commonFunction from "/@/utils/commonFunction";
 
 const props = defineProps({
   // 展示的字符串
@@ -21,6 +21,10 @@ const props = defineProps({
   },
   // 是否启用比对
   isDiff: {
+    type: Boolean,
+    default: false,
+  },
+  readOnly: {
     type: Boolean,
     default: false,
   },
@@ -76,11 +80,11 @@ const props = defineProps({
 
 const emit = defineEmits(["on-cursor-change", "update:value"])
 
-const editor: any = ref(null)
+const editor = ref(null)
 const monacoEditorRef = ref()
-const originalEditor: any = ref(null)
-const modifiedEditor: any = ref(null)
-const state = reactive<MonacoStateData>({
+const originalEditor = ref(null)
+const modifiedEditor = ref(null)
+const state = reactive({
   sqlSnippets: null,
   contentBackup: null,
   isSettingContent: false,
@@ -92,8 +96,8 @@ const state = reactive<MonacoStateData>({
     language: props.lang, // 语言类型
     tabCompletion: 'on',
     cursorSmoothCaretAnimation: true,
-    formatOnPaste: false,
-    mouseWheelZoom: function (e: any) {
+    formatOnPaste: true,
+    mouseWheelZoom: function (e) {
       const editor = e.target;
       const isAtBottom = editor.getScrollTop() >= editor.getScrollHeight() - editor.getLayoutInfo().height;
       if (isAtBottom) {
@@ -124,13 +128,13 @@ const initEditor = () => {
       props.lang,
       {
         async provideCompletionItems(model, position) {
-          let suggestions: any = []
+          let suggestions = []
           switch (props.lang) {
             case "sql":
               return await state.sqlSnippets.provideCompletionItems(model, position)
             default:
               // language = pythonLanguage
-              // language.keywords.forEach((item: any) => {
+              // language.keywords.forEach((item) => {
               //   suggestions.push({
               //     label: item,
               //     kind: monaco.languages.CompletionItemKind.Keyword,
@@ -147,18 +151,21 @@ const initEditor = () => {
         triggerCharacters: ['.'],
       }
   )
-  let modEditor: any
+  let modEditor
   if (props.isDiff) {
     editor.value = monaco.editor.createDiffEditor(monacoEditorRef.value, options)
-    originalEditor.value = monaco.editor.createModel(props.oldString, props.lang)
-    modifiedEditor.value = monaco.editor.createModel(props.value, props.lang)
+    originalEditor.value = monaco.editor.createModel(props.value, props.lang)
+    modifiedEditor.value = monaco.editor.createModel(props.oldString, props.lang)
     toRaw(editor.value).setModel({
       original: toRaw(originalEditor.value),
       modified: toRaw(modifiedEditor.value)
     })
-
     registerCustomEvent(editor.value.getModifiedEditor())
     registerCustomEvent(editor.value.getOriginalEditor())
+    toRaw(editor.value.getModifiedEditor()).updateOptions({readOnly: props.readOnly});
+    toRaw(editor.value.getOriginalEditor()).updateOptions({readOnly: props.readOnly});
+
+    // setOptions()
 
   } else {
     editor.value = monaco.editor.create(monacoEditorRef.value, options)
@@ -170,7 +177,6 @@ const initEditor = () => {
       const content = getValue();
       state.contentBackup = content;
       emit("update:value", content)
-      // emit("update:modelValue", content)
 
     })
   }
@@ -181,22 +187,40 @@ const getValue = () => {
   return toRaw(editor.value).getValue()
 }
 
-const setValue = (val: any) => {
-  toRaw(editor.value).setValue(val)
+const setValue = (val) => {
+  const isReadOnly = toRaw(editor.value).getRawOptions().readOnly;
+  if (isReadOnly) {
+    toRaw(editor.value).setValue(val)
+  } else {
+    const undoStack = getModel().undoStack;
+    toRaw(editor.value).executeEdits("replaceText", [{
+      range: getModel().getFullModelRange(),
+      text: val,
+      forceMoveMarkers: true
+    }]);
+    getModel().undoStack = undoStack;
+  }
+  setLineColor()
 }
-// const setTheme = (val: any) => {
-//   monaco.editor.setTheme(val);
-// }
+
 const getSelectionValue = () => {
   return toRaw(editor.value).getModel().getValueInRange(toRaw(editor.value).getSelection())
 }
 
-const getMode = () => {
+const getModel = () => {
   return toRaw(editor.value).getModel()
 }
 
-const registerCustomEvent = (editor: any) => {
-  if (props.lang == 'json') {
+const foldAll = () => {
+  toRaw(editor.value).getAction('editor.foldAll').run()
+}
+
+const unfoldAll = () => {
+  toRaw(editor.value).getAction('editor.unfoldAll').run()
+}
+
+const registerCustomEvent = (editor) => {
+  if (props.lang === 'json') {
     editor.addAction({
       id: 'json-path', // action unique id
       label: '复制 JsonPath', // action 在右键时展示的名称
@@ -211,7 +235,7 @@ const registerCustomEvent = (editor: any) => {
     })
   }
 
-  if (props.lang == 'sql') {
+  if (props.lang === 'sql') {
     editor.addAction({
       id: 'executeSql', // action unique id
       label: '执行', // action 在右键时展示的名称
@@ -225,21 +249,24 @@ const registerCustomEvent = (editor: any) => {
 
   }
 
-  editor.onDidChangeCursorPosition((event: any) => {
-    let value = getValue()
-    let offSet = toRaw(getMode()).getOffsetAt(event.position)
-    let language = props.lang;
+  editor.onDidChangeCursorPosition((event) => {
+    if (!props.isDiff) {
+      let value = getValue()
+      let offSet = toRaw(getModel()).getOffsetAt(event.position)
+      let language = props.lang;
 
-    if (props.value !== value && language === 'json') {
-      emit('on-cursor-change', {offSet: offSet})
+      if (props.value !== value && language === 'json') {
+        emit('on-cursor-change', {offSet: offSet})
+      }
+      if (language === 'json' && offSet !== 0) {
+        state.jsonPath = getJsonPath(value, offSet)
+        // emit('on-jsonpath-change', {jsonPath: state.jsonPath})
+      }
     }
-    if (language == 'json' && offSet !== 0) {
-      state.jsonPath = getJsonPath(value, offSet)
-      // emit('on-jsonpath-change', {jsonPath: state.jsonPath})
-    }
+
   })
 
-  editor.onMouseWheel((e: any) => {
+  editor.onMouseWheel((e) => {
     const scrollTop = editor.getScrollTop();
     const scrollHeight = editor.getScrollHeight();
     const clientHeight = editor.getLayoutInfo().height;
@@ -260,16 +287,38 @@ const registerCustomEvent = (editor: any) => {
 
 const copyToClipboard = () => {
   if (state.jsonPath) {
-    navigator.clipboard.writeText(state.jsonPath)
-        .then(function () {
-              ElMessage.success(`复制成功！ ${state.jsonPath}`)
-            }, function () {
-              ElMessage.error("jsonpath copy failed.");
-            }
-        );
+    commonFunction().copyText(state.jsonPath, `复制成功 🎉  ${state.jsonPath}`)
   } else {
     ElMessage.warning("没有可复制的路径...");
   }
+}
+
+
+const setLineColor = () => {
+  toRaw(editor.value).createDecorationsCollection([
+    {
+      options: {
+        // className: 'monaco-content-class',
+        isWholeLine: true,
+        backgroundColor: '#FFA500'
+      },
+      // 装饰位置
+      range: {
+        startColumn: 1,
+        endColumn: 30,
+        startLineNumber: 1,
+        endLineNumber: 2
+      }
+    }
+  ])
+}
+
+const setOptions = (options = {}) => {
+  toRaw(editor.value).updateOptions({
+    // renderSideBySide: false,  // 并排显示
+    ...props.options,
+    ...options,
+  });
 }
 
 watch(
@@ -293,8 +342,8 @@ watch(
     () => props.lang,
     (newVal) => {
       if (props.isDiff) {
-        toRaw(editor.value).getOriginalEditor().setModelLanguage(toRaw(editor.value).getOriginalEditor().getModel(), newVal)
-        toRaw(editor.value).getModifiedEditor().setModelLanguage(toRaw(editor.value).getModifiedEditor().getModel(), newVal)
+        // toRaw(editor.value).getOriginalEditor().setModelLanguage(toRaw(editor.value).getOriginalEditor().getModel(), newVal)
+        // toRaw(editor.value).getModifiedEditor().setModelLanguage(toRaw(editor.value).getModifiedEditor().getModel(), newVal)
       } else {
         monaco.editor.setModelLanguage(toRaw(editor.value).getModel(), newVal)
       }
@@ -306,6 +355,14 @@ watch(
     () => {
       monaco.editor.setTheme(props.theme)
 
+    },
+    {deep: true}
+)
+watch(
+    () => props.isDiff,
+    () => {
+      toRaw(editor.value)?.dispose()
+      initEditor()
     },
     {deep: true}
 )
@@ -343,13 +400,21 @@ onUnmounted(() => {
 
 defineExpose({
   getValue,
-  getMode,
+  getModel,
+  setValue,
+  foldAll,
+  unfoldAll,
   getSelectionValue,
 })
 </script>
-<style scoped>
+<style>
 .monaco-editor {
   width: 100%;
   height: 100%;
+}
+
+.monaco-content-class {
+  background-color: #FFA500;
+  opacity: 0.5;
 }
 </style>

@@ -28,9 +28,9 @@
 				<div v-show="state.isShowLoockLogin" class="layout-lock-screen-login">
 					<div class="layout-lock-screen-login-box">
 						<div class="layout-lock-screen-login-box-img">
-							<img src="" />
+							<img :src="userInfos.avatar" />
 						</div>
-						<div class="layout-lock-screen-login-box-name">Administrator</div>
+						<div class="layout-lock-screen-login-box-name">{{ userInfos.nickname }}</div>
 						<div class="layout-lock-screen-login-box-value">
 							<el-input
 								placeholder="请输入密码"
@@ -48,36 +48,39 @@
 							</el-input>
 						</div>
 					</div>
-					<div class="layout-lock-screen-login-icon">
-						<SvgIcon name="ele-Microphone" :size="20" />
-						<SvgIcon name="ele-AlarmClock" :size="20" />
-						<SvgIcon name="ele-SwitchButton" :size="20" />
-					</div>
+<!--					<div class="layout-lock-screen-login-icon">-->
+<!--						<SvgIcon name="ele-Microphone" :size="20" />-->
+<!--						<SvgIcon name="ele-AlarmClock" :size="20" />-->
+<!--						<SvgIcon name="ele-SwitchButton" :size="20" />-->
+<!--					</div>-->
 				</div>
 			</transition>
 		</div>
 	</div>
 </template>
 
-<script setup lang="ts" name="layoutLockScreen">
+<script setup name="layoutLockScreen">
 import { nextTick, onMounted, reactive, ref, onUnmounted } from 'vue';
 import { formatDate } from '/@/utils/formatTime';
 import { Local } from '/@/utils/storage';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
+import {useUserInfo} from "/@/stores/userInfo";
 
 // 定义变量内容
-const layoutLockScreenDateRef = ref<HtmlType>();
+const layoutLockScreenDateRef = ref();
 const layoutLockScreenInputRef = ref();
 const storesThemeConfig = useThemeConfig();
+const userInfo = useUserInfo()
 const { themeConfig } = storeToRefs(storesThemeConfig);
+const { userInfos } = storeToRefs(userInfo);
 const state = reactive({
 	transparency: 1,
 	downClientY: 0,
 	moveDifference: 0,
 	isShowLoockLogin: false,
 	isFlags: false,
-	querySelectorEl: '' as HtmlType,
+	querySelectorEl: '',
 	time: {
 		hm: '',
 		s: '',
@@ -90,29 +93,29 @@ const state = reactive({
 });
 
 // 鼠标按下 pc
-const onDownPc = (down: MouseEvent) => {
+const onDownPc = (down) => {
 	state.isFlags = true;
 	state.downClientY = down.clientY;
 };
 // 鼠标按下 app
-const onDownApp = (down: TouchEvent) => {
+const onDownApp = (down) => {
 	state.isFlags = true;
 	state.downClientY = down.touches[0].clientY;
 };
 // 鼠标移动 pc
-const onMovePc = (move: MouseEvent) => {
+const onMovePc = (move) => {
 	state.moveDifference = move.clientY - state.downClientY;
 	onMove();
 };
 // 鼠标移动 app
-const onMoveApp = (move: TouchEvent) => {
+const onMoveApp = (move) => {
 	state.moveDifference = move.touches[0].clientY - state.downClientY;
 	onMove();
 };
 // 鼠标移动事件
 const onMove = () => {
 	if (state.isFlags) {
-		const el = <HTMLElement>state.querySelectorEl;
+		const el = state.querySelectorEl;
 		const opacitys = (state.transparency -= 1 / 200);
 		if (state.moveDifference >= 0) return false;
 		el.setAttribute('style', `top:${state.moveDifference}px;cursor:pointer;opacity:${opacitys};`);
@@ -134,7 +137,7 @@ const onEnd = () => {
 	state.isFlags = false;
 	state.transparency = 1;
 	if (state.moveDifference >= -400) {
-		(<HTMLElement>state.querySelectorEl).setAttribute('style', `top:0px;opacity:1;transition:all 0.3s ease;`);
+		(state.querySelectorEl).setAttribute('style', `top:0px;opacity:1;transition:all 0.3s ease;`);
 	}
 };
 // 获取要拖拽的初始元素

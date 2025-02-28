@@ -11,13 +11,13 @@
   </el-row>
 </template>
 
-<script lang="ts" setup name="LoopHeader">
+<script setup name="LoopHeader">
 import {PropType, reactive} from 'vue';
 import {getMethodColor} from "/@/utils/case";
 
 const props = defineProps({
   data: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     default: () => {
       return {}
     }

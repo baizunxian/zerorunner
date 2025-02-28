@@ -12,7 +12,7 @@
           </template>
 
           <template #extra>
-            <el-dropdown class="pr12">
+            <el-dropdown :hide-on-click="false" class="pr12">
               <el-button type="warning">
                 添加步骤
                 <el-icon class="el-icon--right">
@@ -163,12 +163,30 @@
               <strong>请求头</strong>
               <span class="ui-badge-circle" v-show="getDataLength('headers')">{{ getDataLength('headers') }}</span>
             </template>
-            <HeadersController :data="state.form.headers"></HeadersController>
+            <HeadersController v-model:data="state.form.headers"></HeadersController>
           </el-tab-pane>
         </el-tabs>
       </el-dialog>
     </el-card>
-    <ReportDetail ref="ReportDetailRef" :report-info="state.reportInfo" :is-debug="true"></ReportDetail>
+
+    <el-dialog
+        draggable
+        v-if="state.showReportDialog"
+        v-model="state.showReportDialog"
+        width="90%"
+        top="5vh"
+        destroy-on-close
+        :close-on-click-modal="false">
+      <template #header>
+        <strong>报告详情</strong>
+        <!--      <el-button class="ml5" style="font-size: 12px" type="primary" link @click="state.showLog=!state.showLog">-->
+        <!--        执行日志-->
+        <!--      </el-button>-->
+      </template>
+
+      <ReportDetail :report-info="state.reportInfo" :is-debug="true" ref="reportDetailRef"/>
+
+    </el-dialog>
 
     <el-dialog
         draggable
@@ -206,8 +224,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditApiCase">
-import {onMounted, reactive, ref} from 'vue';
+<script setup name="EditApiCase">
+import {onActivated, onMounted, reactive, ref, watch} from 'vue';
 import {ElMessage} from "element-plus";
 import {useApiCaseApi} from "/@/api/useAutoApi/apiCase";
 import {useRoute, useRouter} from "vue-router"
@@ -255,6 +273,7 @@ const state = reactive({
   // tabs
   activeTabName: "variable",
 //  report
+  showReportDialog: false,
   reportInfo: null,
 //  showRunPage
   showRunPage: false,
@@ -271,8 +290,8 @@ const initData = async () => {
   }
 }
 
-const handleStepData = (step_data: Array<any>) => {
-  step_data.forEach((e: any) => {
+const handleStepData = (step_data) => {
+  step_data.forEach((e) => {
     if (e.sub_steps) {
       handleStepData(e.sub_steps)
     } else {
@@ -312,7 +331,7 @@ const saveOrUpdate = () => {
   state.form.variables = handleEmpty(state.form.variables)
   state.form.headers = handleEmpty(state.form.headers)
   useApiCaseApi().saveOrUpdate(state.form)
-      .then((res:any) => {
+      .then((res) => {
         state.form.id = res.data.id
         state.form.version = res.data.version
         ElMessage.success('操作成功');
@@ -334,9 +353,9 @@ const getEnvList = () => {
 
 // debugApiCase
 const debugApiCase = () => {
-  formRef.value.validate((valid: any) => {
+  formRef.value.validate((valid) => {
     if (valid) {
-      if (state.form.step_data.length == 0) {
+      if (state.form.step_data.length === 0) {
         ElMessage.warning("请先添加步骤！")
         return
       }
@@ -344,9 +363,9 @@ const debugApiCase = () => {
       state.form.variables = handleEmpty(state.form.variables)
       state.form.headers = handleEmpty(state.form.headers)
       useApiCaseApi().debugSuites(state.form)
-          .then((req: any) => {
+          .then((req) => {
             state.reportInfo = req.data
-            ReportDetailRef.value.showReport()
+            state.showReportDialog = !state.showReportDialog
             ElMessage.success('操作成功');
             state.runCaseLoading = false
             state.showRunPage = false
@@ -362,17 +381,17 @@ const debugApiCase = () => {
 
 }
 
-const getDataLength = (dataType: string) => {
-  if (dataType == "headers") {
+const getDataLength = (dataType) => {
+  if (dataType === "headers") {
     return handleEmpty(state.form.headers).length
   }
-  if (dataType == "variables") {
+  if (dataType === "variables") {
     return handleEmpty(state.form.variables).length
   }
 }
 
 //handleAddData
-const handleAddData = (optType: string) => {
+const handleAddData = (optType) => {
   stepControllerRef.value.handleAddData(optType)
 
 }
@@ -381,10 +400,17 @@ const handleAddData = (optType: string) => {
 const goBack = () => {
   router.push({name: 'apiCase'})
 }
+
+onActivated(() => {
+  if (state.timestamp !== route.query.timestamp) {
+    state.timestamp = route.query.timestamp
+    initData()
+  }
+})
+
 // 页面加载时
 onMounted(() => {
   initData()
-  // getEnvList()
   getProjectList()
 });
 

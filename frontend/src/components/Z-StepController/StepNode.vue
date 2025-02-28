@@ -12,24 +12,8 @@
           backgroundColor: getStepTypeInfo(step.step_type, 'background')
         }"
         >
-          <div class="el-step__icon-inner">{{ step.index }}</div>
+          <div class="el-step__icon-inner">{{ step.$index }}</div>
         </div>
-
-        <!--        <span v-if="!data.edit">-->
-        <!--            <svgIcon name="ele-EditPen" @click.stop="editeName(data)" style="margin-right: 5px; top:2px"></svgIcon>-->
-        <!--          &lt;!&ndash;            <i class="ele-EditPen"&ndash;&gt;-->
-        <!--          &lt;!&ndash;               @click.stop="editeName(data)"&ndash;&gt;-->
-        <!--          &lt;!&ndash;               style="margin-right: 5px">&ndash;&gt;-->
-        <!--          &lt;!&ndash;            </i>&ndash;&gt;-->
-        <!--            <span>{{ data.name }}</span>-->
-        <!--          </span>-->
-        <!--        <el-input v-else-->
-        <!--                  :id="`editeName_${data.index}`"-->
-        <!--                  v-model="data.name"-->
-        <!--                  style="width: 200px;"-->
-        <!--                  @click.stop.native=""-->
-        <!--                  @blur="nameEditBlur(data)">-->
-        <!--        </el-input>-->
 
         <div class="step-header__tag">
           <i :class="getStepTypeInfo(step.step_type, 'icon')"
@@ -45,6 +29,7 @@
           </svg-icon>
         </div>
         <!--脚本名称-->
+
         <div class="step-header__content">
           <template v-if="step.step_type === 'api'">
             <ApiHeader :data="step"/>
@@ -63,7 +48,20 @@
           </template>
 
           <template v-else>
-            <span>{{ step.name }}</span>
+            <span v-if="!step.edit && (step.step_type ==='sql' || step.step_type === 'script')">
+              <span>{{ step.name }}</span>
+              <svgIcon name="ele-EditPen"
+                       @click.stop="editeName(step)"
+                       style="margin-left: 5px; top:2px"></svgIcon>
+            </span>
+            <el-input v-else
+                      :id="`editeName_${step.index}`"
+                      v-model="step.name"
+                      style="width: 200px;"
+                      @click.stop.native=""
+                      @blur="nameEditBlur(step)">
+            </el-input>
+            <!--            <span >{{ step.name }}</span>-->
           </template>
         </div>
 
@@ -72,9 +70,7 @@
         <div class="step-header__right header-right">
           <span @click.stop="">
             <el-tooltip content="启用/禁用" placement="top">
-              <el-switch
-                  v-model="step.enable"
-                  inline-prompt>
+              <el-switch v-model="step.enable" inline-prompt>
               </el-switch>
             </el-tooltip>
           </span>
@@ -94,9 +90,9 @@
       </div>
 
       <div class="step-details" draggable="true" @dragstart="stepDetailsDrag">
-        <ScriptController v-if="step.step_type === 'script'" :data="step"/>
+        <ScriptHeader v-if="step.step_type === 'script'" :step="step"/>
         <SqlController v-if="step.step_type === 'sql'" :step="step"/>
-<!--        <ExtractController v-if="step.step_type === 'extract'" :extracts="step"/>-->
+        <!--        <ExtractController v-if="step.step_type === 'extract'" :extracts="step"/>-->
         <!--        <ApiInfoController v-if="data.step_type === 'api'" :data="data"/>-->
         <LoopController v-if="step.step_type === 'loop'" :step="step"/>
       </div>
@@ -106,9 +102,8 @@
 
 </template>
 
-<script lang="ts" setup name="StepNode">
-import {PropType} from 'vue';
-import ScriptController from "/@/components/Z-StepController/script/ScriptController.vue";
+<script setup name="StepNode">
+import ScriptHeader from "/@/components/Z-StepController/script/ScriptHeader.vue";
 import SqlController from "/@/components/Z-StepController/sql/SqlController.vue";
 import WaitHeader from "/@/components/Z-StepController/wait/WaitHeader.vue";
 import IfControllerHeader from "/@/components/Z-StepController/ifController/IfControllerHeader.vue";
@@ -117,16 +112,17 @@ import LoopController from "/@/components/Z-StepController/loop/LoopController.v
 import {getStepTypeInfo} from "/@/utils/case";
 import ApiHeader from "/@/components/Z-StepController/apiInfo/ApiHeader.vue";
 import useVModel from "/@/utils/useVModel";
+import {nextTick} from "vue";
 
 const emit = defineEmits(['copy-node', 'deleted-node'])
 
 const props = defineProps({
   step: {
-    type: Object as PropType<TStepDataStat>,
+    type: Object,
     required: true
   },
   node: {
-    type: Object as any,
+    type: Object,
     required: true
   },
   optType: {
@@ -135,22 +131,22 @@ const props = defineProps({
   },
 })
 
-const step: TStepDataStat = useVModel(props, 'step', emit) as any
+const step = useVModel(props, 'step', emit)
 
-// const editeName = (data: any) => {
-//   data.edit = true
-//   nextTick(() => {
-//     let inputRef = document.getElementById("editeName_" + data.index)
-//     if (inputRef) inputRef.focus();
-//   })
-// }
+const editeName = (step) => {
+  step.edit = true
+  nextTick(() => {
+    let inputRef = document.getElementById("editeName_" + step.index)
+    if (inputRef) inputRef.focus();
+  })
+}
 
 // 编辑失去焦点时触发
-// const nameEditBlur = (data: any) => {
-//   data.edit = false
-// }
+const nameEditBlur = (step) => {
+  step.edit = false
+}
 
-const copyNode = (data: any) => {
+const copyNode = (data) => {
   emit("copy-node", data)
 }
 
@@ -159,11 +155,11 @@ const deletedNode = () => {
 }
 
 // 是否展示展开图标
-const shouDetailIcon = (step_type: string) => {
+const shouDetailIcon = (step_type) => {
   let noneType = ["wait", "if"]
   return noneType.indexOf(step_type) === -1
 }
-const stepDetailsDrag = (event: any) => {
+const stepDetailsDrag = (event) => {
   event.stopPropagation();
   event.preventDefault()
 }

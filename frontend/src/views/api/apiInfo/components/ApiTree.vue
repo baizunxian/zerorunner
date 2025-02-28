@@ -245,7 +245,7 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import {defineComponent, h, onMounted, reactive, ref, toRefs} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 // import saveOrUpdate from '/@/views/api/module/components/saveOrUpdate.vue';
@@ -280,7 +280,7 @@ export default defineComponent({
         {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
         {
           key: 'name', label: '用例名', width: '', show: true,
-          render: ({row}: any) => h(ElButton, {
+          render: ({row}) => h(ElButton, {
             link: true,
             type: "primary",
             onClick: () => {
@@ -290,7 +290,7 @@ export default defineComponent({
         },
         {
           key: 'method', label: '请求方式', width: '', show: true,
-          render: ({row}: any) => h(ElTag, {
+          render: ({row}) => h(ElTag, {
             type: "",
             style: {"background": getMethodColor(row.method), color: "#ffffff",}
           }, () => row.method)
@@ -305,7 +305,7 @@ export default defineComponent({
         {key: 'created_by_name', label: '创建人', width: 'auto', show: true},
         {
           label: '操作', fixed: 'right', width: '140', align: 'center',
-          render: ({row}: any) => h("div", null, [
+          render: ({row}) => h("div", null, [
             h(ElButton, {
               link: true,
               type: "primary",
@@ -396,9 +396,9 @@ export default defineComponent({
 
     // moduleChange
 
-    const moduleChange = async (module_id: any) => {
+    const moduleChange = async (module_id) => {
       if (module_id) {
-        let moduleInfo = state.moduleList.find((m: any) => m.id === module_id)
+        let moduleInfo = state.moduleList.find((m) => m.id === module_id)
         if (moduleInfo) {
           let listQuery = {
             page: 1,
@@ -406,14 +406,14 @@ export default defineComponent({
             module_id: module_id,
             name: '',
           }
-          let res: any = await useApiInfoApi().getList(listQuery)
+          let res = await useApiInfoApi().getList(listQuery)
           moduleInfo.caseList = res.data.rows
         }
       }
     }
 
     // caseClick
-    const caseClick = (row: any) => {
+    const caseClick = (row) => {
       state.activeCaseId = row.id
     }
 
@@ -429,7 +429,7 @@ export default defineComponent({
     };
 
     // 选择用例
-    const selectionChange = (val: any) => {
+    const selectionChange = (val) => {
       state.selectionData = val
     }
     // 获取选中用例
@@ -437,7 +437,7 @@ export default defineComponent({
       return state.selectionData
     }
     // 新增或修改
-    const onOpenSaveOrUpdate = (editType: string, row: any | null) => {
+    const onOpenSaveOrUpdate = (editType, row) => {
       state.activeCaseId = null
       if (row) state.activeCaseId = row.id
       let moduleListRef = document.getElementById(`moduleList_${state.activeModule}`)
@@ -448,7 +448,7 @@ export default defineComponent({
     };
 
     // 删除
-    const deleted = (row: any) => {
+    const deleted = (row) => {
       ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
         confirmButtonText: '确认',
         cancelButtonText: '取消',
@@ -466,7 +466,7 @@ export default defineComponent({
     };
 
     // 打开运行页面
-    const onOpenRunPage = (row: any) => {
+    const onOpenRunPage = (row) => {
       state.showRunPage = true;
       state.runForm.id = row.id;
       getEnvList();
@@ -482,7 +482,7 @@ export default defineComponent({
     const runTestCase = () => {
       state.runCaseLoading = !state.runCaseLoading;
       useApiInfoApi().run(state.runForm)
-          .then((res: any) => {
+          .then((res) => {
             if (state.runForm.run_mode === 1) {
               ElMessage.success('运行成功');
               state.reportInfo = res.data
@@ -494,7 +494,7 @@ export default defineComponent({
             }
 
           })
-          .catch((err: any) => {
+          .catch((err) => {
             ElMessage.error(err.message);
             state.runCaseLoading = !state.runCaseLoading;
           })
@@ -520,7 +520,7 @@ export default defineComponent({
           })
     }
     // 选择项目
-    const selectProject = (project_id: any) => {
+    const selectProject = (project_id) => {
       state.moduleQuery.project_id = project_id
       state.moduleList = []
       state.importForm.module_id = ''
@@ -542,7 +542,7 @@ export default defineComponent({
     // 文件上传
     const submitUpload = () => {
       state.importButtonStart = true
-      importFormRef.value.validate(async (vai: any) => {
+      importFormRef.value.validate(async (vai) => {
         if (vai) {
           if (!state.importForm.file_info.raw) {
             ElMessage.info('请选择上传文件！')
@@ -554,7 +554,7 @@ export default defineComponent({
             formData.append('file', state.importForm.file_info.raw)
             formData.append('project_id', state.importForm.project_id)
             formData.append('module_id', state.importForm.module_id)
-            let res: any = await useApiInfoApi().postman2case(formData)
+            let res = await useApiInfoApi().postman2case(formData)
             ElMessage.success(`成功导入${res.data}条用例！`)
             state.importButtonStart = false
             state.showImportPage = false
@@ -577,14 +577,14 @@ export default defineComponent({
     }
 
     // 选择文件时触发，上传文件，回写地址
-    const fileChange = (e: any) => {
-      let file: any = e.target.files[0]
+    const fileChange = (e) => {
+      let file = e.target.files[0]
       state.importForm.file_info.raw = file
       state.importForm.file_info.name = file.name
     }
     // 删除文件处理
     const deletedFile = () => {
-      let fileRef: any = document.getElementById('selectFile')
+      let fileRef = document.getElementById('selectFile')
       if (fileRef) fileRef.value = ''
       state.importForm.file_info.raw = ''
       state.importForm.file_info.name = ''
@@ -679,7 +679,7 @@ export default defineComponent({
 
       &:hover {
         color: #212121;
-        background-color: #E6E6E;
+        background-color: #E6E6EE;
       }
     }
 

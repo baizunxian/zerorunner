@@ -153,11 +153,10 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemLookup">
+<script setup name="SystemLookup">
 import {h, nextTick, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useLookupApi} from '/@/api/useSystemApi/lookup';
-import {formatLookup} from "/@/utils/lookup";
 
 
 const lookupFormRef = ref();
@@ -166,7 +165,7 @@ const state = reactive({
   columns: [
     {
       key: 'code', label: '编码', width: '', align: 'center', show: true,
-      render: ({row}: any) => h(ElButton, {
+      render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
         onClick: () => {
@@ -181,7 +180,7 @@ const state = reactive({
     {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
     {
       label: '操作', columnType: 'string', fixed: 'left', align: 'center', width: '220',
-      render: ({row}: any) => h("div", null, [
+      render: ({row}) => h("div", null, [
         h(ElButton, {
           type: "success",
           onClick: () => {
@@ -266,7 +265,7 @@ const search = () => {
 }
 
 // 新增或修改字典
-const onOpenSaveOrUpdateLookup = (editType: string, row: any) => {
+const onOpenSaveOrUpdateLookup = (editType, row) => {
   state.lookupEditType = editType
   if (row) {
     state.lookupForm.id = row.id
@@ -282,7 +281,7 @@ const onOpenSaveOrUpdateLookup = (editType: string, row: any) => {
 };
 
 const saveOrUpdateLookup = () => {
-  lookupFormRef.value.validate((valid: any) => {
+  lookupFormRef.value.validate((valid) => {
     if (valid) {
       useLookupApi().saveOrUpdateLookup(state.lookupForm)
           .then(() => {
@@ -295,7 +294,7 @@ const saveOrUpdateLookup = () => {
 }
 
 // 删除
-const deleted = (row: any) => {
+const deleted = (row) => {
   ElMessageBox.confirm('此操作将永久删除, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -322,19 +321,19 @@ const getLookupValueList = () => {
       })
 };
 // 新增或修改字典值
-const onOpenSaveOrUpdateLookupValuePage = (row: any) => {
+const onOpenSaveOrUpdateLookupValuePage = (row) => {
   state.lookupValueQuery.code = row.code
   state.lookupValueQuery.lookup_id = row.id
   state.isShowLookupValueDialog = !state.isShowLookupValueDialog
   getLookupValueList()
 };
 
-const editLookupValue = (row: any) => {
+const editLookupValue = (row) => {
   row._edit = !row._edit
 };
 
 const addLookupValue = () => {
-  let lookupValue: object = {
+  let lookupValue = {
     id: null,
     lookup_id: state.lookupValueQuery.lookup_id,
     lookup_code: '',
@@ -346,9 +345,9 @@ const addLookupValue = () => {
   state.lookupValueListData.push(lookupValue)
 }
 
-const saveOrUpdateLookupValue = (row: any) => {
+const saveOrUpdateLookupValue = (row) => {
   useLookupApi().saveOrUpdateLookupValue(row)
-      .then((res: any) => {
+      .then((res) => {
         ElMessage.success('保存成功！');
         row._edit = false
         row.id = res.data?.id
@@ -356,7 +355,7 @@ const saveOrUpdateLookupValue = (row: any) => {
       })
 }
 
-const deletedLookupValue = (row: any) => {
+const deletedLookupValue = (row) => {
   ElMessageBox.confirm('此操作将永久删除, 是否继续?', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
@@ -373,7 +372,7 @@ const deletedLookupValue = (row: any) => {
       });
 }
 
-const cancelEdit = (row: any) => {
+const cancelEdit = (row) => {
   if (row.id) {
     row._edit = false
   } else {
@@ -384,7 +383,6 @@ const cancelEdit = (row: any) => {
 // 页面加载时
 onMounted(() => {
   getList();
-  console.log(formatLookup('test', '80'))
 });
 </script>
 
