@@ -26,12 +26,10 @@ https://github.com/baizunxian/zerorunner
 git clone https://github.com/baizunxian/zerorunner.git
 
 # 数据库脚本 将内容复制数据库执行 需要新建数据库 zerorunner
-db_script/db_init.sql
-# 初始化数据脚本 将内容复制数据库执行 
-db_script/init.sql  
+db_script/zerorunner.sql
 
 # 修改对应的数据库地址，redis 地址
-autotest/config.py
+config.py
 
 # 安装依赖
 pip install -r  requirements
