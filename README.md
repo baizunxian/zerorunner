@@ -43,7 +43,7 @@ https://gitee.com/xb_xiaobai/zerorunner
 git clone https://github.com/baizunxian/zerorunner.git
 
 # 数据库脚本 将内容复制数据库执行 需要新建数据库 zerorunner
-backend/script/zerorunner.sql  
+backend/db_script/zerorunner.sql  
 
 # MySQL版本 8.0.23 查询问题
 # 问题 which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by
