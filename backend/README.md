@@ -48,7 +48,7 @@ elery -A celery_worker.worker.job worker --pool=solo -l INFO
 elery -A celery_worker.worker.job worker --loglevel=INFO -c 10 -P solo -n zerorunner-job-worker
 
 # 定时任务启动
-job -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+elery -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
 # 定时任务心跳启动
 job -A celery_worker.worker.job beat  -l INFO 

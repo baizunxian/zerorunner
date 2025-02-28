@@ -138,7 +138,7 @@ class Base:
             if current_user_info:
                 current_user_id = current_user_info.get("id", None)
                 params["updated_by"] = current_user_id
-                if not params.get("id", None):
+                if not params.get("id", None) or not params.get("created_by", None):
                     params["created_by"] = current_user_id
             else:
                 if not updated_by:
