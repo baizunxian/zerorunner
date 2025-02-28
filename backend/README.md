@@ -29,7 +29,7 @@ git clone https://github.com/baizunxian/zerorunner.git
 db_script/zerorunner.sql
 
 # 修改对应的数据库地址，redis 地址
-autotest/config.py
+config.py
 
 # 安装依赖
 pip install -r  requirements
