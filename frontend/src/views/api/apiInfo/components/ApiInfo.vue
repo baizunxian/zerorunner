@@ -1,40 +1,50 @@
 <template>
   <div class="api-case el-card">
     <el-row>
-
-      <el-col :xs="15" :sm="15" :md="15" :lg="15" :xl="15" class="mb20">
+      <el-col :span="isView ? 22 : 18" class="">
         <div class="api-case__method" style="padding-left: 5px">
-          <el-input
-              size="default"
-              v-model="state.form.url"
-              placeholder="请输入请求路径"
-              class="input-with-select"
-          >
-            <template #prepend>
-              <el-select v-model="state.form.method"
-                         size="default"
-                         ref="methodRef"
-                         placeholder=""
-                         @change="methodChange"
-                         style="width: 100px; color: #22a1c4">
-                <el-option
-                    v-for="item in state.methodList"
-                    :key="item"
-                    :label="item"
-                    :value="item">
-                  <span :class="[`method-color-${item.toLowerCase()}`]">{{ item }}</span>
-                </el-option>
-              </el-select>
-            </template>
-          </el-input>
+          <template v-if="state.stepType === stepTypeEnum.Api">
+            <el-input size="default" v-model="state.form.url" placeholder="请输入请求路径"
+                      class="input-with-select">
+              <template #prepend>
+                <el-select v-model="state.form.method" size="default" ref="methodRef" placeholder=""
+                           style="width: 100px; color: #22a1c4">
+                  <template #label="{ label }">
+                    <strong :class="[`method-color-${label?.toLowerCase()}`]">{{ label }}</strong>
+                  </template>
+                  <el-option v-for="item in state.methodList" :key="item" :label="item" :value="item">
+                    <span :class="[`method-color-${item?.toLowerCase()}`]">{{ item }}</span>
+                  </el-option>
+                </el-select>
+              </template>
+            </el-input>
+
+            <div class="flex is-justify-center mt10 ml10" v-show="isView">
+              <span style="width: 80px">请求名称：</span>
+              <el-input v-model="state.form.name" style="width: 300px"></el-input>
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="step-title">
+              <StepIcon :step-type="state.stepType" class="mr10" :size="'28px'"></StepIcon>
+              <el-input v-model.trim="state.form.name" style="width: 100%" clearable size="default"
+                        placeholder="请输入步骤名称"></el-input>
+            </div>
+          </template>
         </div>
       </el-col>
-      <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-        <div class="api-case__operation" style="padding-left: 12px">
-          <el-button size="default" type="primary" @click="saveOrUpdateOrDebug('save')" class="title-button">保存
-          </el-button>
-          <el-button size="default" type="success" @click="handleDebug">调试</el-button>
+      <el-col v-show="!isView" :span="6" class="mb20">
+        <div class="api-case__operation">
+          <el-button size="default" type="primary" @click="saveOrUpdateOrDebug('save')" class="title-button"> 保存</el-button>
+          <el-button size="default" type="success" @click="handleDebug"> 调试</el-button>
+<!--          <el-button size="default" type="warning" @click="refresh">刷新</el-button>-->
           <!--          <el-button size="default" type="danger" @click="saveOrUpdateOrDebug('debug')">删除</el-button>-->
+        </div>
+      </el-col>
+      <el-col v-if="isView" :span="2">
+        <div class="api-case__operation">
+          <el-button size="default" type="success" @click="() => emit('debugStep')"> 调试</el-button>
         </div>
       </el-col>
       <!--      </div>-->
@@ -47,8 +57,8 @@
                label-position="right"
                :rules="state.rules">
         <el-row :gutter="24">
-          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="接口名称" prop="name">
+          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20" v-if="state.stepType == stepTypeEnum.Api">
+            <el-form-item label="接口名称" prop="name" >
               <el-input v-model.trim="state.form.name"
                         style="width: 100%;"
                         clearable
@@ -178,7 +188,8 @@ import {useProjectApi} from '/@/api/useAutoApi/project'
 import {useModuleApi} from '/@/api/useAutoApi/module'
 import {nextTick, onMounted, reactive, ref} from "vue";
 import {useEnvApi} from "/@/api/useAutoApi/env";
-import {getMethodColor} from "/@/utils/case"
+import {getMethodColor, stepTypeEnum} from "/@/utils/case"
+import StepIcon from "/@/components/Z-StepController/StepIcon.vue"
 import {ElMessage} from "element-plus";
 
 // emit
@@ -186,28 +197,48 @@ const emit = defineEmits(["saveOrUpdateOrDebug"])
 
 // 自定义变量
 const formRef = ref()
+const isView = ref(false)
 const methodRef = ref()
 const caseTagInputRef = ref()
-const createForm = () => {
-  return {
-    env_id: null,
-    id: null,
-    method: 'POST',
-    name: '',
-    url: '',
-    ssl: false,
-    code_id: null,
-    code: '',
-    project_module: [],
-    project_id: null,
-    module_id: null,
-    tags: [],
-    priority: 3,
-    remarks: "",
+const createForm = (step_type) => {
+  if (step_type === stepTypeEnum.Api) {
+    return {
+      env_id: null,
+      id: null,
+      method: 'POST',
+      name: '',
+      url: '',
+      ssl: false,
+      code_id: null,
+      code: '',
+      project_module: [],
+      project_id: null,
+      module_id: null,
+      tags: [],
+      priority: 3,
+      remarks: "",
+    }
   }
+  if (step_type === stepTypeEnum.Sql) {
+    return {
+      source_type: "mysql",
+      use_type: "source",
+      env_id: null,
+      source_id: null,
+      sql: ""
+    }
+  }
+  if (step_type === stepTypeEnum.Script) {
+    return {
+      script_content: "",
+    }
+  }
+  return {}
+
 }
 const state = reactive({
   // cat apiInfo info
+  stepType: null,
   showCaseInfo: false,
   //tag
   editTag: false,
@@ -245,8 +276,9 @@ const state = reactive({
 
 });
 // 初始化表单
-const setData = (formData) => {
-  state.form = createForm()
+const setData = (formData, step_type) => {
+  state.stepType = step_type
+  state.form = createForm(step_type)
   if (formData) {
     state.form = {...state.form, ...formData}
     state.form.project_module = [state.form.project_id, state.form.module_id]
@@ -256,7 +288,9 @@ const setData = (formData) => {
       getModuleList()
     }
   }
-  methodChange(state.form.method)
+  if (state.stepType == stepTypeEnum.Api) {
+    methodChange(state.form.method)
+  }
 }
 
 // 获取表单数据
@@ -267,9 +301,9 @@ const getData = () => {
 // 获取项目列表
 const getProjectTree = () => {
   useProjectApi().getTree({})
-    .then(res => {
-      state.projectTree = res.data
-    })
+      .then(res => {
+        state.projectTree = res.data
+      })
 }
 // 选择项目
 const selectProject = (project_id) => {
@@ -283,17 +317,17 @@ const selectProject = (project_id) => {
 // 获取模块列表
 const getModuleList = () => {
   useModuleApi().getList(state.moduleQuery)
-    .then(res => {
-      state.moduleList = res.data.rows
-    })
+      .then(res => {
+        state.moduleList = res.data.rows
+      })
 }
 
 // 初始化env
 const getEnvList = () => {
   useEnvApi().getList({page: 1, pageSize: 1000})
-    .then(res => {
-      state.envList = res.data.rows
-    })
+      .then(res => {
+        state.envList = res.data.rows
+      })
 };
 
 // methodChange
@@ -336,14 +370,14 @@ const handleDebug = () => {
 
 // 保存，或调试用例
 const saveOrUpdateOrDebug = (handleType = 'save') => {
-  if (!state.form.url) {
-    ElMessage.warning('请填写请求地址信息!');
-    return
-  }
-  if (!state.form.method) {
-    ElMessage.warning('请选择请求方式！');
-    return
-  }
+  // if (!state.form.url) {
+  //   ElMessage.warning('请填写请求地址信息!');
+  //   return
+  // }
+  // if (!state.form.method) {
+  //   ElMessage.warning('请选择请求方式！');
+  //   return
+  // }
   formRef.value.validate((valid) => {
     if (valid) {
       if (handleType === 'save') {
@@ -353,7 +387,7 @@ const saveOrUpdateOrDebug = (handleType = 'save') => {
         state.showEnvPage = false
       }
     } else {
-      ElMessage.warning('请填写请求地址信息');
+      ElMessage.warning('请填写表单信息');
     }
   })
 }

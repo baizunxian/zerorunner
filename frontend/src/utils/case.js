@@ -1,5 +1,6 @@
 // 获取请求方式tag颜色
 import {useIdCenterApi} from "/@/api/useSystemApi/idCenter";
+import {h} from "vue";
 
 export function getMethodColor(method) {
 	let color = ""
@@ -17,17 +18,179 @@ export function getMethodColor(method) {
 	return color
 }
 
+export const  stepTypeEnum  ={
+	Step : "step",
+	Api : "api",
+	Ui : "ui",
+	Script : "script",
+	PyScript : "py_script",
+	Wait : "wait",
+	Case : "case",
+	Loop : "loop",
+	Extract : "extract",
+	Sql : "sql",
+	If : "if",
+	TimedTask : "timed_task",
+}
+
+export const stepTypeList = [
+	{
+		label: "引用步骤",
+		value: stepTypeEnum.Step,
+		color: "#f07b3f",
+		background: "#f5f5fa",
+		icon: h('i', { class: 'iconfont icon-step' }),
+		style: {
+			color: "#61649f",
+			background: "#f5f5fa",
+		}
+	},
+	{
+		label: "HTTP请求",
+		value: stepTypeEnum.Api,
+		color: "#61649f",
+		background: "#f5f5fa",
+		icon: h('i', { class: 'iconfont icon-c158API' }),
+		style: {
+			color: "#61649f",
+			background: "#f5f5fa",
+		}
+	},
+	{
+		label: "UI步骤",
+		value: stepTypeEnum.Ui,
+		color: "#ff8c94",
+		background: "#F5F5F5FF",
+		icon: h('i', { class: 'iconfont icon-UI' }),
+		style: {
+			color: "#ff8c94",
+			background: "#F5F5F5FF",
+		}
+	},
+	// {
+	// 	label: "自定义脚本",
+	// 	value: stepTypeEnum.Script,
+	// 	color: "#7B4D12FF",
+	// 	background: "#F1EEE9FF",
+	// 	icon: h('i', { class: 'iconfont icon-code' }),
+	// 	style: {
+	// 		color: "#7B4D12FF",
+	// 		background: "#F1EEE9FF",
+	// 	}
+	// },
+	{
+		label: "代码执行",
+		value: stepTypeEnum.Script,
+		color: "#7B4D12FF",
+		background: "#F1EEE9FF",
+		icon: h('i', { class: 'iconfont icon-code' }),
+		style: {
+			color: "#7B4D12FF",
+			background: "#F1EEE9FF",
+		}
+	},
+	{
+		label: "引用用例",
+		value: stepTypeEnum.Case,
+		color: "#f4664a",
+		background: "#f5f5faFF",
+		icon: h('i', { class: 'iconfont icon-a-case-o1' }),
+		style: {
+			color: "#f4664a",
+			background: "#f5f5faFF",
+		}
+	},
+	{
+		label: "数据库操作",
+		value: stepTypeEnum.Sql,
+		color: "#783887FF",
+		background: "#F2ECF3FF",
+		icon: h('i', { class: 'iconfont icon-suffix-sql' }),
+		style: {
+			color: "#783887FF",
+			background: "#F2ECF3FF",
+		}
+	},
+	{
+		label: "等待控制",
+		value: stepTypeEnum.Wait,
+		color: "#67C23AFF",
+		background: "#F2F9EEFF",
+		icon: h('i', { class: 'iconfont icon-time' }),
+		style: {
+			color: "#67C23AFF",
+			background: "#F2F9EEFF",
+		}
+	},
+
+	{
+		label: "循环",
+		value: stepTypeEnum.Loop,
+		color: "#ef6820",
+		background: "#fff7f3",
+		icon: h('i', { class: 'iconfont icon-loop' }),
+		style: {
+			color: "#ef6820",
+			background: "#fff7f3",
+		}
+	},
+	{
+		label: "提取",
+		value: stepTypeEnum.Extract,
+		color: "#015478FF",
+		background: "#E6EEF2FF",
+		icon: '',
+		style: {
+			color: "#015478FF",
+			background: "#E6EEF2FF",
+		}
+	},
+	{
+		label: "条件分支",
+		value: stepTypeEnum.If,
+		color: "#ee46bc",
+		background: "#fbf7fb",
+		icon: h('i', { class: 'iconfont icon-fenzhijiedian' }),
+		style: {
+			color: "#ee46bc",
+			background: "#fbf7fb",
+		}
+	},
+	{
+		label: "定时任务",
+		value: stepTypeEnum.TimedTask,
+		color: "#AE445A",
+		background: "#AE445A",
+		icon: h('i', { class: 'iconfont icon-time' }),
+		style: {
+			color: "#AE445A",
+			background: "#AE445A",
+		}
+	},
+]
+
+
 // 获取步骤颜色
 /*获取步骤数据，颜色，背景颜色，icon*/
 export function getStepTypeInfo(stepType, type) {
 	let obj = {
-		script: {color: "#7B4D12FF", background: "#F1EEE9FF", icon: 'iconfont icon-code'},
+		script: {color: "#7B4D12FF", background: "#F1EEE9FF", icon: 'iconfont icon-code', style: {
+			color: "#7B4D12FF",
+			background: "#F1EEE9FF",
+		}},
 		wait: {color: "#67C23AFF", background: "#F2F9EEFF", icon: 'iconfont icon-time'},
-		api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-c158API'},
+		api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-c158API',
+		style: {
+			color: "#61649f",
+			background: "#f5f5fa",
+		}},
 		case: {color: "#f4664a", background: "#f5f5faFF", icon: 'iconfont icon-a-case-o1'},
 		loop: {color: "#02A7F0FF", background: "#F4F4F5FF", icon: 'iconfont icon-loop'},
 		extract: {color: "#015478FF", background: "#E6EEF2FF", icon: ''},
-		sql: {color: "#783887FF", background: "#F2ECF3FF", icon: 'iconfont icon-suffix-sql'},
+		sql: {color: "#783887FF", background: "#F2ECF3FF", icon: 'iconfont icon-suffix-sql', style: {
+			color: "#783887FF",
+			background: "#F2ECF3FF",
+		}},
 		if: {color: "#E6A23C", background: "#FCF6EE", icon: 'iconfont icon-fenzhijiedian'},
 		timed_task: {color: "#AE445A", background: "#AE445A", icon: 'iconfont icon-time'},
 	}

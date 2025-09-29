@@ -40,16 +40,16 @@ python main.py
 # 异步任务依赖 job 启动命令
 
 #  windows 启动，只能单线程 zerorunner/backend 目录下执行
-elery -A celery_worker.worker.job worker --pool=solo -l INFO 
+celery -A celery_worker.worker.job worker --pool=solo -l INFO 
 
 # linux 启动
-elery -A celery_worker.worker.job worker --loglevel=INFO -c 10 -P solo -n zerorunner-job-worker
+celery -A celery_worker.worker.job worker --loglevel=INFO -c 10 -P solo -n zerorunner-job-worker
 
 # 定时任务启动
-elery -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+celery -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
 # 定时任务心跳启动
-elery -A celery_worker.worker.job beat  -l INFO 
+celery -A celery_worker.worker.job beat  -l INFO 
 
 ```
 
