@@ -22,7 +22,7 @@ const { stepType } = defineProps({
 })
 
 const stepTypeInfo = computed(() => {
-  return stepTypeList.find(item => item.value === stepType) as any
+  return stepTypeList.find(item => item.value === stepType)
 })
 
 </script>

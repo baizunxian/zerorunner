@@ -15,26 +15,26 @@
           <template v-if="requestData.use_type == 'source'">
             <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb10">
               <el-form-item label="运行环境" prop="project_id">
-                <!--                <el-select size="small" v-model="requestData.env_id" placeholder="运行环境" filterable-->
-                <!--                           style="width: 100%" @change="selectEnv">-->
-                <!--                  <el-option v-for="env in environments" :key="env.id + env.name" :label="env.name" :value="env.id">-->
-                <!--                    <span style="float: left">{{ env.name }}</span>-->
-                <!--                  </el-option>-->
+                <el-select size="small" v-model="requestData.env_id" placeholder="运行环境" filterable
+                           style="width: 100%" @change="selectEnv">
+                  <el-option v-for="env in state.environments" :key="env.id + env.name" :label="env.name" :value="env.id">
+                    <span style="float: left">{{ env.name }}</span>
+                  </el-option>
 
-                <!--                  <template #prefix>-->
-                <!--                    <el-icon-->
-                <!--                        style="cursor: pointer; color: var(&#45;&#45;el-color-primary)"-->
-                <!--                        title="刷新环境"-->
-                <!--                        @click.stop="-->
-                <!--												() => {-->
-                <!--													mittBus.emit('refreshEnv');-->
-                <!--												}-->
-                <!--											"-->
-                <!--                    >-->
-                <!--                      <ele-Refresh/>-->
-                <!--                    </el-icon>-->
-                <!--                  </template>-->
-                <!--                </el-select>-->
+                  <template #prefix>
+                    <el-icon
+                        style="cursor: pointer; color: var(--el-color-primary)"
+                        title="刷新环境"
+                        @click.stop="
+                												() => {
+                													getEnvList();
+                												}
+                											"
+                    >
+                      <ele-Refresh/>
+                    </el-icon>
+                  </template>
+                </el-select>
               </el-form-item>
             </el-col>
             <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb10">
@@ -182,7 +182,8 @@ const state = reactive({
     sql: "",
     timeout: 0,
     variable_name: "",
-  } as TSqlRequest
+  } as TSqlRequest,
+  environments: []
 });
 
 // const requestData = computed({
@@ -213,6 +214,14 @@ const selectEnv = (env_id: any) => {
   if (requestData.value) {
     requestData.value.source_id = null;
   }
+};
+
+const getEnvList = () => {
+  useEnvApi()
+      .getList({page: 1, pageSize: 1000})
+      .then((res) => {
+        state.environments = res.data?.rows || [];
+      });
 };
 
 // 初始化datasource
@@ -247,6 +256,7 @@ onMounted(() => {
       requestData.value.use_type = 'source';
     }
   });
+  getEnvList()
 });
 
 defineExpose({
