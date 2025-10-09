@@ -40,7 +40,7 @@ services:
     volumes:
       - ./backend/db_script/redis.conf:/etc/redis/redis.conf # 配置文件挂载
       - /usr/local/redis/data:/data  # 数据目录挂载
-      - /usr/local/redis/log:/logs
+      - ./logs:/logs
     ports:
       # 端口映射,格式 宿主机端口:容器端口
       - "${REDIS_PORT}:6379"

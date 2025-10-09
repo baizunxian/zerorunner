@@ -4,9 +4,11 @@
       <div class="mb8">
         <div>
           <el-input v-model="state.listQuery.name" placeholder="请输入用例名称" style="max-width: 180px"></el-input>
+          <el-input v-model="state.listQuery.project_name" placeholder="请输入项目名称"
+                    style="max-width: 180px"></el-input>
           <el-button type="primary" class="ml10" @click="getList">查询
           </el-button>
-          <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增
+          <el-button type="success" class="ml10" @click="() =>  CreateStepPageRef?.onOpen()">新增
           </el-button>
         </div>
       </div>
@@ -198,6 +200,9 @@
         </span>
       </template>
     </el-dialog>
+
+    <CreateStepPage ref="CreateStepPageRef"></CreateStepPage>
+
   </div>
 </template>
 
@@ -223,6 +228,7 @@ import {useProjectApi} from "/@/api/useAutoApi/project";
 import {getMethodColor} from "/@/utils/case";
 import {useUserInfo} from '/@/stores/userInfo';
 import ApiRelationGraph from "/@/components/RelationGraph/ApiRelationGraph.vue";
+import CreateStepPage from "./CreateStepPage.vue"
 
 
 const userInfoStore = useUserInfo()
@@ -230,6 +236,7 @@ const userInfoStore = useUserInfo()
 const ReportDetail = defineAsyncComponent(() => import("/@/components/Z-Report/ApiReport/ReportInfo/ReportDetail.vue"))
 
 const reportDetailRef = ref();
+const CreateStepPageRef = ref();
 const ApiRelationGraphRef = ref();
 const importFormRef = ref();
 const tableRef = ref();
@@ -341,6 +348,7 @@ const state = reactive({
     page: 1,
     pageSize: 20,
     name: '',
+    project_name: '',
     created_by: null,
   },
   selectionData: [],

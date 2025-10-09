@@ -16,39 +16,72 @@
         <ApiInfo ref="ApiInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug"/>
 
         <el-collapse-transition>
-          <div v-if="state.showRequestBody">
+          <div v-show="state.showRequestBody">
             <el-card>
               <template #header>
                 <strong>Request</strong>
               </template>
               <div style="min-height: 500px">
                 <el-tabs v-model="state.activeName" style="overflow-y: auto">
-                  <el-tab-pane name='ApiRequestBody'>
-                    <template #label>
-                      <strong>请求体</strong>
-                      <span class="ui-badge-status-dot" v-if="getDataLength('body')"></span>
-                    </template>
-                    <div class="case-tabs">
-                      <ApiRequestBody ref="ApiRequestBodyRef" @updateContentType="updateContentType"/>
-                    </div>
-                  </el-tab-pane>
+                  <template v-if="state.stepType == stepTypeEnum.Api">
+                    <el-tab-pane name='ApiRequestBody'>
+                      <template #label>
+                        <strong>请求体</strong>
+                        <span class="ui-badge-status-dot" v-show="getDataLength('body')"></span>
+                      </template>
+                      <div class="case-tabs">
+                        <ApiRequestBody ref="ApiRequestBodyRef" @updateContentType="updateContentType"/>
+                      </div>
+                    </el-tab-pane>
 
-                  <el-tab-pane name='ApiRequestHeaders'>
-                    <template #label>
-                      <strong>请求头</strong>
-                      <span class="ui-badge-circle" v-if="getDataLength('header')">{{
-                          getDataLength('header')
-                        }}</span>
-                    </template>
-                    <div class="case-tabs">
-                      <ApiRequestHeaders ref="ApiRequestHeadersRef"/>
-                    </div>
-                  </el-tab-pane>
+                    <el-tab-pane name='ApiRequestHeaders'>
+                      <template #label>
+                        <strong>请求头</strong>
+                        <span class="ui-badge-circle" v-show="getDataLength('header')">{{
+                            getDataLength('header')
+                          }}</span>
+                      </template>
+                      <div class="case-tabs">
+                        <ApiRequestHeaders ref="ApiRequestHeadersRef"/>
+                      </div>
+                    </el-tab-pane>
+                  </template>
+
+                  <template v-if="state.stepType == stepTypeEnum.Sql">
+                    <el-tab-pane name="StepSqlRequest">
+                      <template #label>
+                        <strong>SQL信息</strong>
+                      </template>
+                      <div class="case-tabs">
+                        <StepSqlRequest ref="StepSqlRequestRef"/>
+                      </div>
+                    </el-tab-pane>
+                  </template>
+
+                  <template v-if="state.stepType == stepTypeEnum.Script">
+                    <el-tab-pane name="StepScriptRequest">
+                      <template #label>
+                        <strong>脚本信息</strong>
+                        <span class="ui-badge-status-dot" v-show="getDataLength('script')"></span>
+                      </template>
+                      <div class="case-tabs">
+                        <el-alert class="mb15" type="success" :closable="false" description="">
+                          <template #default>
+                            <span>如果想获取返回值请在脚本中将结果赋值给result变量</span>
+                            <br/>
+                            <span>如 result = 1</span>
+                          </template>
+                        </el-alert>
+                        <StepScriptRequest ref="StepScriptRequestRef"/>
+                      </div>
+                    </el-tab-pane>
+                  </template>
+
 
                   <el-tab-pane name='ApiVariables'>
                     <template #label>
                       <strong>变量</strong>
-                      <span class="ui-badge-circle" v-if="getDataLength('variables')">{{
+                      <span class="ui-badge-circle" v-show="getDataLength('variables')">{{
                           getDataLength('variables')
                         }}</span>
                     </template>
@@ -60,7 +93,7 @@
                   <el-tab-pane name='extracts' class="h100">
                     <template #label>
                       <strong>提取</strong>
-                      <span class="ui-badge-circle" v-if="getDataLength('extracts')">{{
+                      <span class="ui-badge-circle" v-show="getDataLength('extracts')">{{
                           getDataLength('extracts')
                         }}</span>
                     </template>
@@ -72,7 +105,7 @@
                   <el-tab-pane name='Code' class="h100">
                     <template #label>
                       <strong>Code</strong>
-                      <span class="ui-badge-status-dot" v-if="getDataLength('code')"></span>
+                      <span class="ui-badge-status-dot" v-show="getDataLength('code')"></span>
                     </template>
                     <ApiCode ref="ApiCodeRef"/>
                   </el-tab-pane>
@@ -80,7 +113,7 @@
                   <el-tab-pane name='Hook' class="h100">
                     <template #label>
                       <strong>Hook</strong>
-                      <span class="ui-badge-circle" v-if="getDataLength('hook')">{{ getDataLength('hook') }}</span>
+                      <span class="ui-badge-circle" v-show="getDataLength('hook')">{{ getDataLength('hook') }}</span>
                     </template>
                     <ApiHooks ref="ApiHookRef"/>
                   </el-tab-pane>
@@ -117,7 +150,7 @@
                   <el-tab-pane name='assertController' class="h100">
                     <template #label>
                       <strong>断言规则</strong>
-                      <span class="ui-badge-circle" v-if="getDataLength('validators')">{{
+                      <span class="ui-badge-circle" v-show="getDataLength('validators')">{{
                           getDataLength('validators')
                         }}</span>
                     </template>
@@ -133,7 +166,7 @@
         </el-collapse-transition>
 
 
-        <el-card id="Response" ref="ResponseRef" v-if="state.reportData" style="margin-top: 20px">
+        <el-card id="Response" ref="ResponseRef" v-show="state.reportData" style="margin-top: 20px">
           <template #header>
             <div style="display: flex; justify-content: space-between">
               <div>
@@ -176,7 +209,7 @@ import {defineProps, nextTick, onActivated, onMounted, reactive, ref, watch} fro
 import {useRoute, useRouter} from "vue-router"
 import {useApiInfoApi} from '/@/api/useAutoApi/apiInfo'
 import {ElLoading, ElMessage} from 'element-plus'
-import {formatSizeUnits} from "/@/utils/case"
+import {formatSizeUnits, stepTypeEnum} from "/@/utils/case"
 
 import ApiInfo from './ApiInfo.vue'
 import ApiRequestBody from './ApiRequestBody.vue'
@@ -186,6 +219,8 @@ import ApiValidators from './ApiValidators.vue'
 import ApiExtracts from './ApiExtracts.vue'
 import ApiCode from "./ApiCode.vue"
 import ApiHooks from "./ApiHooks.vue"
+import StepScriptRequest from "./StepScriptRequest.vue"
+import StepSqlRequest from "./StepSqlRequest.vue"
 
 
 // 定义父组件传过来的值
@@ -208,6 +243,8 @@ const route = useRoute();
 const router = useRouter();
 
 const ApiInfoRef = ref()
+const StepScriptRequestRef = ref()
+const StepSqlRequestRef = ref()
 const ApiRequestBodyRef = ref()
 const ApiRequestHeadersRef = ref()
 const ApiVariablesRef = ref()
@@ -250,14 +287,32 @@ const saveOrUpdateOrDebug = (type) => {
   // }
   try {
 
-    let caseInfoData = ApiInfoRef.value.getData()
-    let bodyData = ApiRequestBodyRef.value.getData()
-    let headerData = ApiRequestHeadersRef.value.getData()
-    let variableData = ApiVariablesRef.value.getData()
-    let validatorsData = ApiValidatorsRef.value.getData()
-    let extractsData = ApiExtractsRef.value.getData()
-    let hookData = ApiHookRef.value.getData()
-    let codeData = ApiCodeRef.value.getData()
+    let caseInfoData = ApiInfoRef.value?.getData()
+    let bodyData = ApiRequestBodyRef.value?.getData()
+    let headerData = ApiRequestHeadersRef.value?.getData()
+    let variableData = ApiVariablesRef.value?.getData()
+    let validatorsData = ApiValidatorsRef.value?.getData()
+    let extractsData = ApiExtractsRef.value?.getData()
+    let hookData = ApiHookRef.value?.getData()
+    let codeData = ApiCodeRef.value?.getData()
+    let requestData = {}
+    console.log(state.stepType, state.stepType)
+    if (state.stepType === stepTypeEnum.Api) {
+      requestData = {
+        ...bodyData,
+        headers: headerData,
+        method: caseInfoData.method,
+        url: caseInfoData.url,
+      }
+    }
+    if (state.stepType === stepTypeEnum.Script) {
+      requestData = StepScriptRequestRef.value?.getData()
+
+    }
+    if (state.stepType === stepTypeEnum.Sql) {
+      requestData = StepSqlRequestRef.value?.getData()
+      console.log("StepSqlRequestRef.value?.getData()", requestData)
+    }
 
     // 组装表单
     let apiCaseData = {
@@ -271,15 +326,10 @@ const saveOrUpdateOrDebug = (type) => {
       method: caseInfoData.method,
       url: caseInfoData.url,
       tags: caseInfoData.tags,
-      step_type: "api",
+      step_type: state.stepType,
       remarks: caseInfoData.remarks,
       env_id: caseInfoData.env_id,
-      request: {
-        ...bodyData,
-        headers: headerData,
-        method: caseInfoData.method,
-        url: caseInfoData.url,
-      },
+      request: requestData,
       variables: variableData,
       setup_code: codeData.setup_code,
       teardown_code: codeData.teardown_code,
@@ -341,37 +391,59 @@ const initApi = (api_id) => {
   } else {
     api_id = route.query.id
   }
+  state.stepType = route.query.stepType
   console.log("api_id------>", api_id)
   if (api_id) {
     state.api_id = api_id
     useApiInfoApi().getApiInfo({id: state.api_id})
         .then(res => {
           let apiCaseData = res.data
-          ApiInfoRef.value.setData(apiCaseData)
-          ApiRequestBodyRef.value.setData(apiCaseData.request)
-          ApiRequestHeadersRef.value.setData(apiCaseData.request.headers)
-          ApiVariablesRef.value.setData(apiCaseData.variables)
-          ApiExtractsRef.value.setData(apiCaseData.extracts)
-          ApiValidatorsRef.value.setData(apiCaseData.validators)
-          ApiCodeRef.value.setData(apiCaseData.setup_code, apiCaseData.teardown_code)
-          // APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.api_id)
-          // APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.api_id)
-          ApiHookRef.value.setData(apiCaseData.setup_hooks, apiCaseData.teardown_hooks, state.api_id)
+          state.stepType = apiCaseData.step_type
+
+          nextTick(() => {
+            ApiInfoRef.value?.setData(apiCaseData, state.stepType)
+            ApiRequestBodyRef.value?.setData(apiCaseData.request)
+            StepScriptRequestRef.value?.setData(apiCaseData.request)
+            StepSqlRequestRef.value?.setData(apiCaseData.request)
+            ApiRequestHeadersRef.value?.setData(apiCaseData.request.headers)
+            ApiVariablesRef.value?.setData(apiCaseData.variables)
+            ApiExtractsRef.value?.setData(apiCaseData.extracts)
+            ApiValidatorsRef?.value.setData(apiCaseData.validators)
+            ApiCodeRef.value?.setData(apiCaseData.setup_code, apiCaseData.teardown_code)
+            // APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.api_id)
+            // APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.api_id)
+            ApiHookRef.value?.setData(apiCaseData.setup_hooks, apiCaseData.teardown_hooks, state.api_id)
+          })
+
+          if (state.stepType === stepTypeEnum.Sql) {
+            state.activeName = 'StepSqlRequest'
+          }
+          if (state.stepType === stepTypeEnum.Script) {
+            state.activeName = 'StepScriptRequest'
+          }
 
         })
   } else {
     state.api_id = null
     state.reportData = null
-    ApiInfoRef.value.setData()
-    ApiRequestBodyRef.value.setData()
-    ApiRequestHeadersRef.value.setData()
-    ApiVariablesRef.value.setData()
-    ApiExtractsRef.value.setData()
-    ApiValidatorsRef.value.setData()
-    ApiCodeRef.value.setData()
-    ApiHookRef.value.setData()
+    ApiInfoRef.value?.setData()
+    ApiRequestBodyRef.value?.setData()
+    ApiRequestHeadersRef.value?.setData()
+    ApiVariablesRef.value?.setData()
+    ApiExtractsRef.value?.setData()
+    ApiValidatorsRef.value?.setData()
+    ApiCodeRef.value?.setData()
+    ApiHookRef.value?.setData()
+    StepScriptRequestRef.value?.setData()
+    StepSqlRequestRef.value?.setData()
     // APiSetupHooksRef.value.setData()
     // APiTeardownHooksRef.value.setData()
+    if (state.stepType === stepTypeEnum.Sql) {
+      state.activeName = 'StepSqlRequest'
+    }
+    if (state.stepType === stepTypeEnum.Script) {
+      state.activeName = 'StepScriptRequest'
+    }
   }
 }
 

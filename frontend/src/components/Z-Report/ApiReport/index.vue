@@ -1,7 +1,7 @@
 <template>
   <div class="report-container">
     <el-tabs v-model="state.activeName" class="demo-tabs">
-      <template v-if="state.step_type === 'api'">
+      <template v-if="state.step_type === stepTypeEnum.Api">
         <el-tab-pane name="ResponseInfo">
           <template #label>
             <strong>响应信息</strong>
@@ -15,61 +15,60 @@
           </template>
           <RequestInfo :data="state.requestInfo"></RequestInfo>
         </el-tab-pane>
-
-
-        <!--      <el-tab-pane label="异常信息" name="message">-->
-        <!--        <request-content :data="data.req_resps[0].request"></request-content>-->
-        <!--      </el-tab-pane>-->
-
-        <el-tab-pane name="ReportVariables">
-          <template #label>
-            <strong>变量追踪</strong>
-          </template>
-          <ReportVariables :data="state.variables" ref=""></ReportVariables>
-        </el-tab-pane>
-
-         <el-tab-pane name="extracts">
-          <template #label>
-            <strong>参数提取
-              <el-icon v-show="getExtractResultStatus !==null">
-                <CircleCheck v-if="getExtractResultStatus" style="color: #0cbb52"></CircleCheck>
-                <CircleClose v-else style="color: red"></CircleClose>
-              </el-icon>
-            </strong>
-          </template>
-          <ReportExtracts :data="state.extracts" :extractResults="state.extractResults"></ReportExtracts>
-        </el-tab-pane>
-
-        <el-tab-pane name="ReportValidators">
-          <template #label>
-            <strong>
-              结果断言
-              <el-icon v-show="getValidatorsResultStatus !== null">
-                <CircleCheck v-if="getValidatorsResultStatus" style="color: #0cbb52"></CircleCheck>
-                <CircleClose v-else style="color: red"></CircleClose>
-              </el-icon>
-            </strong>
-
-          </template>
-          <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
-        </el-tab-pane>
-
-        <el-tab-pane name="preHookData">
-          <template #label>
-            <strong>Hook
-              <el-icon v-show="getHookResultStatus !==null">
-                <CircleCheck v-if="getHookResultStatus" style="color: #0cbb52"></CircleCheck>
-                <CircleClose v-else style="color: red"></CircleClose>
-              </el-icon>
-            </strong>
-
-          </template>
-          <ReportHooks
-              :setup-hook-results="state.setup_hook_results"
-              :teardown-hook-results="state.teardown_hook_results">
-          </ReportHooks>
-        </el-tab-pane>
       </template>
+
+      <!--      <el-tab-pane label="异常信息" name="message">-->
+      <!--        <request-content :data="data.req_resps[0].request"></request-content>-->
+      <!--      </el-tab-pane>-->
+
+      <el-tab-pane name="ReportVariables">
+        <template #label>
+          <strong>变量追踪</strong>
+        </template>
+        <ReportVariables :data="state.variables" ref=""></ReportVariables>
+      </el-tab-pane>
+
+      <el-tab-pane name="extracts">
+        <template #label>
+          <strong>参数提取
+            <el-icon v-show="getExtractResultStatus !==null">
+              <CircleCheck v-if="getExtractResultStatus" style="color: #0cbb52"></CircleCheck>
+              <CircleClose v-else style="color: red"></CircleClose>
+            </el-icon>
+          </strong>
+        </template>
+        <ReportExtracts :data="state.extracts" :extractResults="state.extractResults"></ReportExtracts>
+      </el-tab-pane>
+
+      <el-tab-pane name="ReportValidators">
+        <template #label>
+          <strong>
+            结果断言
+            <el-icon v-show="getValidatorsResultStatus !== null">
+              <CircleCheck v-if="getValidatorsResultStatus" style="color: #0cbb52"></CircleCheck>
+              <CircleClose v-else style="color: red"></CircleClose>
+            </el-icon>
+          </strong>
+
+        </template>
+        <ReportValidators :data="state.validators" ref="validatorsRef"></ReportValidators>
+      </el-tab-pane>
+
+      <el-tab-pane name="preHookData">
+        <template #label>
+          <strong>Hook
+            <el-icon v-show="getHookResultStatus !==null">
+              <CircleCheck v-if="getHookResultStatus" style="color: #0cbb52"></CircleCheck>
+              <CircleClose v-else style="color: red"></CircleClose>
+            </el-icon>
+          </strong>
+
+        </template>
+        <ReportHooks
+            :setup-hook-results="state.setup_hook_results"
+            :teardown-hook-results="state.teardown_hook_results">
+        </ReportHooks>
+      </el-tab-pane>
 
       <el-tab-pane name="ReportLog">
         <template #label>
@@ -102,6 +101,7 @@ import ReportExtracts from "./components/ReportExtracts.vue";
 import ReportLog from "./components/ReportLog.vue";
 import ReportVariables from "./components/ReportVariables.vue";
 import ReportHooks from './components/ReportHooks.vue'
+import {stepTypeEnum} from "/@/utils/case";
 
 
 const props = defineProps({

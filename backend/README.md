@@ -26,12 +26,10 @@ https://github.com/baizunxian/zerorunner
 git clone https://github.com/baizunxian/zerorunner.git
 
 # 数据库脚本 将内容复制数据库执行 需要新建数据库 zerorunner
-db_script/db_init.sql
-# 初始化数据脚本 将内容复制数据库执行 
-db_script/init.sql  
+db_script/zerorunner.sql
 
 # 修改对应的数据库地址，redis 地址
-autotest/config.py
+config.py
 
 # 安装依赖
 pip install -r  requirements
@@ -42,16 +40,16 @@ python main.py
 # 异步任务依赖 job 启动命令
 
 #  windows 启动，只能单线程 zerorunner/backend 目录下执行
-elery -A celery_worker.worker.job worker --pool=solo -l INFO 
+celery -A celery_worker.worker.job worker --pool=solo -l INFO 
 
 # linux 启动
-elery -A celery_worker.worker.job worker --loglevel=INFO -c 10 -P solo -n zerorunner-job-worker
+celery -A celery_worker.worker.job worker --loglevel=INFO -c 10 -P solo -n zerorunner-job-worker
 
 # 定时任务启动
-elery -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+celery -A celery_worker.worker.job beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
 
 # 定时任务心跳启动
-elery -A celery_worker.worker.job beat  -l INFO 
+celery -A celery_worker.worker.job beat  -l INFO 
 
 ```
 
