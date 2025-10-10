@@ -252,6 +252,7 @@ class ApiInfo(Base):
                       cls.name,
                       cls.url,
                       cls.method,
+                      cls.step_type,
                       cls.project_id,
                       cls.module_id,
                       cls.code_id,

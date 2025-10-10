@@ -3,7 +3,7 @@
     <el-row>
       <el-col :span="isView ? 22 : 18" class="">
         <div class="api-case__method" style="padding-left: 5px">
-          <template v-if="state.stepType === stepTypeEnum.Api">
+          <template v-if="stepType === stepTypeEnum.Api">
             <el-input size="default" v-model="state.form.url" placeholder="请输入请求路径"
                       class="input-with-select">
               <template #prepend>
@@ -26,8 +26,8 @@
           </template>
 
           <template v-else>
-            <div class="step-title">
-              <StepIcon :step-type="state.stepType" class="mr10" :size="'28px'"></StepIcon>
+            <div style="display: flex; align-items: center;">
+              <StepIcon v-if="stepType" :step-type="stepType" class="mr10" :size="'28px'"></StepIcon>
               <el-input v-model.trim="state.form.name" style="width: 100%" clearable size="default"
                         placeholder="请输入步骤名称"></el-input>
             </div>
@@ -36,9 +36,10 @@
       </el-col>
       <el-col v-show="!isView" :span="6" class="mb20">
         <div class="api-case__operation">
-          <el-button size="default" type="primary" @click="saveOrUpdateOrDebug('save')" class="title-button"> 保存</el-button>
+          <el-button size="default" type="primary" @click="saveOrUpdateOrDebug('save')" class="title-button"> 保存
+          </el-button>
           <el-button size="default" type="success" @click="handleDebug"> 调试</el-button>
-<!--          <el-button size="default" type="warning" @click="refresh">刷新</el-button>-->
+          <!--          <el-button size="default" type="warning" @click="refresh">刷新</el-button>-->
           <!--          <el-button size="default" type="danger" @click="saveOrUpdateOrDebug('debug')">删除</el-button>-->
         </div>
       </el-col>
@@ -57,8 +58,8 @@
                label-position="right"
                :rules="state.rules">
         <el-row :gutter="24">
-          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20" v-if="state.stepType == stepTypeEnum.Api">
-            <el-form-item label="接口名称" prop="name" >
+          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20" v-if="stepType === stepTypeEnum.Api">
+            <el-form-item label="接口名称" prop="name">
               <el-input v-model.trim="state.form.name"
                         style="width: 100%;"
                         clearable
@@ -195,6 +196,13 @@ import {ElMessage} from "element-plus";
 // emit
 const emit = defineEmits(["saveOrUpdateOrDebug"])
 
+const props = defineProps({
+  stepType: {
+    type: String,
+    default: ""
+  },
+})
+
 // 自定义变量
 const formRef = ref()
 const isView = ref(false)
@@ -288,9 +296,9 @@ const setData = (formData, step_type) => {
       getModuleList()
     }
   }
-  if (state.stepType == stepTypeEnum.Api) {
-    methodChange(state.form.method)
-  }
+  // if (state.stepType == stepTypeEnum.Api) {
+  //   methodChange(state.form.method)
+  // }
 }
 
 // 获取表单数据
@@ -332,8 +340,8 @@ const getEnvList = () => {
 
 // methodChange
 const methodChange = (method) => {
-  let selectInputEl = methodRef.value.$el.getElementsByTagName("input")
-  if (selectInputEl.length > 0) selectInputEl[0].style.color = getMethodColor(method)
+  // let selectInputEl = methodRef.value.$el.getElementsByTagName("input")
+  // if (selectInputEl.length > 0) selectInputEl[0].style.color = getMethodColor(method)
 }
 
 // handlePojectModuleChange

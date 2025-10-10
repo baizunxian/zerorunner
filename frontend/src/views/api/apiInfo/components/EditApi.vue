@@ -13,7 +13,7 @@
         </z-detail-page-header>
       </template>
       <div class="h100">
-        <ApiInfo ref="ApiInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug"/>
+        <ApiInfo ref="ApiInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug" :step-type="state.stepType"/>
 
         <el-collapse-transition>
           <div v-show="state.showRequestBody">
@@ -426,7 +426,7 @@ const initApi = (api_id) => {
   } else {
     state.api_id = null
     state.reportData = null
-    ApiInfoRef.value?.setData()
+    ApiInfoRef.value?.setData(null, state.stepType)
     ApiRequestBodyRef.value?.setData()
     ApiRequestHeadersRef.value?.setData()
     ApiVariablesRef.value?.setData()
@@ -455,19 +455,19 @@ const goBack = () => {
 const getDataLength = (ref) => {
   switch (ref) {
     case "body":
-      return ApiRequestBodyRef?.value.getDataLength()
+      return ApiRequestBodyRef.value?.getDataLength()
     case "header":
-      return ApiRequestHeadersRef?.value.getDataLength()
+      return ApiRequestHeadersRef?.value?.getDataLength()
     case "variables":
-      return ApiVariablesRef.value.getDataLength()
+      return ApiVariablesRef?.value?.getDataLength()
     case "validators":
-      return ApiValidatorsRef.value.getDataLength()
+      return ApiValidatorsRef?.value?.getDataLength()
     case "extracts":
-      return ApiExtractsRef.value.getDataLength()
+      return ApiExtractsRef?.value?.getDataLength()
     case "hook":
-      return ApiHookRef.value.getDataLength()
+      return ApiHookRef?.value?.getDataLength()
     case "code":
-      return ApiCodeRef.value.getDataLength()
+      return ApiCodeRef?.value?.getDataLength()
     default:
       return 0
   }

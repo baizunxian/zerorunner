@@ -228,6 +228,7 @@ import {useProjectApi} from "/@/api/useAutoApi/project";
 import {getMethodColor} from "/@/utils/case";
 import {useUserInfo} from '/@/stores/userInfo';
 import ApiRelationGraph from "/@/components/RelationGraph/ApiRelationGraph.vue";
+import StepIcon from "/@/components/Z-StepController/StepIcon.vue";
 import CreateStepPage from "./CreateStepPage.vue"
 
 
@@ -248,6 +249,15 @@ const state = reactive({
     {label: '序号', columnType: 'index', width: 'auto', show: true},
     {key: 'id', label: 'ID', columnType: 'string', width: 'auto', show: true},
     {
+      key: 'method', label: '步骤类型', width: '80', show: true, align: 'center',
+      render: ({row}) => {
+        return h(StepIcon, {
+          stepType: row.step_type,
+          size: '20px'
+        },)
+      }
+    },
+    {
       key: 'name', label: '用例名', width: '', show: true,
       render: ({row}) => h(ElButton, {
         link: true,
@@ -257,12 +267,16 @@ const state = reactive({
         }
       }, () => row.name)
     },
+
     {
-      key: 'method', label: '请求方式', width: '', show: true,
-      render: ({row}) => h(ElTag, {
-        type: "",
-        style: {"background": getMethodColor(row.method), color: "#ffffff",}
-      }, () => row.method)
+      key: 'method', label: '请求方式', width: '80', show: true, align: 'center',
+      render: ({row}) => {
+        return row.method ? h(ElTag, {
+          type: "primary",
+          color: getMethodColor(row.method),
+          style: {"background": getMethodColor(row.method), color: "#ffffff",}
+        }, () => row.method) : "-"
+      }
     },
     {key: 'url', label: '请求地址', width: 'auto', show: true},
     {key: 'project_name', label: '所属项目', width: 'auto', show: true},
