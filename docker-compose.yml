@@ -21,9 +21,6 @@ services:
       dockerfile: zero-docker-file/Dockerfile-backend-build
     entrypoint: /app/start.sh
     command: "app ${BACKEND_PORT}"
-    depends_on:
-      - db
-      - redis
     restart: always
     networks:
       - zero_network
@@ -40,9 +37,6 @@ services:
     entrypoint: /app/start.sh
     command: "celery-worker"
     restart: always
-    depends_on:
-      - db
-      - redis
     networks:
       - zero_network
 
@@ -58,9 +52,6 @@ services:
     entrypoint: /app/start.sh
     command: "celery-beat"
     restart: always
-    depends_on:
-      - redis
-      - db
     networks:
       - zero_network
 
