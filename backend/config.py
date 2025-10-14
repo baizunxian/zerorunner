@@ -58,9 +58,9 @@ class Configs(BaseSettings):
     # celery worker
     broker_url: str = Field(..., env="CELERY_BROKER_URL")
     # result_backend: str = Field(..., env="CELERY_RESULT_BACKEND")
-    task_serializer: str = "pickle"
-    result_serializer: str = "pickle"
-    accept_content: typing.Tuple = ("pickle", "json",)
+    task_serializer: str = "json"
+    result_serializer: str = "json"
+    accept_content: typing.Tuple = ("json",)
     task_protocol: int = 2
     timezone: str = "Asia/Shanghai"
     enable_utc: bool = False
