@@ -173,28 +173,29 @@ export const stepTypeList = [
 // 获取步骤颜色
 /*获取步骤数据，颜色，背景颜色，icon*/
 export function getStepTypeInfo(stepType, type) {
-	let obj = {
-		script: {color: "#7B4D12FF", background: "#F1EEE9FF", icon: 'iconfont icon-code', style: {
-			color: "#7B4D12FF",
-			background: "#F1EEE9FF",
-		}},
-		wait: {color: "#67C23AFF", background: "#F2F9EEFF", icon: 'iconfont icon-time'},
-		api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-c158API',
-		style: {
-			color: "#61649f",
-			background: "#f5f5fa",
-		}},
-		case: {color: "#f4664a", background: "#f5f5faFF", icon: 'iconfont icon-a-case-o1'},
-		loop: {color: "#02A7F0FF", background: "#F4F4F5FF", icon: 'iconfont icon-loop'},
-		extract: {color: "#015478FF", background: "#E6EEF2FF", icon: ''},
-		sql: {color: "#783887FF", background: "#F2ECF3FF", icon: 'iconfont icon-suffix-sql', style: {
-			color: "#783887FF",
-			background: "#F2ECF3FF",
-		}},
-		if: {color: "#E6A23C", background: "#FCF6EE", icon: 'iconfont icon-fenzhijiedian'},
-		timed_task: {color: "#AE445A", background: "#AE445A", icon: 'iconfont icon-time'},
-	}
-	return obj[stepType][type]
+	// let obj = {
+	// 	script: {color: "#7B4D12FF", background: "#F1EEE9FF", icon: 'iconfont icon-code', style: {
+	// 		color: "#7B4D12FF",
+	// 		background: "#F1EEE9FF",
+	// 	}},
+	// 	wait: {color: "#67C23AFF", background: "#F2F9EEFF", icon: 'iconfont icon-time'},
+	// 	api: {color: "#61649f", background: "#f5f5fa", icon: 'iconfont icon-c158API',
+	// 	style: {
+	// 		color: "#61649f",
+	// 		background: "#f5f5fa",
+	// 	}},
+	// 	case: {color: "#f4664a", background: "#f5f5faFF", icon: 'iconfont icon-a-case-o1'},
+	// 	loop: {color: "#02A7F0FF", background: "#F4F4F5FF", icon: 'iconfont icon-loop'},
+	// 	extract: {color: "#015478FF", background: "#E6EEF2FF", icon: ''},
+	// 	sql: {color: "#783887FF", background: "#F2ECF3FF", icon: 'iconfont icon-suffix-sql', style: {
+	// 		color: "#783887FF",
+	// 		background: "#F2ECF3FF",
+	// 	}},
+	// 	if: {color: "#E6A23C", background: "#FCF6EE", icon: 'iconfont icon-fenzhijiedian'},
+	// 	timed_task: {color: "#AE445A", background: "#AE445A", icon: 'iconfont icon-time'},
+	// }
+	// stepTypeList.find(item => {item.value === stepType })
+	return stepTypeList.find(item => item.value === stepType)?.[type]
 }
 
 export const baseModeType = [
@@ -252,7 +253,8 @@ export const getPlaceholder = (modeType) => {
 
 /*步骤类型*/
 export const stepTypes = {
-	api: "引用接口",
+	step: "引用步骤",
+	api: "HTTP请求",
 	if: "条件控制器",
 	loop: "循环控制器",
 	extract: "参数提取",
@@ -279,7 +281,7 @@ export function getStepTypesByUse(use_type) {
 			stepTypeMapping = objectFilter(stepTypes, stepContain)
 			break
 		case "case":
-			stepContain = ["api", "if", "loop", "wait", "script", "sql"]
+			stepContain = [stepTypeEnum.Step, stepTypeEnum.Api,  stepTypeEnum.Sql, stepTypeEnum.Script, stepTypeEnum.Wait, stepTypeEnum.If, stepTypeEnum.Loop]
 			stepTypeMapping = objectFilter(stepTypes, stepContain)
 			break
 		default:

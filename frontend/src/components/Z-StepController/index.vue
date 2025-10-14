@@ -38,6 +38,7 @@ import SelectCase from "/@/components/Z-StepController/apiInfo/SelectApi.vue";
 import ApiInfoController from "./apiInfo/ApiInfoController.vue"
 import useVModel from "/@/utils/useVModel";
 import {useApiInfoApi} from "/@/api/useAutoApi/apiInfo";
+import {stepTypeEnum} from "/@/utils/case";
 
 const emit = defineEmits(['update:steps'])
 const props = defineProps({
@@ -94,7 +95,7 @@ const handleDrop = (node, event) => {
 }
 
 const nodeClick = (data, node) => {
-  if (data.step_type === "api") {
+  if ([stepTypeEnum.Api, stepTypeEnum.Sql, stepTypeEnum.Script].includes(data.step_type)) {
     ApiInfoControllerRef.value.onOpenApiInfoPage(data)
   } else {
     data.showDetail = !data.showDetail
@@ -117,11 +118,12 @@ const computeDataIndex = (data, parent_index = 0) => {
 }
 // handleAddData
 const handleAddData = async (optType) => {
-  if (optType !== 'api') {
+  console.log(optType, "optType")
+  if (optType === stepTypeEnum.Step) {
+    selectApiRef.value.onOpenApiList()
+  } else {
     let stepData = getAddData(optType)
     appendTreeDate(stepData)
-  } else {
-    selectApiRef.value.onOpenApiList()
   }
 }
 
@@ -162,7 +164,7 @@ const getStepData = () => {
 // 获取步骤
 const getAddData = (optType) => {
   let data = getStepData()
-  data.name = `${optType}_${getRandomStr()}`
+  data.name = `${ optType }_${ getRandomStr() }`
   data.step_type = optType
   if (optType === "script") {
     data.name = "自定义脚本"
@@ -227,7 +229,7 @@ const addApiStep = async () => {
       data.forEach(apiInfo => {
         let stepData = Object.assign({}, apiInfo)
         stepData.id = null
-        stepData.step_type = "api"
+        stepData.step_type = apiInfo.step_type
         stepData.source_id = apiInfo.id
         stepData.enable = true
         appendTreeDate(stepData)

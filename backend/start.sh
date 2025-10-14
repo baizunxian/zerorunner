@@ -2,7 +2,7 @@
 
 port=$2
 if [ "$port" = "" ]; then
-  port=8101
+  port=8998
 fi
 
 if [ $1 = "app" ]; then

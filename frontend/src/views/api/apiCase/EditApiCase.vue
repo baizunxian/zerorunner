@@ -26,8 +26,12 @@
                                     style="margin: 5px 0"
                                     :style="{ color: getStepTypeInfo(key,'color')}"
                                     @click="handleAddData(key)">
-                    <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"
-                       :style="{color:getStepTypeInfo(key,'color')}"></i>
+                    <component style="padding: 0 5px 0 5px; font-size: 18px"
+                     :style="{color: getStepTypeInfo(key, 'color')}"
+                     v-if="getStepTypeInfo(key, 'icon')"
+                     :is="getStepTypeInfo(key, 'icon')"></component>
+<!--                    <i :class="getStepTypeInfo(key,'icon')" class="fab-icons"-->
+<!--                       :style="{color:getStepTypeInfo(key,'color')}"></i>-->
                     {{ value }}
                   </el-dropdown-item>
 

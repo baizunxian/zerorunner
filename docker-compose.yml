@@ -21,6 +21,9 @@ services:
       dockerfile: zero-docker-file/Dockerfile-backend-build
     entrypoint: /app/start.sh
     command: "app ${BACKEND_PORT}"
+    ports:
+      # 端口映射,格式 宿主机端口:容器端口
+      - "8998:8998"
     restart: always
     networks:
       - zero_network

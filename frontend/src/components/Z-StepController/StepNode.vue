@@ -16,10 +16,14 @@
         </div>
 
         <div class="step-header__tag">
-          <i :class="getStepTypeInfo(step.step_type, 'icon')"
-             style="padding: 0 5px 0 5px; font-size: 18px"
-             :style="{color: getStepTypeInfo(step.step_type, 'color')}"
-          ></i>
+          <component style="padding: 0 5px 0 5px; font-size: 18px"
+                     :style="{color: getStepTypeInfo(step.step_type, 'color')}"
+                     v-if="getStepTypeInfo(step.step_type, 'icon')"
+                     :is="getStepTypeInfo(step.step_type, 'icon')"></component>
+          <!--          <i :class="getStepTypeInfo(step.step_type, 'icon')"-->
+          <!--             style="padding: 0 5px 0 5px; font-size: 18px"-->
+          <!--             :style="{color: getStepTypeInfo(step.step_type, 'color')}"-->
+          <!--          ></i>-->
         </div>
         <!--是否展开图标-->
         <div class="step-header__edit" v-if="step.step_type === 'loop'">
@@ -31,7 +35,7 @@
         <!--脚本名称-->
 
         <div class="step-header__content">
-          <template v-if="step.step_type === 'api'">
+          <template v-if="[stepTypeEnum.Api].includes(step.step_type)">
             <ApiHeader :data="step"/>
           </template>
 
@@ -50,9 +54,9 @@
           <template v-else>
             <span v-if="!step.edit && (step.step_type ==='sql' || step.step_type === 'script')">
               <span>{{ step.name }}</span>
-              <svgIcon name="ele-EditPen"
-                       @click.stop="editeName(step)"
-                       style="margin-left: 5px; top:2px"></svgIcon>
+              <!--              <svgIcon name="ele-EditPen"-->
+              <!--                       @click.stop="editeName(step)"-->
+              <!--                       style="margin-left: 5px; top:2px"></svgIcon>-->
             </span>
             <el-input v-else
                       :id="`editeName_${step.index}`"
@@ -109,7 +113,7 @@ import WaitHeader from "/@/components/Z-StepController/wait/WaitHeader.vue";
 import IfControllerHeader from "/@/components/Z-StepController/ifController/IfControllerHeader.vue";
 import LoopHeader from "/@/components/Z-StepController/loop/LoopHeader.vue";
 import LoopController from "/@/components/Z-StepController/loop/LoopController.vue";
-import {getStepTypeInfo} from "/@/utils/case";
+import {getStepTypeInfo, stepTypeEnum} from "/@/utils/case";
 import ApiHeader from "/@/components/Z-StepController/apiInfo/ApiHeader.vue";
 import useVModel from "/@/utils/useVModel";
 import {nextTick} from "vue";

@@ -1,23 +1,23 @@
 <template>
   <div @click.stop="">
     <div class="sql-request-box">
-      <el-form ref="formRef" label-position="right" label-width="85px" :model="requestData">
+      <el-form ref="formRef" label-position="right" label-width="75px" :model="requestData">
         <el-row :gutter="24">
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb10">
             <el-form-item label="连接配置" prop="project_id">
-              <el-radio-group v-model="requestData.use_type">
-                <el-radio-button label="数据源" value="source"></el-radio-button>
-                <el-radio-button label="自定义" value="custom">自定义</el-radio-button>
+              <el-radio-group v-model="state.requestData.use_type">
+                <el-radio-button label="source" value="source">数据源</el-radio-button>
+                <el-radio-button label="custom" value="custom">自定义</el-radio-button>
               </el-radio-group>
             </el-form-item>
           </el-col>
-
-          <template v-if="requestData.use_type == 'source'">
+          <template v-if="state.requestData.use_type == 'source'">
             <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb10">
               <el-form-item label="运行环境" prop="project_id">
-                <el-select size="small" v-model="requestData.env_id" placeholder="运行环境" filterable
+                <el-select size="small" v-model="state.requestData.env_id" placeholder="运行环境" filterable
                            style="width: 100%" @change="selectEnv">
-                  <el-option v-for="env in state.environments" :key="env.id + env.name" :label="env.name" :value="env.id">
+                  <el-option v-for="env in state.environments" :key="env.id + env.name" :label="env.name"
+                             :value="env.id">
                     <span style="float: left">{{ env.name }}</span>
                   </el-option>
 
@@ -39,7 +39,7 @@
             </el-col>
             <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb10">
               <el-form-item label="数据源名称" prop="module_id">
-                <el-select size="small" v-model="requestData.source_id" placeholder="请选择" filterable
+                <el-select size="small" v-model="state.requestData.source_id" placeholder="请选择" filterable
                            style="width: 100%">
                   <el-option v-for="source in state.sourceList" :key="source.id + source.name" :label="source.name"
                              :value="source.data_source_id">
@@ -50,11 +50,11 @@
             </el-col>
           </template>
 
-          <template v-if="requestData.use_type == 'custom'">
+          <template v-if="state.requestData.use_type == 'custom'">
             <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb10">
               <el-form-item label="数据源类型" prop="source_type"
                             :rules="[{ required: true, message: '请选择数据源类型', trigger: 'blur' }]">
-                <el-select v-model="requestData.source_type" clearable placeholder="选择数据源类型" style="width: 100%">
+                <el-select v-model="state.requestData.source_type" clearable placeholder="选择数据源类型" style="width: 100%">
                   <el-option v-for="item in ['mysql']" :key="item" :label="item" :value="item"></el-option>
                 </el-select>
               </el-form-item>
@@ -63,35 +63,35 @@
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="地址" prop="host"
                             :rules="[{ required: true, message: '请输入地址', trigger: 'blur' }]">
-                <el-input v-model="requestData.host" placeholder="请输入地址" clearable></el-input>
+                <el-input v-model="state.requestData.host" placeholder="请输入地址" clearable></el-input>
               </el-form-item>
             </el-col>
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="端口" prop="port"
                             :rules="[{ required: true, message: '请输入端口', trigger: 'blur' }]">
-                <el-input v-model="requestData.port" placeholder="请输入端口" clearable></el-input>
+                <el-input v-model="state.requestData.port" placeholder="请输入端口" clearable></el-input>
               </el-form-item>
             </el-col>
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="用户名" prop="user"
                             :rules="[{ required: true, message: '请输入用户名', trigger: 'blur' }]">
-                <el-input v-model="requestData.user" placeholder="请输入用户名" clearable></el-input>
+                <el-input v-model="state.requestData.user" placeholder="请输入用户名" clearable></el-input>
               </el-form-item>
             </el-col>
 
             <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
               <el-form-item label="密码" prop="password"
                             :rules="[{ required: true, message: '请输入密码', trigger: 'blur' }]">
-                <el-input type="password" v-model="requestData.password" placeholder="请输入密码" clearable></el-input>
+                <el-input type="password" v-model="state.requestData.password" placeholder="请输入密码" clearable></el-input>
               </el-form-item>
             </el-col>
           </template>
 
           <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb10">
             <el-form-item label="超时时间" prop="config_id">
-              <el-input-number size="small" v-model="requestData.timeout" placeholder="秒"/>
+              <el-input-number size="small" v-model="state.requestData.timeout" placeholder="秒"/>
             </el-form-item>
           </el-col>
         </el-row>
@@ -122,7 +122,7 @@
               style="min-height: 300px"
               ref="monacoEditRef"
               lang="sql"
-              v-model:value="requestData.sql"
+              v-model:value="state.requestData.sql"
               :options="{ minimap: { enabled: false } }"
           />
         </div>
@@ -132,8 +132,8 @@
 </template>
 
 <script setup lang="ts" name="SqlController">
-import {nextTick, onMounted, PropType, reactive, ref} from 'vue';
-import {useEnvApi} from '/@/api/useAutoApi/env';
+import { nextTick, onMounted, PropType, reactive, ref } from 'vue';
+import { useEnvApi } from '/@/api/useAutoApi/env';
 // import {useEnvironment} from '/@/stores/environment';
 // import {storeToRefs} from 'pinia';
 // import mittBus from '/@/utils/mitt';
@@ -183,7 +183,16 @@ const state = reactive({
     timeout: 0,
     variable_name: "",
   } as TSqlRequest,
-  environments: []
+  environments: [],
+  requestData: {
+    env_id: null,
+  source_id: null,
+  source_type: "mysql",
+  use_type: "source",
+  sql: "",
+  timeout: 0,
+  variable_name: "",
+  }
 });
 
 // const requestData = computed({
@@ -211,14 +220,14 @@ const selectEnv = (env_id: any) => {
     state.dataSourceQuery.env_id = env_id;
     getDataSourceList();
   }
-  if (requestData.value) {
+  if (state.requestData) {
     requestData.value.source_id = null;
   }
 };
 
 const getEnvList = () => {
   useEnvApi()
-      .getList({page: 1, pageSize: 1000})
+      .getList({ page: 1, pageSize: 1000 })
       .then((res) => {
         state.environments = res.data?.rows || [];
       });
@@ -235,26 +244,21 @@ const getDataSourceList = () => {
 
 
 const getData = () => {
-  return requestData.value
+  return state.requestData
 };
 const setData = (data: any) => {
-  requestData.value = data;
-  console.log(data, 'vvvvvvvvvvvvvvvvvv', requestData.value)
+  state.requestData = data;
+  console.log(data, 'vvvvvvvvvvvvvvvvvv', state.requestData)
 };
 
 onMounted(() => {
   nextTick(() => {
-    // initMonacoProvider();
-    if (requestData.value!.env_id) {
-      state.dataSourceQuery.env_id = requestData.value.env_id;
+    if (state.requestData!.env_id) {
+      state.dataSourceQuery.env_id = state.requestData.env_id;
       getDataSourceList();
     }
-    if (!requestData.value?.source_type) {
-      requestData.value.source_type = 'mysql';
-    }
-    if (!requestData.value?.use_type) {
-      requestData.value.use_type = 'source';
-    }
+    state.requestData.source_type = !state.requestData?.source_type ? 'mysql' : state.requestData?.source_type;
+    state.requestData.use_type = !state.requestData?.use_type ? 'source' : state.requestData?.use_type;
   });
   getEnvList()
 });
@@ -267,10 +271,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 .sql-request-box {
-  border-top: 1px solid #e6e6e6;
-  border-top: 1px solid var(--el-border-color);
   padding: 8px;
-  margin-top: 8px;
 
   .sql-body {
     border: 1px solid #e6e6e6;
