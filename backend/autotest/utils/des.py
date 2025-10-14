@@ -1,8 +1,8 @@
 import base64
+import traceback
 
-from Cryptodome import Random
-from Cryptodome.Cipher import PKCS1_v1_5
-from Cryptodome.PublicKey import RSA
+import rsa
+from loguru import logger
 
 PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2YZVJzRrn1kyJHZS+7O5/oteO
@@ -33,13 +33,13 @@ def generate_secret_key():
     公钥私钥生成
     :return:
     """
-    random_generator = Random.new().read
-    rsa = RSA.generate(1024, random_generator)
-    private_key = rsa.exportKey()
-    public_key = rsa.publickey().exportKey()
-    print(private_key.decode('utf8'))
-    print(public_key.decode('utf8'))
-    return private_key.decode('utf8'), public_key.decode('utf8')
+    # 生成 RSA 密钥对
+    (pubkey, privkey) = rsa.newkeys(1024)
+
+    # 将公钥和私钥导出为 PEM 格式字符串
+    private_key = privkey.save_pkcs1().decode('utf-8')
+    public_key = pubkey.save_pkcs1().decode('utf-8')
+    return private_key, public_key
 
 
 def encrypt_rsa_password(password):
@@ -49,12 +49,14 @@ def encrypt_rsa_password(password):
     :return:
     """
     try:
-        public_key = RSA.import_key(PUBLIC_KEY)
-        cipher = PKCS1_v1_5.new(public_key)
-        text = cipher.encrypt(password.encode('utf8'))
-        return base64.b64encode(text)
+        # 导入公钥
+        public_key = rsa.PublicKey.load_pkcs1_openssl_pem(PUBLIC_KEY.encode('utf8'))
+        # 使用公钥进行加密
+        encrypted_password = rsa.encrypt(password.encode('utf-8'), public_key)
+        # 将加密后的字节序列进行 Base64 编码
+        return base64.b64encode(encrypted_password).decode('utf-8')
     except Exception as err:
-        print(err)
+        logger.error(f"加密失败 😭\n{traceback.format_exc(limit=1)}")
         return password
 
 
@@ -65,13 +67,12 @@ def decrypt_rsa_password(password):
     :return:
     """
     try:
-        private_key = RSA.import_key(PRIVATE_KEY)
-        cipher = PKCS1_v1_5.new(private_key)
-        text = cipher.decrypt(base64.b64decode(password), b'')
-        return text.decode()
+        private_key = rsa.PrivateKey.load_pkcs1(PRIVATE_KEY.encode("utf8"))
+        decrypt_password = rsa.decrypt(base64.b64decode(password), private_key)
+        return decrypt_password.decode()
     except Exception as err:
+        logger.error(f"解密失败 😭\n{traceback.format_exc(limit=1)}")
         return password
-
 
 if __name__ == '__main__':
     print(encrypt_rsa_password('Aa123456'))
