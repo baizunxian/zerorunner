@@ -18,7 +18,7 @@
 - element-plus  version 2.2.26
 
 
-#### 💒 平台地址地址
+#### 💒 平台git地址
 - github 
 https://github.com/baizunxian/zerorunner
 - gitee
