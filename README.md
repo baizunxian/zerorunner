@@ -26,9 +26,10 @@ https://gitee.com/xb_xiaobai/zerorunner
 
 #### ⛱️ 线上预览
 
-- ZERO AUTOTEST
-  自动化测试平台在线预览（开源版） <a href="https://zerorunner.cn" target="_blank">https://zerorunner.cn:8999</a>
-  自动化测试平台在线预览 <a href="https://zerorunner.cn" target="_blank">https://zerorunner.cn</a>
+- ZERORUNNER (开源版)
+  在线预览 <a href="https://zerorunner.cn" target="_blank">https://zerorunner.cn:8999</a>
+- ZERORUNNER (非开源版本)
+  在线预览 <a href="https://zerorunner.cn" target="_blank">https://zerorunner.cn</a>
 
 - 首页
   ![](static/img/index.png)
