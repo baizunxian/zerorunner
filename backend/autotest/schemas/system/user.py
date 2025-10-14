@@ -5,7 +5,7 @@ import typing
 from pydantic import BaseModel, Field
 
 from autotest.schemas.base import BaseSchema
-from autotest.utils.des import decrypt_rsa_password
+from autotest.utils.des import encrypt_rsa_password
 
 
 class UserIn(BaseModel):
@@ -18,7 +18,7 @@ class UserIn(BaseModel):
     avatar: str = Field(None, description='头像')
     tags: typing.List = Field(None, description='标签')
     roles: typing.List = Field(None, description='权限')
-    password: str = Field(description='标签', default=decrypt_rsa_password("123456"))
+    password: str = Field(description='标签', default_factory=lambda : encrypt_rsa_password("123456"))
 
 
 class UserUpdate(BaseModel):

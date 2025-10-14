@@ -71,7 +71,7 @@ def decrypt_rsa_password(password):
         decrypt_password = rsa.decrypt(base64.b64decode(password), private_key)
         return decrypt_password.decode()
     except Exception as err:
-        logger.error(f"解密失败 😭\n{traceback.format_exc(limit=1)}")
+        logger.error(f"解密失败 😭\n{traceback.format_exc()}")
         return password
 
 if __name__ == '__main__':
