@@ -13,7 +13,9 @@ RUN uv sync
 
 RUN chmod +x /app/start.sh
 
-EXPOSE 8101
+ENV PATH="/app/.venv/bin:$PATH"
+
+EXPOSE 8998
 
 ENTRYPOINT ["/app/start.sh"]
 
