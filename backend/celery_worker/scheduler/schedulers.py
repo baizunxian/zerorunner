@@ -4,7 +4,7 @@ import logging
 import datetime as dt
 from multiprocessing.util import Finalize
 
-from billiard.five import values, items
+# from billiard.five import values, items
 from kombu.utils.encoding import safe_str, safe_repr
 
 import sqlalchemy
@@ -386,7 +386,7 @@ class DatabaseScheduler(Scheduler):
 
     def update_from_dict(self, mapping):
         s = {}
-        for name, entry_fields in items(mapping):
+        for name, entry_fields in mapping.items():
             # {'task': 'celery.backend_cleanup',
             #  'schedule': schedules.crontab('0', '4', '*'),
             #  'options': {'expires': 43200}}
@@ -441,7 +441,7 @@ class DatabaseScheduler(Scheduler):
                 self._heap_invalidated = True
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug('Current schedule:\n%s', '\n'.join(
-                    repr(entry) for entry in values(self._schedule)),
+                    repr(entry) for entry in self._schedule.values()),
                 )
         # logger.debug(self._schedule)
         return self._schedule

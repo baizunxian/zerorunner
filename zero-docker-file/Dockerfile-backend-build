@@ -5,7 +5,11 @@ WORKDIR /app
 COPY ./backend /app
 
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-RUN pip install -r requirements -i https://mirrors.aliyun.com/pypi/simple/
+
+
+RUN pip install uv -i https://mirrors.aliyun.com/pypi/simple/
+
+RUN uv sync
 
 RUN chmod +x /app/start.sh
 
