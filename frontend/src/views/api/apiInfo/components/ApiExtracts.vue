@@ -24,20 +24,20 @@ const getDataLength = () => {
 // 获取表单数据
 const getData = () => {
   let extractData = handleEmpty(state.extracts)
-  extractData.forEach((e, index) => {
-    if (e.extract_type === "") {
-      throw new Error(`提取: 第${index + 1}行 提取类型不能为空~🤣`)
-    }
-    if (e.name === "") {
-      throw new Error(`提取: 第${index + 1}行 变量名不能为空~🤣`)
-    }
-    if (e.path === "") {
-      throw new Error(`提取: 第${index + 1}行 提取表达式不能为空~🤣`)
-    }
-    if (e.continue_extract && (e.continue_index === "" || e.continue_index === null)) {
-      throw new Error(`提取 第${index + 1}行 请填写提取下标~🤣`)
-    }
-  })
+  // extractData.forEach((e, index) => {
+    // if (e.extract_type === "") {
+    //   throw new Error(`提取: 第${index + 1}行 提取类型不能为空~🤣`)
+    // }
+    // if (e.name === "") {
+    //   throw new Error(`提取: 第${index + 1}行 变量名不能为空~🤣`)
+    // }
+    // if (e.path === "") {
+    //   throw new Error(`提取: 第${index + 1}行 提取表达式不能为空~🤣`)
+    // }
+    // if (e.continue_extract && (e.continue_index === "" || e.continue_index === null)) {
+    //   throw new Error(`提取 第${index + 1}行 请填写提取下标~🤣`)
+    // }
+  // })
   return extractData
 }
 

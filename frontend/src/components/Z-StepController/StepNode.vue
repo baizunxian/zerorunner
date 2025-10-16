@@ -26,7 +26,7 @@
           <!--          ></i>-->
         </div>
         <!--是否展开图标-->
-        <div class="step-header__edit" v-if="step.step_type === 'loop'">
+        <div class="step-header__edit" v-if="step.step_type === stepTypeEnum.Loop">
           <svg-icon v-show="shouDetailIcon(step.step_type)"
                     :name="step.showDetail ? 'ele-ArrowDown' : 'ele-ArrowRight'"
                     style="height: 20px; width: 20px">
@@ -39,20 +39,20 @@
             <ApiHeader :data="step"/>
           </template>
 
-          <template v-else-if="step.step_type === 'wait'">
+          <template v-else-if="step.step_type === stepTypeEnum.Wait">
             <WaitHeader :data="step"/>
           </template>
 
-          <template v-else-if="step.step_type === 'if'">
+          <template v-else-if="step.step_type === stepTypeEnum.If">
             <IfControllerHeader :data="step"/>
           </template>
 
-          <template v-else-if="step.step_type === 'loop'">
+          <template v-else-if="step.step_type === stepTypeEnum.Loop">
             <LoopHeader :data="step"/>
           </template>
 
           <template v-else>
-            <span v-if="!step.edit && (step.step_type ==='sql' || step.step_type === 'script')">
+            <span v-if="!step.edit && (step.step_type ===stepTypeEnum.Sql || step.step_type === stepTypeEnum.Script)">
               <span>{{ step.name }}</span>
               <!--              <svgIcon name="ele-EditPen"-->
               <!--                       @click.stop="editeName(step)"-->
@@ -72,6 +72,12 @@
 
         <!--              操作-->
         <div class="step-header__right header-right">
+          <el-tooltip content="引用步骤" placement="top" v-if="step?.is_quotation">
+            <el-icon class="mr5" size="default">
+              <ele-Link/>
+            </el-icon>
+          </el-tooltip>
+
           <span @click.stop="">
             <el-tooltip content="启用/禁用" placement="top">
               <el-switch v-model="step.enable" inline-prompt>
@@ -94,11 +100,11 @@
       </div>
 
       <div class="step-details" draggable="true" @dragstart="stepDetailsDrag">
-        <ScriptHeader v-if="step.step_type === 'script'" :step="step"/>
-        <SqlController v-if="step.step_type === 'sql'" :step="step"/>
+        <ScriptHeader v-if="step.step_type === stepTypeEnum.Script" :step="step"/>
+        <SqlController v-if="step.step_type === stepTypeEnum.Sql" :step="step"/>
         <!--        <ExtractController v-if="step.step_type === 'extract'" :extracts="step"/>-->
         <!--        <ApiInfoController v-if="data.step_type === 'api'" :data="data"/>-->
-        <LoopController v-if="step.step_type === 'loop'" :step="step"/>
+        <LoopController v-if="step.step_type === stepTypeEnum.Loop" :step="step"/>
       </div>
 
     </el-card>
@@ -129,10 +135,6 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  optType: {
-    type: Object,
-    required: true
-  },
 })
 
 const step = useVModel(props, 'step', emit)
@@ -160,7 +162,7 @@ const deletedNode = () => {
 
 // 是否展示展开图标
 const shouDetailIcon = (step_type) => {
-  let noneType = ["wait", "if"]
+  let noneType = [stepTypeEnum.Wait, stepTypeEnum.If]
   return noneType.indexOf(step_type) === -1
 }
 const stepDetailsDrag = (event) => {

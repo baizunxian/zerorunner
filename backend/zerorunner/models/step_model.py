@@ -147,6 +147,7 @@ TStepRequest = typing.Union[TRequest, TSqlRequest, TIFRequest, TWaitRequest, TSc
 class TStep(TStepBase):
     """步骤模型"""
     testcase: typing.Union[str, typing.Callable, None] = Field(None, description="测试用例")
+    node_id: typing.Optional[str] = Field(None, description="步骤节点id")
     variables: VariablesMapping = Field({}, description="步骤变量")
     # pre_steps: "TStep" = Field([], description="前置步骤")
     # post_steps: "TStep" = Field([], description="后置步骤")

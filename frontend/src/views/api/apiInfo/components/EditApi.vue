@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-card>
-      <template #header v-if="!isView">
+      <template #header v-if="!isDialog">
         <z-detail-page-header
             class="page-header"
             style="margin: 5px 0;"
@@ -13,7 +13,7 @@
         </z-detail-page-header>
       </template>
       <div class="h100">
-        <ApiInfo ref="ApiInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug" :step-type="state.stepType"/>
+        <ApiInfo ref="ApiInfoRef" @saveOrUpdateOrDebug="saveOrUpdateOrDebug" :step-type="state.stepType" :isView="isView"/>
 
         <el-collapse-transition>
           <div v-show="state.showRequestBody">
@@ -205,7 +205,7 @@
 </template>
 
 <script setup name="EditApiInfo">
-import {defineProps, nextTick, onActivated, onMounted, reactive, ref, watch} from 'vue'
+import {computed, defineProps, nextTick, onActivated, onMounted, reactive, ref, watch} from 'vue'
 import {useRoute, useRouter} from "vue-router"
 import {useApiInfoApi} from '/@/api/useAutoApi/apiInfo'
 import {ElLoading, ElMessage} from 'element-plus'
@@ -237,6 +237,15 @@ const props = defineProps({
       return false;
     },
   },
+  stepData: {
+    type: Object,
+  },
+  isDialog: {
+    type: Boolean,
+    default: () => {
+      return false;
+    },
+  },
 });
 
 const route = useRoute();
@@ -258,6 +267,7 @@ const ApiCodeRef = ref()
 const ApiHookRef = ref()
 
 const state = reactive({
+  stepId: null,
   isShowDialog: false,
   activeName: 'ApiRequestBody',
   editType: '',
@@ -267,6 +277,7 @@ const state = reactive({
   reportContent: [],
 
   api_id: null,
+  stepData: {},
 
   // show
   showRequestBody: true,
@@ -278,14 +289,11 @@ const state = reactive({
 });
 
 
-const saveOrUpdateOrDebug = (type) => {
-  // if (!store.state.env?.envId) {
-  //   console.log("store.state.env", store.state.env)
-  //   showDriver()
-  //   // ElMessage.warning("请选择运行环境！")
-  //   return
-  // }
-  try {
+const useIsView = computed(() => {
+  return props.isView
+})
+
+const getStepData = () => {
 
     let caseInfoData = ApiInfoRef.value?.getData()
     let bodyData = ApiRequestBodyRef.value?.getData()
@@ -314,8 +322,8 @@ const saveOrUpdateOrDebug = (type) => {
       console.log("StepSqlRequestRef.value?.getData()", requestData)
     }
 
-    // 组装表单
-    let apiCaseData = {
+    return  {
+      ...state.stepData,
       id: state.api_id,
       name: caseInfoData.name,
       project_id: caseInfoData.project_id,
@@ -338,10 +346,22 @@ const saveOrUpdateOrDebug = (type) => {
       setup_hooks: hookData.setup_hooks,
       teardown_hooks: hookData.teardown_hooks,
     }
+}
+
+const saveOrUpdateOrDebug = (type) => {
+  // if (!store.state.env?.envId) {
+  //   console.log("store.state.env", store.state.env)
+  //   showDriver()
+  //   // ElMessage.warning("请选择运行环境！")
+  //   return
+  // }
+  try {
+
+    const stepData = getStepData()
 
     // 保存用例
     if (type === 'save') {
-      useApiInfoApi().saveOrUpdate(apiCaseData)
+      useApiInfoApi().saveOrUpdate(stepData)
           .then(res => {
             ElMessage.success('保存成功！')
             state.api_id = res.data.id
@@ -357,7 +377,7 @@ const saveOrUpdateOrDebug = (type) => {
         background: 'rgba(0, 0, 0, 0.8)',
         customClass: 'loading-class'
       })
-      useApiInfoApi().debugApi(apiCaseData)
+      useApiInfoApi().debugApi(stepData)
           .then(res => {
             state.reportData = null
 
@@ -383,68 +403,58 @@ const saveOrUpdateOrDebug = (type) => {
   }
 }
 
-const initApi = (api_id) => {
-  if (props.api_id) {
-    api_id = props.api_id
+const initStep = () => {
+  if (props.stepData) {
     state.reportData = null
     state.showReport = false
+    state.stepType = props.stepData?.step_type
+    console.log("props.stepData", props.stepData)
+    if (props.stepData?.is_quotation) {
+      state.stepId = props.stepData.source_id
+      getStepInfo()
+    } else {
+      state.stepData = props.stepData
+      setStepData(state.stepData)
+    }
   } else {
-    api_id = route.query.id
+    state.stepId = route.query.id
+    if (state.stepId) {
+      getStepInfo()
+    }
   }
-  state.stepType = route.query.stepType
-  console.log("api_id------>", api_id)
-  if (api_id) {
-    state.api_id = api_id
-    useApiInfoApi().getApiInfo({id: state.api_id})
-        .then(res => {
-          let apiCaseData = res.data
-          state.stepType = apiCaseData.step_type
+}
 
-          nextTick(() => {
-            ApiInfoRef.value?.setData(apiCaseData, state.stepType)
-            ApiRequestBodyRef.value?.setData(apiCaseData.request)
-            StepScriptRequestRef.value?.setData(apiCaseData.request)
-            StepSqlRequestRef.value?.setData(apiCaseData.request)
-            ApiRequestHeadersRef.value?.setData(apiCaseData.request.headers)
-            ApiVariablesRef.value?.setData(apiCaseData.variables)
-            ApiExtractsRef.value?.setData(apiCaseData.extracts)
-            ApiValidatorsRef?.value.setData(apiCaseData.validators)
-            ApiCodeRef.value?.setData(apiCaseData.setup_code, apiCaseData.teardown_code)
-            // APiSetupHooksRef.value.setData(apiCaseData.setup_hooks, state.api_id)
-            // APiTeardownHooksRef.value.setData(apiCaseData.teardown_hooks, state.api_id)
-            ApiHookRef.value?.setData(apiCaseData.setup_hooks, apiCaseData.teardown_hooks, state.api_id)
-          })
+function setStepData(stepData) {
+  nextTick(() => {
+    ApiInfoRef.value?.setData(stepData, stepData?.step_type)
+    ApiRequestBodyRef.value?.setData(stepData?.request)
+    StepScriptRequestRef.value?.setData(stepData?.request)
+    StepSqlRequestRef.value?.setData(stepData?.request)
+    ApiRequestHeadersRef.value?.setData(stepData?.request.headers)
+    ApiVariablesRef.value?.setData(stepData?.variables)
+    ApiExtractsRef.value?.setData(stepData?.extracts)
+    ApiValidatorsRef?.value.setData(stepData?.validators)
+    ApiCodeRef.value?.setData(stepData?.setup_code, stepData?.teardown_code)
+    ApiHookRef.value?.setData(stepData?.setup_hooks, stepData?.teardown_hooks, state.stepId)
 
-          if (state.stepType === stepTypeEnum.Sql) {
-            state.activeName = 'StepSqlRequest'
-          }
-          if (state.stepType === stepTypeEnum.Script) {
-            state.activeName = 'StepScriptRequest'
-          }
-
-        })
-  } else {
-    state.api_id = null
-    state.reportData = null
-    ApiInfoRef.value?.setData(null, state.stepType)
-    ApiRequestBodyRef.value?.setData()
-    ApiRequestHeadersRef.value?.setData()
-    ApiVariablesRef.value?.setData()
-    ApiExtractsRef.value?.setData()
-    ApiValidatorsRef.value?.setData()
-    ApiCodeRef.value?.setData()
-    ApiHookRef.value?.setData()
-    StepScriptRequestRef.value?.setData()
-    StepSqlRequestRef.value?.setData()
-    // APiSetupHooksRef.value.setData()
-    // APiTeardownHooksRef.value.setData()
     if (state.stepType === stepTypeEnum.Sql) {
       state.activeName = 'StepSqlRequest'
     }
     if (state.stepType === stepTypeEnum.Script) {
       state.activeName = 'StepScriptRequest'
     }
-  }
+  })
+}
+
+const getStepInfo = () => {
+  useApiInfoApi().getApiInfo({id: state.stepId})
+      .then(res => {
+        state.stepData = res.data
+        state.stepType = state.stepData?.step_type
+        nextTick(() => {
+          setStepData(state.stepData)
+        })
+      })
 }
 
 // 返回到列表
@@ -494,18 +504,22 @@ const toResponse = () => {
 watch(
     () => props.api_id,
     () => {
-      initApi()
+      initStep()
     },
 )
 
 onActivated(() => {
   if (state.timestamp !== route.query.timestamp) {
     state.timestamp = route.query.timestamp
-    initApi()
+    initStep()
   }
 })
 onMounted(() => {
-  initApi()
+  initStep()
+})
+
+defineExpose({
+  getStepData
 })
 
 </script>

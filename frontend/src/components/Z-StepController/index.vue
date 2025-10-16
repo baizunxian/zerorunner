@@ -7,7 +7,7 @@
           highlight-current
           :allow-drop="allowDrop"
           @node-click="nodeClick"
-          node-key="id"
+          node-key="node_id"
           @node-drag-start="handleDrop"
           :expand-on-click-node="false"
           :props="{children: 'children_steps'}"
@@ -16,7 +16,6 @@
           <StepNode v-model:step="node.data"
                     :node="node"
                     :class="[node.data.step_type ==='case'?'treeCaseStep':'']"
-                    :opt-type="state.optTypes"
                     @copy-node="copyNode"
                     @deleted-node="deletedNode(node)"
           />
@@ -26,7 +25,7 @@
     </div>
 
     <SelectCase ref="selectApiRef" @addApiStep="addApiStep"></SelectCase>
-    <ApiInfoController ref="ApiInfoControllerRef"></ApiInfoController>
+    <ApiInfoController ref="ApiInfoControllerRef" @update-step-data="updateStepData"></ApiInfoController>
 
   </div>
 </template>
@@ -39,6 +38,7 @@ import ApiInfoController from "./apiInfo/ApiInfoController.vue"
 import useVModel from "/@/utils/useVModel";
 import {useApiInfoApi} from "/@/api/useAutoApi/apiInfo";
 import {stepTypeEnum} from "/@/utils/case";
+import {getUuid} from "/@/utils/commonFunction";
 
 const emit = defineEmits(['update:steps'])
 const props = defineProps({
@@ -69,8 +69,8 @@ const stepTreeRef = ref()
 
 const state = reactive({
   // data
-  optType: "script",
-  optTypes: {},
+  // optType: "script",
+  // optTypes: {},
   // caseInfo
   showApioInfo: false,
 
@@ -78,9 +78,9 @@ const state = reactive({
 
 // 拖动处理
 const allowDrop = (draggingNode, dropNode, type) => {
-  if (dropNode.data.step_type === 'if' && type === 'inner') {
+  if (dropNode.data.step_type === stepTypeEnum.If && type === 'inner') {
     return true
-  } else if (dropNode.data.step_type === 'loop' && type === 'inner') {
+  } else if (dropNode.data.step_type === stepTypeEnum.Loop && type === 'inner') {
     return true
   }
   // return type
@@ -96,7 +96,7 @@ const handleDrop = (node, event) => {
 
 const nodeClick = (data, node) => {
   if ([stepTypeEnum.Api, stepTypeEnum.Sql, stepTypeEnum.Script].includes(data.step_type)) {
-    ApiInfoControllerRef.value.onOpenApiInfoPage(data)
+    ApiInfoControllerRef.value.onOpenStepInfoPage(data)
   } else {
     data.showDetail = !data.showDetail
   }
@@ -116,13 +116,12 @@ const computeDataIndex = (data, parent_index = 0) => {
     })
   }
 }
-// handleAddData
-const handleAddData = async (optType) => {
-  console.log(optType, "optType")
-  if (optType === stepTypeEnum.Step) {
+const handleAddData = async (stepType) => {
+  console.log(stepType, "stepType")
+  if (stepType === stepTypeEnum.Step) {
     selectApiRef.value.onOpenApiList()
   } else {
-    let stepData = getAddData(optType)
+    let stepData = getStepDataByType(stepType)
     appendTreeDate(stepData)
   }
 }
@@ -140,7 +139,8 @@ const appendTreeDate = (data) => {
   }
 }
 
-const getStepData = () => {
+// 获取基础步骤数据
+const getBaseStepData = () => {
   return {
     id: null,
     name: "",
@@ -155,69 +155,107 @@ const getStepData = () => {
     export: [],
     validators: [],
     request: null,
-    showDetail: false,
-    is_quotation: true,
-    children_step: []
+    is_quotation: false,
+    source_id: null,
+    children_steps: [],
+    _showDetail: false,
+    _edit: false,
   }
 }
 
 // 获取步骤
-const getAddData = (optType) => {
-  let data = getStepData()
-  data.name = `${ optType }_${ getRandomStr() }`
-  data.step_type = optType
-  if (optType === "script") {
-    data.name = "自定义脚本"
-    data.request = {
-      script_content: ""
-    }
-  } else if (optType === "sql") {
-    data.name = "数据库操作"
-    data.request = {
-      env_id: null,
-      source_id: null,
-      sql: "",
-      timeout: 0,
-      variable_name: ""
-    }
-  } else if (optType === "wait") {
-    data.request = {
-      wait_time: 0
-    }
+const getStepDataByType = (stepType) => {
+  let data = getBaseStepData()
+  data.name = `${ stepType }_${ getRandomStr() }`
+  data.step_type = stepType
+  data.node_id = getUuid()
+  // data.node_id = ()
 
-  } else if (optType === "if") {
-    data.request = {
-      check: "",
-      comparator: "",
-      expect: "",
-      remarks: ""
-    }
-  } else if (optType === "loop") {
-    data.request = {
-      // loop_type = count
-      loop_type: "count",
-      count_number: 0,
-      count_sleep_time: 0,
+  switch (stepType) {
+    case stepTypeEnum.Api:
+      data.name = "自定义请求"
+      data.request = {
+        data: null,
+        language: "json",
+        headers: [],
+        mode: "raw",
+        method: "POST",
+        url: "",
+      }
+      break
+    case stepTypeEnum.Script:
+      data.name = "自定义脚本"
+      data.request = {
+        script_content: ""
+      }
+      break
+    case stepTypeEnum.PyScript:
+      data.name = "自定义脚本"
+      data.request = {
+        script_content: ""
+      }
+      break
+    case stepTypeEnum.Sql:
+      data.name = "数据库操作"
+      data.request = {
+        env_id: null,
+        source_id: null,
+        sql: "",
+        timeout: 0,
+        variable_name: ""
+      }
+      break
+    case stepTypeEnum.Wait:
+      data.request = {
+        wait_time: 0
+      }
+      break
+    case stepTypeEnum.If:
+      data.request = {
+        check: "",
+        comparator: "",
+        expect: "",
+        remarks: ""
+      }
+      break
+    case stepTypeEnum.Loop:
+      data.request = {
+        // loop_type = count
+        loop_type: "count",
+        count_number: 0,
+        count_sleep_time: 0,
 
-      // loop_type == "for"
-      for_variable_name: "",
-      for_variable: "",
-      for_sleep_time: 0,
+        // loop_type == "for"
+        for_variable_name: "",
+        for_variable: "",
+        for_sleep_time: 0,
 
-      // loop_type == "while"
-      while_comparator: "",
-      while_variable: "",
-      while_value: "",
-      while_sleep_time: 0,
-      while_timeout: 0
-    }
-  } else if (optType === "api") {
-    selectApiRef.value.onOpenApiList()
+        // loop_type == "while"
+        while_comparator: "",
+        while_variable: "",
+        while_value: "",
+        while_sleep_time: 0,
+        while_timeout: 0
+      }
+      break
+    case stepTypeEnum.Ui:
+      data.request = {
+        page_element_id: [],
+        action_value: [],
+        element_type: 1,  // 1页面元素  2 自定义元素
+        locations: []
+      }
+      break
+      // case stepTypeEnum.Step:
+      //   selectStepRef.value.onOpenStepList()
+      //   break
+    default:
+      break
   }
   return data
 }
 
-// 添加case
+// 添加步骤
 const addApiStep = async () => {
   let selectApiData = selectApiRef.value.getSelectionData()
   if (selectApiData) {
@@ -231,7 +269,9 @@ const addApiStep = async () => {
         stepData.id = null
         stepData.step_type = apiInfo.step_type
         stepData.source_id = apiInfo.id
+        stepData.is_quotation = true
         stepData.enable = true
+        stepData.node_id = getUuid()
         appendTreeDate(stepData)
       })
     }
@@ -252,6 +292,29 @@ const copyNode = (data) => {
   data = JSON.parse(JSON.stringify(data))
   steps.value.push(data)
 }
+
+
+const updateStepData = (data) => {
+
+  function updateNode(nodes, nodeId, newData) {
+    nodes.forEach((e) => {
+      if (e.node_id === nodeId) {
+        e = Object.assign(e, newData)
+      }
+      if (e.children_steps && e.children_steps.length > 0) {
+        updateNode(e.children_steps,nodeId, data)
+      }
+    })
+  }
+  console.log("updateStepData1", data)
+  if (data.node_id) {
+    // console.log("updateStepData2", data)
+    updateNode(steps.value, data.node_id, data)
+    stepTreeRef.value.updateKeyChildren(data.node_id, data)
+    console.log("test--->data.node_id",stepTreeRef.value.getNode(data.node_id))
+  }
+}
+
 
 watch(
     () => steps.value,

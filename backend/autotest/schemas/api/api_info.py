@@ -131,6 +131,7 @@ class ApiInfoIn(TStepData):
     url: str = Field(None, description="")
     tags: typing.List[str] = Field([], description="")
     remarks: str = Field(None, description="")
+    node_id: str = Field(None, description="节点id")
     # validators: typing.List[typing.Any] = []
     # pre_steps: typing.List[typing.Annotated[TStepData, Field(discriminator="step_type")]] = Field([], description="")
     # post_steps: typing.List[typing.Annotated[TStepData, Field(discriminator="step_type")]] = Field([], description="")

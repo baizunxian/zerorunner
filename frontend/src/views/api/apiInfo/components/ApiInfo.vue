@@ -58,98 +58,96 @@
                label-position="right"
                :rules="state.rules">
         <el-row :gutter="24">
-          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20" v-if="stepType === stepTypeEnum.Api">
-            <el-form-item label="接口名称" prop="name">
-              <el-input v-model.trim="state.form.name"
-                        style="width: 100%;"
-                        clearable
-                        placeholder="请输入接口名称"></el-input>
-            </el-form-item>
 
-          </el-col>
+          <template v-if="!isView">
+            <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20" v-if="stepType === stepTypeEnum.Api">
+              <el-form-item label="步骤名称" prop="name">
+                <el-input v-model.trim="state.form.name"
+                          style="width: 100%;"
+                          clearable
+                          placeholder="请输入接口名称"></el-input>
+              </el-form-item>
 
-          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+            </el-col>
 
-            <el-form-item label="项目/模块" prop="project_id">
-              <el-cascader v-model="state.form.project_module"
-                           :props="{label:'name', value:'id'}"
-                           :options="state.projectTree"
-                           filterable
-                           style="width: 100%"
-                           @change="projectModuleChange"/>
-            </el-form-item>
-          </el-col>
+            <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
 
-          <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+              <el-form-item label="项目/模块" prop="project_id">
+                <el-cascader v-model="state.form.project_module"
+                             :props="{label:'name', value:'id'}"
+                             :options="state.projectTree"
+                             filterable
+                             style="width: 100%"
+                             @change="projectModuleChange"/>
+              </el-form-item>
+            </el-col>
 
-            <el-form-item label="接口标签" prop="tag">
-              <el-tag
-                  v-for="tag in state.form.tags"
-                  :key="tag"
-                  size="default"
-                  type="success"
-                  closable
-                  style="{margin-left: 0.25rem;margin-right: 0.25rem;}"
-                  :disable-transitions="false"
-                  @close="removeTag(tag)"
-              >{{ tag }}
-              </el-tag>
+            <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
 
-              <el-input
-                  v-if="state.editTag"
-                  ref="caseTagInputRef"
-                  v-model="state.tagValue"
-                  class="ml-1 w-20"
-                  size="small"
-                  @keyup.enter="addTag"
-                  @blur="addTag"
-                  style="width: 100px"
-              />
-              <el-button v-else size="small" @click="showEditTag">
-                + New Tag
-              </el-button>
-            </el-form-item>
+              <el-form-item label="接口标签" prop="tag">
+                <el-tag
+                    v-for="tag in state.form.tags"
+                    :key="tag"
+                    size="default"
+                    type="success"
+                    closable
+                    style="{margin-left: 0.25rem;margin-right: 0.25rem;}"
+                    :disable-transitions="false"
+                    @close="removeTag(tag)"
+                >{{ tag }}
+                </el-tag>
 
-          </el-col>
+                <el-input
+                    v-if="state.editTag"
+                    ref="caseTagInputRef"
+                    v-model="state.tagValue"
+                    class="ml-1 w-20"
+                    size="small"
+                    @keyup.enter="addTag"
+                    @blur="addTag"
+                    style="width: 100px"
+                />
+                <el-button v-else size="small" @click="showEditTag">
+                  + New Tag
+                </el-button>
+              </el-form-item>
 
-          <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-            <el-form-item label="描述" prop="">
-              <el-input size="default"
-                        type="textarea"
-                        v-model.trim="state.form.remarks"
-                        style="width: 100%;"
-                        placeholder="请输入用例名称"></el-input>
-            </el-form-item>
-          </el-col>
+            </el-col>
 
-          <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+            <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+              <el-form-item label="描述" prop="">
+                <el-input size="default"
+                          type="textarea"
+                          v-model.trim="state.form.remarks"
+                          style="width: 100%;"
+                          placeholder="请输入用例名称"></el-input>
+              </el-form-item>
+            </el-col>
 
-          </el-col>
+            <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+              <el-form-item label="创建用户" prop="">
+                <strong>{{ state.form.created_by_name }}</strong>
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="创建用户" prop="">
-              <strong>{{ state.form.created_by_name }}</strong>
-            </el-form-item>
-          </el-col>
+            <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+              <el-form-item label="创建时间" prop="">
+                <strong>{{ state.form.creation_date }}</strong>
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="创建时间" prop="">
-              <strong>{{ state.form.creation_date }}</strong>
-            </el-form-item>
-          </el-col>
+            <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+              <el-form-item label="更新用户" prop="" style="width: 100%;">
+                <strong>{{ state.form.updated_by_name }}</strong>
+              </el-form-item>
+            </el-col>
 
-          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="更新用户" prop="" style="width: 100%;">
-              <strong>{{ state.form.updated_by_name }}</strong>
-            </el-form-item>
-          </el-col>
-
-          <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
-            <el-form-item label="更新时间" prop="" style="width: 100%;">
-              <strong>{{ state.form.updation_date }}</strong>
-            </el-form-item>
-          </el-col>
-
+            <el-col :xs="6" :sm="6" :md="6" :lg="6" :xl="6" class="mb20">
+              <el-form-item label="更新时间" prop="" style="width: 100%;">
+                <strong>{{ state.form.updation_date }}</strong>
+              </el-form-item>
+            </el-col>
+          </template>
         </el-row>
       </el-form>
     </div>
@@ -169,7 +167,7 @@
                 :key="item.id"
                 :label="`${item.name}(${item.domain_name})`"
                 :value="item.id">
-              <span style="float: left">{{ `${item.name}(${item.domain_name})` }}</span>
+              <span style="float: left">{{ `${ item.name }(${ item.domain_name })` }}</span>
             </el-option>
           </el-select>
         </el-form-item>
@@ -189,7 +187,7 @@ import {useProjectApi} from '/@/api/useAutoApi/project'
 import {useModuleApi} from '/@/api/useAutoApi/module'
 import {nextTick, onMounted, reactive, ref} from "vue";
 import {useEnvApi} from "/@/api/useAutoApi/env";
-import {getMethodColor, stepTypeEnum} from "/@/utils/case"
+import {stepTypeEnum} from "/@/utils/case"
 import StepIcon from "/@/components/Z-StepController/StepIcon.vue"
 import {ElMessage} from "element-plus";
 
@@ -201,11 +199,14 @@ const props = defineProps({
     type: String,
     default: ""
   },
+  isView: {
+    type: Boolean,
+    default: false
+  }
 })
 
 // 自定义变量
 const formRef = ref()
-const isView = ref(false)
 const methodRef = ref()
 const caseTagInputRef = ref()
 const createForm = (step_type) => {
@@ -222,6 +223,7 @@ const createForm = (step_type) => {
       project_module: [],
       project_id: null,
       module_id: null,
+      request:{},
       tags: [],
       priority: 3,
       remarks: "",
@@ -285,17 +287,22 @@ const state = reactive({
 });
 // 初始化表单
 const setData = (formData, step_type) => {
-  state.stepType = step_type
-  state.form = createForm(step_type)
-  if (formData) {
-    state.form = {...state.form, ...formData}
-    state.form.project_module = [state.form.project_id, state.form.module_id]
-    if (!state.form.tags) state.form.tags = []
-    if (formData.project_id) {
-      state.moduleQuery.project_id = formData.project_id
-      getModuleList()
+  nextTick(() => {
+    console.log(formData, "formData")
+    state.stepType = step_type
+    state.form = createForm(step_type)
+    if (formData) {
+      state.form = {...state.form, ...formData}
+      state.form.url = formData.request?.url
+      state.form.method = formData.request?.method
+      state.form.project_module = [state.form.project_id, state.form.module_id]
+      if (!state.form.tags) state.form.tags = []
+      if (formData.project_id) {
+        state.moduleQuery.project_id = formData.project_id
+        getModuleList()
+      }
     }
-  }
+  })
   // if (state.stepType == stepTypeEnum.Api) {
   //   methodChange(state.form.method)
   // }
