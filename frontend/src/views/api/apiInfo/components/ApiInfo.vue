@@ -288,7 +288,6 @@ const state = reactive({
 // 初始化表单
 const setData = (formData, step_type) => {
   nextTick(() => {
-    console.log(formData, "formData")
     state.stepType = step_type
     state.form = createForm(step_type)
     if (formData) {

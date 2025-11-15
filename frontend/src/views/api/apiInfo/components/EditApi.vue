@@ -385,6 +385,7 @@ const saveOrUpdateOrDebug = (type) => {
 
 const initStep = () => {
 	state.stepType = props.stepData?.step_type || route.query?.stepType;
+	setStepData();
 	if (props.stepData) {
 		state.reportData = null;
 		state.showReport = false;
@@ -405,7 +406,7 @@ const initStep = () => {
 
 function setStepData(stepData) {
 	nextTick(() => {
-		ApiInfoRef.value?.setData(stepData, stepData?.step_type);
+		ApiInfoRef.value?.setData(stepData, state.stepType);
 		ApiRequestBodyRef.value?.setData(stepData?.request);
 		StepScriptRequestRef.value?.setData(stepData?.request);
 		StepSqlRequestRef.value?.setData(stepData?.request);
