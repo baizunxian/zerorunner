@@ -41,8 +41,7 @@ async def run_testcase(params: ApiTestCaseRun):
                   case_env_id=params.env_id,
                   exec_user_id=exec_user_id,
                   exec_user_name=exec_user_name,
-                  __business_id=params.id,
-                  callback=ApiCaseService.run_callback)
+                  __business_id=params.id)
     async_run_testcase.apply_async(kwargs=kwargs)
     return partner_success(msg="用例异步运行， 请稍后再测试报告列表查看 😊")
 
