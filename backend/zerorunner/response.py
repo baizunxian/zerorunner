@@ -162,27 +162,22 @@ class ResponseObject(object):
         self.validation_results: typing.Dict = {}
         self.resp_data = ResponseData()
 
-        if not isinstance(resp_obj, ResponseData):
-            if step_type == TStepTypeEnum.api and isinstance(resp_obj, Response):
-                self.resp_data.text = resp_obj.text
-                try:
-                    self.resp_data.json_data = resp_obj.json()
-                except Exception:
-                    logger.warning(f"响应数据不是json格式，无法提取json数据")
-                self.resp_data.data = resp_obj.content
-                self.resp_data.headers = resp_obj.headers
-                self.resp_data.cookies = resp_obj.cookies.get_dict()
-                self.resp_data.status_code = resp_obj.status_code
-                self.resp_data.duration = resp_obj.elapsed.total_seconds()
+        if  isinstance(resp_obj, Response):
+            self.resp_data.text = resp_obj.text
+            try:
+                self.resp_data.json_data = resp_obj.json()
+            except Exception:
+                logger.warning(f"响应数据不是json格式，无法提取json数据")
+            self.resp_data.data = resp_obj.content
+            self.resp_data.headers = resp_obj.headers
+            self.resp_data.cookies = resp_obj.cookies.get_dict()
+            self.resp_data.status_code = resp_obj.status_code
+            self.resp_data.duration = resp_obj.elapsed.total_seconds()
 
-            elif step_type == TStepTypeEnum.sql:
-                self.resp_data.json_data = resp_obj
 
-            elif step_type == TStepTypeEnum.script:
-                self.resp_data.json_data = resp_obj
-
-        else:
+        if isinstance(resp_obj, ResponseData):
             self.resp_data = resp_obj
+
         # self.resp_obj = resp_obj
         self.validation_results: typing.Dict = {}
 

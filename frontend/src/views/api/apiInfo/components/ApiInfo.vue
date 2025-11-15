@@ -45,7 +45,7 @@
       </el-col>
       <el-col v-if="isView" :span="2">
         <div class="api-case__operation">
-          <el-button size="default" type="success" @click="() => emit('debugStep')"> 调试</el-button>
+          <el-button size="default" type="success" @click="handleDebug"> 调试</el-button>
         </div>
       </el-col>
       <!--      </div>-->

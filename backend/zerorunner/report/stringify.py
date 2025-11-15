@@ -81,6 +81,8 @@ def __stringify_request(request_data: RequestData):
             }
 
     """
+    if not request_data:
+        return
     for key, value in request_data.dict().items():
 
         # if isinstance(value, (list, dict)):
@@ -135,6 +137,8 @@ def __stringify_response(response_data: ApiResponseData):
             }
 
     """
+    if not response_data:
+        return
     for key, value in response_data.dict().items():
 
         # if isinstance(value, (list, dict)):
