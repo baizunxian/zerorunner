@@ -3,7 +3,7 @@
 import typing
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator
 
 from autotest.schemas.base import BaseSchema
 from zerorunner.models.step_model import TStep, ValidatorData, TSqlRequest, TRequest, TIFRequest, TWaitRequest, \
@@ -60,6 +60,8 @@ class TRequestData(TRequest):
 class TSqlData(TSqlRequest):
     env_id: typing.Optional[int] = None
     source_id: typing.Optional[int] = None
+    use_type: typing.Optional[str] = Field(None, description="类型")
+    source_type: typing.Optional[str] = Field(None, description="类型")
 
 
 class TStepSqlData(BaseModel):

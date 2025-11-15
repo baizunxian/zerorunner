@@ -237,15 +237,16 @@ class HandleStepData(object):
 
     async def __init_sql_step(self) -> Step:
         """sql步骤初始化"""
-        source_info = await DataSource.get(self.api_info.request.source_id)
         self.step.request = TSqlRequest.parse_obj(self.api_info.request)
-        if source_info:
-            self.step.request.host = source_info.host
-            self.step.request.user = source_info.user
-            self.step.request.password = decrypt_rsa_password(source_info.password)
-            self.step.request.port = source_info.port
-        else:
-            raise ValueError(f"{self.step.name} sql环境信息为空")
+        if self.api_info.request.use_type == 'source':
+            source_info = await DataSource.get(self.api_info.request.source_id)
+            if not source_info:
+                raise ValueError(f"{self.step.name} 数据源信息不存在")
+            if source_info:
+                self.step.request.host = source_info.host
+                self.step.request.user = source_info.user
+                self.step.request.password = decrypt_rsa_password(source_info.password)
+                self.step.request.port = source_info.port
         return Step(RunSqlStep(self.step))
 
     async def __init_wait_step(self) -> Step:
@@ -402,16 +403,19 @@ class HandelTestCase(object):
             step.children_steps = await HandelTestCase.handle_steps(step.children_steps)
             if step.step_type.lower() == TStepTypeEnum.api.value.lower():
                 # 处理api用例，后面会支持是否是引用模式
-                api_info = await ApiInfo.get(step.source_id, True)
-                if api_info:
-                    if step.is_quotation:
-                        new_step = TStepData.parse_obj(api_info)
-                    else:
-                        new_step = TStepData.parse_obj(step.dict())
-                    new_step.source_id = api_info.get("id", None)
-                    new_step.index = step.index
+
+                if step.is_quotation:
+                    api_info = await ApiInfo.get(step.source_id, True)
+                    if not api_info:
+                        raise ValueError(f"没找到用例 {step.source_id}")
+                    new_step = TStepData.parse_obj(api_info)
+                    new_step.source_id = step.source_id
                 else:
-                    logger.error(f"没找到用例 {step.source_id}")
+                    new_step = TStepData.parse_obj(step.dict())
+                # new_step.source_id = api_info.get("id", None)
+                new_step.index = step.index
+                # else:
+                #     logger.error(f"没找到用例 {step.source_id}")
             else:
                 new_step = TStepData.parse_obj(step.dict())
             if new_step:

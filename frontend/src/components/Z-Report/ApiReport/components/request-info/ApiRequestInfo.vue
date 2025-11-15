@@ -2,7 +2,7 @@
   <div class="request">
     <div class="request-info">
       <el-tag effect="dark" type="success">{{ request.method }}</el-tag>
-       <el-text class="mx-1 ml10" type=""> {{ request.url }}</el-text>
+      <el-text class="mx-1 ml10"> {{ request.url }}</el-text>
     </div>
 
     <el-collapse v-model="state.accordionName">
@@ -10,9 +10,13 @@
         <template #title>
           <strong>Body</strong>
         </template>
-        <JsonViews v-if="contentType.includes('json') && getBodyType() === 'object'"
+
+        <span v-if="!request.body"></span>
+
+        <JsonViews v-else-if="contentType.includes('json') && getBodyType() === 'object'"
                    v-model:data="request.body">
         </JsonViews>
+
         <div v-else-if="contentType.includes('multipart/form-data') && getBodyType() === 'object'">
           <div v-for="(value, key) in request.body" :key="key">
             <span style="font-size: 12px">
@@ -20,6 +24,7 @@
               </span>
           </div>
         </div>
+
         <pre v-else>{{ request.body }}</pre>
       </el-collapse-item>
 
@@ -40,7 +45,7 @@
 
 <script setup name="RequestInfo">
 import {computed, reactive} from 'vue';
-import JsonViews from "/src/components/Z-JsonViews/index.vue"
+import JsonViews from "/@/components/ZeroComponents/ZeroJsonViews/index.vue"
 
 const props = defineProps({
   data: {

@@ -4,7 +4,7 @@ import typing
 
 from zerorunner.models.step_model import TStep
 from zerorunner.response import ResponseObject
-from zerorunner.runner import SessionRunner
+# from zerorunner.runner import SessionRunner
 
 
 class CustomDict(dict):
@@ -78,7 +78,7 @@ class DataHandle:
 
 
 class Zero:
-    def __init__(self, runner: SessionRunner,
+    def __init__(self, runner: "SessionRunner",
                  step: TStep,
                  environment: dict,
                  variables: dict,
@@ -92,7 +92,7 @@ class Zero:
         self._response = response
 
     @property
-    def runner(self) -> SessionRunner:
+    def runner(self) -> "SessionRunner":
         return self._runner
 
     @property

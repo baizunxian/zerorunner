@@ -16,12 +16,14 @@ from zerorunner import exceptions
 from zerorunner.client import HttpSession
 from zerorunner.exceptions import ValidationFailure
 from zerorunner.ext.zero_driver.driver import ZeroDriver
-from zerorunner.models.base import VariablesMapping, FunctionsMapping
+from zerorunner.loader import load_script_content
+from zerorunner.models.base import VariablesMapping, FunctionsMapping, Hooks
 from zerorunner.models.result_model import StepResult, TestCaseSummary, TestCaseInOut
 from zerorunner.models.step_model import TStep, TConfig
 from zerorunner.parser import parse_data, get_mapping_function, \
     Parser, parse_variables_mapping
 from zerorunner.response import uniform_validator
+from zerorunner.script_code import Zero
 from zerorunner.steps.step_result import TStepResult
 from zerorunner.utils import merge_variables
 
@@ -342,3 +344,80 @@ class SessionRunner(object):
         finally:
             logger.remove(log_handler)
         return self
+
+    def run_hooks(
+            self,
+            hooks: Hooks,
+            step_variables: VariablesMapping,
+            hook_msg: str,
+            parent_step_result: TStepResult
+    ) -> typing.Union[typing.List[StepResult], typing.Any]:
+        """ 调用钩子.
+
+        Args:
+            runner (list): 包含可能是字符串，控制器.
+            hook_msg (list): 包含可能是字符串，控制器.
+            parent_step_result (list): 包含可能是字符串，控制器.
+            step_variables (list): 包含可能是字符串，控制器.
+            hooks (list): 包含可能是字符串，控制器.
+
+                format1 (str): 执行单个函数.
+                    ${func()}
+                format2 (dict): dict格式 执行函数并赋值给变量
+                    {"var": "${func()}"}
+
+            parent_step.variables: current step variables to call hook, include two special variables
+
+                request: parsed request dict
+                response: ResponseObject for current response
+
+            hook_type: pre 前置  post后置
+
+        """
+        logger.info(f"call hook actions: {hook_msg}")
+
+        if not isinstance(hooks, typing.List):
+            logger.error(f"Invalid hooks format: {hooks}")
+            return
+
+        for hook in hooks:
+            if isinstance(hook, str):
+                # format 1: ["${func()}"]
+                logger.debug(f"call hook function: {hook}")
+                self.parser.parse_data(hook, step_variables)
+            elif isinstance(hook, typing.Dict) and len(hook) == 1:
+                # format 2: {"var": "${func()}"}
+                var_name, hook_content = list(hook.items())[0]
+                hook_content_eval = self.parser.parse_data(
+                    hook_content, step_variables
+                )
+                logger.debug(
+                    f"call hook function: {hook_content}, got value: {hook_content_eval}"
+                )
+                logger.debug(f"assign variable: {var_name} = {hook_content_eval}")
+                step_variables[var_name] = hook_content_eval
+            elif hasattr(hook, "run"):
+                try:
+                    self.run_step(hook, step_tag=hook_msg, parent_step_result=parent_step_result)
+                except Exception:
+                    logger.error(traceback.format_exc())
+                    continue
+            else:
+                logger.error(f"Invalid hook format: {hook}")
+
+    def run_script(self, step, script: str, module_name: str = None, params: dict = None):
+        module_name = module_name or uuid.uuid4().hex
+        zero = Zero(runner=self,
+                    step=step,
+                    environment=self.config.env_variables,
+                    variables=self.get_merge_variable_pool())
+        module_params = {"zero": zero}
+        if self.config.functions:
+            module_params.update(self.config.functions)
+        if params:
+            module_params.update(params)
+        model, captured_output = load_script_content(content=script,
+                                                     module_name=f"script_{module_name}",
+                                                     params=module_params)
+
+        return model, captured_output

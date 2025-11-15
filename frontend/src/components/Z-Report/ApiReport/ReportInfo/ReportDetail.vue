@@ -299,9 +299,9 @@ const getStatisticsDataByDebug = (step_results) => {
 
   step_results.forEach((e) => {
     if (e.step_type === 'api') {
-      e.url = e.session_data.req_resp.request.url
-      e.method = e.session_data.req_resp.request.method
-      e.status_code = e.session_data.req_resp.response.status_code
+      e.url = e.session_data.request.url
+      e.method = e.session_data.request.method
+      e.status_code = e.session_data.response.status_code
       e.elapsed_ms = e.session_data.stat.elapsed_ms
       elapsed_ms += e.session_data.stat.elapsed_ms
       statisticsData.request_time_count += e.duration

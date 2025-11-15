@@ -14,7 +14,7 @@ from zerorunner import exceptions, utils
 from zerorunner.ext.uploader import prepare_upload_step
 from zerorunner.loader import load_script_content
 from zerorunner.models.base import TStepResultStatusEnum, Hooks
-from zerorunner.models.result_model import StepResult
+from zerorunner.models.result_model import StepResult, SessionData, RequestData, ApiResponseData
 from zerorunner.models.step_model import TStep
 from zerorunner.models.step_model import VariablesMapping, TRequest, MethodEnum
 from zerorunner.parser import build_url, Parser
@@ -100,6 +100,18 @@ def run_api_request(runner: SessionRunner,
     # 初始化resp_obj
     resp_obj = None
     extract_mapping = {}
+    runner.session.data = SessionData()
+    request = RequestData(**{"url": "N/A", "method": "N/A", "headers": {}})
+    response = ApiResponseData(**{
+        "status_code": 0,
+        "headers": {},
+        "encoding": None,
+        "content_type": "",
+    })
+    # res_resp = ReqRespData(**{"request": request, "response": response})
+    # self.data.req_resp = res_resp
+    runner.session.data.request = request
+    runner.session.data.response = response
     # 捕获异常
     try:
         runner.handle_skip_feature(step)

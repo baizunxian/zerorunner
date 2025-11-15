@@ -258,7 +258,7 @@ const state = reactive({
       }
     },
     {
-      key: 'name', label: '用例名', width: '', show: true,
+      key: 'name', label: '名称', width: '', show: true,
       render: ({row}) => h(ElButton, {
         link: true,
         type: "primary",
