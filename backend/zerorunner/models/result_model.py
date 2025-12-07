@@ -5,7 +5,7 @@ import typing
 from pydantic import BaseModel, Field
 
 from zerorunner.models.base import VariablesMapping, MethodEnum, Url, Headers, Cookies
-from zerorunner.models.step_model import TSqlRequest
+from zerorunner.models.step_model import TSqlRequest, TIFRequest
 
 
 class RequestStat(BaseModel):
@@ -32,7 +32,7 @@ class RequestData(BaseModel):
     body: typing.Union[str, bytes, typing.List, typing.Dict, None] = Field({}, description="body")
 
 
-class ResponseData(BaseModel):
+class ApiResponseData(BaseModel):
     """响应数据"""
     status_code: int = Field(..., description="状态码")
     headers: typing.Dict = Field(..., description="响应头")
@@ -45,13 +45,41 @@ class ResponseData(BaseModel):
 class ReqRespData(BaseModel):
     """请求响应数据"""
     request: RequestData = Field(..., description="请求数据")
-    response: ResponseData = Field(..., description="响应数据")
+    response: ApiResponseData = Field(..., description="响应数据")
+
+
+class PyScriptResponseData(BaseModel):
+    """脚本响应"""
+
+    result: typing.Any = Field(default=None, description="执行结果")
+
+
+class IFResponseData(TIFRequest):
+    """if会话数据"""
+
+    check_result: typing.Optional[bool] = Field(default=False, description="校验结果")
+    expect_value: typing.Optional[typing.Any] = Field("", description="预期值")
+    check_value: typing.Optional[str] = Field("", description="实际值")
+    check_value_type: typing.Optional[typing.Any] = Field(default="", description="校验值类型")
+    expect_value_type: typing.Optional[typing.Any] = Field(default="", description="预期值类型")
+    message: typing.Optional[str] = Field("", description="错误信息")
+    result: typing.Any = Field(default=None, description="执行结果")
+
+
+class SqlResponseData(BaseModel):
+    """sql会话数据"""
+
+    result: typing.Any = Field(default=None, description="执行结果")
 
 
 class SessionData(BaseModel):
     """请求会话数据，包括请求、响应、验证器和stat数据"""
     success: bool = Field(False, description="是否成功")
-    req_resp: ReqRespData = Field({}, description="请求，响应数据")
+    request: typing.Union["TStepRequest", RequestData] = Field(default={}, description="请求数据")
+    response: typing.Union[
+        ApiResponseData, SqlResponseData, PyScriptResponseData, IFResponseData] = Field(
+        description="响应数据", default_factory=dict)
+    # req_resp: ReqRespData = Field({}, description="请求，响应数据")
     stat: RequestStat = Field(RequestStat(), description="时间")
     address: AddressData = Field(AddressData(), description="地址")
     validators: typing.Dict = Field({}, description="校验")

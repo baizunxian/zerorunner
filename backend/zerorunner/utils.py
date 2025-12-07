@@ -281,3 +281,21 @@ def default_serialize(obj):
         return jsonable_encoder(obj)
     except TypeError as err:
         return repr(obj)
+
+
+def parser_json(data: typing.Any, to_json: bool = True) -> typing.Any:
+    """
+    解析是否为json
+    """
+    try:
+        if to_json:
+            if isinstance(data, str):
+                return json.loads(data)
+            else:
+                return json.loads(json.dumps(data))
+        else:
+            if isinstance(data, str):
+                return data
+            return json.dumps(data, ensure_ascii=False)
+    except Exception:
+        return str(data) if not isinstance(data, str) else data

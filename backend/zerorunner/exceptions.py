@@ -102,3 +102,8 @@ class StepRuntimeError(MyBaseError):
 class EnvInitError(MyBaseError):
     """环境初始化失败"""
     pass
+
+
+class TestCaseSkip(MyBaseError):
+    """步骤跳过"""
+    pass

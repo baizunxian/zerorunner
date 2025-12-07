@@ -129,7 +129,7 @@ const {copyText} = commonFunction()
 const state = reactive({
   // modeTypes
   modeTypes: getModeTypeObj("extract"),
-  extract_type: "jmespath",
+  extract_type: "JsonPath",
   extractTypeGroup: {},
 
 })

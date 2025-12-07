@@ -17,7 +17,7 @@ from requests.exceptions import (
     RequestException,
 )
 
-from zerorunner.models.result_model import ReqRespData, SessionData, RequestData, ResponseData
+from zerorunner.models.result_model import ReqRespData, SessionData, RequestData, ApiResponseData
 from zerorunner.utils import lower_dict_keys, omit_long_data
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -104,7 +104,7 @@ def get_req_resp_record(resp_obj: Response) -> ReqRespData:
             resp_text = resp_obj.text
             response_body = omit_long_data(resp_text)
 
-    response_data = ResponseData(
+    response_data = ApiResponseData(
         status_code=resp_obj.status_code,
         cookies=resp_obj.cookies or {},
         encoding=resp_obj.encoding,
@@ -137,14 +137,16 @@ class HttpSession(requests.Session):
 
     def __init_req_resp(self):
         request = RequestData(**{"url": "N/A", "method": "N/A", "headers": {}})
-        response = ResponseData(**{
+        response = ApiResponseData(**{
             "status_code": 0,
             "headers": {},
             "encoding": None,
             "content_type": "",
         })
-        res_resp = ReqRespData(**{"request": request, "response": response})
-        self.data.req_resp = res_resp
+        # res_resp = ReqRespData(**{"request": request, "response": response})
+        # self.data.req_resp = res_resp
+        self.data.request = request
+        self.data.response = response
 
     def update_last_req_resp_record(self, resp_obj):
         """
@@ -232,7 +234,9 @@ class HttpSession(requests.Session):
 
         # record request and response histories, include 30X redirection
         # response_list = response.history + [response]
-        self.data.req_resp = get_req_resp_record(response)
+        req_resp = get_req_resp_record(response)
+        self.data.request = req_resp.request
+        self.data.response = req_resp.response
 
         try:
             response.raise_for_status()

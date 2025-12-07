@@ -45,7 +45,7 @@
       </el-col>
       <el-col v-if="isView" :span="2">
         <div class="api-case__operation">
-          <el-button size="default" type="success" @click="() => emit('debugStep')"> 调试</el-button>
+          <el-button size="default" type="success" @click="handleDebug"> 调试</el-button>
         </div>
       </el-col>
       <!--      </div>-->
@@ -288,7 +288,6 @@ const state = reactive({
 // 初始化表单
 const setData = (formData, step_type) => {
   nextTick(() => {
-    console.log(formData, "formData")
     state.stepType = step_type
     state.form = createForm(step_type)
     if (formData) {

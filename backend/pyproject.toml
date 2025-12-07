@@ -39,7 +39,7 @@ dependencies = [
     "rsa>=4.9.1",
     "selenium==4.9.1",
     "sniffio==1.3.0",
-    "sqlalchemy==2.0.43",
+    "sqlalchemy==2.0.44",
     "tzdata>=2025.2",
     "urllib3==1.26.14",
     "uvicorn==0.20.0",

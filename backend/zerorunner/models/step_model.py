@@ -46,7 +46,7 @@ class ValidatorData(BaseModel):
 
 class TRequest(BaseModel):
     """api 请求模型"""
-    request_type_: typing.Literal["api"] = Field(None, description="api", exclude=True)
+    request_type_: typing.Literal["api"] = Field('api', description="api", exclude=True)
 
     method: typing.Union[str, MethodEnum] = Field(..., description="请求方法")
     url: Url = Field(..., description="请求url")
@@ -68,7 +68,7 @@ class TRequest(BaseModel):
 
 class TSqlRequest(BaseModel):
     """sql请求模型"""
-    request_type_: typing.Literal["sql"] = Field(None, description="sql", exclude=True)
+    request_type_: typing.Literal["sql"] = Field('sql', description="sql", exclude=True)
 
     sql: str = Field("", description="sql")
     host: str = Field(None, description="host")
@@ -82,7 +82,7 @@ class TSqlRequest(BaseModel):
 
 class TUiRequest(BaseModel):
     """ui请求模型"""
-    request_type_: typing.Literal["ui"] = Field(None, description="ui", exclude=True)
+    request_type_: typing.Literal["ui"] = Field('ui', description="ui", exclude=True)
 
     action: str = Field(None, description="动作")
     data: str = Field(None, description="输入数据")
@@ -94,7 +94,7 @@ class TUiRequest(BaseModel):
 
 class TIFRequest(BaseModel):
     """if请求模型"""
-    request_type_: typing.Literal["if"] = Field(None, description="if", exclude=True)
+    request_type_: typing.Literal["if"] = Field('if', description="if", exclude=True)
 
     check: str = Field("", description="校验变量")
     comparator: str = Field("", description="对比规则")
@@ -107,14 +107,14 @@ class TIFRequest(BaseModel):
 
 class TWaitRequest(BaseModel):
     """等待请求"""
-    request_type_: typing.Literal["wait"] = Field(None, description="wait", exclude=True)
+    request_type_: typing.Literal["wait"] = Field('wait', description="wait", exclude=True)
 
     wait_time: int = Field(0, description="等待时间秒(s)")
 
 
 class TLoopRequest(BaseModel):
     """循环请求"""
-    request_type_: typing.Literal["loop"] = Field(None, description="loop", exclude=True)
+    request_type_: typing.Literal["loop"] = Field('loop', description="loop", exclude=True)
 
     loop_type: str = Field("", description="count 次数循环  for 循环  while 循环")
     # loop_type == "count"
@@ -136,7 +136,7 @@ class TLoopRequest(BaseModel):
 
 class TScriptRequest(BaseModel):
     """脚本请求"""
-    request_type_: typing.Literal["script"] = Field(None, description="script", exclude=True)
+    request_type_: typing.Literal["script"] = Field('script', description="script", exclude=True)
 
     script_content: str = Field(None, description="脚本类容")
 

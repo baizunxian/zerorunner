@@ -2,7 +2,7 @@ import json
 import typing
 from base64 import b64encode
 
-from zerorunner.models.result_model import RequestData, ResponseData, StepResult, TestCaseSummary
+from zerorunner.models.result_model import RequestData, ApiResponseData, StepResult, TestCaseSummary
 
 try:
     from collections import Iterable
@@ -81,6 +81,8 @@ def __stringify_request(request_data: RequestData):
             }
 
     """
+    if not request_data:
+        return
     for key, value in request_data.dict().items():
 
         # if isinstance(value, (list, dict)):
@@ -108,7 +110,7 @@ def __stringify_request(request_data: RequestData):
         setattr(request_data, key, value)
 
 
-def __stringify_response(response_data: ResponseData):
+def __stringify_response(response_data: ApiResponseData):
     """stringfy HTTP response data
 
     Args:
@@ -135,6 +137,8 @@ def __stringify_response(response_data: ResponseData):
             }
 
     """
+    if not response_data:
+        return
     for key, value in response_data.dict().items():
 
         # if isinstance(value, (list, dict)):
@@ -164,9 +168,11 @@ def __stringify_response(response_data: ResponseData):
 
 
 def __stringify_step_data(step_data: StepResult):
-    if step_data.session_data and hasattr(step_data.session_data, "req_resp"):
-        __stringify_request(step_data.session_data.req_resp.request)
-        __stringify_response(step_data.session_data.req_resp.response)
+    if step_data.session_data:
+        if hasattr(step_data.session_data, 'request'):
+            __stringify_request(step_data.session_data.request)
+        if hasattr(step_data.session_data, 'response'):
+            __stringify_response(step_data.session_data.response)
 
 
 def stringify_summary(summary: TestCaseSummary):
