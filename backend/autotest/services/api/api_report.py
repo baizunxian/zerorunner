@@ -114,12 +114,13 @@ class ReportService:
             if new_step.get("start_time", None):
                 new_step["start_time"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(new_step["start_time"]))
             if result.session_data:
-                if result.session_data and hasattr(result.session_data, "req_resp"):
-                    new_step["url"] = result.session_data.req_resp.request.url
-                    new_step["method"] = result.session_data.req_resp.request.method
-                    new_step["status_code"] = result.session_data.req_resp.response.status_code
+                if result.session_data and hasattr(result.session_data, "request"):
+                    new_step["url"] = result.session_data.request.url
+                    new_step["method"] = result.session_data.request.method
                     new_step["response_time_ms"] = result.session_data.stat.response_time_ms
                     new_step["elapsed_ms"] = result.session_data.stat.elapsed_ms
+                if result.session_data and hasattr(result.session_data, "response"):
+                    new_step["status_code"] = result.session_data.response.status_code
             step_results_list.append(new_step)
 
         return step_results_list
