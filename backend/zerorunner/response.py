@@ -161,6 +161,7 @@ class ResponseObject(object):
         self.resp_obj = resp_obj
         self.validation_results: typing.Dict = {}
         self.resp_data = ResponseData()
+        self.parser = parser
 
         if  isinstance(resp_obj, Response):
             self.resp_data.text = resp_obj.text
